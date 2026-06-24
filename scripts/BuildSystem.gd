@@ -1,10 +1,16 @@
 extends Node
 
 const SOURCE_ID := 0
+const BUILD_TYPE_WALL := "Wall"
+const BUILD_TYPE_CAMPFIRE := "Campfire"
 const WALL_TILE := Vector2i(2, 0)
+const CAMPFIRE_TILE := Vector2i(3, 0)
 const WALL_COST_RESOURCE := "Wood"
 const WALL_COST_AMOUNT := 1
+const CAMPFIRE_WOOD_COST_AMOUNT := 3
+const CAMPFIRE_STONE_COST_AMOUNT := 1
 const VALID_PREVIEW_COLOR := Color(0.50, 0.32, 0.18, 0.55)
+const VALID_CAMPFIRE_PREVIEW_COLOR := Color(0.88, 0.34, 0.10, 0.55)
 const INVALID_PREVIEW_COLOR := Color(0.90, 0.12, 0.10, 0.55)
 
 @export var tile_size: Vector2i = Vector2i(32, 32)
@@ -18,6 +24,7 @@ const INVALID_PREVIEW_COLOR := Color(0.90, 0.12, 0.10, 0.55)
 
 var build_mode_enabled := false
 var current_tile := Vector2i.ZERO
+var selected_build_type := BUILD_TYPE_WALL
 var preview: Polygon2D
 
 @onready var main = get_node(main_path)
@@ -30,6 +37,8 @@ var preview: Polygon2D
 
 
 func _ready() -> void:
+	add_to_group("build_system")
+
 	if build_layer.tile_set != null:
 		tile_size = build_layer.tile_set.tile_size
 
@@ -52,13 +61,27 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not build_mode_enabled:
 		return
 
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_1:
+		selected_build_type = BUILD_TYPE_WALL
+		get_viewport().set_input_as_handled()
+		_update_preview()
+		_update_build_label()
+		return
+
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_2:
+		selected_build_type = BUILD_TYPE_CAMPFIRE
+		get_viewport().set_input_as_handled()
+		_update_preview()
+		_update_build_label()
+		return
+
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		get_viewport().set_input_as_handled()
-		_try_place_wall(current_tile)
+		_try_place_selected_building(current_tile)
 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		get_viewport().set_input_as_handled()
-		_try_remove_wall(current_tile)
+		_try_remove_building(current_tile)
 
 
 func _get_mouse_tile() -> Vector2i:
@@ -66,30 +89,81 @@ func _get_mouse_tile() -> Vector2i:
 	return _local_position_to_grid_cell(mouse_position)
 
 
+func _try_place_selected_building(tile_position: Vector2i) -> bool:
+	return _try_place_building(tile_position, selected_build_type)
+
+
 func _try_place_wall(tile_position: Vector2i) -> bool:
-	if not _can_place_wall(tile_position, true):
+	return _try_place_building(tile_position, BUILD_TYPE_WALL)
+
+
+func _try_place_campfire(tile_position: Vector2i) -> bool:
+	return _try_place_building(tile_position, BUILD_TYPE_CAMPFIRE)
+
+
+func _try_place_building(tile_position: Vector2i, building_type: String) -> bool:
+	if not _can_place_building(tile_position, building_type, true):
 		return false
 
-	if not main.spend_resource(WALL_COST_RESOURCE, WALL_COST_AMOUNT):
-		print("Not enough Wood to build a wall.")
-		return false
-
-	build_layer.set_cell(tile_position, SOURCE_ID, WALL_TILE)
-	print("Built wall at tile %s" % tile_position)
+	_spend_building_cost(building_type)
+	build_layer.set_cell(tile_position, SOURCE_ID, _get_building_tile(building_type))
+	print("Built %s at tile %s" % [building_type, tile_position])
 	_update_preview()
 	return true
 
 
 func _try_remove_wall(tile_position: Vector2i) -> bool:
-	if not _is_player_built_wall(tile_position):
-		print("There is no player-built wall here.")
+	return _try_remove_building(tile_position)
+
+
+func _try_remove_building(tile_position: Vector2i) -> bool:
+	var building_type := _get_building_type_at_tile(tile_position)
+	if building_type.is_empty():
+		print("There is no player-built construction here.")
 		return false
 
 	build_layer.erase_cell(tile_position)
-	main.add_resource(WALL_COST_RESOURCE, WALL_COST_AMOUNT)
-	print("Removed wall at tile %s" % tile_position)
+	_refund_building_cost(building_type)
+	print("Removed %s at tile %s" % [building_type, tile_position])
 	_update_preview()
 	return true
+
+
+func get_built_buildings() -> Array:
+	var buildings := []
+
+	for cell in build_layer.get_used_cells():
+		var building_type := _get_building_type_at_tile(cell)
+		if building_type.is_empty():
+			continue
+
+		buildings.append({
+			"type": building_type,
+			"x": cell.x,
+			"y": cell.y,
+		})
+
+	return buildings
+
+
+func load_built_buildings(buildings: Array) -> void:
+	_clear_built_buildings()
+
+	for building in buildings:
+		if not building is Dictionary:
+			continue
+
+		var building_type := str(building.get("type", BUILD_TYPE_WALL))
+		if not _is_known_building_type(building_type):
+			continue
+
+		var tile_position := Vector2i(
+			int(building.get("x", 0)),
+			int(building.get("y", 0))
+		)
+		build_layer.set_cell(tile_position, SOURCE_ID, _get_building_tile(building_type))
+
+	_update_preview()
 
 
 func get_built_wall_cells() -> Array:
@@ -106,22 +180,31 @@ func get_built_wall_cells() -> Array:
 
 
 func load_built_wall_cells(wall_cells: Array) -> void:
-	_clear_built_walls()
+	var buildings := []
 
 	for wall_cell in wall_cells:
 		if not wall_cell is Dictionary:
 			continue
 
-		var tile_position := Vector2i(
-			int(wall_cell.get("x", 0)),
-			int(wall_cell.get("y", 0))
-		)
-		build_layer.set_cell(tile_position, SOURCE_ID, WALL_TILE)
+		buildings.append({
+			"type": BUILD_TYPE_WALL,
+			"x": int(wall_cell.get("x", 0)),
+			"y": int(wall_cell.get("y", 0)),
+		})
 
-	_update_preview()
+	load_built_buildings(buildings)
 
 
 func _can_place_wall(tile_position: Vector2i, show_message := false) -> bool:
+	return _can_place_building(tile_position, BUILD_TYPE_WALL, show_message)
+
+
+func _can_place_building(tile_position: Vector2i, building_type: String, show_message := false) -> bool:
+	if not _is_known_building_type(building_type):
+		if show_message:
+			print("Unknown building type: %s" % building_type)
+		return false
+
 	if ground_layer.get_cell_source_id(tile_position) == -1:
 		if show_message:
 			print("Cannot build outside the map.")
@@ -139,7 +222,7 @@ func _can_place_wall(tile_position: Vector2i, show_message := false) -> bool:
 
 	if build_layer.get_cell_source_id(tile_position) != -1:
 		if show_message:
-			print("There is already a wall here.")
+			print("There is already a construction here.")
 		return false
 
 	if tile_position == _global_position_to_grid_cell(player.global_position):
@@ -147,25 +230,92 @@ func _can_place_wall(tile_position: Vector2i, show_message := false) -> bool:
 			print("Cannot build on the player.")
 		return false
 
-	if not main.can_spend_resource(WALL_COST_RESOURCE, WALL_COST_AMOUNT):
+	if not _can_spend_building_cost(building_type):
 		if show_message:
-			print("Not enough Wood to build a wall.")
+			print("Not enough resources to build %s." % building_type)
 		return false
 
 	return true
 
 
 func _is_player_built_wall(tile_position: Vector2i) -> bool:
-	return (
-		build_layer.get_cell_source_id(tile_position) == SOURCE_ID
-		and build_layer.get_cell_atlas_coords(tile_position) == WALL_TILE
-	)
+	return _get_building_type_at_tile(tile_position) == BUILD_TYPE_WALL
 
 
 func _clear_built_walls() -> void:
 	for cell in build_layer.get_used_cells():
 		if _is_player_built_wall(cell):
 			build_layer.erase_cell(cell)
+
+
+func _clear_built_buildings() -> void:
+	for cell in build_layer.get_used_cells():
+		if not _get_building_type_at_tile(cell).is_empty():
+			build_layer.erase_cell(cell)
+
+
+func _get_building_type_at_tile(tile_position: Vector2i) -> String:
+	if build_layer.get_cell_source_id(tile_position) != SOURCE_ID:
+		return ""
+
+	var atlas_coords := build_layer.get_cell_atlas_coords(tile_position)
+	if atlas_coords == WALL_TILE:
+		return BUILD_TYPE_WALL
+	if atlas_coords == CAMPFIRE_TILE:
+		return BUILD_TYPE_CAMPFIRE
+
+	return ""
+
+
+func _get_building_tile(building_type: String) -> Vector2i:
+	if building_type == BUILD_TYPE_CAMPFIRE:
+		return CAMPFIRE_TILE
+
+	return WALL_TILE
+
+
+func _is_known_building_type(building_type: String) -> bool:
+	return building_type == BUILD_TYPE_WALL or building_type == BUILD_TYPE_CAMPFIRE
+
+
+func _get_building_cost(building_type: String) -> Array:
+	if building_type == BUILD_TYPE_CAMPFIRE:
+		return [
+			{"resource": "Wood", "amount": CAMPFIRE_WOOD_COST_AMOUNT},
+			{"resource": "Stone", "amount": CAMPFIRE_STONE_COST_AMOUNT},
+		]
+
+	return [
+		{"resource": WALL_COST_RESOURCE, "amount": WALL_COST_AMOUNT},
+	]
+
+
+func _can_spend_building_cost(building_type: String) -> bool:
+	for cost in _get_building_cost(building_type):
+		if not main.can_spend_resource(cost["resource"], cost["amount"]):
+			return false
+
+	return true
+
+
+func _spend_building_cost(building_type: String) -> void:
+	for cost in _get_building_cost(building_type):
+		main.spend_resource(cost["resource"], cost["amount"])
+
+
+func _refund_building_cost(building_type: String) -> void:
+	for cost in _get_building_cost(building_type):
+		main.add_resource(cost["resource"], cost["amount"])
+
+
+func get_campfire_positions() -> Array:
+	var campfire_positions := []
+
+	for cell in build_layer.get_used_cells():
+		if _get_building_type_at_tile(cell) == BUILD_TYPE_CAMPFIRE:
+			campfire_positions.append(build_layer.to_global(_grid_cell_to_local_center(cell)))
+
+	return campfire_positions
 
 
 func _is_resource_at_tile(tile_position: Vector2i) -> bool:
@@ -205,6 +355,10 @@ func _set_build_mode_enabled(is_enabled: bool) -> void:
 	_update_build_label()
 
 
+func is_build_mode_enabled() -> bool:
+	return build_mode_enabled
+
+
 func _create_preview() -> void:
 	preview = Polygon2D.new()
 	preview.name = "BuildPreview"
@@ -229,9 +383,24 @@ func _update_preview() -> void:
 		return
 
 	preview.position = _grid_cell_to_local_center(current_tile)
-	preview.color = VALID_PREVIEW_COLOR if _can_place_wall(current_tile) else INVALID_PREVIEW_COLOR
+	preview.color = _get_preview_color()
+
+
+func _get_preview_color() -> Color:
+	if not _can_place_building(current_tile, selected_build_type):
+		return INVALID_PREVIEW_COLOR
+
+	if selected_build_type == BUILD_TYPE_CAMPFIRE:
+		return VALID_CAMPFIRE_PREVIEW_COLOR
+
+	return VALID_PREVIEW_COLOR
 
 
 func _update_build_label() -> void:
 	var mode_text := "On" if build_mode_enabled else "Off"
-	build_label.text = "Build: %s | Tile: %d, %d" % [mode_text, current_tile.x, current_tile.y]
+	build_label.text = "Build: %s | %s | Tile: %d, %d" % [
+		mode_text,
+		selected_build_type,
+		current_tile.x,
+		current_tile.y,
+	]

@@ -3,15 +3,19 @@ extends CharacterBody2D
 @export var speed: float = 45.0
 @export var damage: int = 10
 @export var damage_cooldown: float = 1.0
+@export var max_health: int = 30
 
 var player: CharacterBody2D
 var player_in_contact := false
 var damage_timer := 0.0
+var health: int = 30
 
 @onready var damage_area: Area2D = $DamageArea
 
 
 func _ready() -> void:
+	add_to_group("enemy")
+	health = max_health
 	damage_area.body_entered.connect(_on_damage_area_body_entered)
 	damage_area.body_exited.connect(_on_damage_area_body_exited)
 	player = get_tree().get_first_node_in_group("player") as CharacterBody2D
@@ -43,6 +47,16 @@ func _update_damage(delta: float) -> void:
 	if player_in_contact and damage_timer <= 0.0 and player != null:
 		player.take_damage(damage)
 		damage_timer = damage_cooldown
+
+
+func take_damage(amount: int) -> void:
+	if amount <= 0:
+		return
+
+	health = max(health - amount, 0)
+
+	if health == 0:
+		queue_free()
 
 
 func _on_damage_area_body_entered(body: Node2D) -> void:

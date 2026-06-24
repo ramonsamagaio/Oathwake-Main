@@ -65,6 +65,7 @@ func save_game() -> void:
 			"Stone": inventory.get_resource_amount("Stone"),
 		},
 		"walls": build_system.get_built_wall_cells(),
+		"buildings": build_system.get_built_buildings(),
 		"collected_resources": collected_resource_ids.keys(),
 	}
 
@@ -105,11 +106,15 @@ func load_game() -> void:
 	inventory.set_resource_amount("Wood", int(inventory_data.get("Wood", 0)))
 	inventory.set_resource_amount("Stone", int(inventory_data.get("Stone", 0)))
 
-	var wall_cells = save_data.get("walls", [])
-	if not wall_cells is Array:
-		wall_cells = []
+	var buildings = save_data.get("buildings", [])
+	if save_data.has("buildings") and buildings is Array:
+		build_system.load_built_buildings(buildings)
+	else:
+		var wall_cells = save_data.get("walls", [])
+		if not wall_cells is Array:
+			wall_cells = []
 
-	build_system.load_built_wall_cells(wall_cells)
+		build_system.load_built_wall_cells(wall_cells)
 
 	var collected_resources = save_data.get("collected_resources", [])
 	if not collected_resources is Array:
