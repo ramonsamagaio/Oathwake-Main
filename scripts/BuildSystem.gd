@@ -1,16 +1,16 @@
 extends Node
 
+const RecipeBookScript = preload("res://scripts/systems/RecipeBook.gd")
 const SOURCE_ID := 0
-const BUILD_TYPE_WALL := "Wall"
-const BUILD_TYPE_CAMPFIRE := "Campfire"
+const BUILD_TYPE_WALL := RecipeBookScript.WALL_ID
+const BUILD_TYPE_CAMPFIRE := RecipeBookScript.CAMPFIRE_ID
+const BUILD_TYPE_WORKBENCH := RecipeBookScript.WORKBENCH_ID
 const WALL_TILE := Vector2i(2, 0)
 const CAMPFIRE_TILE := Vector2i(3, 0)
-const WALL_COST_RESOURCE := "Wood"
-const WALL_COST_AMOUNT := 1
-const CAMPFIRE_WOOD_COST_AMOUNT := 3
-const CAMPFIRE_STONE_COST_AMOUNT := 1
+const WORKBENCH_TILE := Vector2i(4, 0)
 const VALID_PREVIEW_COLOR := Color(0.50, 0.32, 0.18, 0.55)
 const VALID_CAMPFIRE_PREVIEW_COLOR := Color(0.88, 0.34, 0.10, 0.55)
+const VALID_WORKBENCH_PREVIEW_COLOR := Color(0.44, 0.28, 0.14, 0.55)
 const INVALID_PREVIEW_COLOR := Color(0.90, 0.12, 0.10, 0.55)
 
 @export var tile_size: Vector2i = Vector2i(32, 32)
@@ -26,6 +26,7 @@ var build_mode_enabled := false
 var current_tile := Vector2i.ZERO
 var selected_build_type := BUILD_TYPE_WALL
 var preview: Polygon2D
+var recipe_book := RecipeBookScript.new()
 
 @onready var main = get_node(main_path)
 @onready var player: CharacterBody2D = get_node(player_path)
@@ -53,6 +54,9 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _is_crafting_open():
+		return
+
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_B:
 		_set_build_mode_enabled(not build_mode_enabled)
 		get_viewport().set_input_as_handled()
@@ -61,19 +65,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not build_mode_enabled:
 		return
 
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_1:
-		selected_build_type = BUILD_TYPE_WALL
-		get_viewport().set_input_as_handled()
-		_update_preview()
-		_update_build_label()
-		return
-
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_2:
-		selected_build_type = BUILD_TYPE_CAMPFIRE
-		get_viewport().set_input_as_handled()
-		_update_preview()
-		_update_build_label()
-		return
+	if event is InputEventKey and event.pressed and not event.echo:
+		var recipe_id := recipe_book.get_recipe_id_for_key(event.keycode)
+		if not recipe_id.is_empty():
+			selected_build_type = recipe_id
+			get_viewport().set_input_as_handled()
+			_update_preview()
+			_update_build_label()
+			return
 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		get_viewport().set_input_as_handled()
@@ -101,13 +100,17 @@ func _try_place_campfire(tile_position: Vector2i) -> bool:
 	return _try_place_building(tile_position, BUILD_TYPE_CAMPFIRE)
 
 
+func _try_place_workbench(tile_position: Vector2i) -> bool:
+	return _try_place_building(tile_position, BUILD_TYPE_WORKBENCH)
+
+
 func _try_place_building(tile_position: Vector2i, building_type: String) -> bool:
 	if not _can_place_building(tile_position, building_type, true):
 		return false
 
 	_spend_building_cost(building_type)
 	build_layer.set_cell(tile_position, SOURCE_ID, _get_building_tile(building_type))
-	print("Built %s at tile %s" % [building_type, tile_position])
+	print("Built %s at tile %s" % [_get_building_display_name(building_type), tile_position])
 	_update_preview()
 	return true
 
@@ -124,7 +127,7 @@ func _try_remove_building(tile_position: Vector2i) -> bool:
 
 	build_layer.erase_cell(tile_position)
 	_refund_building_cost(building_type)
-	print("Removed %s at tile %s" % [building_type, tile_position])
+	print("Removed %s at tile %s" % [_get_building_display_name(building_type), tile_position])
 	_update_preview()
 	return true
 
@@ -232,7 +235,7 @@ func _can_place_building(tile_position: Vector2i, building_type: String, show_me
 
 	if not _can_spend_building_cost(building_type):
 		if show_message:
-			print("Not enough resources to build %s." % building_type)
+			print("Not enough resources to build %s." % _get_building_display_name(building_type))
 		return false
 
 	return true
@@ -263,6 +266,8 @@ func _get_building_type_at_tile(tile_position: Vector2i) -> String:
 		return BUILD_TYPE_WALL
 	if atlas_coords == CAMPFIRE_TILE:
 		return BUILD_TYPE_CAMPFIRE
+	if atlas_coords == WORKBENCH_TILE:
+		return BUILD_TYPE_WORKBENCH
 
 	return ""
 
@@ -270,29 +275,29 @@ func _get_building_type_at_tile(tile_position: Vector2i) -> String:
 func _get_building_tile(building_type: String) -> Vector2i:
 	if building_type == BUILD_TYPE_CAMPFIRE:
 		return CAMPFIRE_TILE
+	if building_type == BUILD_TYPE_WORKBENCH:
+		return WORKBENCH_TILE
 
 	return WALL_TILE
 
 
 func _is_known_building_type(building_type: String) -> bool:
-	return building_type == BUILD_TYPE_WALL or building_type == BUILD_TYPE_CAMPFIRE
+	return recipe_book.has_recipe(building_type)
 
 
 func _get_building_cost(building_type: String) -> Array:
-	if building_type == BUILD_TYPE_CAMPFIRE:
-		return [
-			{"resource": "Wood", "amount": CAMPFIRE_WOOD_COST_AMOUNT},
-			{"resource": "Stone", "amount": CAMPFIRE_STONE_COST_AMOUNT},
-		]
+	return recipe_book.get_cost(building_type)
 
-	return [
-		{"resource": WALL_COST_RESOURCE, "amount": WALL_COST_AMOUNT},
-	]
+
+func _get_building_display_name(building_type: String) -> String:
+	return recipe_book.get_display_name(building_type)
 
 
 func _can_spend_building_cost(building_type: String) -> bool:
 	for cost in _get_building_cost(building_type):
-		if not main.can_spend_resource(cost["resource"], cost["amount"]):
+		var resource_name := str(cost.get("resource", ""))
+		var amount := int(cost.get("amount", 0))
+		if not main.can_spend_resource(resource_name, amount):
 			return false
 
 	return true
@@ -300,12 +305,16 @@ func _can_spend_building_cost(building_type: String) -> bool:
 
 func _spend_building_cost(building_type: String) -> void:
 	for cost in _get_building_cost(building_type):
-		main.spend_resource(cost["resource"], cost["amount"])
+		var resource_name := str(cost.get("resource", ""))
+		var amount := int(cost.get("amount", 0))
+		main.spend_resource(resource_name, amount)
 
 
 func _refund_building_cost(building_type: String) -> void:
 	for cost in _get_building_cost(building_type):
-		main.add_resource(cost["resource"], cost["amount"])
+		var resource_name := str(cost.get("resource", ""))
+		var amount := int(cost.get("amount", 0))
+		main.add_resource(resource_name, amount)
 
 
 func get_campfire_positions() -> Array:
@@ -316,6 +325,24 @@ func get_campfire_positions() -> Array:
 			campfire_positions.append(build_layer.to_global(_grid_cell_to_local_center(cell)))
 
 	return campfire_positions
+
+
+func get_workbench_positions() -> Array:
+	var workbench_positions := []
+
+	for cell in build_layer.get_used_cells():
+		if _get_building_type_at_tile(cell) == BUILD_TYPE_WORKBENCH:
+			workbench_positions.append(build_layer.to_global(_grid_cell_to_local_center(cell)))
+
+	return workbench_positions
+
+
+func is_workbench_near_position(global_position: Vector2, max_distance: float) -> bool:
+	for workbench_position in get_workbench_positions():
+		if global_position.distance_to(workbench_position) <= max_distance:
+			return true
+
+	return false
 
 
 func _is_resource_at_tile(tile_position: Vector2i) -> bool:
@@ -355,8 +382,23 @@ func _set_build_mode_enabled(is_enabled: bool) -> void:
 	_update_build_label()
 
 
+func set_build_mode_enabled(is_enabled: bool) -> void:
+	_set_build_mode_enabled(is_enabled)
+
+
 func is_build_mode_enabled() -> bool:
 	return build_mode_enabled
+
+
+func _is_crafting_open() -> bool:
+	var crafting_system = get_tree().get_first_node_in_group("crafting_system")
+	if crafting_system == null:
+		return false
+
+	if not crafting_system.has_method("is_crafting_open"):
+		return false
+
+	return crafting_system.is_crafting_open()
 
 
 func _create_preview() -> void:
@@ -392,15 +434,82 @@ func _get_preview_color() -> Color:
 
 	if selected_build_type == BUILD_TYPE_CAMPFIRE:
 		return VALID_CAMPFIRE_PREVIEW_COLOR
+	if selected_build_type == BUILD_TYPE_WORKBENCH:
+		return VALID_WORKBENCH_PREVIEW_COLOR
 
 	return VALID_PREVIEW_COLOR
 
 
 func _update_build_label() -> void:
 	var mode_text := "On" if build_mode_enabled else "Off"
-	build_label.text = "Build: %s | %s | Tile: %d, %d" % [
-		mode_text,
-		selected_build_type,
-		current_tile.x,
-		current_tile.y,
+	var lines := [
+		"B: Build Mode %s" % mode_text,
 	]
+
+	for building_type in _get_building_ui_order():
+		lines.append("%s %s" % [
+			_get_building_key_text(building_type),
+			_get_building_display_name(building_type),
+		])
+
+	lines.append("Selected: %s" % _get_building_display_name(selected_build_type))
+	lines.append("Cost: %s" % _get_building_cost_text(selected_build_type))
+
+	if not _can_spend_building_cost(selected_build_type):
+		lines.append("Not enough resources")
+
+	lines.append("Tile: %d, %d" % [current_tile.x, current_tile.y])
+	build_label.text = _join_lines(lines)
+
+
+func _get_building_ui_order() -> Array:
+	return [
+		BUILD_TYPE_WALL,
+		BUILD_TYPE_CAMPFIRE,
+		BUILD_TYPE_WORKBENCH,
+	]
+
+
+func _get_building_key_text(building_type: String) -> String:
+	var build_key := recipe_book.get_build_key(building_type)
+	if build_key == KEY_1:
+		return "1"
+	if build_key == KEY_2:
+		return "2"
+	if build_key == KEY_3:
+		return "3"
+
+	return "?"
+
+
+func _get_building_cost_text(building_type: String) -> String:
+	var parts := []
+
+	for cost in _get_building_cost(building_type):
+		var resource_name := str(cost.get("resource", ""))
+		var amount := int(cost.get("amount", 0))
+		if resource_name.is_empty() or amount <= 0:
+			continue
+
+		parts.append("%d %s" % [amount, resource_name])
+
+	if parts.is_empty():
+		return "Free"
+
+	return _join_lines_with_separator(parts, ", ")
+
+
+func _join_lines(lines: Array) -> String:
+	return _join_lines_with_separator(lines, "\n")
+
+
+func _join_lines_with_separator(lines: Array, separator: String) -> String:
+	var text := ""
+
+	for line in lines:
+		if not text.is_empty():
+			text += separator
+
+		text += str(line)
+
+	return text

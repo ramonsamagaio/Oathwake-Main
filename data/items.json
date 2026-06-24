@@ -1,0 +1,17 @@
+{
+	"wood": {
+		"display_name": "Wood",
+		"stack_size": 999,
+		"description": "Basic material gathered from trees."
+	},
+	"stone": {
+		"display_name": "Stone",
+		"stack_size": 999,
+		"description": "Basic material gathered from rocks."
+	},
+	"gel": {
+		"display_name": "Gel",
+		"stack_size": 999,
+		"description": "Sticky material dropped by Slimes."
+	}
+}

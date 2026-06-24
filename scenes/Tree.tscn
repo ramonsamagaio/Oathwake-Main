@@ -10,8 +10,11 @@ size = Vector2(22, 20)
 
 [node name="Tree" type="Area2D"]
 script = ExtResource("1_resource_script")
+resource_type_id = "tree"
 resource_name = "Wood"
 collect_amount = 1
+max_health = 30
+respawn_time_seconds = 60.0
 
 [node name="Crown" type="Polygon2D" parent="."]
 color = Color(0.12, 0.42, 0.18, 1)

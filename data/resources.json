@@ -1,0 +1,16 @@
+{
+	"tree": {
+		"display_name": "Tree",
+		"max_health": 30,
+		"drop_item_id": "wood",
+		"drop_amount": 3,
+		"respawn_time_seconds": 60
+	},
+	"rock": {
+		"display_name": "Rock",
+		"max_health": 40,
+		"drop_item_id": "stone",
+		"drop_amount": 3,
+		"respawn_time_seconds": 90
+	}
+}

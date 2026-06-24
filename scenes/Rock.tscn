@@ -10,8 +10,11 @@ size = Vector2(34, 26)
 
 [node name="Rock" type="Area2D"]
 script = ExtResource("1_resource_script")
+resource_type_id = "rock"
 resource_name = "Stone"
 collect_amount = 1
+max_health = 40
+respawn_time_seconds = 90.0
 
 [node name="Visual" type="Polygon2D" parent="."]
 color = Color(0.42, 0.42, 0.45, 1)

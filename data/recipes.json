@@ -1,0 +1,49 @@
+{
+	"wall": {
+		"display_name": "Wall",
+		"type": "building",
+		"cost": {
+			"wood": 1
+		}
+	},
+	"campfire": {
+		"display_name": "Campfire",
+		"type": "building",
+		"cost": {
+			"wood": 3,
+			"stone": 1
+		}
+	},
+	"workbench": {
+		"display_name": "Workbench",
+		"type": "building",
+		"cost": {
+			"wood": 5,
+			"stone": 2
+		}
+	},
+	"axe": {
+		"display_name": "Axe",
+		"type": "tool",
+		"cost": {
+			"wood": 3,
+			"stone": 1
+		}
+	},
+	"pickaxe": {
+		"display_name": "Pickaxe",
+		"type": "tool",
+		"cost": {
+			"wood": 2,
+			"stone": 3
+		}
+	},
+	"bed": {
+		"display_name": "Bed",
+		"type": "building",
+		"cost": {
+			"wood": 6,
+			"gel": 2
+		}
+	}
+}
