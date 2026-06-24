@@ -56,6 +56,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		_try_place_wall(current_tile)
 
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		get_viewport().set_input_as_handled()
+		_try_remove_wall(current_tile)
+
 
 func _get_mouse_tile() -> Vector2i:
 	var mouse_position := build_layer.to_local(build_layer.get_global_mouse_position())
@@ -72,7 +76,49 @@ func _try_place_wall(tile_position: Vector2i) -> bool:
 
 	build_layer.set_cell(tile_position, SOURCE_ID, WALL_TILE)
 	print("Built wall at tile %s" % tile_position)
+	_update_preview()
 	return true
+
+
+func _try_remove_wall(tile_position: Vector2i) -> bool:
+	if not _is_player_built_wall(tile_position):
+		print("There is no player-built wall here.")
+		return false
+
+	build_layer.erase_cell(tile_position)
+	main.add_resource(WALL_COST_RESOURCE, WALL_COST_AMOUNT)
+	print("Removed wall at tile %s" % tile_position)
+	_update_preview()
+	return true
+
+
+func get_built_wall_cells() -> Array:
+	var wall_cells := []
+
+	for cell in build_layer.get_used_cells():
+		if _is_player_built_wall(cell):
+			wall_cells.append({
+				"x": cell.x,
+				"y": cell.y,
+			})
+
+	return wall_cells
+
+
+func load_built_wall_cells(wall_cells: Array) -> void:
+	_clear_built_walls()
+
+	for wall_cell in wall_cells:
+		if not wall_cell is Dictionary:
+			continue
+
+		var tile_position := Vector2i(
+			int(wall_cell.get("x", 0)),
+			int(wall_cell.get("y", 0))
+		)
+		build_layer.set_cell(tile_position, SOURCE_ID, WALL_TILE)
+
+	_update_preview()
 
 
 func _can_place_wall(tile_position: Vector2i, show_message := false) -> bool:
@@ -107,6 +153,19 @@ func _can_place_wall(tile_position: Vector2i, show_message := false) -> bool:
 		return false
 
 	return true
+
+
+func _is_player_built_wall(tile_position: Vector2i) -> bool:
+	return (
+		build_layer.get_cell_source_id(tile_position) == SOURCE_ID
+		and build_layer.get_cell_atlas_coords(tile_position) == WALL_TILE
+	)
+
+
+func _clear_built_walls() -> void:
+	for cell in build_layer.get_used_cells():
+		if _is_player_built_wall(cell):
+			build_layer.erase_cell(cell)
 
 
 func _is_resource_at_tile(tile_position: Vector2i) -> bool:

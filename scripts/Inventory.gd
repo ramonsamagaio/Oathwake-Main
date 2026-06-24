@@ -31,3 +31,8 @@ func spend_resource(resource_name: String, amount: int) -> bool:
 
 func get_resource_amount(resource_name: String) -> int:
 	return resources.get(resource_name, 0)
+
+
+func set_resource_amount(resource_name: String, amount: int) -> void:
+	resources[resource_name] = max(amount, 0)
+	changed.emit()
