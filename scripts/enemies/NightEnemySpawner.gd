@@ -1,8 +1,10 @@
 extends Node
 
 @export var slime_scene: PackedScene
+@export var slime_monster_id: String = "slime"
 @export var max_alive_slimes: int = 5
 @export var spawn_interval_seconds: float = 5.0
+@export var spawn_attempts: int = 10
 @export var min_spawn_distance: float = 180.0
 @export var max_spawn_distance: float = 280.0
 @export var campfire_safe_radius: float = 160.0
@@ -44,7 +46,12 @@ func _try_spawn_slime() -> bool:
 	if get_alive_slime_count() >= max_alive_slimes:
 		return false
 
-	var spawn_position := _get_spawn_position()
+	var spawn_result := _get_valid_spawn_position(slime_monster_id)
+	if not bool(spawn_result.get("is_valid", false)):
+		print("Could not find a valid spawn position for %s." % slime_monster_id)
+		return false
+
+	var spawn_position: Vector2 = spawn_result["position"]
 	var slime := slime_scene.instantiate() as Node2D
 	enemies_root.add_child(slime)
 	slime.global_position = spawn_position
@@ -62,13 +69,29 @@ func get_alive_slime_count() -> int:
 	return count
 
 
-func _get_spawn_position() -> Vector2:
-	for _attempt in range(12):
-		var spawn_position := _get_random_spawn_position()
-		if not _is_position_near_campfire(spawn_position):
-			return spawn_position
+func get_tile_type_at_position(_position: Vector2) -> String:
+	# Temporary terrain type until the world exposes real TileMap terrain data.
+	return "grass"
 
-	return _get_random_spawn_position()
+
+func _get_valid_spawn_position(monster_id: String) -> Dictionary:
+	for _attempt in range(spawn_attempts):
+		var spawn_position := _get_random_spawn_position()
+		if _is_position_near_campfire(spawn_position):
+			continue
+
+		if not _is_spawn_tile_allowed(monster_id, spawn_position):
+			continue
+
+		return {
+			"is_valid": true,
+			"position": spawn_position,
+		}
+
+	return {
+		"is_valid": false,
+		"position": Vector2.ZERO,
+	}
 
 
 func _get_random_spawn_position() -> Vector2:
@@ -86,3 +109,31 @@ func _is_position_near_campfire(spawn_position: Vector2) -> bool:
 			return true
 
 	return false
+
+
+func _is_spawn_tile_allowed(monster_id: String, spawn_position: Vector2) -> bool:
+	var spawn_tiles := _get_monster_spawn_tiles(monster_id)
+	if spawn_tiles.is_empty():
+		return true
+
+	var tile_type := get_tile_type_at_position(spawn_position)
+	return spawn_tiles.has(tile_type)
+
+
+func _get_monster_spawn_tiles(monster_id: String) -> Array:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null:
+		print("ContentDB not found. Allowing %s spawn without tile validation." % monster_id)
+		return []
+
+	var monster_data: Dictionary = content_db.get_monster(monster_id)
+	if monster_data.is_empty():
+		print("No monster data found for %s. Allowing spawn without tile validation." % monster_id)
+		return []
+
+	var spawn_tiles = monster_data.get("spawn_tiles", [])
+	if not spawn_tiles is Array:
+		print("Invalid spawn_tiles for %s. Allowing spawn without tile validation." % monster_id)
+		return []
+
+	return spawn_tiles
