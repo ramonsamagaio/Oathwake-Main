@@ -4,6 +4,8 @@ const SOURCE_ID := 0
 const WALL_TILE := Vector2i(2, 0)
 const WALL_COST_RESOURCE := "Wood"
 const WALL_COST_AMOUNT := 1
+const VALID_PREVIEW_COLOR := Color(0.50, 0.32, 0.18, 0.55)
+const INVALID_PREVIEW_COLOR := Color(0.90, 0.12, 0.10, 0.55)
 
 @export var tile_size: Vector2i = Vector2i(32, 32)
 @export var main_path: NodePath = ".."
@@ -16,6 +18,7 @@ const WALL_COST_AMOUNT := 1
 
 var build_mode_enabled := false
 var current_tile := Vector2i.ZERO
+var preview: Polygon2D
 
 @onready var main = get_node(main_path)
 @onready var player: CharacterBody2D = get_node(player_path)
@@ -30,19 +33,20 @@ func _ready() -> void:
 	if build_layer.tile_set != null:
 		tile_size = build_layer.tile_set.tile_size
 
+	_create_preview()
 	_update_build_label()
 
 
 func _process(_delta: float) -> void:
 	current_tile = _get_mouse_tile()
+	_update_preview()
 	_update_build_label()
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_B:
-		build_mode_enabled = not build_mode_enabled
+		_set_build_mode_enabled(not build_mode_enabled)
 		get_viewport().set_input_as_handled()
-		_update_build_label()
 		return
 
 	if not build_mode_enabled:
@@ -59,24 +63,7 @@ func _get_mouse_tile() -> Vector2i:
 
 
 func _try_place_wall(tile_position: Vector2i) -> bool:
-	if ground_layer.get_cell_source_id(tile_position) == -1:
-		print("Cannot build outside the map.")
-		return false
-
-	if obstacle_layer.get_cell_source_id(tile_position) != -1:
-		print("Cannot build on an obstacle.")
-		return false
-
-	if _is_resource_at_tile(tile_position):
-		print("Cannot build on a resource.")
-		return false
-
-	if build_layer.get_cell_source_id(tile_position) != -1:
-		print("There is already a wall here.")
-		return false
-
-	if tile_position == _global_position_to_grid_cell(player.global_position):
-		print("Cannot build on the player.")
+	if not _can_place_wall(tile_position, true):
 		return false
 
 	if not main.spend_resource(WALL_COST_RESOURCE, WALL_COST_AMOUNT):
@@ -85,6 +72,40 @@ func _try_place_wall(tile_position: Vector2i) -> bool:
 
 	build_layer.set_cell(tile_position, SOURCE_ID, WALL_TILE)
 	print("Built wall at tile %s" % tile_position)
+	return true
+
+
+func _can_place_wall(tile_position: Vector2i, show_message := false) -> bool:
+	if ground_layer.get_cell_source_id(tile_position) == -1:
+		if show_message:
+			print("Cannot build outside the map.")
+		return false
+
+	if obstacle_layer.get_cell_source_id(tile_position) != -1:
+		if show_message:
+			print("Cannot build on an obstacle.")
+		return false
+
+	if _is_resource_at_tile(tile_position):
+		if show_message:
+			print("Cannot build on a resource.")
+		return false
+
+	if build_layer.get_cell_source_id(tile_position) != -1:
+		if show_message:
+			print("There is already a wall here.")
+		return false
+
+	if tile_position == _global_position_to_grid_cell(player.global_position):
+		if show_message:
+			print("Cannot build on the player.")
+		return false
+
+	if not main.can_spend_resource(WALL_COST_RESOURCE, WALL_COST_AMOUNT):
+		if show_message:
+			print("Not enough Wood to build a wall.")
+		return false
+
 	return true
 
 
@@ -114,6 +135,39 @@ func _grid_cell_to_local_center(tile_position: Vector2i) -> Vector2:
 		(tile_position.x * tile_size.x) + (tile_size.x * 0.5),
 		(tile_position.y * tile_size.y) + (tile_size.y * 0.5)
 	)
+
+
+func _set_build_mode_enabled(is_enabled: bool) -> void:
+	build_mode_enabled = is_enabled
+	_update_preview()
+	_update_build_label()
+
+
+func _create_preview() -> void:
+	preview = Polygon2D.new()
+	preview.name = "BuildPreview"
+	preview.polygon = PackedVector2Array([
+		Vector2(-tile_size.x * 0.5, -tile_size.y * 0.5),
+		Vector2(tile_size.x * 0.5, -tile_size.y * 0.5),
+		Vector2(tile_size.x * 0.5, tile_size.y * 0.5),
+		Vector2(-tile_size.x * 0.5, tile_size.y * 0.5),
+	])
+	preview.color = VALID_PREVIEW_COLOR
+	preview.z_index = 3
+	preview.visible = false
+	build_layer.add_child(preview)
+
+
+func _update_preview() -> void:
+	if preview == null:
+		return
+
+	preview.visible = build_mode_enabled
+	if not build_mode_enabled:
+		return
+
+	preview.position = _grid_cell_to_local_center(current_tile)
+	preview.color = VALID_PREVIEW_COLOR if _can_place_wall(current_tile) else INVALID_PREVIEW_COLOR
 
 
 func _update_build_label() -> void:
