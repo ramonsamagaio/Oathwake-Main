@@ -11,8 +11,8 @@ const TOOLS := [
 	TOOL_AXE,
 	TOOL_PICKAXE,
 ]
-const BASE_RESOURCE_DAMAGE := 10
-const TOOL_RESOURCE_DAMAGE := 20
+const BASE_RESOURCE_DAMAGE := 5
+const TOOL_RESOURCE_DAMAGE := 15
 
 @export var speed: float = 180.0
 @export var max_health: int = 100
@@ -21,6 +21,8 @@ const TOOL_RESOURCE_DAMAGE := 20
 
 var health: int = 100
 var spawn_position := Vector2.ZERO
+var initial_spawn_position := Vector2.ZERO
+var has_respawn_point := false
 var current_tool_index := 0
 var unlocked_tools := [
 	TOOL_HANDS,
@@ -30,6 +32,7 @@ var unlocked_tools := [
 func _ready() -> void:
 	add_to_group("player")
 	spawn_position = global_position
+	initial_spawn_position = global_position
 	health = max_health
 	health_changed.emit(health, max_health)
 	tool_changed.emit(get_current_tool())
@@ -103,23 +106,34 @@ func get_current_tool() -> String:
 
 
 func has_tool(tool_name: String) -> bool:
-	return unlocked_tools.has(tool_name)
+	return unlocked_tools.has(_normalize_tool_name(tool_name))
 
 
 func unlock_tool(tool_name: String) -> bool:
-	if not _is_known_tool(tool_name):
+	var normalized_tool_name := _normalize_tool_name(tool_name)
+	if not _is_known_tool(normalized_tool_name):
 		return false
 
-	if has_tool(tool_name):
+	if has_tool(normalized_tool_name):
 		return false
 
-	unlocked_tools.append(tool_name)
+	unlocked_tools.append(normalized_tool_name)
 	tool_changed.emit(get_current_tool())
 	return true
 
 
 func get_unlocked_tools() -> Array:
 	return unlocked_tools.duplicate()
+
+
+func set_current_tool(tool_name: String) -> void:
+	var normalized_tool_name := _normalize_tool_name(tool_name)
+	var tool_index := unlocked_tools.find(normalized_tool_name)
+	if tool_index == -1:
+		return
+
+	current_tool_index = tool_index
+	tool_changed.emit(get_current_tool())
 
 
 func set_unlocked_tools(tool_names: Array) -> void:
@@ -136,6 +150,24 @@ func set_unlocked_tools(tool_names: Array) -> void:
 		current_tool_index = 0
 
 	tool_changed.emit(get_current_tool())
+
+
+func set_respawn_point(respawn_position: Vector2) -> void:
+	spawn_position = respawn_position
+	has_respawn_point = true
+
+
+func clear_respawn_point() -> void:
+	spawn_position = initial_spawn_position
+	has_respawn_point = false
+
+
+func has_custom_respawn_point() -> bool:
+	return has_respawn_point
+
+
+func get_respawn_point() -> Vector2:
+	return spawn_position
 
 
 func _attack() -> void:
@@ -222,17 +254,30 @@ func _set_tool_index(tool_index: int) -> void:
 
 
 func _is_known_tool(tool_name: String) -> bool:
-	return TOOLS.has(tool_name)
+	return TOOLS.has(_normalize_tool_name(tool_name))
 
 
 func _add_unlocked_tool(tool_name: String) -> void:
-	if not _is_known_tool(tool_name):
+	var normalized_tool_name := _normalize_tool_name(tool_name)
+	if not _is_known_tool(normalized_tool_name):
 		return
 
-	if has_tool(tool_name):
+	if has_tool(normalized_tool_name):
 		return
 
-	unlocked_tools.append(tool_name)
+	unlocked_tools.append(normalized_tool_name)
+
+
+func _normalize_tool_name(tool_name: String) -> String:
+	match tool_name:
+		"hands", "Hands":
+			return TOOL_HANDS
+		"axe", "Axe":
+			return TOOL_AXE
+		"pickaxe", "Pickaxe":
+			return TOOL_PICKAXE
+		_:
+			return tool_name
 
 
 func _is_build_mode_enabled() -> bool:

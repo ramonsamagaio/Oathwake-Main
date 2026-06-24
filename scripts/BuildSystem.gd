@@ -5,12 +5,15 @@ const SOURCE_ID := 0
 const BUILD_TYPE_WALL := RecipeBookScript.WALL_ID
 const BUILD_TYPE_CAMPFIRE := RecipeBookScript.CAMPFIRE_ID
 const BUILD_TYPE_WORKBENCH := RecipeBookScript.WORKBENCH_ID
+const BUILD_TYPE_BED := RecipeBookScript.BED_ID
 const WALL_TILE := Vector2i(2, 0)
 const CAMPFIRE_TILE := Vector2i(3, 0)
 const WORKBENCH_TILE := Vector2i(4, 0)
+const BED_TILE := Vector2i(5, 0)
 const VALID_PREVIEW_COLOR := Color(0.50, 0.32, 0.18, 0.55)
 const VALID_CAMPFIRE_PREVIEW_COLOR := Color(0.88, 0.34, 0.10, 0.55)
 const VALID_WORKBENCH_PREVIEW_COLOR := Color(0.44, 0.28, 0.14, 0.55)
+const VALID_BED_PREVIEW_COLOR := Color(0.42, 0.34, 0.62, 0.55)
 const INVALID_PREVIEW_COLOR := Color(0.90, 0.12, 0.10, 0.55)
 
 @export var tile_size: Vector2i = Vector2i(32, 32)
@@ -104,7 +107,12 @@ func _try_place_workbench(tile_position: Vector2i) -> bool:
 	return _try_place_building(tile_position, BUILD_TYPE_WORKBENCH)
 
 
+func _try_place_bed(tile_position: Vector2i) -> bool:
+	return _try_place_building(tile_position, BUILD_TYPE_BED)
+
+
 func _try_place_building(tile_position: Vector2i, building_type: String) -> bool:
+	building_type = _normalize_building_type(building_type)
 	if not _can_place_building(tile_position, building_type, true):
 		return false
 
@@ -125,8 +133,11 @@ func _try_remove_building(tile_position: Vector2i) -> bool:
 		print("There is no player-built construction here.")
 		return false
 
+	var building_position := build_layer.to_global(_grid_cell_to_local_center(tile_position))
 	build_layer.erase_cell(tile_position)
 	_refund_building_cost(building_type)
+	if main.has_method("on_building_removed"):
+		main.on_building_removed(building_type, building_position)
 	print("Removed %s at tile %s" % [_get_building_display_name(building_type), tile_position])
 	_update_preview()
 	return true
@@ -156,7 +167,7 @@ func load_built_buildings(buildings: Array) -> void:
 		if not building is Dictionary:
 			continue
 
-		var building_type := str(building.get("type", BUILD_TYPE_WALL))
+		var building_type := _normalize_building_type(str(building.get("type", BUILD_TYPE_WALL)))
 		if not _is_known_building_type(building_type):
 			continue
 
@@ -203,6 +214,8 @@ func _can_place_wall(tile_position: Vector2i, show_message := false) -> bool:
 
 
 func _can_place_building(tile_position: Vector2i, building_type: String, show_message := false) -> bool:
+	building_type = _normalize_building_type(building_type)
+
 	if not _is_known_building_type(building_type):
 		if show_message:
 			print("Unknown building type: %s" % building_type)
@@ -268,29 +281,42 @@ func _get_building_type_at_tile(tile_position: Vector2i) -> String:
 		return BUILD_TYPE_CAMPFIRE
 	if atlas_coords == WORKBENCH_TILE:
 		return BUILD_TYPE_WORKBENCH
+	if atlas_coords == BED_TILE:
+		return BUILD_TYPE_BED
 
 	return ""
 
 
 func _get_building_tile(building_type: String) -> Vector2i:
+	building_type = _normalize_building_type(building_type)
+
 	if building_type == BUILD_TYPE_CAMPFIRE:
 		return CAMPFIRE_TILE
 	if building_type == BUILD_TYPE_WORKBENCH:
 		return WORKBENCH_TILE
+	if building_type == BUILD_TYPE_BED:
+		return BED_TILE
 
 	return WALL_TILE
 
 
 func _is_known_building_type(building_type: String) -> bool:
+	building_type = _normalize_building_type(building_type)
 	return recipe_book.has_recipe(building_type)
 
 
 func _get_building_cost(building_type: String) -> Array:
+	building_type = _normalize_building_type(building_type)
 	return recipe_book.get_cost(building_type)
 
 
 func _get_building_display_name(building_type: String) -> String:
+	building_type = _normalize_building_type(building_type)
 	return recipe_book.get_display_name(building_type)
+
+
+func _normalize_building_type(building_type: String) -> String:
+	return recipe_book.normalize_recipe_id(building_type)
 
 
 func _can_spend_building_cost(building_type: String) -> bool:
@@ -337,12 +363,39 @@ func get_workbench_positions() -> Array:
 	return workbench_positions
 
 
+func get_bed_positions() -> Array:
+	var bed_positions := []
+
+	for cell in build_layer.get_used_cells():
+		if _get_building_type_at_tile(cell) == BUILD_TYPE_BED:
+			bed_positions.append(build_layer.to_global(_grid_cell_to_local_center(cell)))
+
+	return bed_positions
+
+
 func is_workbench_near_position(global_position: Vector2, max_distance: float) -> bool:
 	for workbench_position in get_workbench_positions():
 		if global_position.distance_to(workbench_position) <= max_distance:
 			return true
 
 	return false
+
+
+func get_nearest_bed_position(global_position: Vector2, max_distance: float) -> Vector2:
+	var nearest_position := Vector2.INF
+	var nearest_distance := max_distance
+
+	for bed_position in get_bed_positions():
+		var distance := global_position.distance_to(bed_position)
+		if distance <= nearest_distance:
+			nearest_position = bed_position
+			nearest_distance = distance
+
+	return nearest_position
+
+
+func is_bed_near_position(global_position: Vector2, max_distance: float) -> bool:
+	return get_nearest_bed_position(global_position, max_distance) != Vector2.INF
 
 
 func _is_resource_at_tile(tile_position: Vector2i) -> bool:
@@ -436,6 +489,8 @@ func _get_preview_color() -> Color:
 		return VALID_CAMPFIRE_PREVIEW_COLOR
 	if selected_build_type == BUILD_TYPE_WORKBENCH:
 		return VALID_WORKBENCH_PREVIEW_COLOR
+	if selected_build_type == BUILD_TYPE_BED:
+		return VALID_BED_PREVIEW_COLOR
 
 	return VALID_PREVIEW_COLOR
 
@@ -467,6 +522,7 @@ func _get_building_ui_order() -> Array:
 		BUILD_TYPE_WALL,
 		BUILD_TYPE_CAMPFIRE,
 		BUILD_TYPE_WORKBENCH,
+		BUILD_TYPE_BED,
 	]
 
 
@@ -478,6 +534,8 @@ func _get_building_key_text(building_type: String) -> String:
 		return "2"
 	if build_key == KEY_3:
 		return "3"
+	if build_key == KEY_4:
+		return "4"
 
 	return "?"
 

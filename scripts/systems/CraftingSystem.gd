@@ -1,7 +1,6 @@
 extends Node
 
-const TOOL_AXE := "Axe"
-const TOOL_PICKAXE := "Pickaxe"
+const RecipeBookScript = preload("res://scripts/systems/RecipeBook.gd")
 
 @export var main_path: NodePath = ".."
 @export var player_path: NodePath = "../Player"
@@ -11,24 +10,8 @@ const TOOL_PICKAXE := "Pickaxe"
 
 var crafting_open := false
 var last_message := ""
-var recipes := {
-	1: {
-		"tool": TOOL_AXE,
-		"display_name": "Axe",
-		"cost": [
-			{"resource": "Wood", "amount": 3},
-			{"resource": "Stone", "amount": 1},
-		],
-	},
-	2: {
-		"tool": TOOL_PICKAXE,
-		"display_name": "Pickaxe",
-		"cost": [
-			{"resource": "Wood", "amount": 2},
-			{"resource": "Stone", "amount": 3},
-		],
-	},
-}
+var recipe_book := RecipeBookScript.new()
+var tool_recipe_ids := []
 
 @onready var main = get_node(main_path)
 @onready var player = get_node(player_path)
@@ -38,6 +21,7 @@ var recipes := {
 
 func _ready() -> void:
 	add_to_group("crafting_system")
+	_refresh_tool_recipes()
 	crafting_label.visible = false
 	_update_crafting_label()
 
@@ -65,14 +49,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not crafting_open:
 		return
 
-	if event.keycode == KEY_1:
-		_try_craft_recipe(1)
-		get_viewport().set_input_as_handled()
+	var recipe_slot := _get_recipe_slot_from_key(event.keycode)
+	if recipe_slot == -1:
 		return
 
-	if event.keycode == KEY_2:
-		_try_craft_recipe(2)
-		get_viewport().set_input_as_handled()
+	_try_craft_recipe(recipe_slot)
+	get_viewport().set_input_as_handled()
 
 
 func is_crafting_open() -> bool:
@@ -91,6 +73,7 @@ func _toggle_crafting() -> void:
 	if build_system.has_method("set_build_mode_enabled"):
 		build_system.set_build_mode_enabled(false)
 
+	_refresh_tool_recipes()
 	last_message = ""
 	_set_crafting_open(true)
 
@@ -101,12 +84,16 @@ func _set_crafting_open(is_open: bool) -> void:
 	_update_crafting_label()
 
 
-func _try_craft_recipe(recipe_index: int) -> bool:
-	if not recipes.has(recipe_index):
+func _try_craft_recipe(recipe_slot: int) -> bool:
+	if recipe_slot < 0 or recipe_slot >= tool_recipe_ids.size():
 		return false
 
-	var recipe: Dictionary = recipes[recipe_index]
-	var tool_name := str(recipe.get("tool", ""))
+	var recipe_id := str(tool_recipe_ids[recipe_slot])
+	var recipe := recipe_book.get_recipe(recipe_id)
+	if recipe.is_empty():
+		return false
+
+	var tool_name := _recipe_id_to_tool_name(recipe_id)
 	var display_name := str(recipe.get("display_name", tool_name))
 	var cost: Array = recipe.get("cost", [])
 
@@ -124,6 +111,30 @@ func _try_craft_recipe(recipe_index: int) -> bool:
 	return true
 
 
+func _refresh_tool_recipes() -> void:
+	tool_recipe_ids.clear()
+
+	for recipe in recipe_book.get_recipes_by_type("tool"):
+		var recipe_id := str(recipe.get("id", ""))
+		if recipe_id.is_empty():
+			continue
+
+		tool_recipe_ids.append(recipe_id)
+
+	tool_recipe_ids.sort()
+
+
+func _get_recipe_slot_from_key(keycode: int) -> int:
+	if keycode < KEY_1 or keycode > KEY_9:
+		return -1
+
+	var slot := keycode - KEY_1
+	if slot >= tool_recipe_ids.size():
+		return -1
+
+	return slot
+
+
 func _set_message(message: String) -> void:
 	last_message = message
 	print(message)
@@ -139,9 +150,9 @@ func _is_player_near_workbench() -> bool:
 
 func _can_spend_cost(cost: Array) -> bool:
 	for cost_entry in cost:
-		var resource_name := str(cost_entry.get("resource", ""))
+		var item_id := str(cost_entry.get("resource", ""))
 		var amount := int(cost_entry.get("amount", 0))
-		if not main.can_spend_resource(resource_name, amount):
+		if not main.can_spend_resource(item_id, amount):
 			return false
 
 	return true
@@ -149,9 +160,9 @@ func _can_spend_cost(cost: Array) -> bool:
 
 func _spend_cost(cost: Array) -> void:
 	for cost_entry in cost:
-		var resource_name := str(cost_entry.get("resource", ""))
+		var item_id := str(cost_entry.get("resource", ""))
 		var amount := int(cost_entry.get("amount", 0))
-		main.spend_resource(resource_name, amount)
+		main.spend_resource(item_id, amount)
 
 
 func _update_crafting_label() -> void:
@@ -160,13 +171,17 @@ func _update_crafting_label() -> void:
 		"C Close",
 	]
 
-	for recipe_index in recipes.keys():
-		var recipe: Dictionary = recipes[recipe_index]
-		var tool_name := str(recipe.get("tool", ""))
+	if tool_recipe_ids.is_empty():
+		lines.append("No tool recipes found.")
+
+	for index in range(tool_recipe_ids.size()):
+		var recipe_id := str(tool_recipe_ids[index])
+		var recipe := recipe_book.get_recipe(recipe_id)
+		var tool_name := _recipe_id_to_tool_name(recipe_id)
 		var display_name := str(recipe.get("display_name", tool_name))
 		var owned_text := " (owned)" if player != null and player.has_tool(tool_name) else ""
 		lines.append("%d %s - %s%s" % [
-			int(recipe_index),
+			index + 1,
 			display_name,
 			_get_cost_text(recipe.get("cost", [])),
 			owned_text,
@@ -182,17 +197,36 @@ func _get_cost_text(cost: Array) -> String:
 	var parts := []
 
 	for cost_entry in cost:
-		var resource_name := str(cost_entry.get("resource", ""))
+		var item_id := str(cost_entry.get("resource", ""))
 		var amount := int(cost_entry.get("amount", 0))
-		if resource_name.is_empty() or amount <= 0:
+		if item_id.is_empty() or amount <= 0:
 			continue
 
-		parts.append("%d %s" % [amount, resource_name])
+		parts.append("%d %s" % [amount, _get_item_display_name(item_id)])
 
 	if parts.is_empty():
 		return "Free"
 
 	return _join_lines_with_separator(parts, ", ")
+
+
+func _get_item_display_name(item_id: String) -> String:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
+		return item_id.capitalize()
+
+	var item_data: Dictionary = content_db.get_item(item_id)
+	return str(item_data.get("display_name", item_id.capitalize()))
+
+
+func _recipe_id_to_tool_name(recipe_id: String) -> String:
+	match recipe_id:
+		"axe":
+			return "Axe"
+		"pickaxe":
+			return "Pickaxe"
+		_:
+			return recipe_id.capitalize()
 
 
 func _join_lines(lines: Array) -> String:

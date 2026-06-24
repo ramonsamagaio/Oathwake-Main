@@ -46,6 +46,10 @@ func get_count(item_id: String) -> int:
 	return resources.get(_normalize_item_id(item_id), 0)
 
 
+func get_all_items() -> Dictionary:
+	return resources.duplicate()
+
+
 func has_item(item_id: String, amount: int) -> bool:
 	return get_count(item_id) >= amount
 
@@ -76,6 +80,21 @@ func set_resource_amount(resource_name: String, amount: int) -> void:
 	changed.emit()
 
 
+func set_items(item_data: Dictionary) -> void:
+	resources.clear()
+	_seed_known_items()
+
+	for item_id in item_data.keys():
+		var normalized_id := _normalize_item_id(str(item_id))
+		if not _is_known_item(normalized_id):
+			push_error("Inventory cannot load unknown item_id: %s" % item_id)
+			continue
+
+		resources[normalized_id] = max(int(item_data[item_id]), 0)
+
+	changed.emit()
+
+
 func _normalize_item_id(item_id: String) -> String:
 	match item_id:
 		"Wood":
@@ -94,6 +113,24 @@ func _is_known_item(item_id: String) -> bool:
 		return resources.has(item_id)
 
 	return content_db.has_item(item_id)
+
+
+func _seed_known_items() -> void:
+	var content_db := _get_content_db()
+	if content_db == null:
+		resources = {
+			"wood": 0,
+			"stone": 0,
+			"gel": 0,
+		}
+		return
+
+	var items = content_db.get("items")
+	if not items is Dictionary:
+		return
+
+	for item_id in items.keys():
+		resources[str(item_id)] = 0
 
 
 func _get_content_db() -> Node:
