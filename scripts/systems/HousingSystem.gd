@@ -28,7 +28,7 @@ func validate_houses(print_result := true) -> int:
 			continue
 
 		var bed_cell := Vector2i(int(bed.get("x", 0)), int(bed.get("y", 0)))
-		var wall_count := build_system.get_wall_count_near_cell(bed_cell, nearby_wall_radius)
+		var wall_count: int = build_system.get_wall_count_near_cell(bed_cell, nearby_wall_radius)
 		if wall_count >= required_nearby_walls:
 			valid_house_bed_ids[bed_id] = true
 
@@ -61,7 +61,7 @@ func get_nearest_valid_bed(global_position: Vector2, max_distance: float, requir
 			continue
 
 		var bed_position: Vector2 = bed.get("position", Vector2.INF)
-		var distance := global_position.distance_to(bed_position)
+		var distance: float = global_position.distance_to(bed_position)
 		if distance <= nearest_distance:
 			nearest_bed = bed
 			nearest_distance = distance
