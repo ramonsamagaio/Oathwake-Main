@@ -4,17 +4,22 @@ const Inventory = preload("res://scripts/Inventory.gd")
 const SAVE_PATH := "user://savegame.json"
 
 var inventory := Inventory.new()
+var collected_resource_ids := {}
 
 @onready var resources_root: Node2D = $World/Resources
 @onready var wood_label: Label = $UI/WoodLabel
 @onready var stone_label: Label = $UI/StoneLabel
+@onready var health_label: Label = $UI/HealthLabel
+@onready var player = $Player
 @onready var build_system = $BuildSystem
 
 
 func _ready() -> void:
 	inventory.changed.connect(_update_resource_labels)
+	player.health_changed.connect(_update_health_label)
 	_connect_resource_nodes()
 	_update_resource_labels()
+	_update_health_label(player.health, player.max_health)
 	load_game()
 
 
@@ -34,7 +39,10 @@ func _connect_resource_nodes() -> void:
 			resource_node.connect("collected", _on_resource_collected)
 
 
-func _on_resource_collected(resource_name: String, amount: int) -> void:
+func _on_resource_collected(resource_id: String, resource_name: String, amount: int) -> void:
+	if not resource_id.is_empty():
+		collected_resource_ids[resource_id] = true
+
 	add_resource(resource_name, amount)
 
 
@@ -57,6 +65,7 @@ func save_game() -> void:
 			"Stone": inventory.get_resource_amount("Stone"),
 		},
 		"walls": build_system.get_built_wall_cells(),
+		"collected_resources": collected_resource_ids.keys(),
 	}
 
 	var save_file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -101,9 +110,32 @@ func load_game() -> void:
 		wall_cells = []
 
 	build_system.load_built_wall_cells(wall_cells)
+
+	var collected_resources = save_data.get("collected_resources", [])
+	if not collected_resources is Array:
+		collected_resources = []
+
+	_load_collected_resources(collected_resources)
 	print("Loaded game from %s" % SAVE_PATH)
 
 
 func _update_resource_labels() -> void:
 	wood_label.text = "Wood: %d" % inventory.get_resource_amount("Wood")
 	stone_label.text = "Stone: %d" % inventory.get_resource_amount("Stone")
+
+
+func _update_health_label(current_health: int, max_health: int) -> void:
+	health_label.text = "Health: %d/%d" % [current_health, max_health]
+
+
+func _load_collected_resources(resource_ids: Array) -> void:
+	collected_resource_ids.clear()
+
+	for resource_id in resource_ids:
+		collected_resource_ids[str(resource_id)] = true
+
+	for resource_node in resources_root.get_children():
+		if not resource_node.has_method("get_resource_id"):
+			continue
+
+		resource_node.set_collected(collected_resource_ids.has(resource_node.get_resource_id()))

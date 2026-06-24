@@ -26,15 +26,19 @@ z_index = 2
 
 [node name="Tree" parent="World/Resources" instance=ExtResource("3_tree_scene")]
 position = Vector2(-96, -48)
+resource_id = "tree_01"
 
 [node name="Tree2" parent="World/Resources" instance=ExtResource("3_tree_scene")]
 position = Vector2(-160, 96)
+resource_id = "tree_02"
 
 [node name="Rock" parent="World/Resources" instance=ExtResource("4_rock_scene")]
 position = Vector2(112, 64)
+resource_id = "rock_01"
 
 [node name="Rock2" parent="World/Resources" instance=ExtResource("4_rock_scene")]
 position = Vector2(192, -96)
+resource_id = "rock_02"
 
 [node name="Player" parent="." instance=ExtResource("1_player_scene")]
 position = Vector2(0, 0)
@@ -62,6 +66,13 @@ offset_top = 64.0
 offset_right = 320.0
 offset_bottom = 87.0
 text = "Build: Off | Tile: 0, 0"
+
+[node name="HealthLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 88.0
+offset_right = 160.0
+offset_bottom = 111.0
+text = "Health: 100/100"
 
 [node name="BuildSystem" type="Node" parent="."]
 script = ExtResource("6_build_system_script")

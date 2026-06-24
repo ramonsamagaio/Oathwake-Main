@@ -171,6 +171,9 @@ func _clear_built_walls() -> void:
 func _is_resource_at_tile(tile_position: Vector2i) -> bool:
 	for resource_node in resources_root.get_children():
 		if resource_node is Node2D and not resource_node.is_queued_for_deletion():
+			if resource_node.has_method("is_collected") and resource_node.is_collected():
+				continue
+
 			var resource_tile := _global_position_to_grid_cell(resource_node.global_position)
 			if resource_tile == tile_position:
 				return true
