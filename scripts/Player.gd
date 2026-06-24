@@ -50,6 +50,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E:
+		if _try_interact_with_nearby_npc():
+			get_viewport().set_input_as_handled()
+			return
+
 		_select_next_tool()
 		get_viewport().set_input_as_handled()
 		return
@@ -176,6 +180,17 @@ func _attack() -> void:
 
 	for target in _find_nearby_attack_targets("resource_node"):
 		target.call("take_damage", _get_resource_attack_damage(target))
+
+
+func _try_interact_with_nearby_npc() -> bool:
+	for npc in get_tree().get_nodes_in_group("npc"):
+		if not npc.has_method("try_interact_with_player"):
+			continue
+
+		if npc.call("try_interact_with_player", self):
+			return true
+
+	return false
 
 
 func _find_nearby_attack_targets(group_name: String) -> Array:

@@ -30,6 +30,8 @@ var current_tile := Vector2i.ZERO
 var selected_build_type := BUILD_TYPE_WALL
 var preview: Polygon2D
 var recipe_book := RecipeBookScript.new()
+var building_metadata_by_cell := {}
+var next_bed_id := 1
 
 @onready var main = get_node(main_path)
 @onready var player: CharacterBody2D = get_node(player_path)
@@ -118,6 +120,7 @@ func _try_place_building(tile_position: Vector2i, building_type: String) -> bool
 
 	_spend_building_cost(building_type)
 	build_layer.set_cell(tile_position, SOURCE_ID, _get_building_tile(building_type))
+	_create_building_metadata(tile_position, building_type)
 	print("Built %s at tile %s" % [_get_building_display_name(building_type), tile_position])
 	_update_preview()
 	return true
@@ -134,10 +137,12 @@ func _try_remove_building(tile_position: Vector2i) -> bool:
 		return false
 
 	var building_position := build_layer.to_global(_grid_cell_to_local_center(tile_position))
+	var metadata := _get_building_metadata(tile_position)
 	build_layer.erase_cell(tile_position)
+	building_metadata_by_cell.erase(_cell_key(tile_position))
 	_refund_building_cost(building_type)
 	if main.has_method("on_building_removed"):
-		main.on_building_removed(building_type, building_position)
+		main.on_building_removed(building_type, building_position, metadata)
 	print("Removed %s at tile %s" % [_get_building_display_name(building_type), tile_position])
 	_update_preview()
 	return true
@@ -155,13 +160,15 @@ func get_built_buildings() -> Array:
 			"type": building_type,
 			"x": cell.x,
 			"y": cell.y,
-		})
+		}.merged(_get_building_metadata(cell)))
 
 	return buildings
 
 
 func load_built_buildings(buildings: Array) -> void:
 	_clear_built_buildings()
+	building_metadata_by_cell.clear()
+	next_bed_id = 1
 
 	for building in buildings:
 		if not building is Dictionary:
@@ -176,6 +183,7 @@ func load_built_buildings(buildings: Array) -> void:
 			int(building.get("y", 0))
 		)
 		build_layer.set_cell(tile_position, SOURCE_ID, _get_building_tile(building_type))
+		_load_building_metadata(tile_position, building_type, building)
 
 	_update_preview()
 
@@ -268,6 +276,7 @@ func _clear_built_buildings() -> void:
 	for cell in build_layer.get_used_cells():
 		if not _get_building_type_at_tile(cell).is_empty():
 			build_layer.erase_cell(cell)
+	building_metadata_by_cell.clear()
 
 
 func _get_building_type_at_tile(tile_position: Vector2i) -> String:
@@ -371,6 +380,78 @@ func get_bed_positions() -> Array:
 			bed_positions.append(build_layer.to_global(_grid_cell_to_local_center(cell)))
 
 	return bed_positions
+
+
+func get_beds() -> Array:
+	var beds := []
+
+	for cell in build_layer.get_used_cells():
+		if _get_building_type_at_tile(cell) != BUILD_TYPE_BED:
+			continue
+
+		var metadata := _get_building_metadata(cell)
+		beds.append({
+			"bed_id": str(metadata.get("bed_id", "")),
+			"occupied_by_npc_id": str(metadata.get("occupied_by_npc_id", "")),
+			"x": cell.x,
+			"y": cell.y,
+			"position": build_layer.to_global(_grid_cell_to_local_center(cell)),
+		})
+
+	return beds
+
+
+func set_bed_occupied_by_npc_id(bed_id: String, npc_instance_id: String) -> bool:
+	for cell in build_layer.get_used_cells():
+		if _get_building_type_at_tile(cell) != BUILD_TYPE_BED:
+			continue
+
+		var metadata := _get_building_metadata(cell)
+		if str(metadata.get("bed_id", "")) != bed_id:
+			continue
+
+		metadata["occupied_by_npc_id"] = npc_instance_id
+		building_metadata_by_cell[_cell_key(cell)] = metadata
+		return true
+
+	return false
+
+
+func clear_bed_occupancy_for_npc(npc_instance_id: String) -> void:
+	for cell_key in building_metadata_by_cell.keys():
+		var metadata: Dictionary = building_metadata_by_cell[cell_key]
+		if str(metadata.get("occupied_by_npc_id", "")) == npc_instance_id:
+			metadata["occupied_by_npc_id"] = ""
+			building_metadata_by_cell[cell_key] = metadata
+
+
+func clear_all_bed_occupancy() -> void:
+	for cell_key in building_metadata_by_cell.keys():
+		var metadata: Dictionary = building_metadata_by_cell[cell_key]
+		if metadata.has("occupied_by_npc_id"):
+			metadata["occupied_by_npc_id"] = ""
+			building_metadata_by_cell[cell_key] = metadata
+
+
+func has_bed_id(bed_id: String) -> bool:
+	for bed in get_beds():
+		if str(bed.get("bed_id", "")) == bed_id:
+			return true
+
+	return false
+
+
+func get_wall_count_near_cell(center_cell: Vector2i, radius: int) -> int:
+	var wall_count := 0
+
+	for cell in build_layer.get_used_cells():
+		if _get_building_type_at_tile(cell) != BUILD_TYPE_WALL:
+			continue
+
+		if abs(cell.x - center_cell.x) <= radius and abs(cell.y - center_cell.y) <= radius:
+			wall_count += 1
+
+	return wall_count
 
 
 func is_workbench_near_position(global_position: Vector2, max_distance: float) -> bool:
@@ -571,3 +652,50 @@ func _join_lines_with_separator(lines: Array, separator: String) -> String:
 		text += str(line)
 
 	return text
+
+
+func _create_building_metadata(tile_position: Vector2i, building_type: String) -> void:
+	if building_type != BUILD_TYPE_BED:
+		return
+
+	var bed_id := "bed_%03d" % next_bed_id
+	next_bed_id += 1
+	building_metadata_by_cell[_cell_key(tile_position)] = {
+		"bed_id": bed_id,
+		"occupied_by_npc_id": "",
+	}
+
+
+func _load_building_metadata(tile_position: Vector2i, building_type: String, building: Dictionary) -> void:
+	if building_type != BUILD_TYPE_BED:
+		return
+
+	var bed_id := str(building.get("bed_id", ""))
+	if bed_id.is_empty():
+		bed_id = "bed_%03d" % next_bed_id
+
+	var occupied_by_npc_id := str(building.get("occupied_by_npc_id", ""))
+	building_metadata_by_cell[_cell_key(tile_position)] = {
+		"bed_id": bed_id,
+		"occupied_by_npc_id": occupied_by_npc_id,
+	}
+	next_bed_id = max(next_bed_id, _get_bed_id_number(bed_id) + 1)
+
+
+func _get_building_metadata(tile_position: Vector2i) -> Dictionary:
+	var metadata = building_metadata_by_cell.get(_cell_key(tile_position), {})
+	if not metadata is Dictionary:
+		return {}
+
+	return metadata.duplicate(true)
+
+
+func _cell_key(tile_position: Vector2i) -> String:
+	return "%d,%d" % [tile_position.x, tile_position.y]
+
+
+func _get_bed_id_number(bed_id: String) -> int:
+	if not bed_id.begins_with("bed_"):
+		return 0
+
+	return int(bed_id.trim_prefix("bed_"))

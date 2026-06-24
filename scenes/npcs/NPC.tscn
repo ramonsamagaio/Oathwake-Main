@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/npcs/NPC.gd" id="1_npc_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_npc_collision"]
+radius = 11.0
+
+[node name="NPC" type="CharacterBody2D"]
+script = ExtResource("1_npc_script")
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.95, 0.78, 0.28, 1)
+polygon = PackedVector2Array(0, -14, 11, -4, 8, 13, -8, 13, -11, -4)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_npc_collision")

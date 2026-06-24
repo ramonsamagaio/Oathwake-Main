@@ -17,10 +17,15 @@ var save_system := SaveSystem.new()
 @onready var gel_label: Label = $UI/GelLabel
 @onready var tool_label: Label = $UI/ToolLabel
 @onready var health_label: Label = $UI/HealthLabel
+@onready var villagers_label: Label = $UI/VillagersLabel
+@onready var houses_label: Label = $UI/HousesLabel
+@onready var housed_villagers_label: Label = $UI/HousedVillagersLabel
 @onready var save_button: Button = $UI/SaveButton
 @onready var load_button: Button = $UI/LoadButton
 @onready var player = $Player
 @onready var build_system = $BuildSystem
+@onready var housing_system = $HousingSystem
+@onready var settlement_manager = $SettlementManager
 
 
 func _ready() -> void:
@@ -29,18 +34,41 @@ func _ready() -> void:
 	inventory.changed.connect(_update_resource_labels)
 	player.health_changed.connect(_update_health_label)
 	player.tool_changed.connect(_update_tool_label)
+	housing_system.changed.connect(_on_housing_changed)
+	settlement_manager.changed.connect(_update_settlement_labels)
 	save_button.pressed.connect(save_game)
 	load_button.pressed.connect(load_game)
 	_connect_resource_nodes()
 	_update_resource_labels()
 	_update_tool_label(player.get_current_tool())
 	_update_health_label(player.health, player.max_health)
+	_update_settlement_labels()
 	load_game()
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_R:
+		if _try_recruit_nearby_npc():
+			get_viewport().set_input_as_handled()
+			return
+
+		if _try_interact_with_nearby_npc():
+			get_viewport().set_input_as_handled()
+			return
+
 		_try_set_respawn_point()
+		get_viewport().set_input_as_handled()
+		return
+
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_V:
+		housing_system.validate_houses(true)
+		settlement_manager.validate_assignments()
+		get_viewport().set_input_as_handled()
+		return
+
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_J:
+		settlement_manager.assign_nearby_npc_to_house()
+		_update_settlement_labels()
 		get_viewport().set_input_as_handled()
 
 
@@ -78,6 +106,7 @@ func save_game() -> void:
 		"unlocked_tools": player.get_unlocked_tools(),
 		"current_tool": player.get_current_tool(),
 		"respawn_point": _get_respawn_point_save_data(),
+		"settlement": settlement_manager.get_save_data(),
 	}
 
 	var save_error := save_system.save_json(SAVE_PATH, save_data)
@@ -124,6 +153,9 @@ func load_game() -> void:
 	player.set_unlocked_tools(unlocked_tools)
 	player.set_current_tool(str(save_data.get("current_tool", player.get_current_tool())))
 	_load_respawn_point(save_data.get("respawn_point", {}))
+	housing_system.validate_houses(false)
+	settlement_manager.load_save_data(save_data.get("settlement", {}))
+	_update_settlement_labels()
 	print("Game loaded from %s" % SAVE_PATH)
 
 
@@ -139,6 +171,19 @@ func _update_health_label(current_health: int, max_health: int) -> void:
 
 func _update_tool_label(current_tool: String) -> void:
 	tool_label.text = "Tool: %s" % current_tool
+
+
+func _update_settlement_labels() -> void:
+	villagers_label.text = "Villagers: %d" % settlement_manager.get_recruited_count()
+	houses_label.text = "Houses: %d" % housing_system.get_valid_house_count()
+	housed_villagers_label.text = "Housed Villagers: %d/%d" % [
+		settlement_manager.get_housed_count(),
+		settlement_manager.get_recruited_count(),
+	]
+
+
+func _on_housing_changed(_valid_house_count: int) -> void:
+	_update_settlement_labels()
 
 
 func _configure_save_buttons() -> void:
@@ -255,6 +300,29 @@ func _try_set_respawn_point() -> void:
 	print("Respawn point set")
 
 
+func _try_interact_with_nearby_npc() -> bool:
+	for npc in get_tree().get_nodes_in_group("npc"):
+		if not npc.has_method("try_interact_with_player"):
+			continue
+
+		if npc.call("try_interact_with_player", player):
+			return true
+
+	return false
+
+
+func _try_recruit_nearby_npc() -> bool:
+	for npc in get_tree().get_nodes_in_group("npc"):
+		if not npc.has_method("try_recruit_with_player"):
+			continue
+
+		if npc.call("try_recruit_with_player", player):
+			_update_settlement_labels()
+			return true
+
+	return false
+
+
 func _get_respawn_point_save_data() -> Dictionary:
 	if not player.has_method("has_custom_respawn_point") or not player.has_custom_respawn_point():
 		return {
@@ -300,13 +368,23 @@ func _is_bed_position_valid(respawn_position: Vector2) -> bool:
 	return false
 
 
-func on_building_removed(building_type: String, building_position: Vector2) -> void:
+func on_building_removed(building_type: String, building_position: Vector2, metadata := {}) -> void:
 	if building_type != BUILD_TYPE_BED:
+		housing_system.validate_houses(false)
+		settlement_manager.validate_assignments()
 		return
 
+	if settlement_manager.has_method("on_bed_removed"):
+		settlement_manager.on_bed_removed(str(metadata.get("bed_id", "")))
+
 	if not player.has_method("has_custom_respawn_point") or not player.has_custom_respawn_point():
+		housing_system.validate_houses(false)
+		settlement_manager.validate_assignments()
 		return
 
 	if player.get_respawn_point().distance_to(building_position) <= 2.0:
 		player.clear_respawn_point()
 		print("Respawn point cleared")
+
+	housing_system.validate_houses(false)
+	settlement_manager.validate_assignments()

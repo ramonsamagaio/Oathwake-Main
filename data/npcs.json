@@ -1,0 +1,17 @@
+{
+	"villager_basic": {
+		"display_name": "Villager",
+		"max_health": 50,
+		"move_speed": 35,
+		"role": "worker",
+		"preferred_workstation": "workbench",
+		"production": [
+			{
+				"item_id": "wood",
+				"amount": 1,
+				"interval_seconds": 30
+			}
+		],
+		"needs_house": true
+	}
+}

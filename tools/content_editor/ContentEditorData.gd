@@ -5,6 +5,7 @@ const SECTION_RESOURCES := "resources"
 const SECTION_MONSTERS := "monsters"
 const SECTION_RECIPES := "recipes"
 const SECTION_TERRAIN_TYPES := "terrain_types"
+const SECTION_NPCS := "npcs"
 
 const SECTIONS := [
 	SECTION_ITEMS,
@@ -12,6 +13,7 @@ const SECTIONS := [
 	SECTION_MONSTERS,
 	SECTION_RECIPES,
 	SECTION_TERRAIN_TYPES,
+	SECTION_NPCS,
 ]
 
 const SECTION_LABELS := {
@@ -20,6 +22,7 @@ const SECTION_LABELS := {
 	SECTION_MONSTERS: "Monsters",
 	SECTION_RECIPES: "Recipes",
 	SECTION_TERRAIN_TYPES: "Terrain Types",
+	SECTION_NPCS: "NPCs",
 }
 
 const SECTION_PATHS := {
@@ -28,6 +31,7 @@ const SECTION_PATHS := {
 	SECTION_MONSTERS: "res://data/monsters.json",
 	SECTION_RECIPES: "res://data/recipes.json",
 	SECTION_TERRAIN_TYPES: "res://data/terrain_types.json",
+	SECTION_NPCS: "res://data/npcs.json",
 }
 
 var content := {}
@@ -221,6 +225,47 @@ func validate_terrain_type(record_id: String, original_id: String, _record: Dict
 
 	if record_id != original_id and not find_terrain_type_usage(original_id).is_empty():
 		return "Cannot rename terrain type because it is used by: %s" % _join_strings(find_terrain_type_usage(original_id), ", ")
+
+	return ""
+
+
+func validate_npc(record_id: String, original_id: String, record: Dictionary) -> String:
+	var id_error := _validate_record_id(SECTION_NPCS, record_id, original_id)
+	if not id_error.is_empty():
+		return id_error
+
+	if int(record.get("max_health", 0)) < 1:
+		return "Max Health must be an integer greater than or equal to 1."
+
+	if float(record.get("move_speed", -1.0)) < 0.0:
+		return "Move Speed must be greater than or equal to 0."
+
+	var preferred_workstation := str(record.get("preferred_workstation", ""))
+	if not preferred_workstation.is_empty():
+		if not has_record(SECTION_RECIPES, preferred_workstation):
+			return "Preferred Workstation must reference an existing recipe."
+
+		var recipe := get_record(SECTION_RECIPES, preferred_workstation)
+		if str(recipe.get("type", "")) != "building":
+			return "Preferred Workstation must reference a building recipe."
+
+	var production = record.get("production", [])
+	if not production is Array:
+		return "Production must be a list."
+
+	for production_entry in production:
+		if not production_entry is Dictionary:
+			return "Production entries must be dictionaries."
+
+		var item_id := str(production_entry.get("item_id", ""))
+		if item_id.is_empty() or not has_record(SECTION_ITEMS, item_id):
+			return "Production item_id must reference an existing item."
+
+		if int(production_entry.get("amount", 0)) < 1:
+			return "Production amount must be greater than or equal to 1."
+
+		if float(production_entry.get("interval_seconds", 0.0)) <= 0.0:
+			return "Production interval_seconds must be greater than 0."
 
 	return ""
 

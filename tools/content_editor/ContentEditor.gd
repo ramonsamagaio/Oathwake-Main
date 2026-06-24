@@ -12,6 +12,9 @@ var is_refreshing_list := false
 var is_building_form := false
 var selected_drop_item_id := ""
 var drop_item_filter := ""
+var selected_workstation_id := ""
+var workstation_filter := ""
+var production_rows := []
 var sidebar_buttons := {}
 var field_controls := {}
 
@@ -23,6 +26,7 @@ var duplicate_button: Button
 var delete_button: Button
 var form_title_label: Label
 var form_container: VBoxContainer
+var production_rows_container: VBoxContainer
 var save_button: Button
 var revert_button: Button
 var status_label: Label
@@ -95,7 +99,7 @@ func _build_record_panel(parent: Node) -> void:
 
 	search_line_edit = LineEdit.new()
 	search_line_edit.name = "SearchLineEdit"
-	search_line_edit.placeholder_text = "Search by id or display name"
+	search_line_edit.placeholder_text = "Search by id, display name, or role"
 	search_line_edit.text_changed.connect(_on_search_text_changed)
 	panel.add_child(search_line_edit)
 
@@ -191,6 +195,9 @@ func _select_section(section: String, force := false) -> void:
 	has_unsaved_changes = false
 	selected_drop_item_id = ""
 	drop_item_filter = ""
+	selected_workstation_id = ""
+	workstation_filter = ""
+	production_rows.clear()
 
 	is_refreshing_list = true
 	search_line_edit.text = ""
@@ -239,7 +246,8 @@ func _record_matches_search(record: Dictionary, query: String) -> bool:
 
 	var record_id := str(record.get("id", "")).to_lower()
 	var display_name := str(record.get("display_name", "")).to_lower()
-	return record_id.contains(query) or display_name.contains(query)
+	var role := str(record.get("role", "")).to_lower()
+	return record_id.contains(query) or display_name.contains(query) or role.contains(query)
 
 
 func _add_record_list_item(record: Dictionary, prefix := "") -> void:
@@ -285,6 +293,10 @@ func _load_record(record_id: String) -> void:
 	has_unsaved_changes = false
 	selected_drop_item_id = str(current_record.get("drop_item_id", ""))
 	drop_item_filter = ""
+	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
+	workstation_filter = ""
+	var loaded_production = current_record.get("production", [])
+	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
 
 	_build_form_for_current_record()
 	_update_action_buttons()
@@ -311,6 +323,8 @@ func _build_form_for_current_record() -> void:
 			_build_resource_form()
 		ContentEditorData.SECTION_TERRAIN_TYPES:
 			_build_terrain_type_form()
+		ContentEditorData.SECTION_NPCS:
+			_build_npc_form()
 		_:
 			_build_read_only_preview_form()
 
@@ -348,6 +362,18 @@ func _build_terrain_type_form() -> void:
 	_add_check_box("Walkable", "walkable", bool(current_record.get("walkable", true)))
 	_add_check_box("Allows Monster Spawn", "allows_monster_spawn", bool(current_record.get("allows_monster_spawn", true)))
 	_add_check_box("Allows Resource Spawn", "allows_resource_spawn", bool(current_record.get("allows_resource_spawn", true)))
+
+
+func _build_npc_form() -> void:
+	form_title_label.text = "NPC: %s" % str(current_record.get("id", ""))
+	_add_line_edit("ID", "id", str(current_record.get("id", "")))
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_spin_box("Max Health", "max_health", int(current_record.get("max_health", 50)), 1, 999999, 1)
+	_add_spin_box("Move Speed", "move_speed", int(current_record.get("move_speed", 35)), 0, 999999, 1)
+	_add_line_edit("Role", "role", str(current_record.get("role", "worker")))
+	_add_workstation_picker(str(current_record.get("preferred_workstation", "workbench")))
+	_add_check_box("Needs House", "needs_house", bool(current_record.get("needs_house", true)))
+	_add_production_editor()
 
 
 func _build_read_only_preview_form() -> void:
@@ -418,6 +444,23 @@ func _add_drop_item_picker(initial_item_id: String) -> void:
 	_add_form_row("Drop Item", option_button)
 	field_controls["drop_item_id"] = option_button
 	_refresh_drop_item_options()
+
+
+func _add_workstation_picker(initial_recipe_id: String) -> void:
+	selected_workstation_id = initial_recipe_id
+
+	var search := LineEdit.new()
+	search.placeholder_text = "Search building recipe by id or display name"
+	search.text = workstation_filter
+	search.text_changed.connect(_on_workstation_filter_changed)
+	_add_form_row("Workstation Search", search)
+	field_controls["workstation_search"] = search
+
+	var option_button := OptionButton.new()
+	option_button.item_selected.connect(_on_workstation_selected)
+	_add_form_row("Preferred Workstation", option_button)
+	field_controls["preferred_workstation"] = option_button
+	_refresh_workstation_options()
 
 
 func _add_form_row(label_text: String, control: Control) -> void:
@@ -503,6 +546,239 @@ func _on_drop_item_selected(index: int) -> void:
 	_mark_dirty()
 
 
+func _on_workstation_filter_changed(new_text: String) -> void:
+	workstation_filter = new_text
+	_refresh_workstation_options()
+
+
+func _refresh_workstation_options() -> void:
+	if not field_controls.has("preferred_workstation"):
+		return
+
+	var option_button: OptionButton = field_controls["preferred_workstation"]
+	option_button.clear()
+
+	var empty_index := option_button.item_count
+	option_button.add_item("None")
+	option_button.set_item_metadata(empty_index, "")
+
+	var query := workstation_filter.strip_edges().to_lower()
+	var selected_index := 0
+
+	for recipe_record in _get_building_recipe_records():
+		if not _record_matches_search(recipe_record, query):
+			continue
+
+		var recipe_id := str(recipe_record.get("id", ""))
+		if recipe_id == selected_workstation_id:
+			selected_index = option_button.item_count
+
+		_add_recipe_option(option_button, recipe_record)
+
+	option_button.select(selected_index)
+
+
+func _add_recipe_option(option_button: OptionButton, recipe_record: Dictionary) -> void:
+	var recipe_id := str(recipe_record.get("id", ""))
+	var display_name := str(recipe_record.get("display_name", ""))
+	var label := recipe_id
+	if not display_name.is_empty():
+		label = "%s - %s" % [recipe_id, display_name]
+
+	var index := option_button.item_count
+	option_button.add_item(label)
+	option_button.set_item_metadata(index, recipe_id)
+
+
+func _on_workstation_selected(index: int) -> void:
+	if not field_controls.has("preferred_workstation"):
+		return
+
+	var option_button: OptionButton = field_controls["preferred_workstation"]
+	selected_workstation_id = str(option_button.get_item_metadata(index))
+	_mark_dirty()
+
+
+func _add_production_editor() -> void:
+	var title := Label.new()
+	title.text = "Production Table"
+	form_container.add_child(title)
+
+	production_rows_container = VBoxContainer.new()
+	production_rows_container.name = "ProductionRows"
+	production_rows_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	form_container.add_child(production_rows_container)
+
+	var add_button := Button.new()
+	add_button.text = "Add Production"
+	add_button.pressed.connect(_on_add_production_pressed)
+	form_container.add_child(add_button)
+
+	_rebuild_production_rows()
+
+
+func _rebuild_production_rows() -> void:
+	if production_rows_container == null:
+		return
+
+	for child in production_rows_container.get_children():
+		child.queue_free()
+
+	for row_index in range(production_rows.size()):
+		_add_production_row(row_index)
+
+
+func _add_production_row(row_index: int) -> void:
+	var row_data: Dictionary = production_rows[row_index]
+	if not row_data.has("item_filter"):
+		row_data["item_filter"] = ""
+
+	var row := VBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	production_rows_container.add_child(row)
+
+	var header := HBoxContainer.new()
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(header)
+
+	var title := Label.new()
+	title.text = "Production %d" % (row_index + 1)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title)
+
+	var remove_button := Button.new()
+	remove_button.text = "Remove"
+	remove_button.pressed.connect(_on_remove_production_pressed.bind(row_index))
+	header.add_child(remove_button)
+
+	var search := LineEdit.new()
+	search.placeholder_text = "Search item by id or display name"
+	search.text = str(row_data.get("item_filter", ""))
+	row.add_child(search)
+
+	var option_button := OptionButton.new()
+	row.add_child(option_button)
+	_populate_production_item_options(option_button, row_index)
+
+	search.text_changed.connect(_on_production_item_filter_changed.bind(row_index, option_button))
+	option_button.item_selected.connect(_on_production_item_selected.bind(row_index, option_button))
+
+	var values := HBoxContainer.new()
+	values.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(values)
+
+	var amount_label := Label.new()
+	amount_label.text = "Amount"
+	values.add_child(amount_label)
+
+	var amount_spin := SpinBox.new()
+	amount_spin.min_value = 1
+	amount_spin.max_value = 999999
+	amount_spin.step = 1
+	amount_spin.value = int(row_data.get("amount", 1))
+	amount_spin.value_changed.connect(_on_production_amount_changed.bind(row_index))
+	values.add_child(amount_spin)
+
+	var interval_label := Label.new()
+	interval_label.text = "Interval Seconds"
+	values.add_child(interval_label)
+
+	var interval_spin := SpinBox.new()
+	interval_spin.min_value = 1
+	interval_spin.max_value = 999999
+	interval_spin.step = 1
+	interval_spin.value = int(row_data.get("interval_seconds", 30))
+	interval_spin.value_changed.connect(_on_production_interval_changed.bind(row_index))
+	values.add_child(interval_spin)
+
+
+func _populate_production_item_options(option_button: OptionButton, row_index: int) -> void:
+	option_button.clear()
+	var row_data: Dictionary = production_rows[row_index]
+	var selected_item_id := str(row_data.get("item_id", _get_default_item_id()))
+	var query := str(row_data.get("item_filter", "")).strip_edges().to_lower()
+	var selected_index := -1
+	var selected_record := {}
+
+	for item_record in data_store.get_records(ContentEditorData.SECTION_ITEMS):
+		if str(item_record.get("id", "")) == selected_item_id:
+			selected_record = item_record
+			break
+
+	if not selected_record.is_empty() and not _record_matches_search(selected_record, query):
+		_add_drop_item_option(option_button, selected_record)
+		selected_index = 0
+
+	for item_record in data_store.get_records(ContentEditorData.SECTION_ITEMS):
+		if not _record_matches_search(item_record, query):
+			continue
+
+		if str(item_record.get("id", "")) == selected_item_id and selected_index == -1:
+			selected_index = option_button.item_count
+
+		_add_drop_item_option(option_button, item_record)
+
+	if selected_index >= 0:
+		option_button.select(selected_index)
+
+
+func _on_production_item_filter_changed(new_text: String, row_index: int, option_button: OptionButton) -> void:
+	if not _is_valid_production_row_index(row_index):
+		return
+
+	production_rows[row_index]["item_filter"] = new_text
+	_populate_production_item_options(option_button, row_index)
+	_mark_dirty()
+
+
+func _on_production_item_selected(selected_index: int, row_index: int, option_button: OptionButton) -> void:
+	if not _is_valid_production_row_index(row_index):
+		return
+
+	production_rows[row_index]["item_id"] = str(option_button.get_item_metadata(selected_index))
+	_mark_dirty()
+
+
+func _on_production_amount_changed(new_value: float, row_index: int) -> void:
+	if not _is_valid_production_row_index(row_index):
+		return
+
+	production_rows[row_index]["amount"] = int(new_value)
+	_mark_dirty()
+
+
+func _on_production_interval_changed(new_value: float, row_index: int) -> void:
+	if not _is_valid_production_row_index(row_index):
+		return
+
+	production_rows[row_index]["interval_seconds"] = int(new_value)
+	_mark_dirty()
+
+
+func _on_add_production_pressed() -> void:
+	production_rows.append({
+		"item_id": _get_default_item_id(),
+		"amount": 1,
+		"interval_seconds": 30,
+		"item_filter": "",
+	})
+	_rebuild_production_rows()
+	_mark_dirty()
+
+
+func _on_remove_production_pressed(row_index: int) -> void:
+	if not _is_valid_production_row_index(row_index):
+		return
+
+	production_rows.remove_at(row_index)
+	_rebuild_production_rows()
+	_mark_dirty()
+
+
+func _is_valid_production_row_index(row_index: int) -> bool:
+	return row_index >= 0 and row_index < production_rows.size()
+
+
 func _on_new_pressed() -> void:
 	if has_unsaved_changes:
 		_set_status("Save or Revert before creating a new record.", true)
@@ -515,8 +791,10 @@ func _on_new_pressed() -> void:
 			_create_new_resource()
 		ContentEditorData.SECTION_TERRAIN_TYPES:
 			_create_new_terrain_type()
+		ContentEditorData.SECTION_NPCS:
+			_create_new_npc()
 		_:
-			_set_status("New is available for Items, Resources, and Terrain Types in this step.", true)
+			_set_status("New is available for Items, Resources, Terrain Types, and NPCs in this step.", true)
 
 
 func _create_new_item() -> void:
@@ -574,6 +852,29 @@ func _create_new_terrain_type() -> void:
 	_set_status("Created new unsaved terrain type.")
 
 
+func _create_new_npc() -> void:
+	var new_id := data_store.create_unique_id(ContentEditorData.SECTION_NPCS, "new_npc")
+	current_id = new_id
+	current_original_id = ""
+	current_record = {
+		"id": new_id,
+		"display_name": "New NPC",
+		"max_health": 50,
+		"move_speed": 35,
+		"role": "worker",
+		"preferred_workstation": _get_default_workstation_id(),
+		"production": [],
+		"needs_house": true,
+	}
+	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
+	production_rows = []
+	has_unsaved_changes = true
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_set_status("Created new unsaved NPC.")
+
+
 func _on_duplicate_pressed() -> void:
 	if has_unsaved_changes:
 		_set_status("Save or Revert before duplicating a record.", true)
@@ -590,8 +891,10 @@ func _on_duplicate_pressed() -> void:
 			_duplicate_current_record("_copy")
 		ContentEditorData.SECTION_TERRAIN_TYPES:
 			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_NPCS:
+			_duplicate_current_record("_copy")
 		_:
-			_set_status("Duplicate is available for Items, Resources, and Terrain Types in this step.", true)
+			_set_status("Duplicate is available for Items, Resources, Terrain Types, and NPCs in this step.", true)
 
 
 func _duplicate_current_record(suffix: String) -> void:
@@ -609,6 +912,9 @@ func _duplicate_current_record(suffix: String) -> void:
 	current_record = source_record
 	has_unsaved_changes = true
 	selected_drop_item_id = str(current_record.get("drop_item_id", ""))
+	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
+	var loaded_production = current_record.get("production", [])
+	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
 	_build_form_for_current_record()
 	_refresh_record_list()
 	_update_action_buttons()
@@ -635,8 +941,10 @@ func _on_delete_pressed() -> void:
 			_set_status("Resource delete is blocked for now to avoid breaking scene references.", true)
 		ContentEditorData.SECTION_TERRAIN_TYPES:
 			_delete_current_terrain_type()
+		ContentEditorData.SECTION_NPCS:
+			_delete_current_npc()
 		_:
-			_set_status("Delete is available for Items and Terrain Types in this step.", true)
+			_set_status("Delete is available for Items, Terrain Types, and NPCs in this step.", true)
 
 
 func _delete_current_item() -> void:
@@ -685,6 +993,25 @@ func _delete_current_terrain_type() -> void:
 	_set_status("Deleted terrain type.")
 
 
+func _delete_current_npc() -> void:
+	data_store.delete_record(current_section, current_original_id)
+	var error := data_store.save_section(current_section)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_reload_content_db()
+	current_id = ""
+	current_original_id = ""
+	current_record = {}
+	has_unsaved_changes = false
+	production_rows.clear()
+	_refresh_record_list()
+	_show_empty_form()
+	_update_action_buttons()
+	_set_status("Deleted NPC.")
+
+
 func _on_save_pressed() -> void:
 	if current_record.is_empty():
 		_set_status("Select or create a record before saving.", true)
@@ -697,6 +1024,8 @@ func _on_save_pressed() -> void:
 			_save_resource()
 		ContentEditorData.SECTION_TERRAIN_TYPES:
 			_save_terrain_type()
+		ContentEditorData.SECTION_NPCS:
+			_save_npc()
 		_:
 			_set_status("Visual saving for this section will come in a later step.", true)
 
@@ -743,6 +1072,20 @@ func _save_terrain_type() -> void:
 	_save_current_record(record_id, record)
 
 
+func _save_npc() -> void:
+	var record := _get_npc_form_record()
+	var record_id := data_store.sanitize_id(str(record.get("id", "")))
+	record["id"] = record_id
+	_set_line_edit_text("id", record_id)
+
+	var error := data_store.validate_npc(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
 func _save_current_record(record_id: String, record: Dictionary) -> void:
 	data_store.set_record(current_section, current_original_id, record_id, record)
 
@@ -757,6 +1100,9 @@ func _save_current_record(record_id: String, record: Dictionary) -> void:
 	current_record = data_store.get_record(current_section, record_id)
 	has_unsaved_changes = false
 	selected_drop_item_id = str(current_record.get("drop_item_id", ""))
+	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
+	var loaded_production = current_record.get("production", [])
+	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
 	_build_form_for_current_record()
 	_refresh_record_list()
 	_update_action_buttons()
@@ -780,6 +1126,11 @@ func _on_revert_pressed() -> void:
 	current_record = data_store.get_record(current_section, current_original_id)
 	has_unsaved_changes = false
 	selected_drop_item_id = str(current_record.get("drop_item_id", ""))
+	drop_item_filter = ""
+	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
+	workstation_filter = ""
+	var loaded_production = current_record.get("production", [])
+	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
 	_build_form_for_current_record()
 	_refresh_record_list()
 	_update_action_buttons()
@@ -792,6 +1143,10 @@ func _discard_unsaved_new_record() -> void:
 	current_record = {}
 	has_unsaved_changes = false
 	selected_drop_item_id = ""
+	drop_item_filter = ""
+	selected_workstation_id = ""
+	workstation_filter = ""
+	production_rows.clear()
 	_refresh_record_list()
 	_show_empty_form()
 	_update_action_buttons()
@@ -826,6 +1181,35 @@ func _get_terrain_type_form_record() -> Dictionary:
 		"allows_monster_spawn": _get_check_box_pressed("allows_monster_spawn"),
 		"allows_resource_spawn": _get_check_box_pressed("allows_resource_spawn"),
 	}
+
+
+func _get_npc_form_record() -> Dictionary:
+	return {
+		"id": _get_line_edit_text("id"),
+		"display_name": _get_line_edit_text("display_name"),
+		"max_health": _get_spin_box_int("max_health"),
+		"move_speed": _get_spin_box_int("move_speed"),
+		"role": _get_line_edit_text("role"),
+		"preferred_workstation": selected_workstation_id,
+		"production": _get_clean_production_rows(),
+		"needs_house": _get_check_box_pressed("needs_house"),
+	}
+
+
+func _get_clean_production_rows() -> Array:
+	var clean_rows := []
+
+	for production_row in production_rows:
+		if not production_row is Dictionary:
+			continue
+
+		clean_rows.append({
+			"item_id": str(production_row.get("item_id", _get_default_item_id())),
+			"amount": int(production_row.get("amount", 1)),
+			"interval_seconds": int(production_row.get("interval_seconds", 30)),
+		})
+
+	return clean_rows
 
 
 func _get_line_edit_text(field_name: String) -> String:
@@ -878,7 +1262,7 @@ func _mark_dirty() -> void:
 
 
 func _update_action_buttons() -> void:
-	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES
+	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS
 	var has_record := not current_record.is_empty()
 
 	new_button.disabled = not supports_visual_editing or has_unsaved_changes
@@ -903,6 +1287,27 @@ func _get_default_item_id() -> String:
 		return ""
 
 	return str(records[0].get("id", ""))
+
+
+func _get_default_workstation_id() -> String:
+	if data_store.has_record(ContentEditorData.SECTION_RECIPES, "workbench"):
+		return "workbench"
+
+	var records := _get_building_recipe_records()
+	if records.is_empty():
+		return ""
+
+	return str(records[0].get("id", ""))
+
+
+func _get_building_recipe_records() -> Array:
+	var building_recipes := []
+
+	for recipe_record in data_store.get_records(ContentEditorData.SECTION_RECIPES):
+		if str(recipe_record.get("type", "")) == "building":
+			building_recipes.append(recipe_record)
+
+	return building_recipes
 
 
 func _stringify_value(value) -> String:
