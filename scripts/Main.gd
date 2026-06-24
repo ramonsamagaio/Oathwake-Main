@@ -1,11 +1,13 @@
 extends Node2D
 
 const Inventory = preload("res://scripts/Inventory.gd")
+const SaveSystem = preload("res://scripts/systems/SaveSystem.gd")
 const SAVE_PATH := "user://savegame.json"
 const BUILD_TYPE_BED := "bed"
 
 var inventory := Inventory.new()
 var collected_resource_ids := {}
+var save_system := SaveSystem.new()
 
 @export var bed_respawn_range: float = 72.0
 
@@ -78,36 +80,21 @@ func save_game() -> void:
 		"respawn_point": _get_respawn_point_save_data(),
 	}
 
-	var save_file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-	if save_file == null:
-		print("Could not save game to %s" % SAVE_PATH)
+	var save_error := save_system.save_json(SAVE_PATH, save_data)
+	if not save_error.is_empty():
+		print(save_error)
 		return
 
-	save_file.store_string(JSON.stringify(save_data, "\t"))
 	print("Game saved to %s" % SAVE_PATH)
 
 
 func load_game() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
-		print("No save file found at %s" % SAVE_PATH)
+	var save_result := save_system.load_json(SAVE_PATH)
+	if not bool(save_result.get("ok", false)):
+		print(str(save_result.get("error", "Could not load save file.")))
 		return
 
-	var save_file := FileAccess.open(SAVE_PATH, FileAccess.READ)
-	if save_file == null:
-		print("Could not load game from %s" % SAVE_PATH)
-		return
-
-	var json := JSON.new()
-	var parse_error := json.parse(save_file.get_as_text())
-	if parse_error != OK:
-		print("Could not parse savegame.json at %s" % SAVE_PATH)
-		return
-
-	if not json.data is Dictionary:
-		print("Save file has invalid data.")
-		return
-
-	var save_data: Dictionary = json.data
+	var save_data: Dictionary = save_result.get("data", {})
 	var inventory_data = save_data.get("inventory", {})
 	if not inventory_data is Dictionary:
 		inventory_data = {}

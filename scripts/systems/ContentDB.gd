@@ -4,11 +4,13 @@ const ITEMS_PATH := "res://data/items.json"
 const RESOURCES_PATH := "res://data/resources.json"
 const MONSTERS_PATH := "res://data/monsters.json"
 const RECIPES_PATH := "res://data/recipes.json"
+const TERRAIN_TYPES_PATH := "res://data/terrain_types.json"
 
 var items := {}
 var resources := {}
 var monsters := {}
 var recipes := {}
+var terrain_types := {}
 
 
 func _ready() -> void:
@@ -20,8 +22,9 @@ func load_all() -> void:
 	resources = _load_json_dictionary(RESOURCES_PATH)
 	monsters = _load_json_dictionary(MONSTERS_PATH)
 	recipes = _load_json_dictionary(RECIPES_PATH)
+	terrain_types = _load_json_dictionary(TERRAIN_TYPES_PATH)
 
-	if not items.is_empty() and not resources.is_empty() and not monsters.is_empty() and not recipes.is_empty():
+	if not items.is_empty() and not resources.is_empty() and not monsters.is_empty() and not recipes.is_empty() and not terrain_types.is_empty():
 		print("ContentDB loaded successfully")
 
 
@@ -41,6 +44,14 @@ func get_recipe(id: String) -> Dictionary:
 	return _get_entry(recipes, id, "recipe")
 
 
+func get_terrain_type(id: String) -> Dictionary:
+	return _get_entry(terrain_types, id, "terrain type")
+
+
+func get_all_terrain_types() -> Dictionary:
+	return terrain_types.duplicate(true)
+
+
 func has_item(id: String) -> bool:
 	return items.has(id)
 
@@ -55,6 +66,10 @@ func has_monster(id: String) -> bool:
 
 func has_recipe(id: String) -> bool:
 	return recipes.has(id)
+
+
+func has_terrain_type(id: String) -> bool:
+	return terrain_types.has(id)
 
 
 func _load_json_dictionary(path: String) -> Dictionary:

@@ -1,0 +1,26 @@
+{
+	"grass": {
+		"display_name": "Grass",
+		"walkable": true,
+		"allows_monster_spawn": true,
+		"allows_resource_spawn": true
+	},
+	"forest": {
+		"display_name": "Forest",
+		"walkable": true,
+		"allows_monster_spawn": true,
+		"allows_resource_spawn": true
+	},
+	"stone": {
+		"display_name": "Stone Ground",
+		"walkable": true,
+		"allows_monster_spawn": true,
+		"allows_resource_spawn": false
+	},
+	"water": {
+		"display_name": "Water",
+		"walkable": false,
+		"allows_monster_spawn": false,
+		"allows_resource_spawn": false
+	}
+}

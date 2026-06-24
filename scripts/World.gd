@@ -1,5 +1,6 @@
 extends Node2D
 
+const TerrainMapScript = preload("res://scripts/world/TerrainMap.gd")
 const SOURCE_ID := 0
 const GROUND_TILE := Vector2i(0, 0)
 const ROCK_TILE := Vector2i(1, 0)
@@ -22,6 +23,8 @@ const ROCK_CELLS := [
 ]
 
 @export var tile_size: Vector2i = Vector2i(32, 32)
+
+var terrain_map := TerrainMapScript.new()
 
 @onready var ground_layer: TileMapLayer = $GroundLayer
 @onready var obstacle_layer: TileMapLayer = $ObstacleLayer
@@ -116,6 +119,10 @@ func _place_rocks() -> void:
 
 	for cell in ROCK_CELLS:
 		obstacle_layer.set_cell(cell, SOURCE_ID, ROCK_TILE)
+
+
+func get_tile_type_at_position(global_position: Vector2) -> String:
+	return terrain_map.get_tile_type_at_position(ground_layer, global_position)
 
 
 func _fill_tile(image: Image, tile_index: int, color: Color) -> void:

@@ -16,8 +16,9 @@ Tambem existe `res://tools/content_editor/ContentEditorMain.tscn`, uma cena boot
 - `res://data/resources.json`
 - `res://data/monsters.json`
 - `res://data/recipes.json`
+- `res://data/terrain_types.json`
 
-Atualmente Items e Resources tem formularios visuais completos. Monsters e Recipes ja aparecem na navegacao e podem ser expandidos com formularios especificos nas proximas etapas.
+Atualmente Items, Resources e Terrain Types tem formularios visuais completos. Monsters e Recipes ja aparecem na navegacao e podem ser expandidos com formularios especificos nas proximas etapas.
 
 ## Testes rapidos
 
@@ -50,6 +51,15 @@ Atualmente Items e Resources tem formularios visuais completos. Monsters e Recip
 2. Selecione `workbench`, `axe`, `pickaxe` ou `bed`.
 3. Confirme que os dados aparecem no painel direito.
 4. Por enquanto, edicao visual detalhada de Recipes ainda deve ser adicionada em uma etapa propria.
+
+### Terrain Type
+
+1. Clique em **Terrain Types**.
+2. Selecione `grass`.
+3. Altere `Display Name`.
+4. Clique em **Save**.
+5. Crie `dark_forest` com **New** e salve.
+6. Reabra o editor e confirme que `dark_forest` continua na lista.
 
 ## Export futuro
 

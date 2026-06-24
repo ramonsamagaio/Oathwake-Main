@@ -309,6 +309,8 @@ func _build_form_for_current_record() -> void:
 			_build_item_form()
 		ContentEditorData.SECTION_RESOURCES:
 			_build_resource_form()
+		ContentEditorData.SECTION_TERRAIN_TYPES:
+			_build_terrain_type_form()
 		_:
 			_build_read_only_preview_form()
 
@@ -337,6 +339,15 @@ func _build_resource_form() -> void:
 	_add_drop_item_picker(str(current_record.get("drop_item_id", "wood")))
 	_add_spin_box("Drop Amount", "drop_amount", int(current_record.get("drop_amount", 1)), 1, 999999, 1)
 	_add_spin_box("Respawn Time Seconds", "respawn_time_seconds", int(current_record.get("respawn_time_seconds", 60)), 0, 999999, 1)
+
+
+func _build_terrain_type_form() -> void:
+	form_title_label.text = "Terrain Type: %s" % str(current_record.get("id", ""))
+	_add_line_edit("ID", "id", str(current_record.get("id", "")))
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_check_box("Walkable", "walkable", bool(current_record.get("walkable", true)))
+	_add_check_box("Allows Monster Spawn", "allows_monster_spawn", bool(current_record.get("allows_monster_spawn", true)))
+	_add_check_box("Allows Resource Spawn", "allows_resource_spawn", bool(current_record.get("allows_resource_spawn", true)))
 
 
 func _build_read_only_preview_form() -> void:
@@ -381,6 +392,15 @@ func _add_text_edit(label_text: String, field_name: String, value: String, heigh
 	_add_form_row(label_text, text_edit)
 	field_controls[field_name] = text_edit
 	return text_edit
+
+
+func _add_check_box(label_text: String, field_name: String, value: bool) -> CheckBox:
+	var check_box := CheckBox.new()
+	check_box.button_pressed = value
+	check_box.toggled.connect(func(_is_pressed: bool) -> void: _mark_dirty())
+	_add_form_row(label_text, check_box)
+	field_controls[field_name] = check_box
+	return check_box
 
 
 func _add_drop_item_picker(initial_item_id: String) -> void:
@@ -493,8 +513,10 @@ func _on_new_pressed() -> void:
 			_create_new_item()
 		ContentEditorData.SECTION_RESOURCES:
 			_create_new_resource()
+		ContentEditorData.SECTION_TERRAIN_TYPES:
+			_create_new_terrain_type()
 		_:
-			_set_status("New is available for Items and Resources in this step.", true)
+			_set_status("New is available for Items, Resources, and Terrain Types in this step.", true)
 
 
 func _create_new_item() -> void:
@@ -534,6 +556,24 @@ func _create_new_resource() -> void:
 	_set_status("Created new unsaved resource.")
 
 
+func _create_new_terrain_type() -> void:
+	var new_id := data_store.create_unique_id(ContentEditorData.SECTION_TERRAIN_TYPES, "new_terrain")
+	current_id = new_id
+	current_original_id = ""
+	current_record = {
+		"id": new_id,
+		"display_name": "New Terrain",
+		"walkable": true,
+		"allows_monster_spawn": true,
+		"allows_resource_spawn": true,
+	}
+	has_unsaved_changes = true
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_set_status("Created new unsaved terrain type.")
+
+
 func _on_duplicate_pressed() -> void:
 	if has_unsaved_changes:
 		_set_status("Save or Revert before duplicating a record.", true)
@@ -548,8 +588,10 @@ func _on_duplicate_pressed() -> void:
 			_duplicate_current_record("_copy")
 		ContentEditorData.SECTION_RESOURCES:
 			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_TERRAIN_TYPES:
+			_duplicate_current_record("_copy")
 		_:
-			_set_status("Duplicate is available for Items and Resources in this step.", true)
+			_set_status("Duplicate is available for Items, Resources, and Terrain Types in this step.", true)
 
 
 func _duplicate_current_record(suffix: String) -> void:
@@ -591,8 +633,10 @@ func _on_delete_pressed() -> void:
 			_delete_current_item()
 		ContentEditorData.SECTION_RESOURCES:
 			_set_status("Resource delete is blocked for now to avoid breaking scene references.", true)
+		ContentEditorData.SECTION_TERRAIN_TYPES:
+			_delete_current_terrain_type()
 		_:
-			_set_status("Delete is available for Items in this step.", true)
+			_set_status("Delete is available for Items and Terrain Types in this step.", true)
 
 
 func _delete_current_item() -> void:
@@ -618,6 +662,29 @@ func _delete_current_item() -> void:
 	_set_status("Deleted item.")
 
 
+func _delete_current_terrain_type() -> void:
+	var usages := data_store.find_terrain_type_usage(current_original_id)
+	if not usages.is_empty():
+		_set_status("Cannot delete terrain type. It is used by: %s" % _join_strings(usages, ", "), true)
+		return
+
+	data_store.delete_record(current_section, current_original_id)
+	var error := data_store.save_section(current_section)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_reload_content_db()
+	current_id = ""
+	current_original_id = ""
+	current_record = {}
+	has_unsaved_changes = false
+	_refresh_record_list()
+	_show_empty_form()
+	_update_action_buttons()
+	_set_status("Deleted terrain type.")
+
+
 func _on_save_pressed() -> void:
 	if current_record.is_empty():
 		_set_status("Select or create a record before saving.", true)
@@ -628,6 +695,8 @@ func _on_save_pressed() -> void:
 			_save_item()
 		ContentEditorData.SECTION_RESOURCES:
 			_save_resource()
+		ContentEditorData.SECTION_TERRAIN_TYPES:
+			_save_terrain_type()
 		_:
 			_set_status("Visual saving for this section will come in a later step.", true)
 
@@ -653,6 +722,20 @@ func _save_resource() -> void:
 	_set_line_edit_text("id", record_id)
 
 	var error := data_store.validate_resource(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
+func _save_terrain_type() -> void:
+	var record := _get_terrain_type_form_record()
+	var record_id := data_store.sanitize_id(str(record.get("id", "")))
+	record["id"] = record_id
+	_set_line_edit_text("id", record_id)
+
+	var error := data_store.validate_terrain_type(record_id, current_original_id, record)
 	if not error.is_empty():
 		_set_status(error, true)
 		return
@@ -735,6 +818,16 @@ func _get_resource_form_record() -> Dictionary:
 	}
 
 
+func _get_terrain_type_form_record() -> Dictionary:
+	return {
+		"id": _get_line_edit_text("id"),
+		"display_name": _get_line_edit_text("display_name"),
+		"walkable": _get_check_box_pressed("walkable"),
+		"allows_monster_spawn": _get_check_box_pressed("allows_monster_spawn"),
+		"allows_resource_spawn": _get_check_box_pressed("allows_resource_spawn"),
+	}
+
+
 func _get_line_edit_text(field_name: String) -> String:
 	if not field_controls.has(field_name):
 		return ""
@@ -767,6 +860,14 @@ func _get_text_edit_text(field_name: String) -> String:
 	return text_edit.text
 
 
+func _get_check_box_pressed(field_name: String) -> bool:
+	if not field_controls.has(field_name):
+		return false
+
+	var check_box: CheckBox = field_controls[field_name]
+	return check_box.button_pressed
+
+
 func _mark_dirty() -> void:
 	if is_building_form:
 		return
@@ -777,7 +878,7 @@ func _mark_dirty() -> void:
 
 
 func _update_action_buttons() -> void:
-	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES
+	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES
 	var has_record := not current_record.is_empty()
 
 	new_button.disabled = not supports_visual_editing or has_unsaved_changes

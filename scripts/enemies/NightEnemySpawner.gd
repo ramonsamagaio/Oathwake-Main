@@ -12,6 +12,7 @@ extends Node
 @export var day_night_cycle_path: NodePath = "../DayNightCycle"
 @export var enemies_root_path: NodePath = "../World/Enemies"
 @export var build_system_path: NodePath = "../BuildSystem"
+@export var world_path: NodePath = "../World"
 
 var spawn_timer := 0.0
 var rng := RandomNumberGenerator.new()
@@ -20,6 +21,7 @@ var rng := RandomNumberGenerator.new()
 @onready var day_night_cycle: Node = get_node(day_night_cycle_path)
 @onready var enemies_root: Node2D = get_node(enemies_root_path)
 @onready var build_system = get_node(build_system_path)
+@onready var world = get_node(world_path)
 
 
 func _ready() -> void:
@@ -69,8 +71,11 @@ func get_alive_slime_count() -> int:
 	return count
 
 
-func get_tile_type_at_position(_position: Vector2) -> String:
-	# Temporary terrain type until the world exposes real TileMap terrain data.
+func get_tile_type_at_position(position: Vector2) -> String:
+	if world != null and world.has_method("get_tile_type_at_position"):
+		return str(world.get_tile_type_at_position(position))
+
+	# Safe fallback until the world exposes real TileMap terrain data.
 	return "grass"
 
 
@@ -113,11 +118,26 @@ func _is_position_near_campfire(spawn_position: Vector2) -> bool:
 
 func _is_spawn_tile_allowed(monster_id: String, spawn_position: Vector2) -> bool:
 	var spawn_tiles := _get_monster_spawn_tiles(monster_id)
+	var tile_type := get_tile_type_at_position(spawn_position)
+	if not _terrain_allows_monster_spawn(tile_type):
+		return false
+
 	if spawn_tiles.is_empty():
 		return true
 
-	var tile_type := get_tile_type_at_position(spawn_position)
 	return spawn_tiles.has(tile_type)
+
+
+func _terrain_allows_monster_spawn(tile_type: String) -> bool:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null:
+		return true
+
+	if not content_db.has_method("has_terrain_type") or not content_db.has_terrain_type(tile_type):
+		return true
+
+	var terrain_data: Dictionary = content_db.get_terrain_type(tile_type)
+	return bool(terrain_data.get("allows_monster_spawn", true))
 
 
 func _get_monster_spawn_tiles(monster_id: String) -> Array:

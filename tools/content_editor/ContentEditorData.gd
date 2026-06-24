@@ -4,12 +4,14 @@ const SECTION_ITEMS := "items"
 const SECTION_RESOURCES := "resources"
 const SECTION_MONSTERS := "monsters"
 const SECTION_RECIPES := "recipes"
+const SECTION_TERRAIN_TYPES := "terrain_types"
 
 const SECTIONS := [
 	SECTION_ITEMS,
 	SECTION_RESOURCES,
 	SECTION_MONSTERS,
 	SECTION_RECIPES,
+	SECTION_TERRAIN_TYPES,
 ]
 
 const SECTION_LABELS := {
@@ -17,6 +19,7 @@ const SECTION_LABELS := {
 	SECTION_RESOURCES: "Resources",
 	SECTION_MONSTERS: "Monsters",
 	SECTION_RECIPES: "Recipes",
+	SECTION_TERRAIN_TYPES: "Terrain Types",
 }
 
 const SECTION_PATHS := {
@@ -24,6 +27,7 @@ const SECTION_PATHS := {
 	SECTION_RESOURCES: "res://data/resources.json",
 	SECTION_MONSTERS: "res://data/monsters.json",
 	SECTION_RECIPES: "res://data/recipes.json",
+	SECTION_TERRAIN_TYPES: "res://data/terrain_types.json",
 }
 
 var content := {}
@@ -210,11 +214,38 @@ func validate_resource(record_id: String, original_id: String, record: Dictionar
 	return ""
 
 
+func validate_terrain_type(record_id: String, original_id: String, _record: Dictionary) -> String:
+	var id_error := _validate_record_id(SECTION_TERRAIN_TYPES, record_id, original_id)
+	if not id_error.is_empty():
+		return id_error
+
+	if record_id != original_id and not find_terrain_type_usage(original_id).is_empty():
+		return "Cannot rename terrain type because it is used by: %s" % _join_strings(find_terrain_type_usage(original_id), ", ")
+
+	return ""
+
+
 func find_item_usage(item_id: String) -> Array:
 	var usages := []
 	_append_resource_item_usage(usages, item_id)
 	_append_monster_item_usage(usages, item_id)
 	_append_recipe_item_usage(usages, item_id)
+	return usages
+
+
+func find_terrain_type_usage(terrain_type_id: String) -> Array:
+	var usages := []
+	var monsters := get_section_data(SECTION_MONSTERS)
+
+	for monster_id in monsters.keys():
+		var monster_data = monsters[monster_id]
+		if not monster_data is Dictionary:
+			continue
+
+		var spawn_tiles = monster_data.get("spawn_tiles", [])
+		if spawn_tiles is Array and spawn_tiles.has(terrain_type_id):
+			usages.append("monster %s spawn_tiles" % monster_id)
+
 	return usages
 
 
@@ -271,3 +302,15 @@ func _append_recipe_item_usage(usages: Array, item_id: String) -> void:
 			for cost_entry in cost:
 				if cost_entry is Dictionary and str(cost_entry.get("item_id", cost_entry.get("resource", ""))).to_lower() == item_id:
 					usages.append("recipe %s cost" % recipe_id)
+
+
+func _join_strings(values: Array, separator: String) -> String:
+	var text := ""
+
+	for value in values:
+		if not text.is_empty():
+			text += separator
+
+		text += str(value)
+
+	return text
