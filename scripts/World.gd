@@ -1,7 +1,10 @@
 extends Node2D
 
 const TerrainMapScript = preload("res://scripts/world/TerrainMap.gd")
+const SpriteResolverScript = preload("res://scripts/systems/SpriteResolver.gd")
 const SOURCE_ID := 0
+const TERRAIN_TYPE_CUSTOM_DATA := "terrain_type"
+const TERRAIN_GRASS := "grass"
 const GROUND_TILE := Vector2i(0, 0)
 const ROCK_TILE := Vector2i(1, 0)
 const WALL_TILE := Vector2i(2, 0)
@@ -25,6 +28,7 @@ const ROCK_CELLS := [
 @export var tile_size: Vector2i = Vector2i(32, 32)
 
 var terrain_map := TerrainMapScript.new()
+var sprite_resolver := SpriteResolverScript.new()
 
 @onready var ground_layer: TileMapLayer = $GroundLayer
 @onready var obstacle_layer: TileMapLayer = $ObstacleLayer
@@ -43,13 +47,12 @@ func _ready() -> void:
 
 func _create_tile_set() -> TileSet:
 	var image := Image.create(tile_size.x * 6, tile_size.y, false, Image.FORMAT_RGBA8)
-	_fill_tile(image, 0, Color(0.22, 0.45, 0.24))
+	_fill_terrain_tile(image, 0, TERRAIN_GRASS, Color(0.22, 0.45, 0.24))
 	_fill_tile(image, 1, Color(0.36, 0.36, 0.39))
 	_fill_tile(image, 2, Color(0.50, 0.32, 0.18))
 	_fill_tile(image, 3, Color(0.88, 0.34, 0.10))
 	_fill_tile(image, 4, Color(0.44, 0.28, 0.14))
 	_fill_tile(image, 5, Color(0.42, 0.34, 0.62))
-	_draw_tile_border(image, 0, Color(0.17, 0.34, 0.18))
 	_draw_tile_border(image, 1, Color(0.24, 0.24, 0.27))
 	_draw_tile_border(image, 2, Color(0.30, 0.18, 0.10))
 	_draw_tile_border(image, 3, Color(0.45, 0.14, 0.04))
@@ -69,10 +72,16 @@ func _create_tile_set() -> TileSet:
 
 	var tile_set := TileSet.new()
 	tile_set.tile_size = tile_size
+	tile_set.add_custom_data_layer()
+	tile_set.set_custom_data_layer_name(0, TERRAIN_TYPE_CUSTOM_DATA)
+	tile_set.set_custom_data_layer_type(0, TYPE_STRING)
 	tile_set.add_physics_layer()
 	tile_set.set_physics_layer_collision_layer(0, 1)
 	tile_set.set_physics_layer_collision_mask(0, 1)
 	tile_set.add_source(atlas_source, SOURCE_ID)
+
+	var ground_data := atlas_source.get_tile_data(GROUND_TILE, 0)
+	ground_data.set_custom_data(TERRAIN_TYPE_CUSTOM_DATA, TERRAIN_GRASS)
 
 	var rock_half_size := Vector2((tile_size.x * 0.5) - 2.0, (tile_size.y * 0.5) - 2.0)
 	var rock_data := atlas_source.get_tile_data(ROCK_TILE, 0)
@@ -131,6 +140,28 @@ func _fill_tile(image: Image, tile_index: int, color: Color) -> void:
 	for x in range(start_x, start_x + tile_size.x):
 		for y in range(tile_size.y):
 			image.set_pixel(x, y, color)
+
+
+func _fill_terrain_tile(image: Image, tile_index: int, terrain_type_id: String, fallback_color: Color) -> void:
+	var terrain_texture := sprite_resolver.get_texture_for_terrain_type(terrain_type_id)
+	if terrain_texture == null:
+		_fill_tile(image, tile_index, fallback_color)
+		_draw_tile_border(image, tile_index, fallback_color.darkened(0.2))
+		return
+
+	var terrain_image: Image = terrain_texture.get_image()
+	if terrain_image == null:
+		_fill_tile(image, tile_index, fallback_color)
+		_draw_tile_border(image, tile_index, fallback_color.darkened(0.2))
+		return
+
+	var tile_image: Image = terrain_image.duplicate()
+	tile_image.convert(Image.FORMAT_RGBA8)
+	if tile_image.get_size() != tile_size:
+		tile_image.resize(tile_size.x, tile_size.y, Image.INTERPOLATE_NEAREST)
+
+	var destination := Vector2i(tile_index * tile_size.x, 0)
+	image.blit_rect(tile_image, Rect2i(Vector2i.ZERO, tile_size), destination)
 
 
 func _draw_tile_border(image: Image, tile_index: int, color: Color) -> void:

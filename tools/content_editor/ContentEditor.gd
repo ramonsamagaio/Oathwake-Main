@@ -19,6 +19,12 @@ var production_rows := []
 var selected_sprite_id := ""
 var sprite_filter := ""
 var sprite_category_filter := "all"
+var selected_sprite_sheet_id := ""
+var sprite_sheet_filter := ""
+var selected_animation_name := ""
+var animation_preview_playing := false
+var animation_preview_elapsed := 0.0
+var animation_preview_frame_index := 0
 var sidebar_buttons := {}
 var field_controls := {}
 
@@ -34,6 +40,8 @@ var form_container: VBoxContainer
 var production_rows_container: VBoxContainer
 var sprite_preview_rect: TextureRect
 var sprite_sheet_preview: Control
+var animation_grid_preview: Control
+var animation_preview_rect: TextureRect
 var texture_file_dialog: FileDialog
 var save_button: Button
 var revert_button: Button
@@ -45,6 +53,7 @@ var status_label: Label
 
 func _ready() -> void:
 	_build_ui()
+	set_process(true)
 
 	var error := data_store.load_all()
 	if not error.is_empty():
@@ -52,6 +61,33 @@ func _ready() -> void:
 		return
 
 	_select_section(ContentEditorData.SECTION_ITEMS, true)
+
+
+func _process(delta: float) -> void:
+	if not animation_preview_playing:
+		return
+	if current_section != ContentEditorData.SECTION_ANIMATION_SETS:
+		return
+
+	var frames: Array = _get_selected_animation_frames()
+	if frames.is_empty():
+		return
+
+	var fps: float = max(float(_get_spin_box_value("animation_fps")), 0.01)
+	animation_preview_elapsed += delta
+	if animation_preview_elapsed < 1.0 / fps:
+		return
+
+	animation_preview_elapsed = 0.0
+	animation_preview_frame_index += 1
+	if animation_preview_frame_index >= frames.size():
+		if _get_check_box_pressed("animation_loop"):
+			animation_preview_frame_index = 0
+		else:
+			animation_preview_frame_index = frames.size() - 1
+			animation_preview_playing = false
+
+	_update_animation_preview_frame()
 
 
 func _build_ui() -> void:
@@ -247,6 +283,10 @@ func _select_section(section: String, force := false) -> void:
 	production_rows.clear()
 	selected_sprite_id = ""
 	sprite_filter = ""
+	selected_sprite_sheet_id = ""
+	sprite_sheet_filter = ""
+	selected_animation_name = ""
+	animation_preview_playing = false
 	if section != ContentEditorData.SECTION_SPRITES:
 		sprite_category_filter = "all"
 
@@ -339,8 +379,9 @@ func _record_matches_search(record: Dictionary, query: String) -> bool:
 	var display_name := str(record.get("display_name", "")).to_lower()
 	var role := str(record.get("role", "")).to_lower()
 	var category := str(record.get("category", "")).to_lower()
+	var sprite_sheet_id := str(record.get("sprite_sheet_id", "")).to_lower()
 	var tags := _join_string_array(record.get("tags", []), " ").to_lower()
-	return record_id.contains(query) or display_name.contains(query) or role.contains(query) or category.contains(query) or tags.contains(query)
+	return record_id.contains(query) or display_name.contains(query) or role.contains(query) or category.contains(query) or sprite_sheet_id.contains(query) or tags.contains(query)
 
 
 func _add_record_list_item(record: Dictionary, prefix := "") -> void:
@@ -390,6 +431,10 @@ func _load_record(record_id: String) -> void:
 	workstation_filter = ""
 	selected_sprite_id = str(current_record.get("sprite_id", ""))
 	sprite_filter = ""
+	selected_sprite_sheet_id = str(current_record.get("sprite_sheet_id", ""))
+	sprite_sheet_filter = ""
+	selected_animation_name = _get_first_animation_name(current_record)
+	animation_preview_playing = false
 	var loaded_production = current_record.get("production", [])
 	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
 
@@ -426,6 +471,8 @@ func _build_form_for_current_record() -> void:
 			_build_npc_form()
 		ContentEditorData.SECTION_SPRITES:
 			_build_sprite_form()
+		ContentEditorData.SECTION_ANIMATION_SETS:
+			_build_animation_set_form()
 		_:
 			_build_read_only_preview_form()
 
@@ -532,6 +579,24 @@ func _build_sprite_form() -> void:
 	_add_spin_box("Total Frames", "total_frames", int(current_record.get("total_frames", 1)), 1, 999999, 1)
 	_add_detect_grid_button()
 	_add_sprite_preview_for_record(current_record)
+
+
+func _build_animation_set_form() -> void:
+	form_title_label.text = "Animation Set: %s" % str(current_record.get("id", ""))
+	_add_line_edit("ID", "id", str(current_record.get("id", "")))
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_sprite_sheet_picker(str(current_record.get("sprite_sheet_id", "")))
+
+	var anchor = current_record.get("anchor", {})
+	if not anchor is Dictionary:
+		anchor = {}
+	_add_spin_box("Anchor X", "anchor_x", int(anchor.get("x", 32)), 0, 999999, 1)
+	_add_spin_box("Anchor Y", "anchor_y", int(anchor.get("y", 44)), 0, 999999, 1)
+
+	_add_animation_list_editor()
+	_add_animation_detail_editor()
+	_add_animation_grid_editor()
+	_add_mapping_helper()
 
 
 func _build_read_only_preview_form() -> void:
@@ -669,6 +734,192 @@ func _add_sprite_picker(initial_sprite_id: String) -> void:
 	_add_form_row("Sprite Preview", sprite_preview_rect)
 	_refresh_sprite_options()
 	_update_selected_sprite_preview()
+
+
+func _add_sprite_sheet_picker(initial_sprite_sheet_id: String) -> void:
+	selected_sprite_sheet_id = initial_sprite_sheet_id
+
+	var search := LineEdit.new()
+	search.placeholder_text = "Search sprite sheet by id, display name, or tag"
+	search.text = sprite_sheet_filter
+	search.text_changed.connect(_on_sprite_sheet_filter_changed)
+	_add_form_row("Sprite Sheet Search", search)
+	field_controls["sprite_sheet_search"] = search
+
+	var option_button := OptionButton.new()
+	option_button.item_selected.connect(_on_sprite_sheet_selected)
+	_add_form_row("Sprite Sheet", option_button)
+	field_controls["sprite_sheet_id"] = option_button
+	_refresh_sprite_sheet_options()
+
+
+func _add_animation_list_editor() -> void:
+	var title := Label.new()
+	title.text = "Animations"
+	form_container.add_child(title)
+
+	var option_button := OptionButton.new()
+	option_button.item_selected.connect(_on_animation_selected)
+	_add_form_row("Selected Animation", option_button)
+	field_controls["animation_select"] = option_button
+	_refresh_animation_options()
+
+	var row := HBoxContainer.new()
+	form_container.add_child(row)
+
+	var add_button := Button.new()
+	add_button.text = "Add Animation"
+	add_button.pressed.connect(_on_add_animation_pressed)
+	row.add_child(add_button)
+
+	var duplicate_button := Button.new()
+	duplicate_button.text = "Duplicate Animation"
+	duplicate_button.pressed.connect(_on_duplicate_animation_pressed)
+	row.add_child(duplicate_button)
+
+	var delete_button := Button.new()
+	delete_button.text = "Delete Animation"
+	delete_button.pressed.connect(_on_delete_animation_pressed)
+	row.add_child(delete_button)
+
+	var clear_button := Button.new()
+	clear_button.text = "Clear Frames"
+	clear_button.pressed.connect(_on_clear_animation_frames_pressed)
+	row.add_child(clear_button)
+
+	var standard_button := Button.new()
+	standard_button.text = "Create Standard Character Animations"
+	standard_button.pressed.connect(_on_create_standard_animations_pressed)
+	form_container.add_child(standard_button)
+
+
+func _add_animation_detail_editor() -> void:
+	var animation_data := _get_selected_animation_data()
+	_add_line_edit("Animation Name", "animation_name", selected_animation_name)
+	_add_line_edit("Frames", "animation_frames", _join_string_array(animation_data.get("frames", []), ", "))
+	_add_spin_box("FPS", "animation_fps", int(animation_data.get("fps", _get_default_animation_fps(selected_animation_name))), 1, 999999, 1)
+	_add_check_box("Loop", "animation_loop", bool(animation_data.get("loop", true)))
+
+	var row := HBoxContainer.new()
+	form_container.add_child(row)
+
+	var remove_button := Button.new()
+	remove_button.text = "Remove Last Frame"
+	remove_button.pressed.connect(_on_remove_last_animation_frame_pressed)
+	row.add_child(remove_button)
+
+	var up_button := Button.new()
+	up_button.text = "Move Last Up"
+	up_button.pressed.connect(_on_move_last_frame_up_pressed)
+	row.add_child(up_button)
+
+	var down_button := Button.new()
+	down_button.text = "Move Last Down"
+	down_button.pressed.connect(_on_move_last_frame_down_pressed)
+	row.add_child(down_button)
+
+
+func _add_animation_grid_editor() -> void:
+	var sheet_record := _get_selected_sprite_sheet_record()
+	_add_read_only_value("Selected Sheet", _get_sprite_sheet_summary(sheet_record))
+
+	animation_grid_preview = SpriteSheetPreviewScript.new()
+	animation_grid_preview.custom_minimum_size = Vector2(420, 420)
+	animation_grid_preview.frame_clicked.connect(_on_animation_grid_frame_clicked)
+	_add_form_row("Frame Grid", animation_grid_preview)
+	_update_animation_grid_preview()
+
+	animation_preview_rect = TextureRect.new()
+	animation_preview_rect.custom_minimum_size = Vector2(128, 128)
+	animation_preview_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_add_form_row("Animation Preview", animation_preview_rect)
+	_update_animation_preview_frame()
+
+	var row := HBoxContainer.new()
+	form_container.add_child(row)
+
+	var play_button := Button.new()
+	play_button.text = "Play Preview"
+	play_button.pressed.connect(_on_play_animation_preview_pressed)
+	row.add_child(play_button)
+
+	var stop_button := Button.new()
+	stop_button.text = "Stop"
+	stop_button.pressed.connect(_on_stop_animation_preview_pressed)
+	row.add_child(stop_button)
+
+	var previous_button := Button.new()
+	previous_button.text = "Previous Frame"
+	previous_button.pressed.connect(_on_previous_animation_frame_pressed)
+	row.add_child(previous_button)
+
+	var next_button := Button.new()
+	next_button.text = "Next Frame"
+	next_button.pressed.connect(_on_next_animation_frame_pressed)
+	row.add_child(next_button)
+
+
+func _add_mapping_helper() -> void:
+	var title := Label.new()
+	title.text = "Mapping Helper"
+	form_container.add_child(title)
+
+	_add_mapping_apply_mode_option()
+	_add_line_edit("Helper Animation Name", "helper_animation_name", selected_animation_name)
+
+	_add_spin_box("Row Index", "helper_row", 0, 0, 999999, 1)
+	_add_spin_box("Start Column", "helper_start_column", 0, 0, 999999, 1)
+	_add_spin_box("End Column", "helper_end_column", 3, 0, 999999, 1)
+	var row_button := Button.new()
+	row_button.text = "Add Row as Animation"
+	row_button.pressed.connect(_on_helper_add_row_pressed)
+	form_container.add_child(row_button)
+
+	_add_spin_box("Column Index", "helper_column", 0, 0, 999999, 1)
+	_add_spin_box("Start Row", "helper_start_row", 0, 0, 999999, 1)
+	_add_spin_box("End Row", "helper_end_row", 3, 0, 999999, 1)
+	var column_button := Button.new()
+	column_button.text = "Add Column as Animation"
+	column_button.pressed.connect(_on_helper_add_column_pressed)
+	form_container.add_child(column_button)
+
+	_add_spin_box("Start Frame", "helper_start_frame", 0, 0, 999999, 1)
+	_add_spin_box("End Frame", "helper_end_frame", 3, 0, 999999, 1)
+	_add_spin_box("Helper FPS", "helper_fps", 8, 1, 999999, 1)
+	_add_check_box("Helper Loop", "helper_loop", true)
+	var range_button := Button.new()
+	range_button.text = "Add Range"
+	range_button.pressed.connect(_on_helper_add_range_pressed)
+	form_container.add_child(range_button)
+
+	_add_copy_animation_picker()
+	var copy_button := Button.new()
+	copy_button.text = "Duplicate Direction"
+	copy_button.pressed.connect(_on_helper_duplicate_direction_pressed)
+	form_container.add_child(copy_button)
+
+
+func _add_mapping_apply_mode_option() -> void:
+	var option_button := OptionButton.new()
+	for mode in ["append", "replace"]:
+		var index := option_button.item_count
+		option_button.add_item(mode)
+		option_button.set_item_metadata(index, mode)
+	option_button.select(0)
+	option_button.item_selected.connect(func(_index: int) -> void: _mark_dirty())
+	_add_form_row("Apply Mode", option_button)
+	field_controls["helper_apply_mode"] = option_button
+
+
+func _add_copy_animation_picker() -> void:
+	var option_button := OptionButton.new()
+	for animation_name in _get_animation_names():
+		var index := option_button.item_count
+		option_button.add_item(animation_name)
+		option_button.set_item_metadata(index, animation_name)
+	option_button.item_selected.connect(func(_index: int) -> void: _mark_dirty())
+	_add_form_row("Copy Frames From", option_button)
+	field_controls["copy_source_animation"] = option_button
 
 
 func _add_category_option_button(initial_category: String) -> void:
@@ -933,6 +1184,293 @@ func _on_sprite_selected(index: int) -> void:
 	selected_sprite_id = str(option_button.get_item_metadata(index))
 	_update_selected_sprite_preview()
 	_mark_dirty()
+
+
+func _on_sprite_sheet_filter_changed(new_text: String) -> void:
+	sprite_sheet_filter = new_text
+	_refresh_sprite_sheet_options()
+
+
+func _refresh_sprite_sheet_options() -> void:
+	if not field_controls.has("sprite_sheet_id"):
+		return
+
+	var option_button: OptionButton = field_controls["sprite_sheet_id"]
+	option_button.clear()
+
+	var query := sprite_sheet_filter.strip_edges().to_lower()
+	var selected_index := -1
+
+	for sprite_record in data_store.get_records(ContentEditorData.SECTION_SPRITES):
+		if str(sprite_record.get("type", "single_sprite")) != "sprite_sheet":
+			continue
+		if not _sprite_record_matches_search(sprite_record, query):
+			continue
+
+		var sprite_id := str(sprite_record.get("id", ""))
+		if sprite_id == selected_sprite_sheet_id:
+			selected_index = option_button.item_count
+
+		_add_sprite_option(option_button, sprite_record)
+
+	if selected_index >= 0:
+		option_button.select(selected_index)
+	elif option_button.item_count > 0:
+		option_button.select(0)
+		selected_sprite_sheet_id = str(option_button.get_item_metadata(0))
+
+
+func _on_sprite_sheet_selected(index: int) -> void:
+	if not field_controls.has("sprite_sheet_id"):
+		return
+
+	_sync_animation_detail_to_record()
+	var option_button: OptionButton = field_controls["sprite_sheet_id"]
+	selected_sprite_sheet_id = str(option_button.get_item_metadata(index))
+	_update_animation_grid_preview()
+	_update_animation_preview_frame()
+	_mark_dirty()
+
+
+func _on_animation_selected(index: int) -> void:
+	if not field_controls.has("animation_select"):
+		return
+
+	_sync_animation_detail_to_record()
+	var option_button: OptionButton = field_controls["animation_select"]
+	selected_animation_name = str(option_button.get_item_metadata(index))
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_add_animation_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var animations := _get_animation_set_animations()
+	var animation_name := _create_unique_animation_name("new_animation")
+	animations[animation_name] = _make_animation_data([], _get_default_animation_fps(animation_name), true)
+	selected_animation_name = animation_name
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_duplicate_animation_pressed() -> void:
+	_sync_animation_detail_to_record()
+	if selected_animation_name.is_empty():
+		_set_status("Select an animation before duplicating.", true)
+		return
+
+	var animations := _get_animation_set_animations()
+	var animation_name := _create_unique_animation_name("%s_copy" % selected_animation_name)
+	animations[animation_name] = _get_selected_animation_data().duplicate(true)
+	selected_animation_name = animation_name
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_delete_animation_pressed() -> void:
+	_sync_animation_detail_to_record()
+	if selected_animation_name.is_empty():
+		return
+
+	var animations := _get_animation_set_animations()
+	animations.erase(selected_animation_name)
+	selected_animation_name = _get_first_animation_name(current_record)
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_clear_animation_frames_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var animation_data := _get_selected_animation_data()
+	animation_data["frames"] = []
+	_set_selected_animation_data(animation_data)
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_create_standard_animations_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var animations := _get_animation_set_animations()
+	for animation_name in _get_standard_character_animation_names():
+		if animations.has(animation_name):
+			continue
+		animations[animation_name] = _make_animation_data([], _get_default_animation_fps(animation_name), _get_default_animation_loop(animation_name))
+
+	if selected_animation_name.is_empty() and not animations.is_empty():
+		selected_animation_name = _get_first_animation_name(current_record)
+
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_remove_last_animation_frame_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var frames := _get_selected_animation_frames()
+	if frames.is_empty():
+		return
+
+	frames.remove_at(frames.size() - 1)
+	_set_selected_animation_frames(frames)
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_move_last_frame_up_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var frames := _get_selected_animation_frames()
+	if frames.size() < 2:
+		return
+
+	var last_index := frames.size() - 1
+	var value = frames[last_index]
+	frames[last_index] = frames[last_index - 1]
+	frames[last_index - 1] = value
+	_set_selected_animation_frames(frames)
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_move_last_frame_down_pressed() -> void:
+	_set_status("Last frame is already at the end.")
+
+
+func _on_animation_grid_frame_clicked(frame_index: int, mouse_button: int) -> void:
+	_sync_animation_detail_to_record()
+	if selected_animation_name.is_empty():
+		_set_status("Create or select an animation before adding frames.", true)
+		return
+
+	var frames := _get_selected_animation_frames()
+	if mouse_button == MOUSE_BUTTON_RIGHT:
+		for index in range(frames.size() - 1, -1, -1):
+			if int(frames[index]) == frame_index:
+				frames.remove_at(index)
+				break
+	else:
+		frames.append(frame_index)
+
+	_set_selected_animation_frames(frames)
+	_set_line_edit_text("animation_frames", _join_string_array(frames, ", "))
+	_update_animation_grid_preview()
+	_update_animation_preview_frame()
+	_mark_dirty()
+
+
+func _on_play_animation_preview_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var frames := _get_selected_animation_frames()
+	if frames.is_empty():
+		_set_status("Add frames before playing preview.", true)
+		return
+
+	animation_preview_playing = true
+	animation_preview_elapsed = 0.0
+	animation_preview_frame_index = clamp(animation_preview_frame_index, 0, frames.size() - 1)
+	_update_animation_preview_frame()
+
+
+func _on_stop_animation_preview_pressed() -> void:
+	animation_preview_playing = false
+	animation_preview_elapsed = 0.0
+
+
+func _on_previous_animation_frame_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var frames := _get_selected_animation_frames()
+	if frames.is_empty():
+		return
+
+	animation_preview_playing = false
+	animation_preview_frame_index = max(animation_preview_frame_index - 1, 0)
+	_update_animation_preview_frame()
+
+
+func _on_next_animation_frame_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var frames := _get_selected_animation_frames()
+	if frames.is_empty():
+		return
+
+	animation_preview_playing = false
+	animation_preview_frame_index = min(animation_preview_frame_index + 1, frames.size() - 1)
+	_update_animation_preview_frame()
+
+
+func _on_helper_add_row_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var columns := int(sheet_record.get("columns", 0))
+	var rows := int(sheet_record.get("rows", 0))
+	var row := _get_spin_box_int("helper_row")
+	var start_column := _get_spin_box_int("helper_start_column")
+	var end_column := _get_spin_box_int("helper_end_column")
+	if row < 0 or row >= rows or start_column < 0 or end_column >= columns or start_column > end_column:
+		_set_status("Row helper values are outside the selected sprite sheet grid.", true)
+		return
+
+	var frames := []
+	for column in range(start_column, end_column + 1):
+		frames.append((row * columns) + column)
+
+	_apply_helper_frames(frames)
+
+
+func _on_helper_add_column_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var columns := int(sheet_record.get("columns", 0))
+	var rows := int(sheet_record.get("rows", 0))
+	var column := _get_spin_box_int("helper_column")
+	var start_row := _get_spin_box_int("helper_start_row")
+	var end_row := _get_spin_box_int("helper_end_row")
+	if column < 0 or column >= columns or start_row < 0 or end_row >= rows or start_row > end_row:
+		_set_status("Column helper values are outside the selected sprite sheet grid.", true)
+		return
+
+	var frames := []
+	for row in range(start_row, end_row + 1):
+		frames.append((row * columns) + column)
+
+	_apply_helper_frames(frames)
+
+
+func _on_helper_add_range_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var total_frames := int(sheet_record.get("total_frames", 0))
+	var start_frame := _get_spin_box_int("helper_start_frame")
+	var end_frame := _get_spin_box_int("helper_end_frame")
+	if start_frame < 0 or end_frame >= total_frames or start_frame > end_frame:
+		_set_status("Range helper values are outside the selected sprite sheet frames.", true)
+		return
+
+	var frames := []
+	for frame_index in range(start_frame, end_frame + 1):
+		frames.append(frame_index)
+
+	_apply_helper_frames(frames)
+
+
+func _on_helper_duplicate_direction_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var source_animation := _get_option_button_metadata("copy_source_animation")
+	var destination_animation := _get_line_edit_text("helper_animation_name")
+	if source_animation.is_empty() or destination_animation.is_empty():
+		_set_status("Choose a source animation and destination name before duplicating.", true)
+		return
+
+	var animations := _get_animation_set_animations()
+	if not animations.has(source_animation):
+		_set_status("Source animation does not exist.", true)
+		return
+
+	var source_data: Dictionary = animations[source_animation]
+	var frames := []
+	var source_frames = source_data.get("frames", [])
+	if source_frames is Array:
+		frames = source_frames.duplicate()
+
+	_apply_helper_frames(frames, destination_animation, int(source_data.get("fps", 8)), bool(source_data.get("loop", true)))
 
 
 func _on_browse_texture_pressed() -> void:
@@ -1320,8 +1858,10 @@ func _on_new_pressed() -> void:
 			_create_new_npc()
 		ContentEditorData.SECTION_SPRITES:
 			_create_new_sprite()
+		ContentEditorData.SECTION_ANIMATION_SETS:
+			_create_new_animation_set()
 		_:
-			_set_status("New is available for Items, Resources, Terrain Types, NPCs, and Sprites in this step.", true)
+			_set_status("New is available for visual content sections.", true)
 
 
 func _create_new_item() -> void:
@@ -1476,6 +2016,29 @@ func _create_new_sprite() -> void:
 	_set_status("Created new unsaved sprite.")
 
 
+func _create_new_animation_set() -> void:
+	var new_id := data_store.create_unique_id(ContentEditorData.SECTION_ANIMATION_SETS, "new_animation_set")
+	current_id = new_id
+	current_original_id = ""
+	current_record = {
+		"id": new_id,
+		"display_name": "New Animation Set",
+		"sprite_sheet_id": _get_default_sprite_sheet_id(),
+		"anchor": {
+			"x": 32,
+			"y": 44,
+		},
+		"animations": {},
+	}
+	selected_sprite_sheet_id = str(current_record.get("sprite_sheet_id", ""))
+	selected_animation_name = ""
+	has_unsaved_changes = true
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_set_status("Created new unsaved animation set.")
+
+
 func _on_duplicate_pressed() -> void:
 	if has_unsaved_changes:
 		_set_status("Save or Revert before duplicating a record.", true)
@@ -1500,8 +2063,10 @@ func _on_duplicate_pressed() -> void:
 			_duplicate_current_record("_copy")
 		ContentEditorData.SECTION_SPRITES:
 			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_ANIMATION_SETS:
+			_duplicate_current_record("_copy")
 		_:
-			_set_status("Duplicate is available for Items, Resources, Terrain Types, NPCs, and Sprites in this step.", true)
+			_set_status("Duplicate is available for visual content sections.", true)
 
 
 func _duplicate_current_record(suffix: String) -> void:
@@ -1521,6 +2086,8 @@ func _duplicate_current_record(suffix: String) -> void:
 	selected_drop_item_id = str(current_record.get("drop_item_id", ""))
 	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
 	selected_sprite_id = str(current_record.get("sprite_id", ""))
+	selected_sprite_sheet_id = str(current_record.get("sprite_sheet_id", ""))
+	selected_animation_name = _get_first_animation_name(current_record)
 	var loaded_production = current_record.get("production", [])
 	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
 	_build_form_for_current_record()
@@ -1557,8 +2124,10 @@ func _on_delete_pressed() -> void:
 			_delete_current_npc()
 		ContentEditorData.SECTION_SPRITES:
 			_delete_current_sprite()
+		ContentEditorData.SECTION_ANIMATION_SETS:
+			_delete_current_animation_set()
 		_:
-			_set_status("Delete is available for Items, Terrain Types, NPCs, and Sprites in this step.", true)
+			_set_status("Delete is available for visual content sections.", true)
 
 
 func _delete_current_item() -> void:
@@ -1695,6 +2264,30 @@ func _delete_current_sprite() -> void:
 	_set_status("Deleted sprite.")
 
 
+func _delete_current_animation_set() -> void:
+	var usages := data_store.find_animation_set_usages(current_original_id)
+	if not usages.is_empty():
+		_set_status("Cannot delete animation set. It is used by: %s" % _join_strings(usages, ", "), true)
+		return
+
+	data_store.delete_record(current_section, current_original_id)
+	var error := data_store.save_section(current_section)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_reload_content_db()
+	current_id = ""
+	current_original_id = ""
+	current_record = {}
+	has_unsaved_changes = false
+	selected_animation_name = ""
+	_refresh_record_list()
+	_show_empty_form()
+	_update_action_buttons()
+	_set_status("Deleted animation set.")
+
+
 func _on_save_pressed() -> void:
 	if current_record.is_empty():
 		_set_status("Select or create a record before saving.", true)
@@ -1715,6 +2308,8 @@ func _on_save_pressed() -> void:
 			_save_npc()
 		ContentEditorData.SECTION_SPRITES:
 			_save_sprite()
+		ContentEditorData.SECTION_ANIMATION_SETS:
+			_save_animation_set()
 		_:
 			_set_status("Visual saving for this section will come in a later step.", true)
 
@@ -1817,6 +2412,21 @@ func _save_sprite() -> void:
 	_save_current_record(record_id, record)
 
 
+func _save_animation_set() -> void:
+	_sync_animation_detail_to_record()
+	var record := _get_animation_set_form_record()
+	var record_id := data_store.sanitize_id(str(record.get("id", "")))
+	record["id"] = record_id
+	_set_line_edit_text("id", record_id)
+
+	var error := data_store.validate_animation_set(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
 func _save_current_record(record_id: String, record: Dictionary) -> void:
 	_cleanup_optional_fields(record)
 	data_store.set_record(current_section, current_original_id, record_id, record)
@@ -1834,6 +2444,8 @@ func _save_current_record(record_id: String, record: Dictionary) -> void:
 	selected_drop_item_id = str(current_record.get("drop_item_id", ""))
 	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
 	selected_sprite_id = str(current_record.get("sprite_id", ""))
+	selected_sprite_sheet_id = str(current_record.get("sprite_sheet_id", ""))
+	selected_animation_name = _get_first_animation_name(current_record)
 	var loaded_production = current_record.get("production", [])
 	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
 	_build_form_for_current_record()
@@ -1864,6 +2476,10 @@ func _on_revert_pressed() -> void:
 	workstation_filter = ""
 	selected_sprite_id = str(current_record.get("sprite_id", ""))
 	sprite_filter = ""
+	selected_sprite_sheet_id = str(current_record.get("sprite_sheet_id", ""))
+	sprite_sheet_filter = ""
+	selected_animation_name = _get_first_animation_name(current_record)
+	animation_preview_playing = false
 	var loaded_production = current_record.get("production", [])
 	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
 	_build_form_for_current_record()
@@ -1908,6 +2524,10 @@ func _discard_unsaved_new_record() -> void:
 	workstation_filter = ""
 	selected_sprite_id = ""
 	sprite_filter = ""
+	selected_sprite_sheet_id = ""
+	sprite_sheet_filter = ""
+	selected_animation_name = ""
+	animation_preview_playing = false
 	production_rows.clear()
 	_refresh_record_list()
 	_show_empty_form()
@@ -2018,6 +2638,19 @@ func _get_sprite_form_record() -> Dictionary:
 	}
 
 
+func _get_animation_set_form_record() -> Dictionary:
+	return {
+		"id": _get_line_edit_text("id"),
+		"display_name": _get_line_edit_text("display_name"),
+		"sprite_sheet_id": selected_sprite_sheet_id,
+		"anchor": {
+			"x": _get_spin_box_int("anchor_x"),
+			"y": _get_spin_box_int("anchor_y"),
+		},
+		"animations": _get_animation_set_animations().duplicate(true),
+	}
+
+
 func _get_clean_production_rows() -> Array:
 	var clean_rows := []
 
@@ -2058,6 +2691,14 @@ func _get_spin_box_int(field_name: String) -> int:
 	return int(spin_box.value)
 
 
+func _get_spin_box_value(field_name: String) -> float:
+	if not field_controls.has(field_name):
+		return 0.0
+
+	var spin_box: SpinBox = field_controls[field_name]
+	return spin_box.value
+
+
 func _set_spin_box_value(field_name: String, value: int) -> void:
 	if not field_controls.has(field_name):
 		return
@@ -2087,6 +2728,9 @@ func _get_option_button_metadata(field_name: String) -> String:
 		return ""
 
 	var option_button: OptionButton = field_controls[field_name]
+	if option_button.item_count <= 0 or option_button.selected < 0:
+		return ""
+
 	return str(option_button.get_item_metadata(option_button.selected))
 
 
@@ -2111,7 +2755,7 @@ func _mark_dirty() -> void:
 
 
 func _update_action_buttons() -> void:
-	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES
+	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES or current_section == ContentEditorData.SECTION_ANIMATION_SETS
 	var has_record := not current_record.is_empty()
 
 	new_button.disabled = not supports_visual_editing or has_unsaved_changes
@@ -2127,6 +2771,286 @@ func _reload_content_db() -> void:
 	var content_db := get_node_or_null("/root/ContentDB")
 	if content_db != null and content_db.has_method("load_all"):
 		content_db.load_all()
+
+
+func _get_animation_set_animations() -> Dictionary:
+	if not current_record.has("animations") or not current_record["animations"] is Dictionary:
+		current_record["animations"] = {}
+
+	return current_record["animations"] as Dictionary
+
+
+func _get_animation_names() -> Array:
+	var names := _get_animation_set_animations().keys()
+	names.sort()
+	return names
+
+
+func _refresh_animation_options() -> void:
+	if not field_controls.has("animation_select"):
+		return
+
+	var option_button: OptionButton = field_controls["animation_select"]
+	option_button.clear()
+
+	var selected_index := 0
+	for animation_name in _get_animation_names():
+		var index := option_button.item_count
+		option_button.add_item(str(animation_name))
+		option_button.set_item_metadata(index, str(animation_name))
+		if str(animation_name) == selected_animation_name:
+			selected_index = index
+
+	if option_button.item_count > 0:
+		option_button.select(selected_index)
+
+
+func _get_selected_animation_data() -> Dictionary:
+	var animations := _get_animation_set_animations()
+	if selected_animation_name.is_empty() or not animations.has(selected_animation_name):
+		return _make_animation_data([], _get_default_animation_fps(selected_animation_name), true)
+
+	var animation_data = animations[selected_animation_name]
+	if not animation_data is Dictionary:
+		return _make_animation_data([], _get_default_animation_fps(selected_animation_name), true)
+
+	return (animation_data as Dictionary).duplicate(true)
+
+
+func _set_selected_animation_data(animation_data: Dictionary) -> void:
+	if selected_animation_name.is_empty():
+		return
+
+	var animations := _get_animation_set_animations()
+	animations[selected_animation_name] = animation_data
+
+
+func _get_selected_animation_frames() -> Array:
+	var animation_data := _get_selected_animation_data()
+	var frames = animation_data.get("frames", [])
+	if not frames is Array:
+		return []
+
+	var clean_frames := []
+	for frame in frames:
+		clean_frames.append(int(frame))
+
+	return clean_frames
+
+
+func _set_selected_animation_frames(frames: Array) -> void:
+	var animation_data := _get_selected_animation_data()
+	animation_data["frames"] = frames
+	_set_selected_animation_data(animation_data)
+
+
+func _sync_animation_detail_to_record() -> void:
+	if current_section != ContentEditorData.SECTION_ANIMATION_SETS:
+		return
+	if selected_animation_name.is_empty() or not field_controls.has("animation_name"):
+		return
+
+	var old_name := selected_animation_name
+	var new_name := data_store.sanitize_id(_get_line_edit_text("animation_name"))
+	if new_name.is_empty():
+		new_name = old_name
+
+	var animations := _get_animation_set_animations()
+	var animation_data := _make_animation_data(
+		_parse_frame_list(_get_line_edit_text("animation_frames")),
+		int(_get_spin_box_value("animation_fps")),
+		_get_check_box_pressed("animation_loop")
+	)
+
+	if new_name != old_name:
+		animations.erase(old_name)
+
+	animations[new_name] = animation_data
+	selected_animation_name = new_name
+
+
+func _update_animation_grid_preview() -> void:
+	if animation_grid_preview == null:
+		return
+
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var texture := _load_texture(str(sheet_record.get("texture_path", "")))
+	if texture == null:
+		animation_grid_preview.clear_preview()
+		return
+
+	animation_grid_preview.set_preview_data(texture, int(sheet_record.get("columns", 0)), int(sheet_record.get("rows", 0)))
+	animation_grid_preview.set_selected_frames(_get_selected_animation_frames())
+
+
+func _update_animation_preview_frame() -> void:
+	if animation_preview_rect == null:
+		return
+
+	var frames := _get_selected_animation_frames()
+	if frames.is_empty():
+		animation_preview_rect.texture = null
+		return
+
+	animation_preview_frame_index = clamp(animation_preview_frame_index, 0, frames.size() - 1)
+	animation_preview_rect.texture = _make_frame_texture(frames[animation_preview_frame_index])
+
+
+func _make_frame_texture(frame_index: int) -> Texture2D:
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var texture := _load_texture(str(sheet_record.get("texture_path", "")))
+	if texture == null:
+		return null
+
+	var columns := int(sheet_record.get("columns", 0))
+	var frame_width := int(sheet_record.get("frame_width", 0))
+	var frame_height := int(sheet_record.get("frame_height", 0))
+	if columns < 1 or frame_width < 1 or frame_height < 1:
+		return null
+
+	var column := frame_index % columns
+	var row := int(frame_index / columns)
+	var atlas_texture := AtlasTexture.new()
+	atlas_texture.atlas = texture
+	atlas_texture.region = Rect2(column * frame_width, row * frame_height, frame_width, frame_height)
+	return atlas_texture
+
+
+func _get_selected_sprite_sheet_record() -> Dictionary:
+	if selected_sprite_sheet_id.is_empty():
+		return {}
+	if not data_store.has_record(ContentEditorData.SECTION_SPRITES, selected_sprite_sheet_id):
+		return {}
+
+	return data_store.get_record(ContentEditorData.SECTION_SPRITES, selected_sprite_sheet_id)
+
+
+func _get_sprite_sheet_summary(sprite_record: Dictionary) -> String:
+	if sprite_record.is_empty():
+		return "None"
+
+	return "%s | columns %d | rows %d | total %d" % [
+		str(sprite_record.get("id", "")),
+		int(sprite_record.get("columns", 0)),
+		int(sprite_record.get("rows", 0)),
+		int(sprite_record.get("total_frames", 0)),
+	]
+
+
+func _apply_helper_frames(frames: Array, animation_name := "", fps := -1, loop := true) -> void:
+	var target_name := data_store.sanitize_id(animation_name if not animation_name.is_empty() else _get_line_edit_text("helper_animation_name"))
+	if target_name.is_empty():
+		_set_status("Helper Animation Name cannot be empty.", true)
+		return
+
+	var animations := _get_animation_set_animations()
+	var mode := _get_option_button_metadata("helper_apply_mode")
+	var animation_data := _make_animation_data([], fps if fps > 0 else _get_spin_box_int("helper_fps"), loop if fps > 0 else _get_check_box_pressed("helper_loop"))
+	if animations.has(target_name) and mode == "append":
+		animation_data = animations[target_name].duplicate(true)
+		var existing_frames = animation_data.get("frames", [])
+		if not existing_frames is Array:
+			existing_frames = []
+		for frame in frames:
+			existing_frames.append(int(frame))
+		animation_data["frames"] = existing_frames
+	else:
+		animation_data["frames"] = frames
+
+	animations[target_name] = animation_data
+	selected_animation_name = target_name
+	_build_form_for_current_record()
+	_mark_dirty()
+	_set_status("Applied helper frames to %s." % target_name)
+
+
+func _make_animation_data(frames: Array, fps: int, loop: bool) -> Dictionary:
+	return {
+		"frames": frames,
+		"fps": max(fps, 1),
+		"loop": loop,
+	}
+
+
+func _parse_frame_list(text: String) -> Array:
+	var frames := []
+	for raw_frame in text.split(",", false):
+		var clean_frame := raw_frame.strip_edges()
+		if clean_frame.is_empty():
+			continue
+		frames.append(int(clean_frame))
+
+	return frames
+
+
+func _get_default_animation_fps(animation_name: String) -> int:
+	if animation_name.begins_with("idle"):
+		return 1
+	if animation_name.begins_with("attack") or animation_name.begins_with("interact"):
+		return 10
+	return 8
+
+
+func _get_default_animation_loop(animation_name: String) -> bool:
+	return not animation_name.begins_with("attack") and not animation_name.begins_with("interact")
+
+
+func _get_first_animation_name(record: Dictionary) -> String:
+	var animations = record.get("animations", {})
+	if not animations is Dictionary:
+		return ""
+
+	var animation_dictionary: Dictionary = animations
+	var names: Array = animation_dictionary.keys()
+	names.sort()
+	if names.is_empty():
+		return ""
+
+	return str(names[0])
+
+
+func _create_unique_animation_name(base_name: String) -> String:
+	var animations := _get_animation_set_animations()
+	var clean_base := data_store.sanitize_id(base_name)
+	if clean_base.is_empty():
+		clean_base = "animation"
+	if not animations.has(clean_base):
+		return clean_base
+
+	var index := 2
+	while animations.has("%s_%d" % [clean_base, index]):
+		index += 1
+
+	return "%s_%d" % [clean_base, index]
+
+
+func _get_standard_character_animation_names() -> Array:
+	return [
+		"idle_down",
+		"walk_down",
+		"idle_up",
+		"walk_up",
+		"idle_left",
+		"walk_left",
+		"idle_right",
+		"walk_right",
+		"idle_down_left",
+		"walk_down_left",
+		"idle_down_right",
+		"walk_down_right",
+		"idle_up_left",
+		"walk_up_left",
+		"idle_up_right",
+		"walk_up_right",
+		"attack_down",
+		"attack_up",
+		"attack_left",
+		"attack_right",
+		"interact_down",
+		"interact_up",
+		"interact_left",
+		"interact_right",
+	]
 
 
 func _get_default_item_id() -> String:
@@ -2149,6 +3073,14 @@ func _get_default_workstation_id() -> String:
 		return ""
 
 	return str(records[0].get("id", ""))
+
+
+func _get_default_sprite_sheet_id() -> String:
+	for sprite_record in data_store.get_records(ContentEditorData.SECTION_SPRITES):
+		if str(sprite_record.get("type", "single_sprite")) == "sprite_sheet":
+			return str(sprite_record.get("id", ""))
+
+	return ""
 
 
 func _get_building_recipe_records() -> Array:

@@ -7,6 +7,7 @@ const SECTION_RECIPES := "recipes"
 const SECTION_TERRAIN_TYPES := "terrain_types"
 const SECTION_NPCS := "npcs"
 const SECTION_SPRITES := "sprites"
+const SECTION_ANIMATION_SETS := "animation_sets"
 
 const SECTIONS := [
 	SECTION_ITEMS,
@@ -16,6 +17,7 @@ const SECTIONS := [
 	SECTION_TERRAIN_TYPES,
 	SECTION_NPCS,
 	SECTION_SPRITES,
+	SECTION_ANIMATION_SETS,
 ]
 
 const SECTION_LABELS := {
@@ -26,6 +28,7 @@ const SECTION_LABELS := {
 	SECTION_TERRAIN_TYPES: "Terrain Types",
 	SECTION_NPCS: "NPCs",
 	SECTION_SPRITES: "Sprites",
+	SECTION_ANIMATION_SETS: "Animation Sets",
 }
 
 const SECTION_PATHS := {
@@ -36,6 +39,7 @@ const SECTION_PATHS := {
 	SECTION_TERRAIN_TYPES: "res://data/terrain_types.json",
 	SECTION_NPCS: "res://data/npcs.json",
 	SECTION_SPRITES: "res://data/sprites.json",
+	SECTION_ANIMATION_SETS: "res://data/animation_sets.json",
 }
 
 var content := {}
@@ -421,6 +425,54 @@ func validate_sprite(record_id: String, original_id: String, record: Dictionary)
 	return ""
 
 
+func validate_animation_set(record_id: String, original_id: String, record: Dictionary) -> String:
+	var id_error := _validate_record_id(SECTION_ANIMATION_SETS, record_id, original_id)
+	if not id_error.is_empty():
+		return id_error
+
+	if str(record.get("display_name", "")).strip_edges().is_empty():
+		return "Display Name cannot be empty."
+
+	var sprite_sheet_id := str(record.get("sprite_sheet_id", ""))
+	if sprite_sheet_id.is_empty() or not has_record(SECTION_SPRITES, sprite_sheet_id):
+		return "Sprite Sheet must reference an existing sprite."
+
+	var sprite_record := get_record(SECTION_SPRITES, sprite_sheet_id)
+	if str(sprite_record.get("type", "single_sprite")) != "sprite_sheet":
+		return "Sprite Sheet must reference a sprite with type sprite_sheet."
+
+	var anchor = record.get("anchor", {})
+	if not anchor is Dictionary:
+		return "Anchor must be a dictionary."
+
+	var animations = record.get("animations", {})
+	if not animations is Dictionary:
+		return "Animations must be a dictionary."
+
+	var total_frames := int(sprite_record.get("total_frames", 0))
+	for animation_name in animations.keys():
+		var animation_data = animations[animation_name]
+		if not animation_data is Dictionary:
+			return "Animation '%s' must be a dictionary." % str(animation_name)
+
+		if str(animation_name).strip_edges().is_empty():
+			return "Animation name cannot be empty."
+
+		if float(animation_data.get("fps", 0.0)) <= 0.0:
+			return "Animation '%s' FPS must be greater than 0." % str(animation_name)
+
+		var frames = animation_data.get("frames", [])
+		if not frames is Array:
+			return "Animation '%s' frames must be a list." % str(animation_name)
+
+		for frame in frames:
+			var frame_index := int(frame)
+			if frame_index < 0 or frame_index >= total_frames:
+				return "Animation '%s' has frame %d outside 0-%d." % [str(animation_name), frame_index, total_frames - 1]
+
+	return ""
+
+
 func find_item_usage(item_id: String) -> Array:
 	return find_item_usages(item_id)
 
@@ -460,6 +512,7 @@ func find_sprite_usages(sprite_id: String) -> Array:
 	_append_sprite_usage_in_section(usages, SECTION_RESOURCES, sprite_id)
 	_append_sprite_usage_in_section(usages, SECTION_RECIPES, sprite_id)
 	_append_sprite_usage_in_section(usages, SECTION_TERRAIN_TYPES, sprite_id)
+	_append_animation_set_sprite_usage(usages, sprite_id)
 	return usages
 
 
@@ -494,6 +547,10 @@ func find_resource_usages(resource_id: String) -> Array:
 	return usages
 
 
+func find_animation_set_usages(_animation_set_id: String) -> Array:
+	return []
+
+
 func _validate_record_id(section: String, record_id: String, original_id: String) -> String:
 	if record_id.is_empty():
 		return "ID cannot be empty."
@@ -524,6 +581,14 @@ func _append_sprite_usage_in_section(usages: Array, section: String, sprite_id: 
 		var record_data = section_data[record_id]
 		if record_data is Dictionary and str(record_data.get("sprite_id", "")) == sprite_id:
 			usages.append("%s %s sprite_id" % [section, record_id])
+
+
+func _append_animation_set_sprite_usage(usages: Array, sprite_id: String) -> void:
+	var animation_sets := get_section_data(SECTION_ANIMATION_SETS)
+	for animation_set_id in animation_sets.keys():
+		var record_data = animation_sets[animation_set_id]
+		if record_data is Dictionary and str(record_data.get("sprite_sheet_id", "")) == sprite_id:
+			usages.append("animation set %s sprite_sheet_id" % animation_set_id)
 
 
 func _append_resource_item_usage(usages: Array, item_id: String) -> void:

@@ -1,26 +1,27 @@
 {
-	"grass": {
-		"display_name": "Grass",
-		"walkable": true,
-		"allows_monster_spawn": true,
-		"allows_resource_spawn": true
-	},
 	"forest": {
-		"display_name": "Forest",
-		"walkable": true,
 		"allows_monster_spawn": true,
-		"allows_resource_spawn": true
+		"allows_resource_spawn": true,
+		"display_name": "Forest",
+		"walkable": true
+	},
+	"grass": {
+		"allows_monster_spawn": true,
+		"allows_resource_spawn": true,
+		"display_name": "Grass",
+		"sprite_id": "tile_grass",
+		"walkable": true
 	},
 	"stone": {
-		"display_name": "Stone Ground",
-		"walkable": true,
 		"allows_monster_spawn": true,
-		"allows_resource_spawn": false
+		"allows_resource_spawn": false,
+		"display_name": "Stone Ground",
+		"walkable": true
 	},
 	"water": {
-		"display_name": "Water",
-		"walkable": false,
 		"allows_monster_spawn": false,
-		"allows_resource_spawn": false
+		"allows_resource_spawn": false,
+		"display_name": "Water",
+		"walkable": false
 	}
 }

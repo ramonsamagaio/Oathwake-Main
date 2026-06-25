@@ -3,26 +3,69 @@
 		"category": "item",
 		"display_name": "green_gel",
 		"frame_size": {
-			"h": 32,
-			"w": 32
+			"h": 32.0,
+			"w": 32.0
 		},
 		"region": {
-			"h": 32,
-			"w": 32,
-			"x": 0,
-			"y": 0
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
 		},
 		"region_enabled": false,
 		"tags": [],
 		"texture_path": "res://assets/sprites/items/testes/green_gel.png"
 	},
+	"player_base": {
+		"category": "character",
+		"columns": 8.0,
+		"display_name": "Player Base",
+		"frame_height": 64.0,
+		"frame_size": {
+			"h": 64.0,
+			"w": 64.0
+		},
+		"frame_width": 64.0,
+		"region": {
+			"h": 64.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 8.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/characters/player_base/player_base_body_sheet.png",
+		"total_frames": 64.0,
+		"type": "sprite_sheet"
+	},
 	"stone": {
 		"category": "item",
 		"display_name": "stone",
 		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/stone.png"
+	},
+	"tile_grass": {
+		"category": "item",
+		"columns": 1,
+		"display_name": "Grass Tile",
+		"frame_height": 32,
+		"frame_size": {
 			"h": 32,
 			"w": 32
 		},
+		"frame_width": 32,
 		"region": {
 			"h": 32,
 			"w": 32,
@@ -30,8 +73,11 @@
 			"y": 0
 		},
 		"region_enabled": false,
+		"rows": 1,
 		"tags": [],
-		"texture_path": "res://assets/sprites/items/testes/stone.png"
+		"texture_path": "res://assets/sprites/items/testes/grass_64x64.png",
+		"total_frames": 1,
+		"type": "single_sprite"
 	},
 	"wood": {
 		"category": "item",

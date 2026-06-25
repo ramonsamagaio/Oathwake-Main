@@ -18,8 +18,9 @@ Tambem existe `res://tools/content_editor/ContentEditorMain.tscn`, uma cena boot
 - `res://data/recipes.json`
 - `res://data/terrain_types.json`
 - `res://data/sprites.json`
+- `res://data/animation_sets.json`
 
-Atualmente Items, Resources, Monsters, Recipes, Terrain Types, NPCs e Sprites aparecem na navegacao. Sprites tem cadastro visual com preview simples, segmentacao por categoria, suporte inicial a `single_sprite` e `sprite_sheet`, e Items/Resources/Monsters/Recipes/Terrain Types/NPCs podem apontar para `sprite_id`.
+Atualmente Items, Resources, Monsters, Recipes, Terrain Types, NPCs, Sprites e Animation Sets aparecem na navegacao. Sprites tem cadastro visual com preview simples, segmentacao por categoria, suporte inicial a `single_sprite` e `sprite_sheet`, e Items/Resources/Monsters/Recipes/Terrain Types/NPCs podem apontar para `sprite_id`.
 
 O painel direito mostra o arquivo atual e tem botoes para salvar, recarregar a secao atual e atualizar o ContentDB. Ao salvar, o editor cria backup em `user://content_backups`.
 
@@ -82,6 +83,28 @@ O painel direito mostra o arquivo atual e tem botoes para salvar, recarregar a s
 5. Clique em **Detect Grid**.
 6. Confirme que **Columns**, **Rows** e **Total Frames** foram preenchidos e que o preview mostra o grid numerado.
 7. Clique em **Save**.
+
+### Animation Set
+
+1. Clique em **Animation Sets**.
+2. Crie `player_base_body` com **New**.
+3. Escolha um **Sprite Sheet** com type `sprite_sheet`.
+4. Clique em **Create Standard Character Animations**.
+5. Selecione `idle_down`.
+6. Clique em uma celula da grade para adicionar o frame.
+7. Clique em **Play Preview**.
+8. Selecione `walk_down`, adicione alguns frames e ajuste **FPS** para 8.
+9. Clique em **Save**.
+10. Reabra o editor e confirme que as animacoes continuam salvas.
+
+### Mapping Helper
+
+1. Em **Animation Sets**, selecione um animation set com spritesheet.
+2. Use **Helper Animation Name** como `test_row`.
+3. Configure **Row Index** 0, **Start Column** 0 e **End Column** 3.
+4. Clique em **Add Row as Animation** e confirme frames `0, 1, 2, 3`.
+5. Use **Add Range** com **Start Frame** 8 e **End Frame** 11 para criar outro teste.
+6. Use **Apply Mode** como `append` ou `replace` conforme precisar.
 
 ## Export futuro
 
