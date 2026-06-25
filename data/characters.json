@@ -1,0 +1,7 @@
+{
+	"player": {
+		"display_name": "Player",
+		"sprite_sheet_id": "player_base",
+		"animation_set_id": "player_base_body"
+	}
+}

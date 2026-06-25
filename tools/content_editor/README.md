@@ -8,7 +8,7 @@ Ferramenta interna para editar dados de conteudo do projeto sem trocar a cena pr
 2. Abra `res://tools/content_editor/ContentEditor.tscn`.
 3. Rode apenas essa cena com **F6**.
 
-A janela do editor continua redimensionavel e a interface se adapta a janelas menores sem forcar minimo rigido. Para uso confortavel, 1280x800 ou maior ainda e recomendado. A interface usa divisores redimensionaveis entre sidebar, lista e painel de edicao, e o painel direito tem scroll vertical para formularios longos. Se o Godot estiver rodando o jogo em viewport embutido, o tamanho mostrado no canto do preview do editor ainda pode limitar a area util; rodar em janela separada ou aumentar esse viewport da propria IDE da mais espaco.
+A janela do editor continua redimensionavel e a interface se adapta a janelas menores sem forcar minimo rigido. Para uso confortavel, 1280x800 ou maior ainda e recomendado. A interface usa divisores redimensionaveis entre sidebar, lista e painel de edicao, e o painel direito tem scroll vertical para formularios longos. Ao rodar o Content Editor, ele desativa a escala fixa da janela e ajusta o Control raiz ao tamanho atual do viewport para acompanhar resize.
 
 Tambem existe `res://tools/content_editor/ContentEditorMain.tscn`, uma cena bootstrap simples para facilitar um export separado do editor no futuro.
 
@@ -21,8 +21,9 @@ Tambem existe `res://tools/content_editor/ContentEditorMain.tscn`, uma cena boot
 - `res://data/terrain_types.json`
 - `res://data/sprites.json`
 - `res://data/animation_sets.json`
+- `res://data/characters.json`
 
-Atualmente Items, Resources, Monsters, Recipes, Terrain Types, NPCs, Sprites e Animation Sets aparecem na navegacao. Sprites tem cadastro visual com preview simples, segmentacao por categoria, suporte inicial a `single_sprite` e `sprite_sheet`, e Items/Resources/Monsters/Recipes/Terrain Types/NPCs podem apontar para `sprite_id`.
+Atualmente Items, Resources, Monsters, Recipes, Terrain Types, NPCs, Sprites, Animation Sets e Characters aparecem na navegacao. Sprites tem cadastro visual com preview simples, segmentacao por categoria, suporte inicial a `single_sprite` e `sprite_sheet`, e Items/Resources/Monsters/Recipes/Terrain Types/NPCs podem apontar para `sprite_id`.
 
 O painel direito mostra o arquivo atual e tem botoes para salvar, recarregar a secao atual e atualizar o ContentDB. Ao salvar, o editor cria backup em `user://content_backups`.
 
@@ -108,6 +109,19 @@ O painel direito mostra o arquivo atual e tem botoes para salvar, recarregar a s
 4. Clique em **Add Row as Animation** e confirme frames `0, 1, 2, 3`.
 5. Use **Add Range** com **Start Frame** 8 e **End Frame** 11 para criar outro teste.
 6. Use **Apply Mode** como `append` ou `replace` conforme precisar.
+
+### Character
+
+1. Clique em **Characters**.
+2. Selecione `player`.
+3. Escolha o **Sprite Sheet** do personagem.
+4. Clique em **Create/Update Animation Set From Character**.
+5. Clique em **Create Required 4-Direction Animations**.
+6. Em um slot como `walk_right`, ajuste **Count**, **FPS** e **Loop**.
+7. Clique em **Select Frames** no slot desejado.
+8. Clique nos frames da grade em ordem.
+9. Use **Preview** para conferir o frame atual.
+10. Clique em **Save** para salvar o Character e o Animation Set associado.
 
 ## Export futuro
 

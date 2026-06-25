@@ -8,6 +8,7 @@ const SECTION_TERRAIN_TYPES := "terrain_types"
 const SECTION_NPCS := "npcs"
 const SECTION_SPRITES := "sprites"
 const SECTION_ANIMATION_SETS := "animation_sets"
+const SECTION_CHARACTERS := "characters"
 
 const SECTIONS := [
 	SECTION_ITEMS,
@@ -18,6 +19,7 @@ const SECTIONS := [
 	SECTION_NPCS,
 	SECTION_SPRITES,
 	SECTION_ANIMATION_SETS,
+	SECTION_CHARACTERS,
 ]
 
 const SECTION_LABELS := {
@@ -29,6 +31,7 @@ const SECTION_LABELS := {
 	SECTION_NPCS: "NPCs",
 	SECTION_SPRITES: "Sprites",
 	SECTION_ANIMATION_SETS: "Animation Sets",
+	SECTION_CHARACTERS: "Characters",
 }
 
 const SECTION_PATHS := {
@@ -40,6 +43,7 @@ const SECTION_PATHS := {
 	SECTION_NPCS: "res://data/npcs.json",
 	SECTION_SPRITES: "res://data/sprites.json",
 	SECTION_ANIMATION_SETS: "res://data/animation_sets.json",
+	SECTION_CHARACTERS: "res://data/characters.json",
 }
 
 var content := {}
@@ -461,6 +465,9 @@ func validate_animation_set(record_id: String, original_id: String, record: Dict
 		if float(animation_data.get("fps", 0.0)) <= 0.0:
 			return "Animation '%s' FPS must be greater than 0." % str(animation_name)
 
+		if animation_data.has("frame_count") and int(animation_data.get("frame_count", 0)) < 1:
+			return "Animation '%s' frame_count must be greater than or equal to 1." % str(animation_name)
+
 		var frames = animation_data.get("frames", [])
 		if not frames is Array:
 			return "Animation '%s' frames must be a list." % str(animation_name)
@@ -469,6 +476,34 @@ func validate_animation_set(record_id: String, original_id: String, record: Dict
 			var frame_index := int(frame)
 			if frame_index < 0 or frame_index >= total_frames:
 				return "Animation '%s' has frame %d outside 0-%d." % [str(animation_name), frame_index, total_frames - 1]
+
+	return ""
+
+
+func validate_character(record_id: String, original_id: String, record: Dictionary) -> String:
+	var id_error := _validate_record_id(SECTION_CHARACTERS, record_id, original_id)
+	if not id_error.is_empty():
+		return id_error
+
+	if str(record.get("display_name", "")).strip_edges().is_empty():
+		return "Display Name cannot be empty."
+
+	var sprite_sheet_id := str(record.get("sprite_sheet_id", ""))
+	if sprite_sheet_id.is_empty() or not has_record(SECTION_SPRITES, sprite_sheet_id):
+		return "Sprite Sheet must reference an existing sprite."
+
+	var sprite_record := get_record(SECTION_SPRITES, sprite_sheet_id)
+	if str(sprite_record.get("type", "single_sprite")) != "sprite_sheet":
+		return "Sprite Sheet must reference a sprite with type sprite_sheet."
+
+	var animation_set_id := str(record.get("animation_set_id", ""))
+	if animation_set_id.is_empty():
+		return "Animation Set cannot be empty."
+
+	if has_record(SECTION_ANIMATION_SETS, animation_set_id):
+		var animation_set_record := get_record(SECTION_ANIMATION_SETS, animation_set_id)
+		if str(animation_set_record.get("sprite_sheet_id", "")) != sprite_sheet_id:
+			return "Animation Set must use the selected Sprite Sheet."
 
 	return ""
 
@@ -548,7 +583,14 @@ func find_resource_usages(resource_id: String) -> Array:
 
 
 func find_animation_set_usages(_animation_set_id: String) -> Array:
-	return []
+	var usages := []
+	var characters := get_section_data(SECTION_CHARACTERS)
+	for character_id in characters.keys():
+		var character_data = characters[character_id]
+		if character_data is Dictionary and str(character_data.get("animation_set_id", "")) == _animation_set_id:
+			usages.append("character %s animation_set_id" % character_id)
+
+	return usages
 
 
 func _validate_record_id(section: String, record_id: String, original_id: String) -> String:

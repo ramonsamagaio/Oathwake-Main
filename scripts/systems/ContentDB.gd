@@ -8,6 +8,7 @@ const TERRAIN_TYPES_PATH := "res://data/terrain_types.json"
 const NPCS_PATH := "res://data/npcs.json"
 const SPRITES_PATH := "res://data/sprites.json"
 const ANIMATION_SETS_PATH := "res://data/animation_sets.json"
+const CHARACTERS_PATH := "res://data/characters.json"
 
 var items := {}
 var resources := {}
@@ -17,6 +18,7 @@ var terrain_types := {}
 var npcs := {}
 var sprites := {}
 var animation_sets := {}
+var characters := {}
 
 
 func _ready() -> void:
@@ -32,6 +34,7 @@ func load_all() -> void:
 	npcs = _load_json_dictionary(NPCS_PATH)
 	sprites = _load_json_dictionary(SPRITES_PATH)
 	animation_sets = _load_json_dictionary(ANIMATION_SETS_PATH)
+	characters = _load_json_dictionary(CHARACTERS_PATH)
 
 	if not items.is_empty() and not resources.is_empty() and not monsters.is_empty() and not recipes.is_empty() and not terrain_types.is_empty() and not npcs.is_empty():
 		print("ContentDB loaded successfully")
@@ -69,6 +72,10 @@ func get_animation_set(id: String) -> Dictionary:
 	return _get_entry(animation_sets, id, "animation set")
 
 
+func get_character(id: String) -> Dictionary:
+	return _get_entry(characters, id, "character")
+
+
 func get_all_terrain_types() -> Dictionary:
 	return terrain_types.duplicate(true)
 
@@ -83,6 +90,10 @@ func get_all_sprites() -> Dictionary:
 
 func get_all_animation_sets() -> Dictionary:
 	return animation_sets.duplicate(true)
+
+
+func get_all_characters() -> Dictionary:
+	return characters.duplicate(true)
 
 
 func has_item(id: String) -> bool:
@@ -115,6 +126,10 @@ func has_sprite(id: String) -> bool:
 
 func has_animation_set(id: String) -> bool:
 	return animation_sets.has(id)
+
+
+func has_character(id: String) -> bool:
+	return characters.has(id)
 
 
 func _load_json_dictionary(path: String) -> Dictionary:
