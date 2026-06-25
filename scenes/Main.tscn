@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player_scene"]
 [ext_resource type="Script" path="res://scripts/World.gd" id="2_world_script"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scripts/systems/SettlementManager.gd" id="13_settlement_manager_script"]
 [ext_resource type="PackedScene" path="res://scenes/ui/InventoryUI.tscn" id="14_inventory_ui_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HotbarUI.tscn" id="15_hotbar_ui_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/CharacterStatusUI.tscn" id="16_character_status_ui_scene"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("5_main_script")
@@ -159,6 +160,107 @@ C Close
 1 Axe - 3 Wood, 1 Stone
 2 Pickaxe - 2 Wood, 3 Stone"
 
+[node name="PlayerStatsButton" type="Button" parent="UI"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -252.0
+offset_top = -132.0
+offset_right = -4.0
+offset_bottom = -100.0
+focus_mode = 0
+text = "PLAYER STATS"
+
+[node name="PlayerStatsPanel" type="Panel" parent="UI"]
+visible = false
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -252.0
+offset_top = -420.0
+offset_right = -4.0
+offset_bottom = -140.0
+
+[node name="TitleLabel" type="Label" parent="UI/PlayerStatsPanel"]
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 178.0
+offset_bottom = 33.0
+text = "Player Stats"
+
+[node name="CloseButton" type="Button" parent="UI/PlayerStatsPanel"]
+offset_left = 210.0
+offset_top = 8.0
+offset_right = 238.0
+offset_bottom = 36.0
+focus_mode = 0
+text = "X"
+
+[node name="StatsList" type="VBoxContainer" parent="UI/PlayerStatsPanel"]
+offset_left = 12.0
+offset_top = 44.0
+offset_right = 236.0
+offset_bottom = 232.0
+
+[node name="ApplyButton" type="Button" parent="UI/PlayerStatsPanel"]
+offset_left = 12.0
+offset_top = 240.0
+offset_right = 236.0
+offset_bottom = 268.0
+focus_mode = 0
+text = "APPLY"
+
+[node name="SpawnMonsterButton" type="Button" parent="UI"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -252.0
+offset_top = -92.0
+offset_right = -4.0
+offset_bottom = -60.0
+focus_mode = 0
+text = "SPAWN"
+
+[node name="MonsterSpawnPanel" type="Panel" parent="UI"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -240.0
+offset_right = 180.0
+offset_bottom = 240.0
+
+[node name="TitleLabel" type="Label" parent="UI/MonsterSpawnPanel"]
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 178.0
+offset_bottom = 33.0
+text = "Spawn"
+
+[node name="CloseButton" type="Button" parent="UI/MonsterSpawnPanel"]
+offset_left = 318.0
+offset_top = 8.0
+offset_right = 346.0
+offset_bottom = 36.0
+focus_mode = 0
+text = "X"
+
+[node name="SpawnScroll" type="ScrollContainer" parent="UI/MonsterSpawnPanel"]
+offset_left = 12.0
+offset_top = 44.0
+offset_right = 348.0
+offset_bottom = 468.0
+horizontal_scroll_mode = 0
+
+[node name="MonsterList" type="VBoxContainer" parent="UI/MonsterSpawnPanel/SpawnScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="SaveButton" type="Button" parent="UI"]
 anchor_left = 1.0
 anchor_top = 1.0
@@ -186,6 +288,8 @@ text = "LOAD GAME"
 [node name="InventoryUI" parent="UI" instance=ExtResource("14_inventory_ui_scene")]
 
 [node name="HotbarUI" parent="UI" instance=ExtResource("15_hotbar_ui_scene")]
+
+[node name="CharacterStatusUI" parent="UI" instance=ExtResource("16_character_status_ui_scene")]
 
 [node name="BuildSystem" type="Node" parent="."]
 script = ExtResource("6_build_system_script")

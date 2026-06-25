@@ -9,6 +9,8 @@ const SECTION_NPCS := "npcs"
 const SECTION_SPRITES := "sprites"
 const SECTION_ANIMATION_SETS := "animation_sets"
 const SECTION_CHARACTERS := "characters"
+const SECTION_TIERS := "tiers"
+const SECTION_COMBAT_PREVIEW := "combat_preview"
 
 const SECTIONS := [
 	SECTION_ITEMS,
@@ -20,6 +22,8 @@ const SECTIONS := [
 	SECTION_SPRITES,
 	SECTION_ANIMATION_SETS,
 	SECTION_CHARACTERS,
+	SECTION_TIERS,
+	SECTION_COMBAT_PREVIEW,
 ]
 
 const SECTION_LABELS := {
@@ -32,6 +36,8 @@ const SECTION_LABELS := {
 	SECTION_SPRITES: "Sprites",
 	SECTION_ANIMATION_SETS: "Animation Sets",
 	SECTION_CHARACTERS: "Characters",
+	SECTION_TIERS: "Tiers",
+	SECTION_COMBAT_PREVIEW: "Combat Preview",
 }
 
 const SECTION_PATHS := {
@@ -44,6 +50,7 @@ const SECTION_PATHS := {
 	SECTION_SPRITES: "res://data/sprites.json",
 	SECTION_ANIMATION_SETS: "res://data/animation_sets.json",
 	SECTION_CHARACTERS: "res://data/characters.json",
+	SECTION_TIERS: "res://data/tiers.json",
 }
 
 var content := {}
@@ -51,6 +58,9 @@ var content := {}
 
 func load_all() -> String:
 	for section in SECTIONS:
+		if not SECTION_PATHS.has(section):
+			continue
+
 		var error := load_section(section)
 		if not error.is_empty():
 			return error
@@ -214,9 +224,66 @@ func validate_item(record_id: String, original_id: String, record: Dictionary) -
 	if int(record.get("stack_size", 0)) < 1:
 		return "Stack Size must be an integer greater than or equal to 1."
 
+	if record_id != sanitize_id(record_id):
+		return "ID must use lowercase_with_underscore."
+
 	var sprite_error := _validate_optional_sprite_id(record)
 	if not sprite_error.is_empty():
 		return sprite_error
+
+	var item_type := str(record.get("item_type", "material"))
+	if item_type == "material":
+		var tier := int(record.get("tier", 0))
+		if tier < 1 or tier > 7:
+			return "Material Tier must be between 1 and 7."
+		if str(record.get("material_family", "")).is_empty():
+			return "Material Family is required for material items."
+
+	if item_type == "weapon" or item_type == "tool":
+		var tool_tier := int(record.get("tool_tier", 0))
+		if tool_tier < 1 or tool_tier > 7:
+			return "Tool Tier must be between 1 and 7."
+		if int(record.get("tool_damage", -1)) < 0:
+			return "Tool Damage must be greater than or equal to 0."
+		if float(record.get("tool_speed", 0.0)) <= 0.0:
+			return "Tool Speed must be greater than 0."
+		if int(record.get("durability", -1)) < 0:
+			return "Durability must be greater than or equal to 0."
+		if float(record.get("crit_chance", -1.0)) < 0.0 or float(record.get("crit_chance", 0.0)) > 1.0:
+			return "Crit Chance must be between 0 and 1."
+		if float(record.get("crit_power", 0.0)) < 1.0:
+			return "Crit Power must be greater than or equal to 1."
+
+		var combat_value: Variant = record.get("combat", {})
+		if not combat_value is Dictionary:
+			return "Combat must be a dictionary."
+		var combat: Dictionary = combat_value
+
+		if int(combat.get("attack_power", -1)) < 0:
+			return "Attack Power must be greater than or equal to 0."
+		if float(combat.get("attack_variance", -1.0)) < 0.0 or float(combat.get("attack_variance", 0.0)) > 1.0:
+			return "Attack Variance must be between 0 and 1."
+		if float(combat.get("crit_chance_bonus", -1.0)) < 0.0 or float(combat.get("crit_chance_bonus", 0.0)) > 1.0:
+			return "Crit Chance Bonus must be between 0 and 1."
+		if float(combat.get("crit_damage_bonus", -1.0)) < 0.0:
+			return "Crit Damage Bonus must be greater than or equal to 0."
+
+		var stat_scaling_value: Variant = combat.get("stat_scaling", {})
+		if stat_scaling_value is Dictionary:
+			var stat_scaling: Dictionary = stat_scaling_value
+			for stat_name in stat_scaling.keys():
+				if float(stat_scaling[stat_name]) < 0.0:
+					return "%s Scaling must be greater than or equal to 0." % str(stat_name).to_upper()
+
+		var resource_damage_value: Variant = combat.get("resource_damage", {})
+		if resource_damage_value is Dictionary:
+			var resource_damage: Dictionary = resource_damage_value
+			for resource_type_id in resource_damage.keys():
+				var clean_resource_id := str(resource_type_id)
+				if clean_resource_id.is_empty() or not has_record(SECTION_RESOURCES, clean_resource_id):
+					return "Resource Damage references an unknown resource: %s" % clean_resource_id
+				if int(resource_damage[resource_type_id]) < 0:
+					return "Resource Damage must be greater than or equal to 0."
 
 	return ""
 
@@ -239,9 +306,64 @@ func validate_resource(record_id: String, original_id: String, record: Dictionar
 	if float(record.get("respawn_time_seconds", -1.0)) < 0.0:
 		return "Respawn Time Seconds must be greater than or equal to 0."
 
+	var resource_tier := int(record.get("resource_tier", 0))
+	if resource_tier < 1 or resource_tier > 7:
+		return "Resource Tier must be between 1 and 7."
+	if int(record.get("resource_hp", 0)) <= 0:
+		return "Resource HP must be greater than 0."
+	if str(record.get("required_tool_type", "")).is_empty():
+		return "Required Tool Type is required."
+	var base_drops_error := _validate_drop_rows(record.get("base_drops", []), true)
+	if not base_drops_error.is_empty():
+		return "Base Drops: %s" % base_drops_error
+	var rare_drops_error := _validate_drop_rows(record.get("rare_drops", []), false)
+	if not rare_drops_error.is_empty():
+		return "Rare Drops: %s" % rare_drops_error
+
 	var sprite_error := _validate_optional_sprite_id(record)
 	if not sprite_error.is_empty():
 		return sprite_error
+
+	return ""
+
+
+func _validate_drop_rows(drop_rows_value: Variant, require_one: bool) -> String:
+	if not drop_rows_value is Array:
+		return "must be a list."
+
+	var drop_rows: Array = drop_rows_value
+	if require_one and drop_rows.is_empty():
+		return "must have at least one drop."
+
+	for drop_entry in drop_rows:
+		if not drop_entry is Dictionary:
+			return "each drop must be a dictionary."
+
+		var drop_data: Dictionary = drop_entry
+		var item_id := str(drop_data.get("item_id", ""))
+		if item_id.is_empty() or not has_record(SECTION_ITEMS, item_id):
+			return "drop item_id must reference an existing item: %s" % item_id
+		if int(drop_data.get("min_amount", 0)) < 1:
+			return "min_amount must be greater than or equal to 1."
+		if int(drop_data.get("max_amount", 0)) < int(drop_data.get("min_amount", 1)):
+			return "max_amount must be greater than or equal to min_amount."
+		if float(drop_data.get("chance", -1.0)) < 0.0 or float(drop_data.get("chance", 0.0)) > 1.0:
+			return "chance must be between 0 and 1."
+
+	return ""
+
+
+func validate_tier(record_id: String, original_id: String, record: Dictionary) -> String:
+	var tier_id := int(record.get("id", 0))
+	if tier_id < 1 or tier_id > 99:
+		return "Tier ID must be an integer between 1 and 99."
+
+	var clean_record_id := str(tier_id)
+	if has_record(SECTION_TIERS, clean_record_id) and clean_record_id != original_id:
+		return "Tier ID already exists."
+
+	if str(record.get("display_name", "")).strip_edges().is_empty():
+		return "Display Name is required."
 
 	return ""
 

@@ -1,11 +1,19 @@
 extends CharacterBody2D
 
+const CombatCalculatorScript := preload("res://scripts/systems/CombatCalculator.gd")
+const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextSpawner.gd")
+const OverheadNameplateScene := preload("res://scenes/ui/OverheadNameplate.tscn")
+
 @export var monster_id: String = "slime"
 @export var speed: float = 45.0
 @export var damage: int = 10
 @export var damage_cooldown: float = 1.0
 @export var max_health: int = 30
 @export var gel_drop_amount: int = 1
+@export var show_nameplates := true
+@export var show_floating_damage := true
+@export var enable_hit_flash := true
+@export var enable_knockback := true
 
 var player: CharacterBody2D
 var player_in_contact := false
@@ -16,14 +24,20 @@ var display_name := "Slime"
 var spawn_time_seconds := 20.0
 var spawn_tiles := []
 var loot_table := []
+var nameplate: Node2D
+var monster_data := {}
+var combat_calculator := CombatCalculatorScript.new()
+var original_scale := Vector2.ONE
 
 @onready var damage_area: Area2D = $DamageArea
 
 
 func _ready() -> void:
 	add_to_group("enemy")
+	original_scale = scale
 	_load_monster_data()
 	health = max_health
+	_setup_nameplate()
 	damage_area.body_entered.connect(_on_damage_area_body_entered)
 	damage_area.body_exited.connect(_on_damage_area_body_exited)
 	player = get_tree().get_first_node_in_group("player") as CharacterBody2D
@@ -53,8 +67,20 @@ func _update_damage(delta: float) -> void:
 		damage_timer -= delta
 
 	if player_in_contact and damage_timer <= 0.0 and _can_damage_player():
-		player.take_damage(damage)
+		_attack_player()
 		damage_timer = damage_cooldown
+
+
+func _attack_player() -> void:
+	var target_data := {}
+	if player.has_method("_get_combat_data"):
+		target_data = player.call("_get_combat_data")
+
+	var combat_result := combat_calculator.calculate_damage(get_combat_data(), target_data)
+	if player.has_method("apply_combat_result"):
+		player.call("apply_combat_result", combat_result)
+	else:
+		player.take_damage(int(combat_result.get("damage", damage)))
 
 
 func take_damage(amount: int) -> void:
@@ -65,6 +91,34 @@ func take_damage(amount: int) -> void:
 		return
 
 	health = max(health - amount, 0)
+	_update_nameplate()
+	_play_hit_feedback(false)
+	if show_floating_damage:
+		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), false, "enemy")
+
+	if health == 0:
+		_die()
+
+
+func apply_combat_result(combat_result: Dictionary) -> void:
+	if is_dead:
+		return
+
+	if bool(combat_result.get("miss", false)):
+		if show_floating_damage:
+			FloatingCombatTextSpawner.show_miss(global_position + Vector2(0, -28))
+		return
+
+	var amount := int(combat_result.get("damage", 0))
+	if amount <= 0:
+		return
+
+	health = max(health - amount, 0)
+	_update_nameplate()
+	var is_critical := bool(combat_result.get("is_critical", false))
+	_play_hit_feedback(is_critical)
+	if show_floating_damage:
+		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), is_critical, "enemy")
 
 	if health == 0:
 		_die()
@@ -73,7 +127,14 @@ func take_damage(amount: int) -> void:
 func _die() -> void:
 	is_dead = true
 	_drop_loot()
-	queue_free()
+	damage_area.monitoring = false
+	set_physics_process(false)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(self, "modulate:a", 0.0, 0.18)
+	tween.tween_property(self, "scale", original_scale * 0.75, 0.18)
+	tween.set_parallel(false)
+	tween.tween_callback(queue_free)
 
 
 func _drop_loot() -> void:
@@ -133,7 +194,7 @@ func _load_monster_data() -> void:
 	if content_db == null:
 		return
 
-	var monster_data: Dictionary = content_db.get_monster(monster_id)
+	monster_data = content_db.get_monster(monster_id)
 	if monster_data.is_empty():
 		push_error("Slime could not load monster_id: %s" % monster_id)
 		return
@@ -154,3 +215,55 @@ func _load_monster_data() -> void:
 		loot_table = loaded_loot_table
 
 	print("%s loaded monster data from ContentDB" % display_name)
+
+
+func _setup_nameplate() -> void:
+	if not show_nameplates:
+		return
+
+	nameplate = OverheadNameplateScene.instantiate()
+	add_child(nameplate)
+	nameplate.setup(display_name, health, max_health)
+
+
+func _update_nameplate() -> void:
+	if nameplate == null or not is_instance_valid(nameplate):
+		return
+
+	nameplate.set_health(health, max_health)
+
+
+func _play_hit_feedback(is_critical: bool) -> void:
+	if not enable_hit_flash:
+		return
+
+	var flash_color := Color(1.0, 0.65, 0.55, 1.0) if is_critical else Color(1.0, 0.35, 0.35, 1.0)
+	for child in get_children():
+		if not child is CanvasItem:
+			continue
+		if child == nameplate:
+			continue
+
+		var canvas_item := child as CanvasItem
+		var original_color := canvas_item.modulate
+		canvas_item.modulate = flash_color
+		var tween := create_tween()
+		tween.tween_property(canvas_item, "modulate", original_color, 0.12 if is_critical else 0.08)
+
+	if enable_knockback:
+		var bump_scale := original_scale * (1.08 if is_critical else 1.04)
+		var scale_tween := create_tween()
+		scale_tween.tween_property(self, "scale", bump_scale, 0.04)
+		scale_tween.tween_property(self, "scale", original_scale, 0.08)
+
+
+func get_combat_data() -> Dictionary:
+	var combat_data: Dictionary = monster_data.duplicate(true) if monster_data is Dictionary else {}
+	combat_data["max_health"] = max_health
+	combat_data["damage"] = damage
+	if not combat_data.has("base_combat"):
+		combat_data["base_combat"] = {
+			"base_attack": damage,
+			"attack_cooldown": damage_cooldown,
+		}
+	return combat_data

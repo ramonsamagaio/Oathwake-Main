@@ -2,6 +2,7 @@ extends Control
 
 const ContentEditorData := preload("res://tools/content_editor/ContentEditorData.gd")
 const SpriteSheetPreviewScript := preload("res://tools/content_editor/SpriteSheetPreview.gd")
+const CombatCalculatorScript := preload("res://scripts/systems/CombatCalculator.gd")
 const MIN_WINDOW_SIZE := Vector2i(1280, 800)
 const INITIAL_WINDOW_SIZE := Vector2i(1440, 900)
 
@@ -15,6 +16,9 @@ var is_refreshing_list := false
 var is_building_form := false
 var selected_drop_item_id := ""
 var drop_item_filter := ""
+var item_resource_damage_rows := []
+var resource_base_drop_rows := []
+var resource_rare_drop_rows := []
 var selected_workstation_id := ""
 var workstation_filter := ""
 var production_rows := []
@@ -32,6 +36,7 @@ var animation_preview_elapsed := 0.0
 var animation_preview_frame_index := 0
 var sidebar_buttons := {}
 var field_controls := {}
+var combat_calculator := CombatCalculatorScript.new()
 
 var section_title_label: Label
 var search_line_edit: LineEdit
@@ -343,6 +348,7 @@ func _select_section(section: String, force := false) -> void:
 	has_unsaved_changes = false
 	selected_drop_item_id = ""
 	drop_item_filter = ""
+	item_resource_damage_rows.clear()
 	selected_workstation_id = ""
 	workstation_filter = ""
 	production_rows.clear()
@@ -367,7 +373,10 @@ func _select_section(section: String, force := false) -> void:
 	_update_sprite_category_filter_visibility()
 	_sync_sidebar_buttons()
 	_refresh_record_list()
-	_show_empty_form()
+	if current_section == ContentEditorData.SECTION_COMBAT_PREVIEW:
+		_build_combat_preview_form()
+	else:
+		_show_empty_form()
 	_update_action_buttons()
 	_set_status("Selected %s" % data_store.get_section_label(current_section))
 
@@ -546,6 +555,10 @@ func _build_form_for_current_record() -> void:
 			_build_animation_set_form()
 		ContentEditorData.SECTION_CHARACTERS:
 			_build_character_form()
+		ContentEditorData.SECTION_TIERS:
+			_build_tier_form()
+		ContentEditorData.SECTION_COMBAT_PREVIEW:
+			_build_combat_preview_form()
 		_:
 			_build_read_only_preview_form()
 
@@ -562,9 +575,18 @@ func _build_item_form() -> void:
 	form_title_label.text = "Item: %s" % str(current_record.get("id", ""))
 	_add_line_edit("ID", "id", str(current_record.get("id", "")))
 	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
-	_add_sprite_picker(str(current_record.get("sprite_id", "")))
-	_add_spin_box("Stack Size", "stack_size", int(current_record.get("stack_size", 999)), 1, 999999, 1)
 	_add_text_edit("Description", "description", str(current_record.get("description", "")), 100)
+	_add_spin_box("Stack Size", "stack_size", int(current_record.get("stack_size", 999)), 1, 999999, 1)
+	_add_sprite_picker(str(current_record.get("sprite_id", "")))
+	_add_item_type_option_button(str(current_record.get("item_type", "material")))
+	_add_spin_box("Tier", "tier", int(current_record.get("tier", 1)), 1, 99, 1)
+	_add_material_family_option_button(str(current_record.get("material_family", "misc")))
+	_add_line_edit("Tags", "tags", _join_string_array(current_record.get("tags", []), ", "))
+
+	var item_type: String = str(current_record.get("item_type", "material"))
+	if item_type == "weapon" or item_type == "tool":
+		_add_tool_progression_editor()
+		_add_item_combat_editor(item_type)
 
 
 func _build_resource_form() -> void:
@@ -576,6 +598,30 @@ func _build_resource_form() -> void:
 	_add_drop_item_picker(str(current_record.get("drop_item_id", "wood")))
 	_add_spin_box("Drop Amount", "drop_amount", int(current_record.get("drop_amount", 1)), 1, 999999, 1)
 	_add_spin_box("Respawn Time Seconds", "respawn_time_seconds", int(current_record.get("respawn_time_seconds", 60)), 0, 999999, 1)
+	_add_spin_box("Resource Tier", "resource_tier", int(current_record.get("resource_tier", 1)), 1, 7, 1)
+	_add_spin_box("Resource HP", "resource_hp", int(current_record.get("resource_hp", current_record.get("max_health", 20))), 1, 999999, 1)
+	_add_tool_type_option_button("Required Tool Type", "required_tool_type", str(current_record.get("required_tool_type", "axe")))
+	_add_skill_type_option_button(str(current_record.get("skill_type", "lumbering")))
+	_add_spin_box("XP Reward", "xp_reward", int(current_record.get("xp_reward", 0)), 0, 999999, 1)
+	_add_drop_table_editor("Base Drops", "base_drops", current_record.get("base_drops", []))
+	_add_drop_table_editor("Rare Drops", "rare_drops", current_record.get("rare_drops", []))
+
+
+func _build_tier_form() -> void:
+	form_title_label.text = "Tier: %s" % str(current_record.get("id", ""))
+	_add_spin_box("ID", "id", int(current_record.get("id", int(str(current_record.get("id", "1"))))), 1, 99, 1)
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_line_edit("Theme", "theme", str(current_record.get("theme", "")))
+	_add_line_edit("Region", "region", str(current_record.get("region", "")))
+	_add_line_edit("Boss", "boss", str(current_record.get("boss", "")))
+	_add_line_edit("Primary Material", "primary_material", str(current_record.get("primary_material", "")))
+	_add_line_edit("Metal Material", "metal_material", str(current_record.get("metal_material", "")))
+	_add_line_edit("Secondary Material", "secondary_material", str(current_record.get("secondary_material", "")))
+	_add_line_edit("Wood Material", "wood_material", str(current_record.get("wood_material", "")))
+	_add_line_edit("Cloth Material", "cloth_material", str(current_record.get("cloth_material", "")))
+	_add_line_edit("Tool Material", "tool_material", str(current_record.get("tool_material", "")))
+	_add_line_edit("Weapon Material", "weapon_material", str(current_record.get("weapon_material", "")))
+	_add_line_edit("Armor Material", "armor_material", str(current_record.get("armor_material", "")))
 
 
 func _build_monster_form() -> void:
@@ -693,6 +739,37 @@ func _build_character_form() -> void:
 	_add_character_animation_setup()
 
 
+func _build_combat_preview_form() -> void:
+	_clear_form()
+	form_title_label.text = "Combat Preview"
+	current_file_label.text = "Uses CombatCalculator with content data."
+
+	_add_combat_type_option("Attacker Type", "combat_attacker_type", "character", _on_combat_attacker_type_selected)
+	_add_combat_actor_option("Attacker", "combat_attacker", "combat_attacker_type")
+	_add_combat_type_option("Target Type", "combat_target_type", "monster", _on_combat_target_type_selected)
+	_add_combat_actor_option("Target", "combat_target", "combat_target_type")
+	_add_combat_weapon_option()
+
+	var row := HBoxContainer.new()
+	form_container.add_child(row)
+
+	var calculate_button := Button.new()
+	calculate_button.text = "Calculate Once"
+	calculate_button.pressed.connect(_on_combat_calculate_once_pressed)
+	row.add_child(calculate_button)
+
+	var simulate_button := Button.new()
+	simulate_button.text = "Simulate 100 Hits"
+	simulate_button.pressed.connect(_on_combat_simulate_100_pressed)
+	row.add_child(simulate_button)
+
+	var results := Label.new()
+	results.text = "Choose attacker, target, and weapon."
+	results.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(results)
+	field_controls["combat_results"] = results
+
+
 func _build_read_only_preview_form() -> void:
 	var label := data_store.get_section_label(current_section)
 	form_title_label.text = "%s: %s" % [label.trim_suffix("s"), str(current_record.get("id", ""))]
@@ -771,6 +848,261 @@ func _add_check_box(label_text: String, field_name: String, value: bool) -> Chec
 	_add_form_row(label_text, check_box)
 	field_controls[field_name] = check_box
 	return check_box
+
+
+func _add_float_spin_box(label_text: String, field_name: String, value: float, minimum: float, maximum: float, step: float) -> SpinBox:
+	var spin_box := SpinBox.new()
+	spin_box.min_value = minimum
+	spin_box.max_value = maximum
+	spin_box.step = step
+	spin_box.value = value
+	spin_box.value_changed.connect(func(_new_value: float) -> void: _mark_dirty())
+	_add_form_row(label_text, spin_box)
+	field_controls[field_name] = spin_box
+	return spin_box
+
+
+func _add_string_option_button(label_text: String, field_name: String, options: Array, initial_value: String, callback: Callable = Callable()) -> OptionButton:
+	var option_button := OptionButton.new()
+	var selected_index := 0
+	if not options.has(initial_value):
+		options.append(initial_value)
+
+	for option_value in options:
+		var index := option_button.item_count
+		option_button.add_item(str(option_value))
+		option_button.set_item_metadata(index, str(option_value))
+		if str(option_value) == initial_value:
+			selected_index = index
+
+	option_button.select(selected_index)
+	if callback.is_valid():
+		option_button.item_selected.connect(callback)
+	else:
+		option_button.item_selected.connect(func(_index: int) -> void: _mark_dirty())
+	_add_form_row(label_text, option_button)
+	field_controls[field_name] = option_button
+	return option_button
+
+
+func _add_material_family_option_button(initial_family: String) -> void:
+	_add_string_option_button("Material Family", "material_family", ["wood", "ore", "ingot", "cloth", "fiber", "herb", "gem", "catalyst", "food", "monster_part", "misc"], initial_family)
+
+
+func _add_tool_type_option_button(label_text: String, field_name: String, initial_type: String) -> void:
+	_add_string_option_button(label_text, field_name, ["hands", "axe", "pickaxe", "hoe", "sickle", "hammer", "watering_can"], initial_type)
+
+
+func _add_skill_type_option_button(initial_type: String) -> void:
+	_add_string_option_button("Skill Type", "skill_type", ["mining", "lumbering", "farming", "smithing", "cooking", "alchemy"], initial_type)
+
+
+func _add_tool_progression_editor() -> void:
+	var title := Label.new()
+	title.text = "Tool Progression"
+	form_container.add_child(title)
+
+	_add_tool_type_option_button("Tool Type", "tool_type", str(current_record.get("tool_type", "hands")))
+	_add_spin_box("Tool Tier", "tool_tier", int(current_record.get("tool_tier", current_record.get("tier", 1))), 1, 7, 1)
+	_add_spin_box("Tool Damage", "tool_damage", int(current_record.get("tool_damage", 0)), 0, 999999, 1)
+	_add_float_spin_box("Tool Speed", "tool_speed", float(current_record.get("tool_speed", 1.0)), 0.01, 999999.0, 0.01)
+	_add_spin_box("Durability", "durability", int(current_record.get("durability", 0)), 0, 999999, 1)
+	_add_float_spin_box("Crit Chance", "crit_chance", float(current_record.get("crit_chance", 0.0)), 0.0, 1.0, 0.01)
+	_add_float_spin_box("Crit Power", "crit_power", float(current_record.get("crit_power", 1.5)), 1.0, 999999.0, 0.01)
+
+
+func _add_item_combat_editor(item_type: String) -> void:
+	var title := Label.new()
+	title.text = "Combat"
+	form_container.add_child(title)
+
+	var combat: Dictionary = _get_record_dictionary(current_record, "combat")
+	_add_spin_box("Attack Power", "combat_attack_power", int(combat.get("attack_power", 0)), 0, 999999, 1)
+	_add_float_spin_box("Attack Variance", "combat_attack_variance", float(combat.get("attack_variance", 0.15)), 0.0, 1.0, 0.01)
+	_add_damage_type_option_button(str(combat.get("damage_type", "physical")))
+	_add_float_spin_box("Crit Chance Bonus", "combat_crit_chance_bonus", float(combat.get("crit_chance_bonus", 0.0)), 0.0, 1.0, 0.01)
+	_add_float_spin_box("Crit Damage Bonus", "combat_crit_damage_bonus", float(combat.get("crit_damage_bonus", 0.0)), 0.0, 999999.0, 0.01)
+	_add_float_spin_box("Attack Cooldown Modifier", "combat_attack_cooldown_modifier", float(combat.get("attack_cooldown_modifier", 1.0)), 0.01, 999999.0, 0.01)
+	_add_check_box("Can Hit Monsters", "combat_can_hit_monsters", bool(combat.get("can_hit_monsters", true)))
+	_add_check_box("Can Hit Resources", "combat_can_hit_resources", bool(combat.get("can_hit_resources", item_type == "tool")))
+
+	var scaling_title := Label.new()
+	scaling_title.text = "Stat Scaling"
+	form_container.add_child(scaling_title)
+
+	var stat_scaling: Dictionary = _get_record_dictionary(combat, "stat_scaling")
+	for stat_name in ["str", "dex", "agi", "vit", "wis", "int", "luk"]:
+		_add_float_spin_box("%s Scaling" % stat_name.to_upper(), "scaling_%s" % stat_name, float(stat_scaling.get(stat_name, 0.0)), 0.0, 999999.0, 0.05)
+
+	if item_type == "tool":
+		_add_resource_damage_editor(_get_record_dictionary(combat, "resource_damage"))
+
+	_add_item_combat_preview()
+
+
+func _add_resource_damage_editor(resource_damage: Dictionary) -> void:
+	var title := Label.new()
+	title.text = "Resource Damage"
+	form_container.add_child(title)
+
+	item_resource_damage_rows.clear()
+	for resource_type_id in resource_damage.keys():
+		item_resource_damage_rows.append({
+			"resource_type_id": str(resource_type_id),
+			"damage": int(resource_damage[resource_type_id]),
+		})
+
+	_rebuild_resource_damage_rows()
+
+	var add_button := Button.new()
+	add_button.text = "Add Resource Damage"
+	add_button.pressed.connect(_on_add_resource_damage_pressed)
+	form_container.add_child(add_button)
+
+
+func _rebuild_resource_damage_rows() -> void:
+	for row_index in range(item_resource_damage_rows.size()):
+		_add_resource_damage_row(row_index)
+
+
+func _add_resource_damage_row(row_index: int) -> void:
+	var row_data: Dictionary = item_resource_damage_rows[row_index]
+	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var label := Label.new()
+	label.text = "Resource Damage"
+	label.custom_minimum_size = Vector2(160, 0)
+	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(label)
+
+	var option_button := OptionButton.new()
+	option_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_populate_resource_type_option(option_button, str(row_data.get("resource_type_id", "")))
+	option_button.item_selected.connect(func(selected_index: int) -> void: _on_resource_damage_resource_selected(selected_index, row_index, option_button))
+	row.add_child(option_button)
+
+	var spin_box := SpinBox.new()
+	spin_box.min_value = 0
+	spin_box.max_value = 999999
+	spin_box.step = 1
+	spin_box.value = int(row_data.get("damage", 0))
+	spin_box.custom_minimum_size = Vector2(100, 0)
+	spin_box.value_changed.connect(func(new_value: float) -> void: _on_resource_damage_value_changed(new_value, row_index))
+	row.add_child(spin_box)
+
+	var remove_button := Button.new()
+	remove_button.text = "Remove"
+	remove_button.pressed.connect(func() -> void: _on_remove_resource_damage_pressed(row_index))
+	row.add_child(remove_button)
+
+	form_container.add_child(row)
+
+
+func _populate_resource_type_option(option_button: OptionButton, selected_resource_id: String) -> void:
+	var selected_index := 0
+	for resource_record in data_store.get_records(ContentEditorData.SECTION_RESOURCES):
+		var resource_id := str(resource_record.get("id", ""))
+		var display_name := str(resource_record.get("display_name", resource_id))
+		var index := option_button.item_count
+		option_button.add_item("%s - %s" % [resource_id, display_name])
+		option_button.set_item_metadata(index, resource_id)
+		if resource_id == selected_resource_id:
+			selected_index = index
+
+	if option_button.item_count > 0:
+		option_button.select(selected_index)
+
+
+func _add_item_combat_preview() -> void:
+	var preview := Label.new()
+	preview.text = _make_item_combat_preview_text()
+	preview.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(preview)
+
+
+func _add_drop_table_editor(label_text: String, field_name: String, drops_value: Variant) -> void:
+	var title := Label.new()
+	title.text = label_text
+	form_container.add_child(title)
+
+	var rows := _get_drop_rows(field_name)
+	rows.clear()
+	if drops_value is Array:
+		for drop_entry in drops_value:
+			if drop_entry is Dictionary:
+				rows.append((drop_entry as Dictionary).duplicate(true))
+
+	for row_index in range(rows.size()):
+		_add_drop_table_row(field_name, row_index)
+
+	var add_button := Button.new()
+	add_button.text = "Add %s" % label_text.trim_suffix("s")
+	add_button.pressed.connect(func() -> void: _on_add_drop_row_pressed(field_name))
+	form_container.add_child(add_button)
+
+
+func _add_drop_table_row(field_name: String, row_index: int) -> void:
+	var rows := _get_drop_rows(field_name)
+	var row_data: Dictionary = rows[row_index]
+	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var label := Label.new()
+	label.text = field_name.capitalize()
+	label.custom_minimum_size = Vector2(160, 0)
+	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(label)
+
+	var item_option := OptionButton.new()
+	item_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_populate_item_option(item_option, str(row_data.get("item_id", _get_default_item_id())))
+	item_option.item_selected.connect(func(selected_index: int) -> void: _on_drop_row_item_selected(field_name, row_index, selected_index, item_option))
+	row.add_child(item_option)
+
+	var min_spin := _make_inline_spin_box(int(row_data.get("min_amount", 1)), 1, 999999, 1)
+	min_spin.value_changed.connect(func(new_value: float) -> void: _on_drop_row_number_changed(field_name, row_index, "min_amount", new_value))
+	row.add_child(min_spin)
+
+	var max_spin := _make_inline_spin_box(int(row_data.get("max_amount", 1)), 1, 999999, 1)
+	max_spin.value_changed.connect(func(new_value: float) -> void: _on_drop_row_number_changed(field_name, row_index, "max_amount", new_value))
+	row.add_child(max_spin)
+
+	var chance_spin := _make_inline_spin_box(float(row_data.get("chance", 1.0)), 0.0, 1.0, 0.01)
+	chance_spin.value_changed.connect(func(new_value: float) -> void: _on_drop_row_number_changed(field_name, row_index, "chance", new_value))
+	row.add_child(chance_spin)
+
+	var remove_button := Button.new()
+	remove_button.text = "Remove"
+	remove_button.pressed.connect(func() -> void: _on_remove_drop_row_pressed(field_name, row_index))
+	row.add_child(remove_button)
+
+	form_container.add_child(row)
+
+
+func _make_inline_spin_box(value: float, minimum: float, maximum: float, step: float) -> SpinBox:
+	var spin_box := SpinBox.new()
+	spin_box.min_value = minimum
+	spin_box.max_value = maximum
+	spin_box.step = step
+	spin_box.value = value
+	spin_box.custom_minimum_size = Vector2(82, 0)
+	return spin_box
+
+
+func _populate_item_option(option_button: OptionButton, selected_item_id: String) -> void:
+	var selected_index := 0
+	for item_record in data_store.get_records(ContentEditorData.SECTION_ITEMS):
+		var item_id := str(item_record.get("id", ""))
+		var display_name := str(item_record.get("display_name", item_id))
+		var index := option_button.item_count
+		option_button.add_item("%s - %s" % [item_id, display_name])
+		option_button.set_item_metadata(index, item_id)
+		if item_id == selected_item_id:
+			selected_index = index
+
+	if option_button.item_count > 0:
+		option_button.select(selected_index)
 
 
 func _add_drop_item_picker(initial_item_id: String) -> void:
@@ -1314,6 +1646,70 @@ func _add_preview_zoom_option(field_name: String, callback: Callable) -> void:
 	field_controls[field_name] = option_button
 
 
+func _add_combat_type_option(label_text: String, field_name: String, selected_type: String, callback: Callable) -> void:
+	var option_button := OptionButton.new()
+	for type_name in ["character", "monster"]:
+		var index := option_button.item_count
+		option_button.add_item(type_name.capitalize())
+		option_button.set_item_metadata(index, type_name)
+		if type_name == selected_type:
+			option_button.select(index)
+	option_button.item_selected.connect(callback)
+	_add_form_row(label_text, option_button)
+	field_controls[field_name] = option_button
+
+
+func _add_combat_actor_option(label_text: String, field_name: String, type_field_name: String) -> void:
+	var option_button := OptionButton.new()
+	_add_form_row(label_text, option_button)
+	field_controls[field_name] = option_button
+	_refresh_combat_actor_option(field_name, _get_option_button_metadata(type_field_name))
+
+
+func _add_combat_weapon_option() -> void:
+	var option_button := OptionButton.new()
+	_add_form_row("Weapon/Tool", option_button)
+	field_controls["combat_weapon"] = option_button
+	_refresh_combat_weapon_option()
+
+
+func _refresh_combat_actor_option(field_name: String, actor_type: String) -> void:
+	if not field_controls.has(field_name):
+		return
+
+	var option_button: OptionButton = field_controls[field_name]
+	option_button.clear()
+	var records := data_store.get_records(ContentEditorData.SECTION_CHARACTERS if actor_type == "character" else ContentEditorData.SECTION_MONSTERS)
+	for record in records:
+		var record_id := str(record.get("id", ""))
+		var display_name := str(record.get("display_name", record_id))
+		var index := option_button.item_count
+		option_button.add_item("%s - %s" % [record_id, display_name])
+		option_button.set_item_metadata(index, record_id)
+	if option_button.item_count > 0:
+		option_button.select(0)
+
+
+func _refresh_combat_weapon_option() -> void:
+	var option_button: OptionButton = field_controls["combat_weapon"]
+	option_button.clear()
+	var hands_index := option_button.item_count
+	option_button.add_item("Hands")
+	option_button.set_item_metadata(hands_index, "")
+	option_button.select(hands_index)
+
+	for item_record in data_store.get_records(ContentEditorData.SECTION_ITEMS):
+		var combat = item_record.get("combat", {})
+		var item_type := str(item_record.get("item_type", ""))
+		if not combat is Dictionary and item_type != "weapon" and item_type != "tool":
+			continue
+		var item_id := str(item_record.get("id", ""))
+		var display_name := str(item_record.get("display_name", item_id))
+		var index := option_button.item_count
+		option_button.add_item("%s - %s" % [item_id, display_name])
+		option_button.set_item_metadata(index, item_id)
+
+
 func _add_category_option_button(initial_category: String) -> void:
 	var option_button := OptionButton.new()
 	var selected_index := 0
@@ -1329,6 +1725,57 @@ func _add_category_option_button(initial_category: String) -> void:
 	option_button.item_selected.connect(func(_index: int) -> void: _mark_dirty())
 	_add_form_row("Category", option_button)
 	field_controls["category"] = option_button
+
+
+func _add_item_type_option_button(initial_type: String) -> void:
+	var option_button := OptionButton.new()
+	var types := [
+		"material",
+		"consumable",
+		"weapon",
+		"tool",
+		"quest",
+		"misc",
+	]
+	if not types.has(initial_type):
+		types.append(initial_type)
+
+	var selected_index := 0
+	for item_type in types:
+		var index := option_button.item_count
+		option_button.add_item(item_type)
+		option_button.set_item_metadata(index, item_type)
+		if item_type == initial_type:
+			selected_index = index
+
+	option_button.select(selected_index)
+	option_button.item_selected.connect(_on_item_type_selected)
+	_add_form_row("Item Type", option_button)
+	field_controls["item_type"] = option_button
+
+
+func _add_damage_type_option_button(initial_type: String) -> void:
+	var option_button := OptionButton.new()
+	var types := [
+		"physical",
+		"magical",
+		"true",
+	]
+	if not types.has(initial_type):
+		types.append(initial_type)
+
+	var selected_index := 0
+	for damage_type in types:
+		var index := option_button.item_count
+		option_button.add_item(damage_type)
+		option_button.set_item_metadata(index, damage_type)
+		if damage_type == initial_type:
+			selected_index = index
+
+	option_button.select(selected_index)
+	option_button.item_selected.connect(func(_index: int) -> void: _mark_dirty())
+	_add_form_row("Damage Type", option_button)
+	field_controls["combat_damage_type"] = option_button
 
 
 func _add_sprite_type_option_button(initial_type: String) -> void:
@@ -2017,6 +2464,153 @@ func _on_character_preview_zoom_selected(_index: int) -> void:
 	_update_character_preview_frame()
 
 
+func _on_item_type_selected(_index: int) -> void:
+	current_record = _get_item_form_record()
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_add_resource_damage_pressed() -> void:
+	var resource_id := _get_first_resource_id()
+	if resource_id.is_empty():
+		_set_status("Create a resource before adding Resource Damage.", true)
+		return
+
+	item_resource_damage_rows.append({
+		"resource_type_id": resource_id,
+		"damage": 0,
+	})
+	current_record = _get_item_form_record()
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_remove_resource_damage_pressed(row_index: int) -> void:
+	if row_index < 0 or row_index >= item_resource_damage_rows.size():
+		return
+
+	item_resource_damage_rows.remove_at(row_index)
+	current_record = _get_item_form_record()
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_resource_damage_resource_selected(selected_index: int, row_index: int, option_button: OptionButton) -> void:
+	if row_index < 0 or row_index >= item_resource_damage_rows.size():
+		return
+	if selected_index < 0 or selected_index >= option_button.item_count:
+		return
+
+	item_resource_damage_rows[row_index]["resource_type_id"] = str(option_button.get_item_metadata(selected_index))
+	_mark_dirty()
+
+
+func _on_resource_damage_value_changed(new_value: float, row_index: int) -> void:
+	if row_index < 0 or row_index >= item_resource_damage_rows.size():
+		return
+
+	item_resource_damage_rows[row_index]["damage"] = int(new_value)
+	_mark_dirty()
+
+
+func _on_add_drop_row_pressed(field_name: String) -> void:
+	var rows := _get_drop_rows(field_name)
+	rows.append({
+		"item_id": _get_default_item_id(),
+		"min_amount": 1,
+		"max_amount": 1,
+		"chance": 1.0,
+	})
+	current_record = _get_resource_form_record()
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_remove_drop_row_pressed(field_name: String, row_index: int) -> void:
+	var rows := _get_drop_rows(field_name)
+	if row_index < 0 or row_index >= rows.size():
+		return
+
+	rows.remove_at(row_index)
+	current_record = _get_resource_form_record()
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_drop_row_item_selected(field_name: String, row_index: int, selected_index: int, option_button: OptionButton) -> void:
+	var rows := _get_drop_rows(field_name)
+	if row_index < 0 or row_index >= rows.size():
+		return
+	if selected_index < 0 or selected_index >= option_button.item_count:
+		return
+
+	rows[row_index]["item_id"] = str(option_button.get_item_metadata(selected_index))
+	_mark_dirty()
+
+
+func _on_drop_row_number_changed(field_name: String, row_index: int, key: String, new_value: float) -> void:
+	var rows := _get_drop_rows(field_name)
+	if row_index < 0 or row_index >= rows.size():
+		return
+
+	if key == "chance":
+		rows[row_index][key] = new_value
+	else:
+		rows[row_index][key] = int(new_value)
+	_mark_dirty()
+
+
+func _on_combat_attacker_type_selected(_index: int) -> void:
+	_refresh_combat_actor_option("combat_attacker", _get_option_button_metadata("combat_attacker_type"))
+
+
+func _on_combat_target_type_selected(_index: int) -> void:
+	_refresh_combat_actor_option("combat_target", _get_option_button_metadata("combat_target_type"))
+
+
+func _on_combat_calculate_once_pressed() -> void:
+	var setup: Dictionary = _get_combat_preview_setup()
+	if not bool(setup.get("ok", false)):
+		_set_combat_results(str(setup.get("error", "Invalid combat preview setup.")))
+		return
+
+	var result: Dictionary = combat_calculator.calculate_damage(setup["attacker"], setup["target"], setup["weapon"])
+	_set_combat_results(_format_combat_once_result(setup, result))
+
+
+func _on_combat_simulate_100_pressed() -> void:
+	var setup: Dictionary = _get_combat_preview_setup()
+	if not bool(setup.get("ok", false)):
+		_set_combat_results(str(setup.get("error", "Invalid combat preview setup.")))
+		return
+
+	var total_damage: int = 0
+	var hit_count: int = 0
+	var miss_count: int = 0
+	var crit_count: int = 0
+	var min_damage: int = 999999
+	var max_damage: int = 0
+	for _index in range(100):
+		var result: Dictionary = combat_calculator.calculate_damage(setup["attacker"], setup["target"], setup["weapon"])
+		if bool(result.get("miss", false)):
+			miss_count += 1
+			continue
+
+		var damage: int = int(result.get("damage", 0))
+		hit_count += 1
+		total_damage += damage
+		min_damage = int(min(min_damage, damage))
+		max_damage = int(max(max_damage, damage))
+		if bool(result.get("is_critical", false)):
+			crit_count += 1
+
+	var average_damage: float = float(total_damage) / max(float(hit_count), 1.0)
+	var attacker_derived: Dictionary = setup["attacker_derived"]
+	var attack_cooldown: float = max(float(attacker_derived.get("attack_cooldown", 1.0)), 0.01)
+	var estimated_dps: float = (float(total_damage) / 100.0) / attack_cooldown
+	_set_combat_results(_format_combat_simulation_result(setup, average_damage, min_damage if hit_count > 0 else 0, max_damage, crit_count, miss_count, estimated_dps))
+
+
 func _on_character_grid_frame_clicked(frame_index: int, mouse_button: int) -> void:
 	if active_character_animation_name.is_empty():
 		_set_status("Click Select Frames on an animation slot first.", true)
@@ -2611,6 +3205,8 @@ func _on_new_pressed() -> void:
 			_create_new_animation_set()
 		ContentEditorData.SECTION_CHARACTERS:
 			_create_new_character()
+		ContentEditorData.SECTION_TIERS:
+			_create_new_tier()
 		_:
 			_set_status("New is available for visual content sections.", true)
 
@@ -2810,6 +3406,29 @@ func _create_new_character() -> void:
 	_set_status("Created new unsaved character.")
 
 
+func _create_new_tier() -> void:
+	var new_id := "8"
+	for tier_id in range(1, 100):
+		if not data_store.has_record(ContentEditorData.SECTION_TIERS, str(tier_id)):
+			new_id = str(tier_id)
+			break
+	current_id = new_id
+	current_original_id = ""
+	current_record = {
+		"id": int(new_id),
+		"display_name": "New Tier",
+		"theme": "",
+		"region": "",
+		"boss": "",
+		"primary_material": "",
+	}
+	has_unsaved_changes = true
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_set_status("Created new unsaved tier.")
+
+
 func _on_duplicate_pressed() -> void:
 	if has_unsaved_changes:
 		_set_status("Save or Revert before duplicating a record.", true)
@@ -2837,6 +3456,8 @@ func _on_duplicate_pressed() -> void:
 		ContentEditorData.SECTION_ANIMATION_SETS:
 			_duplicate_current_record("_copy")
 		ContentEditorData.SECTION_CHARACTERS:
+			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_TIERS:
 			_duplicate_current_record("_copy")
 		_:
 			_set_status("Duplicate is available for visual content sections.", true)
@@ -2903,6 +3524,8 @@ func _on_delete_pressed() -> void:
 			_delete_current_animation_set()
 		ContentEditorData.SECTION_CHARACTERS:
 			_delete_current_character()
+		ContentEditorData.SECTION_TIERS:
+			_set_status("Tier delete is blocked for now to preserve the Early Access progression.", true)
 		_:
 			_set_status("Delete is available for visual content sections.", true)
 
@@ -3108,6 +3731,8 @@ func _on_save_pressed() -> void:
 			_save_animation_set()
 		ContentEditorData.SECTION_CHARACTERS:
 			_save_character()
+		ContentEditorData.SECTION_TIERS:
+			_save_tier()
 		_:
 			_set_status("Visual saving for this section will come in a later step.", true)
 
@@ -3245,6 +3870,20 @@ func _save_character() -> void:
 	_save_current_record(record_id, record)
 
 
+func _save_tier() -> void:
+	var record := _get_tier_form_record()
+	var record_id := str(int(record.get("id", 0)))
+	record["id"] = int(record_id)
+	_set_spin_box_value("id", int(record_id))
+
+	var error := data_store.validate_tier(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
 func _save_current_record(record_id: String, record: Dictionary) -> void:
 	_cleanup_optional_fields(record)
 	data_store.set_record(current_section, current_original_id, record_id, record)
@@ -3362,25 +4001,60 @@ func _discard_unsaved_new_record() -> void:
 
 
 func _get_item_form_record() -> Dictionary:
-	return {
-		"id": _get_line_edit_text("id"),
-		"display_name": _get_line_edit_text("display_name"),
-		"sprite_id": selected_sprite_id,
-		"stack_size": _get_spin_box_int("stack_size"),
-		"description": _get_text_edit_text("description"),
-	}
+	var record := current_record.duplicate(true)
+	record["id"] = _get_line_edit_text("id")
+	record["display_name"] = _get_line_edit_text("display_name")
+	record["description"] = _get_text_edit_text("description")
+	record["stack_size"] = _get_spin_box_int("stack_size")
+	record["sprite_id"] = selected_sprite_id
+	record["item_type"] = _get_option_button_metadata("item_type")
+	record["tier"] = _get_spin_box_int("tier")
+	record["material_family"] = _get_option_button_metadata("material_family")
+	record["tags"] = _parse_tags(_get_line_edit_text("tags"))
+
+	var item_type := str(record.get("item_type", "material"))
+	if item_type == "weapon" or item_type == "tool":
+		record["tool_type"] = _get_option_button_metadata("tool_type")
+		record["tool_tier"] = _get_spin_box_int("tool_tier")
+		record["tool_damage"] = _get_spin_box_int("tool_damage")
+		record["tool_speed"] = _get_spin_box_value("tool_speed")
+		record["durability"] = _get_spin_box_int("durability")
+		record["crit_chance"] = _get_spin_box_value("crit_chance")
+		record["crit_power"] = _get_spin_box_value("crit_power")
+		var combat: Dictionary = _get_record_dictionary(record, "combat")
+		combat["attack_power"] = _get_spin_box_int("combat_attack_power")
+		combat["attack_variance"] = _get_spin_box_value("combat_attack_variance")
+		combat["damage_type"] = _get_option_button_metadata("combat_damage_type")
+		combat["crit_chance_bonus"] = _get_spin_box_value("combat_crit_chance_bonus")
+		combat["crit_damage_bonus"] = _get_spin_box_value("combat_crit_damage_bonus")
+		combat["attack_cooldown_modifier"] = _get_spin_box_value("combat_attack_cooldown_modifier")
+		combat["can_hit_monsters"] = _get_check_box_pressed("combat_can_hit_monsters")
+		combat["can_hit_resources"] = _get_check_box_pressed("combat_can_hit_resources")
+		combat["stat_scaling"] = _get_item_stat_scaling_record()
+		if item_type == "tool":
+			combat["resource_damage"] = _get_resource_damage_record()
+		record["combat"] = combat
+
+	return record
 
 
 func _get_resource_form_record() -> Dictionary:
-	return {
-		"id": _get_line_edit_text("id"),
-		"display_name": _get_line_edit_text("display_name"),
-		"sprite_id": selected_sprite_id,
-		"max_health": _get_spin_box_int("max_health"),
-		"drop_item_id": selected_drop_item_id,
-		"drop_amount": _get_spin_box_int("drop_amount"),
-		"respawn_time_seconds": _get_spin_box_int("respawn_time_seconds"),
-	}
+	var record := current_record.duplicate(true)
+	record["id"] = _get_line_edit_text("id")
+	record["display_name"] = _get_line_edit_text("display_name")
+	record["sprite_id"] = selected_sprite_id
+	record["max_health"] = _get_spin_box_int("max_health")
+	record["drop_item_id"] = selected_drop_item_id
+	record["drop_amount"] = _get_spin_box_int("drop_amount")
+	record["respawn_time_seconds"] = _get_spin_box_int("respawn_time_seconds")
+	record["resource_tier"] = _get_spin_box_int("resource_tier")
+	record["resource_hp"] = _get_spin_box_int("resource_hp")
+	record["required_tool_type"] = _get_option_button_metadata("required_tool_type")
+	record["skill_type"] = _get_option_button_metadata("skill_type")
+	record["xp_reward"] = _get_spin_box_int("xp_reward")
+	record["base_drops"] = _get_drop_rows_record("base_drops")
+	record["rare_drops"] = _get_drop_rows_record("rare_drops")
+	return record
 
 
 func _get_monster_form_record() -> Dictionary:
@@ -3479,12 +4153,30 @@ func _get_animation_set_form_record() -> Dictionary:
 
 
 func _get_character_form_record() -> Dictionary:
-	return {
-		"id": _get_line_edit_text("id"),
-		"display_name": _get_line_edit_text("display_name"),
-		"sprite_sheet_id": selected_sprite_sheet_id,
-		"animation_set_id": selected_animation_set_id,
-	}
+	var record := current_record.duplicate(true)
+	record["id"] = _get_line_edit_text("id")
+	record["display_name"] = _get_line_edit_text("display_name")
+	record["sprite_sheet_id"] = selected_sprite_sheet_id
+	record["animation_set_id"] = selected_animation_set_id
+	return record
+
+
+func _get_tier_form_record() -> Dictionary:
+	var record := current_record.duplicate(true)
+	record["id"] = _get_spin_box_int("id")
+	record["display_name"] = _get_line_edit_text("display_name")
+	record["theme"] = _get_line_edit_text("theme")
+	record["region"] = _get_line_edit_text("region")
+	record["boss"] = _get_line_edit_text("boss")
+	record["primary_material"] = _get_line_edit_text("primary_material")
+	record["metal_material"] = _get_line_edit_text("metal_material")
+	record["secondary_material"] = _get_line_edit_text("secondary_material")
+	record["wood_material"] = _get_line_edit_text("wood_material")
+	record["cloth_material"] = _get_line_edit_text("cloth_material")
+	record["tool_material"] = _get_line_edit_text("tool_material")
+	record["weapon_material"] = _get_line_edit_text("weapon_material")
+	record["armor_material"] = _get_line_edit_text("armor_material")
+	return record
 
 
 func _get_clean_production_rows() -> Array:
@@ -3581,6 +4273,84 @@ func _get_preview_zoom_scale(field_name: String) -> float:
 	return float(option_button.get_item_metadata(option_button.selected))
 
 
+func _get_item_stat_scaling_record() -> Dictionary:
+	var stat_scaling := {}
+	for stat_name in ["str", "dex", "agi", "vit", "wis", "int", "luk"]:
+		stat_scaling[stat_name] = _get_spin_box_value("scaling_%s" % stat_name)
+	return stat_scaling
+
+
+func _get_resource_damage_record() -> Dictionary:
+	var resource_damage := {}
+	for row_data in item_resource_damage_rows:
+		if not row_data is Dictionary:
+			continue
+
+		var resource_type_id := str(row_data.get("resource_type_id", ""))
+		var damage := int(row_data.get("damage", 0))
+		if not resource_type_id.is_empty():
+			resource_damage[resource_type_id] = max(damage, 0)
+	return resource_damage
+
+
+func _get_drop_rows(field_name: String) -> Array:
+	if field_name == "rare_drops":
+		return resource_rare_drop_rows
+	return resource_base_drop_rows
+
+
+func _get_drop_rows_record(field_name: String) -> Array:
+	var clean_rows := []
+	for row_data in _get_drop_rows(field_name):
+		if not row_data is Dictionary:
+			continue
+
+		var item_id := str(row_data.get("item_id", ""))
+		if item_id.is_empty():
+			continue
+
+		var min_amount: int = max(int(row_data.get("min_amount", 1)), 1)
+		var max_amount: int = max(int(row_data.get("max_amount", min_amount)), min_amount)
+		var drop_chance: float = clamp(float(row_data.get("chance", 1.0)), 0.0, 1.0)
+		clean_rows.append({
+			"item_id": item_id,
+			"min_amount": min_amount,
+			"max_amount": max_amount,
+			"chance": drop_chance,
+		})
+	return clean_rows
+
+
+func _get_record_dictionary(data: Dictionary, key: String) -> Dictionary:
+	var value = data.get(key, {})
+	if value is Dictionary:
+		return (value as Dictionary).duplicate(true)
+	return {}
+
+
+func _get_first_resource_id() -> String:
+	for resource_record in data_store.get_records(ContentEditorData.SECTION_RESOURCES):
+		return str(resource_record.get("id", ""))
+	return ""
+
+
+func _make_item_combat_preview_text() -> String:
+	var player_data := data_store.get_record(ContentEditorData.SECTION_CHARACTERS, "player")
+	var slime_data := data_store.get_record(ContentEditorData.SECTION_MONSTERS, "slime")
+	if player_data.is_empty() or slime_data.is_empty():
+		return "Estimated vs Slime: N/A"
+
+	var item_data := _get_item_form_record()
+	var preview: Dictionary = combat_calculator.get_damage_preview(player_data, item_data)
+	var result: Dictionary = combat_calculator.calculate_damage(player_data, slime_data, item_data)
+	return "Estimated vs Slime: %d-%d damage | Sample hit: %d%s" % [
+		int(preview.get("min_damage", 0)),
+		int(preview.get("max_damage", 0)),
+		int(result.get("damage", 0)),
+		" CRIT" if bool(result.get("is_critical", false)) else "",
+	]
+
+
 func _set_option_button_by_metadata(field_name: String, metadata: String) -> void:
 	if not field_controls.has(field_name):
 		return
@@ -3602,7 +4372,7 @@ func _mark_dirty() -> void:
 
 
 func _update_action_buttons() -> void:
-	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES or current_section == ContentEditorData.SECTION_ANIMATION_SETS
+	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES or current_section == ContentEditorData.SECTION_ANIMATION_SETS or current_section == ContentEditorData.SECTION_CHARACTERS or current_section == ContentEditorData.SECTION_TIERS
 	var has_record := not current_record.is_empty()
 
 	new_button.disabled = not supports_visual_editing or has_unsaved_changes
@@ -4306,6 +5076,123 @@ func _validate_character_animations() -> Array:
 		results.append("OK: Character animations are valid.")
 
 	return results
+
+
+func _get_combat_preview_setup() -> Dictionary:
+	var attacker_type: String = _get_option_button_metadata("combat_attacker_type")
+	var target_type: String = _get_option_button_metadata("combat_target_type")
+	var attacker_id: String = _get_option_button_metadata("combat_attacker")
+	var target_id: String = _get_option_button_metadata("combat_target")
+	if attacker_id.is_empty():
+		return {"ok": false, "error": "Choose a valid attacker."}
+	if target_id.is_empty():
+		return {"ok": false, "error": "Choose a valid target."}
+
+	var attacker: Dictionary = _get_combat_actor_data(attacker_type, attacker_id)
+	var target: Dictionary = _get_combat_actor_data(target_type, target_id)
+	if attacker.is_empty():
+		return {"ok": false, "error": "Attacker data is invalid."}
+	if target.is_empty():
+		return {"ok": false, "error": "Target data is invalid."}
+
+	var weapon: Dictionary = _get_combat_weapon_data()
+	var attacker_derived: Dictionary = combat_calculator.calculate_derived_stats(attacker, weapon)
+	var target_derived: Dictionary = combat_calculator.calculate_derived_stats(target)
+	var damage_preview: Dictionary = combat_calculator.get_damage_preview(attacker, weapon)
+	return {
+		"ok": true,
+		"attacker": attacker,
+		"target": target,
+		"weapon": weapon,
+		"attacker_derived": attacker_derived,
+		"target_derived": target_derived,
+		"damage_preview": damage_preview,
+	}
+
+
+func _get_combat_actor_data(actor_type: String, actor_id: String) -> Dictionary:
+	var section := ContentEditorData.SECTION_CHARACTERS if actor_type == "character" else ContentEditorData.SECTION_MONSTERS
+	if actor_id.is_empty() or not data_store.has_record(section, actor_id):
+		return {}
+
+	var record := data_store.get_record(section, actor_id)
+	if actor_type == "monster":
+		record["damage"] = int(record.get("damage", 5))
+	record["id"] = actor_id
+	return record
+
+
+func _get_combat_weapon_data() -> Dictionary:
+	var item_id := _get_option_button_metadata("combat_weapon")
+	if item_id.is_empty() or not data_store.has_record(ContentEditorData.SECTION_ITEMS, item_id):
+		return {
+			"id": "hands",
+			"display_name": "Hands",
+			"combat": {
+				"attack_power": 0,
+				"attack_variance": 0.15,
+			},
+		}
+
+	return data_store.get_record(ContentEditorData.SECTION_ITEMS, item_id)
+
+
+func _set_combat_results(text: String) -> void:
+	if not field_controls.has("combat_results"):
+		return
+
+	var results: Label = field_controls["combat_results"]
+	results.text = text
+
+
+func _format_combat_once_result(setup: Dictionary, result: Dictionary) -> String:
+	var lines := _format_combat_setup_summary(setup)
+	lines.append("")
+	lines.append("Calculate Once")
+	lines.append("Hit: %s" % str(result.get("hit", false)))
+	lines.append("Miss: %s" % str(result.get("miss", false)))
+	lines.append("Damage: %d" % int(result.get("damage", 0)))
+	lines.append("Critical: %s" % str(result.get("is_critical", false)))
+	lines.append("Damage Type: %s" % str(result.get("damage_type", "physical")))
+	return "\n".join(lines)
+
+
+func _format_combat_simulation_result(setup: Dictionary, average_damage: float, min_damage: int, max_damage: int, crit_count: int, miss_count: int, estimated_dps: float) -> String:
+	var lines := _format_combat_setup_summary(setup)
+	lines.append("")
+	lines.append("Simulate 100 Hits")
+	lines.append("Average Damage: %.2f" % average_damage)
+	lines.append("Min Damage: %d" % min_damage)
+	lines.append("Max Damage: %d" % max_damage)
+	lines.append("Crit Count: %d" % crit_count)
+	lines.append("Crit Rate: %.1f%%" % float(crit_count))
+	lines.append("Miss Count: %d" % miss_count)
+	lines.append("Miss Rate: %.1f%%" % float(miss_count))
+	lines.append("Estimated DPS: %.2f" % estimated_dps)
+	return "\n".join(lines)
+
+
+func _format_combat_setup_summary(setup: Dictionary) -> Array:
+	var attacker_derived: Dictionary = setup["attacker_derived"]
+	var target_derived: Dictionary = setup["target_derived"]
+	var damage_preview: Dictionary = setup["damage_preview"]
+	var hit_chance: float = clamp(0.75 + (float(attacker_derived.get("hit", 0.0)) - float(target_derived.get("flee", 0.0))) * 0.005, 0.15, 0.97)
+	return [
+		"Attacker Derived",
+		"  Physical Attack: %.2f" % float(attacker_derived.get("physical_attack", 0.0)),
+		"  Hit: %.2f" % float(attacker_derived.get("hit", 0.0)),
+		"  Crit Chance: %.1f%%" % (float(attacker_derived.get("crit_chance", 0.0)) * 100.0),
+		"  Crit Damage: %.2fx" % float(attacker_derived.get("crit_damage", 1.0)),
+		"  Attack Cooldown: %.2fs" % float(attacker_derived.get("attack_cooldown", 0.0)),
+		"",
+		"Target Derived",
+		"  Defense: %.2f" % float(target_derived.get("defense", 0.0)),
+		"  Flee: %.2f" % float(target_derived.get("flee", 0.0)),
+		"",
+		"Estimated",
+		"  Hit Chance: %.1f%%" % (hit_chance * 100.0),
+		"  Damage Range: %d - %d" % [int(damage_preview.get("min_damage", 0)), int(damage_preview.get("max_damage", 0))],
+	]
 
 
 func _get_default_item_id() -> String:

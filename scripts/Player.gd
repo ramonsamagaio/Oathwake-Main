@@ -5,6 +5,8 @@ signal tool_changed(current_tool: String)
 
 const AnimationSetLoaderScript = preload("res://scripts/systems/AnimationSetLoader.gd")
 const PlayerAnimationControllerScript = preload("res://scripts/systems/PlayerAnimationController.gd")
+const CombatCalculatorScript = preload("res://scripts/systems/CombatCalculator.gd")
+const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextSpawner.gd")
 const TOOL_HANDS := "Hands"
 const TOOL_AXE := "Axe"
 const TOOL_PICKAXE := "Pickaxe"
@@ -21,6 +23,8 @@ const TOOL_RESOURCE_DAMAGE := 15
 @export var attack_damage: int = 10
 @export var attack_range: float = 48.0
 @export var character_id: String = "player"
+@export var show_floating_damage := true
+@export var enable_hit_flash := true
 
 var health: int = 100
 var spawn_position := Vector2.ZERO
@@ -30,6 +34,8 @@ var current_tool_index := 0
 var last_direction := "down"
 var animation_controller := PlayerAnimationControllerScript.new()
 var animation_set_loader := AnimationSetLoaderScript.new()
+var combat_calculator := CombatCalculatorScript.new()
+var debug_base_stats_override := {}
 var unlocked_tools := [
 	TOOL_HANDS,
 ]
@@ -103,6 +109,9 @@ func take_damage(amount: int) -> void:
 
 	health = max(health - amount, 0)
 	health_changed.emit(health, max_health)
+	_play_hit_flash(Color(1.0, 0.35, 0.35, 1.0))
+	if show_floating_damage:
+		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), false, "player")
 
 	if health == 0:
 		_die()
@@ -114,6 +123,28 @@ func heal(amount: int) -> void:
 
 	health = min(health + amount, max_health)
 	health_changed.emit(health, max_health)
+	if show_floating_damage:
+		FloatingCombatTextSpawner.show_heal(amount, global_position + Vector2(0, -28))
+
+
+func apply_combat_result(combat_result: Dictionary) -> void:
+	if bool(combat_result.get("miss", false)):
+		if show_floating_damage:
+			FloatingCombatTextSpawner.show_miss(global_position + Vector2(0, -28))
+		return
+
+	var amount := int(combat_result.get("damage", 0))
+	if amount <= 0:
+		return
+
+	health = max(health - amount, 0)
+	health_changed.emit(health, max_health)
+	_play_hit_flash(Color(1.0, 0.35, 0.35, 1.0))
+	if show_floating_damage:
+		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), bool(combat_result.get("is_critical", false)), "player")
+
+	if health == 0:
+		_die()
 
 
 func get_current_tool() -> String:
@@ -185,12 +216,95 @@ func get_respawn_point() -> Vector2:
 	return spawn_position
 
 
+func get_debug_base_stats() -> Dictionary:
+	var combat_data := _get_combat_data()
+	var base_stats = combat_data.get("base_stats", {})
+	if base_stats is Dictionary:
+		return base_stats.duplicate(true)
+
+	return {}
+
+
+func set_debug_base_stat(stat_name: String, value: int) -> void:
+	debug_base_stats_override[stat_name] = max(value, 0)
+
+
+func get_combat_data() -> Dictionary:
+	return _get_combat_data()
+
+
+func get_current_held_item_data() -> Dictionary:
+	return _get_current_held_item_data()
+
+
 func _attack() -> void:
 	for target in _find_nearby_attack_targets("enemy"):
-		target.call("take_damage", attack_damage)
+		if _current_item_can_hit("can_hit_monsters", true):
+			_attack_enemy(target)
 
 	for target in _find_nearby_attack_targets("resource_node"):
-		target.call("take_damage", _get_resource_attack_damage(target))
+		if _current_item_can_hit("can_hit_resources", true):
+			_attack_resource(target)
+
+
+func _attack_enemy(target: Node) -> void:
+	var target_data := {}
+	if target.has_method("get_combat_data"):
+		target_data = target.call("get_combat_data")
+
+	var combat_result := combat_calculator.calculate_damage(_get_combat_data(), target_data, _get_current_held_item_data())
+	if target.has_method("apply_combat_result"):
+		target.call("apply_combat_result", combat_result)
+	else:
+		target.call("take_damage", int(combat_result.get("damage", attack_damage)))
+
+
+func _attack_resource(target: Node) -> void:
+	if target.has_method("apply_gather_hit"):
+		target.call("apply_gather_hit", _get_current_held_item_data(), _get_combat_data(), {})
+		return
+
+	target.call("take_damage", _get_resource_attack_damage(target))
+
+
+func _get_combat_data() -> Dictionary:
+	var character_data := {}
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and content_db.has_method("has_character") and content_db.has_character(character_id):
+		character_data = content_db.get_character(character_id)
+
+	var combat_data: Dictionary = character_data.duplicate(true) if character_data is Dictionary else {}
+	combat_data["max_health"] = max_health
+	if not combat_data.has("base_combat"):
+		combat_data["base_combat"] = {
+			"base_attack": attack_damage,
+			"attack_cooldown": 0.6,
+		}
+	var base_stats = combat_data.get("base_stats", {})
+	if not base_stats is Dictionary:
+		base_stats = {}
+	var clean_base_stats: Dictionary = (base_stats as Dictionary).duplicate(true)
+	for stat_name in debug_base_stats_override.keys():
+		clean_base_stats[str(stat_name)] = int(debug_base_stats_override[stat_name])
+	combat_data["base_stats"] = clean_base_stats
+	return combat_data
+
+
+func _get_current_held_item_data() -> Dictionary:
+	var tool_id := _get_current_tool_item_id()
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and content_db.has_method("has_item") and content_db.has_item(tool_id):
+		return content_db.get_item(tool_id)
+
+	return {
+		"id": tool_id,
+		"combat": {
+			"attack_power": 4 if get_current_tool() == TOOL_AXE or get_current_tool() == TOOL_PICKAXE else 0,
+			"attack_variance": 0.15,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+		},
+	}
 
 
 func _try_interact_with_nearby_npc() -> bool:
@@ -224,10 +338,23 @@ func _find_nearby_attack_targets(group_name: String) -> Array:
 
 
 func _get_resource_attack_damage(resource_node: Node) -> int:
-	var current_tool := get_current_tool()
-	if current_tool == TOOL_HANDS:
-		return BASE_RESOURCE_DAMAGE
+	var held_item_data := _get_current_held_item_data()
+	var combat_value: Variant = held_item_data.get("combat", {})
+	if combat_value is Dictionary:
+		var combat: Dictionary = combat_value
+		var resource_damage_value: Variant = combat.get("resource_damage", {})
+		if resource_damage_value is Dictionary:
+			var resource_damage: Dictionary = resource_damage_value
+			var resource_type_id := _get_target_resource_type_id(resource_node)
+			var drop_item_id := _get_target_drop_item_id(resource_node)
+			if resource_damage.has(resource_type_id):
+				return int(resource_damage[resource_type_id])
+			if drop_item_id == "wood" and resource_damage.has("tree"):
+				return int(resource_damage["tree"])
+			if drop_item_id == "stone" and resource_damage.has("rock"):
+				return int(resource_damage["rock"])
 
+	var current_tool := get_current_tool()
 	var resource_type_id := _get_target_resource_type_id(resource_node)
 	var drop_item_id := _get_target_drop_item_id(resource_node)
 	if current_tool == TOOL_AXE:
@@ -236,6 +363,37 @@ func _get_resource_attack_damage(resource_node: Node) -> int:
 		return TOOL_RESOURCE_DAMAGE if resource_type_id == "rock" or drop_item_id == "stone" else BASE_RESOURCE_DAMAGE
 
 	return BASE_RESOURCE_DAMAGE
+
+
+func _current_item_can_hit(flag_name: String, default_value: bool) -> bool:
+	var held_item_data := _get_current_held_item_data()
+	var combat_value: Variant = held_item_data.get("combat", {})
+	if combat_value is Dictionary:
+		var combat: Dictionary = combat_value
+		return bool(combat.get(flag_name, default_value))
+	return default_value
+
+
+func _get_current_tool_item_id() -> String:
+	return get_current_tool().to_lower()
+
+
+func _play_hit_flash(flash_color: Color) -> void:
+	if not enable_hit_flash:
+		return
+
+	var targets: Array = []
+	if animated_sprite != null and animated_sprite.visible:
+		targets.append(animated_sprite)
+	if body_visual != null and body_visual.visible:
+		targets.append(body_visual)
+
+	for target in targets:
+		var canvas_item: CanvasItem = target as CanvasItem
+		var original_color := canvas_item.modulate
+		canvas_item.modulate = flash_color
+		var tween := create_tween()
+		tween.tween_property(canvas_item, "modulate", original_color, 0.12)
 
 
 func _get_target_resource_type_id(resource_node: Node) -> String:

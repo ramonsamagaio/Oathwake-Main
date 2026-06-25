@@ -1,10 +1,31 @@
 {
 	"rock": {
 		"display_name": "Rock",
-		"drop_amount": 3.0,
+		"drop_amount": 3,
 		"drop_item_id": "stone",
-		"max_health": 40.0,
-		"respawn_time_seconds": 90.0
+		"max_health": 40,
+		"respawn_time_seconds": 90,
+		"resource_tier": 1,
+		"resource_hp": 25,
+		"required_tool_type": "pickaxe",
+		"skill_type": "mining",
+		"xp_reward": 10,
+		"base_drops": [
+			{
+				"item_id": "stone",
+				"min_amount": 2,
+				"max_amount": 4,
+				"chance": 1
+			}
+		],
+		"rare_drops": [
+			{
+				"item_id": "coal",
+				"min_amount": 1,
+				"max_amount": 1,
+				"chance": 0.05
+			}
+		]
 	},
 	"tree": {
 		"display_name": "Tree",
@@ -12,6 +33,216 @@
 		"drop_item_id": "wood",
 		"max_health": 30,
 		"respawn_time_seconds": 20,
-		"sprite_id": "tree1"
+		"sprite_id": "tree1",
+		"resource_tier": 1,
+		"resource_hp": 20,
+		"required_tool_type": "axe",
+		"skill_type": "lumbering",
+		"xp_reward": 10,
+		"base_drops": [
+			{
+				"item_id": "wood",
+				"min_amount": 2,
+				"max_amount": 4,
+				"chance": 1
+			}
+		],
+		"rare_drops": [
+			{
+				"item_id": "fiber",
+				"min_amount": 1,
+				"max_amount": 1,
+				"chance": 0.05
+			}
+		]
+	},
+	"oak_tree": {
+		"display_name": "Oak Tree",
+		"resource_tier": 2,
+		"resource_hp": 35,
+		"max_health": 35,
+		"required_tool_type": "axe",
+		"skill_type": "lumbering",
+		"xp_reward": 20,
+		"drop_item_id": "oak_wood",
+		"drop_amount": 3,
+		"base_drops": [
+			{
+				"item_id": "oak_wood",
+				"min_amount": 2,
+				"max_amount": 4,
+				"chance": 1
+			}
+		],
+		"rare_drops": [
+			{
+				"item_id": "resin",
+				"min_amount": 1,
+				"max_amount": 1,
+				"chance": 0.05
+			}
+		]
+	},
+	"ash_tree": {
+		"display_name": "Ash Tree",
+		"resource_tier": 3,
+		"resource_hp": 50,
+		"max_health": 50,
+		"required_tool_type": "axe",
+		"skill_type": "lumbering",
+		"xp_reward": 30,
+		"drop_item_id": "ash_wood",
+		"drop_amount": 3,
+		"base_drops": [
+			{
+				"item_id": "ash_wood",
+				"min_amount": 2,
+				"max_amount": 4,
+				"chance": 1
+			}
+		],
+		"rare_drops": [
+			{
+				"item_id": "resin",
+				"min_amount": 1,
+				"max_amount": 2,
+				"chance": 0.06
+			}
+		]
+	},
+	"maple_tree": {
+		"display_name": "Maple Tree",
+		"resource_tier": 4,
+		"resource_hp": 70,
+		"max_health": 70,
+		"required_tool_type": "axe",
+		"skill_type": "lumbering",
+		"xp_reward": 50,
+		"drop_item_id": "maple_wood",
+		"drop_amount": 3,
+		"base_drops": [
+			{
+				"item_id": "maple_wood",
+				"min_amount": 2,
+				"max_amount": 4,
+				"chance": 1
+			}
+		],
+		"rare_drops": [
+			{
+				"item_id": "fire_herb",
+				"min_amount": 1,
+				"max_amount": 1,
+				"chance": 0.04
+			}
+		]
+	},
+	"walnut_tree": {
+		"display_name": "Walnut Tree",
+		"resource_tier": 5,
+		"resource_hp": 95,
+		"max_health": 95,
+		"required_tool_type": "axe",
+		"skill_type": "lumbering",
+		"xp_reward": 75,
+		"drop_item_id": "walnut_wood",
+		"drop_amount": 3,
+		"base_drops": [
+			{
+				"item_id": "walnut_wood",
+				"min_amount": 2,
+				"max_amount": 5,
+				"chance": 1
+			}
+		],
+		"rare_drops": [
+			{
+				"item_id": "rare_cooking_ingredient",
+				"min_amount": 1,
+				"max_amount": 1,
+				"chance": 0.04
+			}
+		]
+	},
+	"ebony_tree": {
+		"display_name": "Ebony Tree",
+		"resource_tier": 6,
+		"resource_hp": 125,
+		"max_health": 125,
+		"required_tool_type": "axe",
+		"skill_type": "lumbering",
+		"xp_reward": 110,
+		"drop_item_id": "ebony_wood",
+		"drop_amount": 3,
+		"base_drops": [
+			{
+				"item_id": "ebony_wood",
+				"min_amount": 2,
+				"max_amount": 5,
+				"chance": 1
+			}
+		],
+		"rare_drops": [
+			{
+				"item_id": "arcane_catalyst",
+				"min_amount": 1,
+				"max_amount": 1,
+				"chance": 0.035
+			}
+		]
+	},
+	"ironwood_tree": {
+		"display_name": "Ironwood Tree",
+		"resource_tier": 7,
+		"resource_hp": 165,
+		"max_health": 165,
+		"required_tool_type": "axe",
+		"skill_type": "lumbering",
+		"xp_reward": 160,
+		"drop_item_id": "ironwood",
+		"drop_amount": 3,
+		"base_drops": [
+			{
+				"item_id": "ironwood",
+				"min_amount": 2,
+				"max_amount": 5,
+				"chance": 1
+			}
+		],
+		"rare_drops": [
+			{
+				"item_id": "divine_fragment",
+				"min_amount": 1,
+				"max_amount": 1,
+				"chance": 0.02
+			}
+		]
+	},
+	"iron_node": {
+		"display_name": "Iron Vein",
+		"resource_tier": 4,
+		"resource_hp": 80,
+		"max_health": 80,
+		"required_tool_type": "pickaxe",
+		"skill_type": "mining",
+		"xp_reward": 50,
+		"drop_item_id": "iron_ore",
+		"drop_amount": 2,
+		"base_drops": [
+			{
+				"item_id": "iron_ore",
+				"min_amount": 1,
+				"max_amount": 3,
+				"chance": 1
+			}
+		],
+		"rare_drops": [
+			{
+				"item_id": "silver_ore",
+				"min_amount": 1,
+				"max_amount": 1,
+				"chance": 0.04
+			}
+		]
 	}
 }

@@ -8,6 +8,7 @@ extends Node
 @export var min_spawn_distance: float = 180.0
 @export var max_spawn_distance: float = 280.0
 @export var campfire_safe_radius: float = 160.0
+@export var natural_spawn_enabled := true
 @export var player_path: NodePath = "../World/Player"
 @export var day_night_cycle_path: NodePath = "../DayNightCycle"
 @export var enemies_root_path: NodePath = "../World/Enemies"
@@ -29,6 +30,10 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if not natural_spawn_enabled:
+		spawn_timer = 0.0
+		return
+
 	if day_night_cycle.is_day():
 		spawn_timer = 0.0
 		return

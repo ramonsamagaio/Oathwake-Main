@@ -2,21 +2,27 @@ extends Area2D
 
 signal collected(resource_id: String, item_id: String, amount: int)
 
+const GatheringCalculatorScript := preload("res://scripts/systems/GatheringCalculator.gd")
+const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextSpawner.gd")
+
 @export var resource_id: String = ""
 @export var resource_type_id: String = ""
 @export var resource_name: String = "Resource"
 @export var collect_amount: int = 1
 @export var max_health: int = 30
 @export var respawn_time_seconds: float = 60.0
+@export var debug_gathering := false
 
 var display_name := "Resource"
 var sprite_id := ""
 var drop_item_id := ""
 var drop_amount := 1
+var resource_data := {}
 var health: int = 30
 var collected_state := false
 var respawn_time_left := 0.0
 var content_sprite: Sprite2D
+var gathering_calculator := GatheringCalculatorScript.new()
 
 
 func _ready() -> void:
@@ -49,9 +55,9 @@ func _collect() -> void:
 	if collected_state:
 		return
 
-	print("Collected %d %s" % [drop_amount, drop_item_id])
+	print("Collected resource: %s" % resource_id)
 	set_collected(true, respawn_time_seconds)
-	collected.emit(resource_id, drop_item_id, drop_amount)
+	_emit_resource_drops()
 
 
 func take_damage(amount: int) -> void:
@@ -62,6 +68,37 @@ func take_damage(amount: int) -> void:
 		return
 
 	health = max(health - amount, 0)
+
+	if health == 0:
+		_collect()
+
+
+func apply_gather_hit(tool_data: Dictionary, actor_data: Dictionary = {}, skill_data: Dictionary = {}) -> void:
+	if collected_state:
+		return
+
+	var gather_result: Dictionary = gathering_calculator.calculate_gather_damage(_get_resource_data(), tool_data, actor_data, skill_data)
+	if debug_gathering:
+		print("Gather %s with %s | resource_tier=%d tool_tier=%d modifier=%.2f damage=%d reason=%s" % [
+			resource_type_id,
+			str(tool_data.get("id", tool_data.get("tool_type", "unknown"))),
+			int(_get_resource_data().get("resource_tier", 1)),
+			int(tool_data.get("tool_tier", tool_data.get("tier", 1))),
+			float(gather_result.get("tier_modifier", 0.0)),
+			int(gather_result.get("damage", 0)),
+			str(gather_result.get("reason", "")),
+		])
+
+	if not bool(gather_result.get("can_damage", false)):
+		_show_gather_feedback(str(gather_result.get("reason", "No Effect")), false, false)
+		return
+
+	var damage: int = int(gather_result.get("damage", 0))
+	if damage <= 0:
+		return
+
+	health = max(health - damage, 0)
+	_show_gather_feedback(str(damage), bool(gather_result.get("is_critical", false)), true)
 
 	if health == 0:
 		_collect()
@@ -127,13 +164,87 @@ func _load_resource_data() -> void:
 		push_error("ResourceNode %s could not load resource_type_id: %s" % [resource_id, resource_type_id])
 		return
 
+	self.resource_data = resource_data
 	display_name = str(resource_data.get("display_name", display_name))
 	resource_name = display_name
-	max_health = int(resource_data.get("max_health", max_health))
+	max_health = int(resource_data.get("resource_hp", resource_data.get("max_health", max_health)))
 	drop_item_id = str(resource_data.get("drop_item_id", drop_item_id))
 	drop_amount = int(resource_data.get("drop_amount", drop_amount))
 	respawn_time_seconds = float(resource_data.get("respawn_time_seconds", respawn_time_seconds))
 	sprite_id = str(resource_data.get("sprite_id", sprite_id))
+
+
+func _get_resource_data() -> Dictionary:
+	if resource_data.is_empty():
+		return {
+			"id": resource_type_id,
+			"resource_tier": 1,
+			"resource_hp": max_health,
+			"required_tool_type": "",
+			"skill_type": "",
+			"base_drops": [
+				{
+					"item_id": drop_item_id,
+					"min_amount": drop_amount,
+					"max_amount": drop_amount,
+					"chance": 1.0,
+				},
+			],
+			"rare_drops": [],
+		}
+
+	return resource_data
+
+
+func _emit_resource_drops() -> void:
+	var dropped_any := false
+	for drop_entry in _roll_drop_table(_get_resource_data().get("base_drops", [])):
+		collected.emit(resource_id, str(drop_entry.get("item_id", "")), int(drop_entry.get("amount", 0)))
+		dropped_any = true
+
+	for drop_entry in _roll_drop_table(_get_resource_data().get("rare_drops", [])):
+		collected.emit(resource_id, str(drop_entry.get("item_id", "")), int(drop_entry.get("amount", 0)))
+		dropped_any = true
+
+	if not dropped_any:
+		collected.emit(resource_id, drop_item_id, drop_amount)
+
+
+func _roll_drop_table(drop_rows_value: Variant) -> Array:
+	var drops := []
+	if not drop_rows_value is Array:
+		return drops
+
+	for drop_entry in drop_rows_value:
+		if not drop_entry is Dictionary:
+			continue
+
+		var drop_data: Dictionary = drop_entry
+		var chance: float = clamp(float(drop_data.get("chance", 1.0)), 0.0, 1.0)
+		if randf() > chance:
+			continue
+
+		var item_id: String = str(drop_data.get("item_id", ""))
+		var min_amount: int = max(int(drop_data.get("min_amount", 1)), 1)
+		var max_amount: int = max(int(drop_data.get("max_amount", min_amount)), min_amount)
+		var amount: int = min_amount
+		if max_amount > min_amount:
+			amount += int(randi() % (max_amount - min_amount + 1))
+		if not item_id.is_empty() and amount > 0:
+			drops.append({
+				"item_id": item_id,
+				"amount": amount,
+			})
+
+	return drops
+
+
+func _show_gather_feedback(text: String, is_critical: bool, is_damage: bool) -> void:
+	if is_damage:
+		FloatingCombatTextSpawner.show_damage(int(text), global_position + Vector2(0, -28), is_critical, "enemy")
+		return
+
+	FloatingCombatTextSpawner.show_text(text, global_position + Vector2(0, -28), Color(0.72, 0.72, 0.72, 1.0))
 
 
 func _apply_resource_sprite() -> void:
