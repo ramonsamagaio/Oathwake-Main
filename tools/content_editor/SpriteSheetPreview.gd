@@ -6,12 +6,15 @@ var texture: Texture2D
 var columns := 0
 var rows := 0
 var selected_frames: Array = []
+var zoom_scale := 0.0
+var fit_minimum_size := Vector2(320, 320)
 
 
 func set_preview_data(new_texture: Texture2D, new_columns: int, new_rows: int) -> void:
 	texture = new_texture
 	columns = max(new_columns, 0)
 	rows = max(new_rows, 0)
+	_update_minimum_size_for_zoom()
 	queue_redraw()
 
 
@@ -20,6 +23,19 @@ func clear_preview() -> void:
 	columns = 0
 	rows = 0
 	selected_frames.clear()
+	_update_minimum_size_for_zoom()
+	queue_redraw()
+
+
+func set_zoom_scale(new_zoom_scale: float) -> void:
+	zoom_scale = max(new_zoom_scale, 0.0)
+	_update_minimum_size_for_zoom()
+	queue_redraw()
+
+
+func set_fit_minimum_size(new_fit_minimum_size: Vector2) -> void:
+	fit_minimum_size = new_fit_minimum_size
+	_update_minimum_size_for_zoom()
 	queue_redraw()
 
 
@@ -107,6 +123,9 @@ func _gui_input(event: InputEvent) -> void:
 
 func _get_target_rect() -> Rect2:
 	var texture_size: Vector2 = texture.get_size()
+	if zoom_scale > 0.0:
+		return Rect2(Vector2.ZERO, texture_size * zoom_scale)
+
 	var available_size: Vector2 = size
 	if available_size.x <= 0.0 or available_size.y <= 0.0:
 		available_size = custom_minimum_size
@@ -139,3 +158,11 @@ func _get_frame_order_text(frame_index: int) -> String:
 			order_numbers.append(str(index + 1))
 
 	return ",".join(order_numbers)
+
+
+func _update_minimum_size_for_zoom() -> void:
+	if texture == null or zoom_scale <= 0.0:
+		custom_minimum_size = fit_minimum_size
+		return
+
+	custom_minimum_size = texture.get_size() * zoom_scale

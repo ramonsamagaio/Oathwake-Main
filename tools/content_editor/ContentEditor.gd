@@ -2,6 +2,7 @@ extends Control
 
 const ContentEditorData := preload("res://tools/content_editor/ContentEditorData.gd")
 const SpriteSheetPreviewScript := preload("res://tools/content_editor/SpriteSheetPreview.gd")
+const INITIAL_WINDOW_SIZE := Vector2i(1440, 900)
 
 var data_store = ContentEditorData.new()
 var current_section: String = ContentEditorData.SECTION_ITEMS
@@ -52,6 +53,7 @@ var status_label: Label
 
 
 func _ready() -> void:
+	_configure_content_editor_window()
 	_build_ui()
 	set_process(true)
 
@@ -61,6 +63,15 @@ func _ready() -> void:
 		return
 
 	_select_section(ContentEditorData.SECTION_ITEMS, true)
+
+
+func _configure_content_editor_window() -> void:
+	# Keep the editor resizable without forcing a minimum size that can clip
+	# when Godot runs the scene inside a smaller debug viewport.
+	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_RESIZE_DISABLED, false)
+	var current_size := DisplayServer.window_get_size()
+	if current_size.x < INITIAL_WINDOW_SIZE.x or current_size.y < INITIAL_WINDOW_SIZE.y:
+		DisplayServer.window_set_size(INITIAL_WINDOW_SIZE)
 
 
 func _process(delta: float) -> void:
@@ -102,21 +113,29 @@ func _build_ui() -> void:
 	margin_container.add_theme_constant_override("margin_bottom", 12)
 	add_child(margin_container)
 
-	var main_layout := HBoxContainer.new()
+	var main_layout := HSplitContainer.new()
 	main_layout.name = "MainLayout"
 	main_layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	main_layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin_container.add_child(main_layout)
 
 	_build_sidebar(main_layout)
-	_build_record_panel(main_layout)
-	_build_form_panel(main_layout)
+
+	var content_split := HSplitContainer.new()
+	content_split.name = "ContentSplit"
+	content_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content_split.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_layout.add_child(content_split)
+
+	_build_record_panel(content_split)
+	_build_form_panel(content_split)
 
 
 func _build_sidebar(parent: Node) -> void:
 	var sidebar := VBoxContainer.new()
 	sidebar.name = "Sidebar"
-	sidebar.custom_minimum_size = Vector2(160, 0)
+	sidebar.custom_minimum_size = Vector2(140, 0)
+	sidebar.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(sidebar)
 
 	var title := Label.new()
@@ -136,7 +155,8 @@ func _build_sidebar(parent: Node) -> void:
 func _build_record_panel(parent: Node) -> void:
 	var panel := VBoxContainer.new()
 	panel.name = "RecordPanel"
-	panel.custom_minimum_size = Vector2(320, 0)
+	panel.custom_minimum_size = Vector2(240, 0)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(panel)
 
@@ -188,7 +208,7 @@ func _build_record_panel(parent: Node) -> void:
 func _build_form_panel(parent: Node) -> void:
 	var panel := VBoxContainer.new()
 	panel.name = "FormPanel"
-	panel.custom_minimum_size = Vector2(430, 0)
+	panel.custom_minimum_size = Vector2(360, 0)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	parent.add_child(panel)
@@ -211,6 +231,7 @@ func _build_form_panel(parent: Node) -> void:
 	form_container = VBoxContainer.new()
 	form_container.name = "FormContainer"
 	form_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	form_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll_container.add_child(form_container)
 
 	var form_action_row := HBoxContainer.new()
@@ -578,6 +599,7 @@ func _build_sprite_form() -> void:
 	_add_spin_box("Rows", "rows", int(current_record.get("rows", 1)), 1, 999999, 1)
 	_add_spin_box("Total Frames", "total_frames", int(current_record.get("total_frames", 1)), 1, 999999, 1)
 	_add_detect_grid_button()
+	_add_preview_zoom_option("sheet_preview_zoom", _on_sheet_preview_zoom_selected)
 	_add_sprite_preview_for_record(current_record)
 
 
@@ -822,15 +844,20 @@ func _add_animation_detail_editor() -> void:
 func _add_animation_grid_editor() -> void:
 	var sheet_record := _get_selected_sprite_sheet_record()
 	_add_read_only_value("Selected Sheet", _get_sprite_sheet_summary(sheet_record))
+	_add_preview_zoom_option("animation_grid_zoom", _on_animation_grid_zoom_selected)
 
 	animation_grid_preview = SpriteSheetPreviewScript.new()
-	animation_grid_preview.custom_minimum_size = Vector2(420, 420)
+	animation_grid_preview.custom_minimum_size = Vector2(320, 320)
+	animation_grid_preview.set_fit_minimum_size(Vector2(320, 320))
+	animation_grid_preview.set_zoom_scale(_get_preview_zoom_scale("animation_grid_zoom"))
+	animation_grid_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	animation_grid_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	animation_grid_preview.frame_clicked.connect(_on_animation_grid_frame_clicked)
-	_add_form_row("Frame Grid", animation_grid_preview)
+	_add_scrollable_preview_row("Frame Grid", animation_grid_preview)
 	_update_animation_grid_preview()
 
 	animation_preview_rect = TextureRect.new()
-	animation_preview_rect.custom_minimum_size = Vector2(128, 128)
+	animation_preview_rect.custom_minimum_size = Vector2(180, 180)
 	animation_preview_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_add_form_row("Animation Preview", animation_preview_rect)
 	_update_animation_preview_frame()
@@ -922,6 +949,24 @@ func _add_copy_animation_picker() -> void:
 	field_controls["copy_source_animation"] = option_button
 
 
+func _add_preview_zoom_option(field_name: String, callback: Callable) -> void:
+	var option_button := OptionButton.new()
+	var options := {
+		"Fit": 0.0,
+		"1x": 1.0,
+		"2x": 2.0,
+		"4x": 4.0,
+	}
+	for label in options.keys():
+		var index := option_button.item_count
+		option_button.add_item(label)
+		option_button.set_item_metadata(index, options[label])
+	option_button.select(0)
+	option_button.item_selected.connect(callback)
+	_add_form_row("Preview Zoom", option_button)
+	field_controls[field_name] = option_button
+
+
 func _add_category_option_button(initial_category: String) -> void:
 	var option_button := OptionButton.new()
 	var selected_index := 0
@@ -991,6 +1036,18 @@ func _add_detect_grid_button() -> void:
 	button.focus_mode = Control.FOCUS_NONE
 	button.pressed.connect(_on_detect_grid_pressed)
 	_add_form_row("Sprite Sheet", button)
+
+
+func _add_scrollable_preview_row(label_text: String, preview_control: Control) -> void:
+	var scroll_container := ScrollContainer.new()
+	scroll_container.custom_minimum_size = Vector2(0, 360)
+	scroll_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll_container.add_child(preview_control)
+
+	preview_control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	preview_control.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_add_form_row(label_text, scroll_container)
 
 
 func _add_form_row(label_text: String, control: Control) -> void:
@@ -1552,6 +1609,20 @@ func _on_detect_grid_pressed() -> void:
 	_set_status("Detected grid: %d columns, %d rows, %d frames." % [columns, rows, total_frames])
 
 
+func _on_sheet_preview_zoom_selected(_index: int) -> void:
+	if sprite_sheet_preview == null:
+		return
+
+	sprite_sheet_preview.set_zoom_scale(_get_preview_zoom_scale("sheet_preview_zoom"))
+
+
+func _on_animation_grid_zoom_selected(_index: int) -> void:
+	if animation_grid_preview == null:
+		return
+
+	animation_grid_preview.set_zoom_scale(_get_preview_zoom_scale("animation_grid_zoom"))
+
+
 func _sprite_record_matches_search(sprite_record: Dictionary, query: String) -> bool:
 	if query.is_empty():
 		return true
@@ -1577,8 +1648,12 @@ func _add_sprite_preview_for_record(sprite_record: Dictionary) -> void:
 	if sprite_type == "sprite_sheet":
 		sprite_preview_rect = null
 		sprite_sheet_preview = SpriteSheetPreviewScript.new()
-		sprite_sheet_preview.custom_minimum_size = Vector2(420, 420)
-		_add_form_row("Sheet Preview", sprite_sheet_preview)
+		sprite_sheet_preview.custom_minimum_size = Vector2(320, 320)
+		sprite_sheet_preview.set_fit_minimum_size(Vector2(320, 320))
+		sprite_sheet_preview.set_zoom_scale(_get_preview_zoom_scale("sheet_preview_zoom"))
+		sprite_sheet_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sprite_sheet_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_add_scrollable_preview_row("Sheet Preview", sprite_sheet_preview)
 		_set_sprite_sheet_preview(sprite_record)
 		return
 
@@ -2732,6 +2807,17 @@ func _get_option_button_metadata(field_name: String) -> String:
 		return ""
 
 	return str(option_button.get_item_metadata(option_button.selected))
+
+
+func _get_preview_zoom_scale(field_name: String) -> float:
+	if not field_controls.has(field_name):
+		return 0.0
+
+	var option_button: OptionButton = field_controls[field_name]
+	if option_button.item_count <= 0 or option_button.selected < 0:
+		return 0.0
+
+	return float(option_button.get_item_metadata(option_button.selected))
 
 
 func _set_option_button_by_metadata(field_name: String, metadata: String) -> void:

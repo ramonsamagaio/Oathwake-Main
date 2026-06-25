@@ -8,6 +8,8 @@ Ferramenta interna para editar dados de conteudo do projeto sem trocar a cena pr
 2. Abra `res://tools/content_editor/ContentEditor.tscn`.
 3. Rode apenas essa cena com **F6**.
 
+A janela do editor continua redimensionavel e a interface se adapta a janelas menores sem forcar minimo rigido. Para uso confortavel, 1280x800 ou maior ainda e recomendado. A interface usa divisores redimensionaveis entre sidebar, lista e painel de edicao, e o painel direito tem scroll vertical para formularios longos. Se o Godot estiver rodando o jogo em viewport embutido, o tamanho mostrado no canto do preview do editor ainda pode limitar a area util; rodar em janela separada ou aumentar esse viewport da propria IDE da mais espaco.
+
 Tambem existe `res://tools/content_editor/ContentEditorMain.tscn`, uma cena bootstrap simples para facilitar um export separado do editor no futuro.
 
 ## Arquivos editados
@@ -81,8 +83,9 @@ O painel direito mostra o arquivo atual e tem botoes para salvar, recarregar a s
 3. Use **Browse...** para escolher a textura.
 4. Configure **Frame Width** e **Frame Height**.
 5. Clique em **Detect Grid**.
-6. Confirme que **Columns**, **Rows** e **Total Frames** foram preenchidos e que o preview mostra o grid numerado.
-7. Clique em **Save**.
+6. Use **Preview Zoom** em `Fit`, `1x`, `2x` ou `4x` para inspecionar melhor os frames.
+7. Confirme que **Columns**, **Rows** e **Total Frames** foram preenchidos e que o preview mostra o grid numerado.
+8. Clique em **Save**.
 
 ### Animation Set
 

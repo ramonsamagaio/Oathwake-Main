@@ -56,10 +56,10 @@
 		"tags": [],
 		"texture_path": "res://assets/sprites/items/testes/stone.png"
 	},
-	"tile_grass": {
+	"tile_dirt": {
 		"category": "item",
 		"columns": 1,
-		"display_name": "Grass Tile",
+		"display_name": "Dirt Tile",
 		"frame_height": 32,
 		"frame_size": {
 			"h": 32,
@@ -75,7 +75,99 @@
 		"region_enabled": false,
 		"rows": 1,
 		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/dirt_64x64.png",
+		"total_frames": 1,
+		"type": "single_sprite"
+	},
+	"tile_forest": {
+		"category": "item",
+		"columns": 1,
+		"display_name": "Forest Tile",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/forest_64x64.png",
+		"total_frames": 1,
+		"type": "single_sprite"
+	},
+	"tile_grass": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Grass Tile",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
 		"texture_path": "res://assets/sprites/items/testes/grass_64x64.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"tile_sand": {
+		"category": "item",
+		"columns": 1,
+		"display_name": "Sand Tile",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/sand_64x64.png",
+		"total_frames": 1,
+		"type": "single_sprite"
+	},
+	"tile_stone": {
+		"category": "item",
+		"columns": 1,
+		"display_name": "Stone Tile",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/stone_64x64.png",
 		"total_frames": 1,
 		"type": "single_sprite"
 	},
