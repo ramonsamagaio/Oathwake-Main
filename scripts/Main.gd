@@ -22,6 +22,8 @@ var save_system := SaveSystem.new()
 @onready var housed_villagers_label: Label = $UI/HousedVillagersLabel
 @onready var save_button: Button = $UI/SaveButton
 @onready var load_button: Button = $UI/LoadButton
+@onready var inventory_ui = $UI/InventoryUI
+@onready var hotbar_ui = $UI/HotbarUI
 @onready var player = $Player
 @onready var build_system = $BuildSystem
 @onready var housing_system = $HousingSystem
@@ -36,6 +38,8 @@ func _ready() -> void:
 	player.tool_changed.connect(_update_tool_label)
 	housing_system.changed.connect(_on_housing_changed)
 	settlement_manager.changed.connect(_update_settlement_labels)
+	inventory_ui.set_inventory(inventory)
+	hotbar_ui.setup(inventory, player)
 	save_button.pressed.connect(save_game)
 	load_button.pressed.connect(load_game)
 	_connect_resource_nodes()
@@ -129,6 +133,7 @@ func load_game() -> void:
 		inventory_data = {}
 
 	_load_inventory(inventory_data)
+	inventory_ui.refresh()
 
 	var buildings = save_data.get("buildings", [])
 	if save_data.has("buildings") and buildings is Array:

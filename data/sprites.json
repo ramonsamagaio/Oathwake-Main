@@ -1,0 +1,53 @@
+{
+	"green_gel": {
+		"category": "item",
+		"display_name": "green_gel",
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/green_gel.png"
+	},
+	"stone": {
+		"category": "item",
+		"display_name": "stone",
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/stone.png"
+	},
+	"wood": {
+		"category": "item",
+		"display_name": "wood",
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/wood_log_bundle.png"
+	}
+}

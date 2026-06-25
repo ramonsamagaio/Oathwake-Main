@@ -1,6 +1,7 @@
 extends Control
 
 const ContentEditorData := preload("res://tools/content_editor/ContentEditorData.gd")
+const SpriteSheetPreviewScript := preload("res://tools/content_editor/SpriteSheetPreview.gd")
 
 var data_store = ContentEditorData.new()
 var current_section: String = ContentEditorData.SECTION_ITEMS
@@ -15,11 +16,15 @@ var drop_item_filter := ""
 var selected_workstation_id := ""
 var workstation_filter := ""
 var production_rows := []
+var selected_sprite_id := ""
+var sprite_filter := ""
+var sprite_category_filter := "all"
 var sidebar_buttons := {}
 var field_controls := {}
 
 var section_title_label: Label
 var search_line_edit: LineEdit
+var sprite_category_filter_button: OptionButton
 var record_list: ItemList
 var new_button: Button
 var duplicate_button: Button
@@ -27,8 +32,14 @@ var delete_button: Button
 var form_title_label: Label
 var form_container: VBoxContainer
 var production_rows_container: VBoxContainer
+var sprite_preview_rect: TextureRect
+var sprite_sheet_preview: Control
+var texture_file_dialog: FileDialog
 var save_button: Button
 var revert_button: Button
+var reload_current_button: Button
+var refresh_content_db_button: Button
+var current_file_label: Label
 var status_label: Label
 
 
@@ -103,6 +114,12 @@ func _build_record_panel(parent: Node) -> void:
 	search_line_edit.text_changed.connect(_on_search_text_changed)
 	panel.add_child(search_line_edit)
 
+	sprite_category_filter_button = OptionButton.new()
+	sprite_category_filter_button.name = "SpriteCategoryFilter"
+	sprite_category_filter_button.item_selected.connect(_on_sprite_category_filter_selected)
+	panel.add_child(sprite_category_filter_button)
+	_populate_sprite_category_filter()
+
 	record_list = ItemList.new()
 	record_list.name = "RecordList"
 	record_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -144,6 +161,11 @@ func _build_form_panel(parent: Node) -> void:
 	form_title_label.name = "FormTitleLabel"
 	panel.add_child(form_title_label)
 
+	current_file_label = Label.new()
+	current_file_label.name = "CurrentFileLabel"
+	current_file_label.text = "File: -"
+	panel.add_child(current_file_label)
+
 	var scroll_container := ScrollContainer.new()
 	scroll_container.name = "FormScroll"
 	scroll_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -171,11 +193,36 @@ func _build_form_panel(parent: Node) -> void:
 	revert_button.pressed.connect(_on_revert_pressed)
 	form_action_row.add_child(revert_button)
 
+	reload_current_button = Button.new()
+	reload_current_button.name = "ReloadCurrentButton"
+	reload_current_button.text = "Reload Current"
+	reload_current_button.pressed.connect(_on_reload_current_pressed)
+	form_action_row.add_child(reload_current_button)
+
+	refresh_content_db_button = Button.new()
+	refresh_content_db_button.name = "RefreshContentDBButton"
+	refresh_content_db_button.text = "Refresh ContentDB"
+	refresh_content_db_button.pressed.connect(_on_refresh_content_db_pressed)
+	form_action_row.add_child(refresh_content_db_button)
+
 	status_label = Label.new()
 	status_label.name = "StatusLabel"
 	status_label.text = "Ready"
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	panel.add_child(status_label)
+
+	texture_file_dialog = FileDialog.new()
+	texture_file_dialog.name = "TextureFileDialog"
+	texture_file_dialog.access = FileDialog.ACCESS_RESOURCES
+	texture_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	texture_file_dialog.filters = PackedStringArray([
+		"*.png ; PNG Images",
+		"*.jpg, *.jpeg ; JPEG Images",
+		"*.webp ; WebP Images",
+		"*.svg ; SVG Images",
+	])
+	texture_file_dialog.file_selected.connect(_on_texture_file_selected)
+	add_child(texture_file_dialog)
 
 
 func _on_section_button_pressed(section: String) -> void:
@@ -198,12 +245,18 @@ func _select_section(section: String, force := false) -> void:
 	selected_workstation_id = ""
 	workstation_filter = ""
 	production_rows.clear()
+	selected_sprite_id = ""
+	sprite_filter = ""
+	if section != ContentEditorData.SECTION_SPRITES:
+		sprite_category_filter = "all"
 
 	is_refreshing_list = true
 	search_line_edit.text = ""
 	is_refreshing_list = false
 
 	section_title_label.text = data_store.get_section_label(current_section)
+	current_file_label.text = "File: %s" % data_store.get_section_path(current_section)
+	_update_sprite_category_filter_visibility()
 	_sync_sidebar_buttons()
 	_refresh_record_list()
 	_show_empty_form()
@@ -217,10 +270,45 @@ func _sync_sidebar_buttons() -> void:
 		button.button_pressed = section == current_section
 
 
+func _populate_sprite_category_filter() -> void:
+	sprite_category_filter_button.clear()
+	_add_sprite_category_filter_option("All", "all")
+	for category in _get_sprite_categories():
+		_add_sprite_category_filter_option(category.capitalize(), category)
+	sprite_category_filter_button.select(0)
+	sprite_category_filter_button.visible = false
+
+
+func _add_sprite_category_filter_option(label: String, category: String) -> void:
+	var index := sprite_category_filter_button.item_count
+	sprite_category_filter_button.add_item(label)
+	sprite_category_filter_button.set_item_metadata(index, category)
+
+
+func _update_sprite_category_filter_visibility() -> void:
+	if sprite_category_filter_button == null:
+		return
+
+	sprite_category_filter_button.visible = current_section == ContentEditorData.SECTION_SPRITES
+	if sprite_category_filter_button.visible:
+		for index in range(sprite_category_filter_button.item_count):
+			if str(sprite_category_filter_button.get_item_metadata(index)) == sprite_category_filter:
+				sprite_category_filter_button.select(index)
+				return
+
+
 func _on_search_text_changed(_new_text: String) -> void:
 	if is_refreshing_list:
 		return
 
+	_refresh_record_list()
+
+
+func _on_sprite_category_filter_selected(index: int) -> void:
+	if sprite_category_filter_button == null:
+		return
+
+	sprite_category_filter = str(sprite_category_filter_button.get_item_metadata(index))
 	_refresh_record_list()
 
 
@@ -230,6 +318,9 @@ func _refresh_record_list() -> void:
 
 	var query := search_line_edit.text.strip_edges().to_lower()
 	for record in data_store.get_records(current_section):
+		if current_section == ContentEditorData.SECTION_SPRITES and not _sprite_record_matches_category_filter(record):
+			continue
+
 		if _record_matches_search(record, query):
 			_add_record_list_item(record)
 
@@ -247,7 +338,9 @@ func _record_matches_search(record: Dictionary, query: String) -> bool:
 	var record_id := str(record.get("id", "")).to_lower()
 	var display_name := str(record.get("display_name", "")).to_lower()
 	var role := str(record.get("role", "")).to_lower()
-	return record_id.contains(query) or display_name.contains(query) or role.contains(query)
+	var category := str(record.get("category", "")).to_lower()
+	var tags := _join_string_array(record.get("tags", []), " ").to_lower()
+	return record_id.contains(query) or display_name.contains(query) or role.contains(query) or category.contains(query) or tags.contains(query)
 
 
 func _add_record_list_item(record: Dictionary, prefix := "") -> void:
@@ -295,6 +388,8 @@ func _load_record(record_id: String) -> void:
 	drop_item_filter = ""
 	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
 	workstation_filter = ""
+	selected_sprite_id = str(current_record.get("sprite_id", ""))
+	sprite_filter = ""
 	var loaded_production = current_record.get("production", [])
 	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
 
@@ -321,10 +416,16 @@ func _build_form_for_current_record() -> void:
 			_build_item_form()
 		ContentEditorData.SECTION_RESOURCES:
 			_build_resource_form()
+		ContentEditorData.SECTION_MONSTERS:
+			_build_monster_form()
+		ContentEditorData.SECTION_RECIPES:
+			_build_recipe_form()
 		ContentEditorData.SECTION_TERRAIN_TYPES:
 			_build_terrain_type_form()
 		ContentEditorData.SECTION_NPCS:
 			_build_npc_form()
+		ContentEditorData.SECTION_SPRITES:
+			_build_sprite_form()
 		_:
 			_build_read_only_preview_form()
 
@@ -341,6 +442,7 @@ func _build_item_form() -> void:
 	form_title_label.text = "Item: %s" % str(current_record.get("id", ""))
 	_add_line_edit("ID", "id", str(current_record.get("id", "")))
 	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_sprite_picker(str(current_record.get("sprite_id", "")))
 	_add_spin_box("Stack Size", "stack_size", int(current_record.get("stack_size", 999)), 1, 999999, 1)
 	_add_text_edit("Description", "description", str(current_record.get("description", "")), 100)
 
@@ -349,16 +451,41 @@ func _build_resource_form() -> void:
 	form_title_label.text = "Resource: %s" % str(current_record.get("id", ""))
 	_add_line_edit("ID", "id", str(current_record.get("id", "")))
 	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_sprite_picker(str(current_record.get("sprite_id", "")))
 	_add_spin_box("Max Health", "max_health", int(current_record.get("max_health", 20)), 1, 999999, 1)
 	_add_drop_item_picker(str(current_record.get("drop_item_id", "wood")))
 	_add_spin_box("Drop Amount", "drop_amount", int(current_record.get("drop_amount", 1)), 1, 999999, 1)
 	_add_spin_box("Respawn Time Seconds", "respawn_time_seconds", int(current_record.get("respawn_time_seconds", 60)), 0, 999999, 1)
 
 
+func _build_monster_form() -> void:
+	form_title_label.text = "Monster: %s" % str(current_record.get("id", ""))
+	_add_line_edit("ID", "id", str(current_record.get("id", "")))
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_sprite_picker(str(current_record.get("sprite_id", "")))
+	_add_spin_box("Max Health", "max_health", int(current_record.get("max_health", 20)), 1, 999999, 1)
+	_add_spin_box("Move Speed", "move_speed", int(current_record.get("move_speed", 40)), 0, 999999, 1)
+	_add_spin_box("Damage", "damage", int(current_record.get("damage", 5)), 0, 999999, 1)
+	_add_spin_box("Attack Cooldown", "attack_cooldown", int(current_record.get("attack_cooldown", 1)), 0, 999999, 1)
+	_add_spin_box("Spawn Time Seconds", "spawn_time_seconds", int(current_record.get("spawn_time_seconds", 20)), 0, 999999, 1)
+	_add_line_edit("Spawn Tiles", "spawn_tiles", _join_string_array(current_record.get("spawn_tiles", []), ", "))
+	_add_read_only_value("Loot Table", _stringify_value(current_record.get("loot_table", [])))
+
+
+func _build_recipe_form() -> void:
+	form_title_label.text = "Recipe: %s" % str(current_record.get("id", ""))
+	_add_line_edit("ID", "id", str(current_record.get("id", "")))
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_recipe_type_option_button(str(current_record.get("type", "item")))
+	_add_sprite_picker(str(current_record.get("sprite_id", "")))
+	_add_read_only_value("Cost", _stringify_value(current_record.get("cost", {})))
+
+
 func _build_terrain_type_form() -> void:
 	form_title_label.text = "Terrain Type: %s" % str(current_record.get("id", ""))
 	_add_line_edit("ID", "id", str(current_record.get("id", "")))
 	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_sprite_picker(str(current_record.get("sprite_id", "")))
 	_add_check_box("Walkable", "walkable", bool(current_record.get("walkable", true)))
 	_add_check_box("Allows Monster Spawn", "allows_monster_spawn", bool(current_record.get("allows_monster_spawn", true)))
 	_add_check_box("Allows Resource Spawn", "allows_resource_spawn", bool(current_record.get("allows_resource_spawn", true)))
@@ -371,9 +498,40 @@ func _build_npc_form() -> void:
 	_add_spin_box("Max Health", "max_health", int(current_record.get("max_health", 50)), 1, 999999, 1)
 	_add_spin_box("Move Speed", "move_speed", int(current_record.get("move_speed", 35)), 0, 999999, 1)
 	_add_line_edit("Role", "role", str(current_record.get("role", "worker")))
+	_add_sprite_picker(str(current_record.get("sprite_id", "")))
 	_add_workstation_picker(str(current_record.get("preferred_workstation", "workbench")))
 	_add_check_box("Needs House", "needs_house", bool(current_record.get("needs_house", true)))
 	_add_production_editor()
+
+
+func _build_sprite_form() -> void:
+	form_title_label.text = "Sprite: %s" % str(current_record.get("id", ""))
+	_add_line_edit("ID", "id", str(current_record.get("id", "")))
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_sprite_type_option_button(str(current_record.get("type", "single_sprite")))
+	_add_texture_path_picker(str(current_record.get("texture_path", "")))
+	_add_category_option_button(str(current_record.get("category", "item")))
+	_add_line_edit("Tags", "tags", _join_string_array(current_record.get("tags", []), ", "))
+	_add_check_box("Region Enabled", "region_enabled", bool(current_record.get("region_enabled", false)))
+
+	var region = current_record.get("region", {})
+	if not region is Dictionary:
+		region = {}
+	_add_spin_box("Region X", "region_x", int(region.get("x", 0)), 0, 999999, 1)
+	_add_spin_box("Region Y", "region_y", int(region.get("y", 0)), 0, 999999, 1)
+	_add_spin_box("Region W", "region_w", int(region.get("w", 32)), 1, 999999, 1)
+	_add_spin_box("Region H", "region_h", int(region.get("h", 32)), 1, 999999, 1)
+
+	var frame_size = current_record.get("frame_size", {})
+	if not frame_size is Dictionary:
+		frame_size = {}
+	_add_spin_box("Frame Width", "frame_w", int(current_record.get("frame_width", frame_size.get("w", 32))), 1, 999999, 1)
+	_add_spin_box("Frame Height", "frame_h", int(current_record.get("frame_height", frame_size.get("h", 32))), 1, 999999, 1)
+	_add_spin_box("Columns", "columns", int(current_record.get("columns", 1)), 1, 999999, 1)
+	_add_spin_box("Rows", "rows", int(current_record.get("rows", 1)), 1, 999999, 1)
+	_add_spin_box("Total Frames", "total_frames", int(current_record.get("total_frames", 1)), 1, 999999, 1)
+	_add_detect_grid_button()
+	_add_sprite_preview_for_record(current_record)
 
 
 func _build_read_only_preview_form() -> void:
@@ -420,6 +578,33 @@ func _add_text_edit(label_text: String, field_name: String, value: String, heigh
 	return text_edit
 
 
+func _add_texture_path_picker(value: String) -> void:
+	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var label := Label.new()
+	label.text = "Texture Path"
+	label.custom_minimum_size = Vector2(160, 0)
+	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(label)
+
+	var line_edit := LineEdit.new()
+	line_edit.text = value
+	line_edit.placeholder_text = "Choose a texture file..."
+	line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line_edit.text_changed.connect(func(_new_text: String) -> void: _mark_dirty())
+	row.add_child(line_edit)
+	field_controls["texture_path"] = line_edit
+
+	var browse_button := Button.new()
+	browse_button.text = "Browse..."
+	browse_button.focus_mode = Control.FOCUS_NONE
+	browse_button.pressed.connect(_on_browse_texture_pressed)
+	row.add_child(browse_button)
+
+	form_container.add_child(row)
+
+
 func _add_check_box(label_text: String, field_name: String, value: bool) -> CheckBox:
 	var check_box := CheckBox.new()
 	check_box.button_pressed = value
@@ -461,6 +646,100 @@ func _add_workstation_picker(initial_recipe_id: String) -> void:
 	_add_form_row("Preferred Workstation", option_button)
 	field_controls["preferred_workstation"] = option_button
 	_refresh_workstation_options()
+
+
+func _add_sprite_picker(initial_sprite_id: String) -> void:
+	selected_sprite_id = initial_sprite_id
+
+	var search := LineEdit.new()
+	search.placeholder_text = "Search sprite by id, display name, category, or tag"
+	search.text = sprite_filter
+	search.text_changed.connect(_on_sprite_filter_changed)
+	_add_form_row("Sprite Search", search)
+	field_controls["sprite_search"] = search
+
+	var option_button := OptionButton.new()
+	option_button.item_selected.connect(_on_sprite_selected)
+	_add_form_row("Sprite", option_button)
+	field_controls["sprite_id"] = option_button
+
+	sprite_preview_rect = TextureRect.new()
+	sprite_preview_rect.custom_minimum_size = Vector2(64, 64)
+	sprite_preview_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_add_form_row("Sprite Preview", sprite_preview_rect)
+	_refresh_sprite_options()
+	_update_selected_sprite_preview()
+
+
+func _add_category_option_button(initial_category: String) -> void:
+	var option_button := OptionButton.new()
+	var selected_index := 0
+
+	for category in _get_sprite_categories():
+		var index := option_button.item_count
+		option_button.add_item(category)
+		option_button.set_item_metadata(index, category)
+		if category == initial_category:
+			selected_index = index
+
+	option_button.select(selected_index)
+	option_button.item_selected.connect(func(_index: int) -> void: _mark_dirty())
+	_add_form_row("Category", option_button)
+	field_controls["category"] = option_button
+
+
+func _add_sprite_type_option_button(initial_type: String) -> void:
+	var option_button := OptionButton.new()
+	var types := [
+		"single_sprite",
+		"sprite_sheet",
+	]
+	var selected_index := 0
+
+	for sprite_type in types:
+		var index := option_button.item_count
+		option_button.add_item(sprite_type)
+		option_button.set_item_metadata(index, sprite_type)
+		if sprite_type == initial_type:
+			selected_index = index
+
+	option_button.select(selected_index)
+	option_button.item_selected.connect(_on_sprite_type_selected)
+	_add_form_row("Type", option_button)
+	field_controls["type"] = option_button
+
+
+func _add_recipe_type_option_button(initial_type: String) -> void:
+	var option_button := OptionButton.new()
+	var types := [
+		"building",
+		"tool",
+		"item",
+		"material",
+	]
+	if not types.has(initial_type):
+		types.append(initial_type)
+
+	var selected_index := 0
+	for recipe_type in types:
+		var index := option_button.item_count
+		option_button.add_item(recipe_type)
+		option_button.set_item_metadata(index, recipe_type)
+		if recipe_type == initial_type:
+			selected_index = index
+
+	option_button.select(selected_index)
+	option_button.item_selected.connect(func(_index: int) -> void: _mark_dirty())
+	_add_form_row("Type", option_button)
+	field_controls["type"] = option_button
+
+
+func _add_detect_grid_button() -> void:
+	var button := Button.new()
+	button.text = "Detect Grid"
+	button.focus_mode = Control.FOCUS_NONE
+	button.pressed.connect(_on_detect_grid_pressed)
+	_add_form_row("Sprite Sheet", button)
 
 
 func _add_form_row(label_text: String, control: Control) -> void:
@@ -597,6 +876,248 @@ func _on_workstation_selected(index: int) -> void:
 	var option_button: OptionButton = field_controls["preferred_workstation"]
 	selected_workstation_id = str(option_button.get_item_metadata(index))
 	_mark_dirty()
+
+
+func _on_sprite_filter_changed(new_text: String) -> void:
+	sprite_filter = new_text
+	_refresh_sprite_options()
+
+
+func _refresh_sprite_options() -> void:
+	if not field_controls.has("sprite_id"):
+		return
+
+	var option_button: OptionButton = field_controls["sprite_id"]
+	option_button.clear()
+
+	var empty_index := option_button.item_count
+	option_button.add_item("None")
+	option_button.set_item_metadata(empty_index, "")
+
+	var query := sprite_filter.strip_edges().to_lower()
+	var selected_index := 0
+
+	for sprite_record in data_store.get_records(ContentEditorData.SECTION_SPRITES):
+		if not _sprite_record_matches_search(sprite_record, query):
+			continue
+
+		var sprite_id := str(sprite_record.get("id", ""))
+		if sprite_id == selected_sprite_id:
+			selected_index = option_button.item_count
+
+		_add_sprite_option(option_button, sprite_record)
+
+	option_button.select(selected_index)
+
+
+func _add_sprite_option(option_button: OptionButton, sprite_record: Dictionary) -> void:
+	var sprite_id := str(sprite_record.get("id", ""))
+	var display_name := str(sprite_record.get("display_name", ""))
+	var category := str(sprite_record.get("category", ""))
+	var label := sprite_id
+	if not display_name.is_empty():
+		label = "%s - %s" % [sprite_id, display_name]
+	if not category.is_empty():
+		label = "%s (%s)" % [label, category]
+
+	var index := option_button.item_count
+	option_button.add_item(label)
+	option_button.set_item_metadata(index, sprite_id)
+
+
+func _on_sprite_selected(index: int) -> void:
+	if not field_controls.has("sprite_id"):
+		return
+
+	var option_button: OptionButton = field_controls["sprite_id"]
+	selected_sprite_id = str(option_button.get_item_metadata(index))
+	_update_selected_sprite_preview()
+	_mark_dirty()
+
+
+func _on_browse_texture_pressed() -> void:
+	if texture_file_dialog == null:
+		return
+
+	texture_file_dialog.popup_centered_ratio(0.75)
+
+
+func _on_texture_file_selected(path: String) -> void:
+	_set_line_edit_text("texture_path", path)
+	if current_section == ContentEditorData.SECTION_SPRITES:
+		var preview_record := current_record.duplicate(true)
+		preview_record["texture_path"] = path
+		preview_record["type"] = _get_option_button_metadata("type")
+		preview_record["frame_width"] = _get_spin_box_int("frame_w")
+		preview_record["frame_height"] = _get_spin_box_int("frame_h")
+		preview_record["columns"] = _get_spin_box_int("columns")
+		preview_record["rows"] = _get_spin_box_int("rows")
+		if str(preview_record.get("type", "single_sprite")) == "sprite_sheet":
+			_set_sprite_sheet_preview(preview_record)
+		else:
+			_set_texture_preview(sprite_preview_rect, preview_record)
+	_mark_dirty()
+
+
+func _on_sprite_type_selected(_index: int) -> void:
+	if current_section != ContentEditorData.SECTION_SPRITES:
+		_mark_dirty()
+		return
+
+	current_record = _get_sprite_form_record()
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_detect_grid_pressed() -> void:
+	var texture_path := _get_line_edit_text("texture_path")
+	if texture_path.is_empty():
+		_set_status("Choose a Texture Path before detecting a sprite sheet grid.", true)
+		return
+
+	var texture := _load_texture(texture_path)
+	if texture == null:
+		_set_status("Texture Path must point to a valid Texture2D.", true)
+		return
+
+	var frame_width := _get_spin_box_int("frame_w")
+	var frame_height := _get_spin_box_int("frame_h")
+	if frame_width < 1 or frame_height < 1:
+		_set_status("Frame Width and Frame Height must be greater than zero.", true)
+		return
+
+	var texture_size := texture.get_size()
+	var texture_width := int(texture_size.x)
+	var texture_height := int(texture_size.y)
+	if texture_width % frame_width != 0:
+		_set_status("Texture width %d is not divisible by Frame Width %d." % [texture_width, frame_width], true)
+		return
+	if texture_height % frame_height != 0:
+		_set_status("Texture height %d is not divisible by Frame Height %d." % [texture_height, frame_height], true)
+		return
+
+	var columns := int(texture_width / frame_width)
+	var rows := int(texture_height / frame_height)
+	var total_frames := columns * rows
+	_set_spin_box_value("columns", columns)
+	_set_spin_box_value("rows", rows)
+	_set_spin_box_value("total_frames", total_frames)
+	_set_option_button_by_metadata("type", "sprite_sheet")
+
+	var preview_record := _get_sprite_form_record()
+	if sprite_sheet_preview == null:
+		current_record = preview_record
+		_build_form_for_current_record()
+		preview_record = _get_sprite_form_record()
+	_set_sprite_sheet_preview(preview_record)
+	_mark_dirty()
+	_set_status("Detected grid: %d columns, %d rows, %d frames." % [columns, rows, total_frames])
+
+
+func _sprite_record_matches_search(sprite_record: Dictionary, query: String) -> bool:
+	if query.is_empty():
+		return true
+
+	var haystack := "%s %s %s %s" % [
+		str(sprite_record.get("id", "")),
+		str(sprite_record.get("display_name", "")),
+		str(sprite_record.get("category", "")),
+		_join_string_array(sprite_record.get("tags", []), " "),
+	]
+	return haystack.to_lower().contains(query)
+
+
+func _sprite_record_matches_category_filter(sprite_record: Dictionary) -> bool:
+	if sprite_category_filter == "all":
+		return true
+
+	return str(sprite_record.get("category", "")) == sprite_category_filter
+
+
+func _add_sprite_preview_for_record(sprite_record: Dictionary) -> void:
+	var sprite_type := str(sprite_record.get("type", "single_sprite"))
+	if sprite_type == "sprite_sheet":
+		sprite_preview_rect = null
+		sprite_sheet_preview = SpriteSheetPreviewScript.new()
+		sprite_sheet_preview.custom_minimum_size = Vector2(420, 420)
+		_add_form_row("Sheet Preview", sprite_sheet_preview)
+		_set_sprite_sheet_preview(sprite_record)
+		return
+
+	sprite_sheet_preview = null
+	sprite_preview_rect = TextureRect.new()
+	sprite_preview_rect.custom_minimum_size = Vector2(96, 96)
+	sprite_preview_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_add_form_row("Preview", sprite_preview_rect)
+	_set_texture_preview(sprite_preview_rect, sprite_record)
+
+
+func _update_selected_sprite_preview() -> void:
+	if sprite_preview_rect == null:
+		return
+
+	if selected_sprite_id.is_empty() or not data_store.has_record(ContentEditorData.SECTION_SPRITES, selected_sprite_id):
+		sprite_preview_rect.texture = null
+		return
+
+	_set_texture_preview(sprite_preview_rect, data_store.get_record(ContentEditorData.SECTION_SPRITES, selected_sprite_id))
+
+
+func _set_texture_preview(texture_rect: TextureRect, sprite_record: Dictionary) -> void:
+	if texture_rect == null:
+		return
+
+	var texture_path := str(sprite_record.get("texture_path", ""))
+	if texture_path.is_empty() or not FileAccess.file_exists(texture_path):
+		texture_rect.texture = null
+		return
+
+	var texture := _load_texture(texture_path)
+	if texture != null:
+		texture_rect.texture = texture
+	else:
+		texture_rect.texture = null
+	# TODO: crop TextureRect preview to sprite region when region_enabled is true.
+
+
+func _set_sprite_sheet_preview(sprite_record: Dictionary) -> void:
+	if sprite_sheet_preview == null:
+		return
+
+	var texture_path := str(sprite_record.get("texture_path", ""))
+	var texture := _load_texture(texture_path)
+	if texture == null:
+		sprite_sheet_preview.clear_preview()
+		return
+
+	var columns := int(sprite_record.get("columns", 0))
+	var rows := int(sprite_record.get("rows", 0))
+	if columns < 1 or rows < 1:
+		var frame_width := int(sprite_record.get("frame_width", 0))
+		var frame_height := int(sprite_record.get("frame_height", 0))
+		if frame_width < 1 or frame_height < 1:
+			var frame_size = sprite_record.get("frame_size", {})
+			if frame_size is Dictionary:
+				frame_width = int(frame_size.get("w", 0))
+				frame_height = int(frame_size.get("h", 0))
+
+		var texture_size := texture.get_size()
+		if frame_width > 0 and frame_height > 0:
+			columns = int(int(texture_size.x) / frame_width)
+			rows = int(int(texture_size.y) / frame_height)
+
+	sprite_sheet_preview.set_preview_data(texture, columns, rows)
+
+
+func _load_texture(texture_path: String) -> Texture2D:
+	if texture_path.is_empty() or not FileAccess.file_exists(texture_path):
+		return null
+
+	var resource := load(texture_path)
+	if resource is Texture2D:
+		return resource
+
+	return null
 
 
 func _add_production_editor() -> void:
@@ -789,12 +1310,18 @@ func _on_new_pressed() -> void:
 			_create_new_item()
 		ContentEditorData.SECTION_RESOURCES:
 			_create_new_resource()
+		ContentEditorData.SECTION_MONSTERS:
+			_create_new_monster()
+		ContentEditorData.SECTION_RECIPES:
+			_create_new_recipe()
 		ContentEditorData.SECTION_TERRAIN_TYPES:
 			_create_new_terrain_type()
 		ContentEditorData.SECTION_NPCS:
 			_create_new_npc()
+		ContentEditorData.SECTION_SPRITES:
+			_create_new_sprite()
 		_:
-			_set_status("New is available for Items, Resources, Terrain Types, and NPCs in this step.", true)
+			_set_status("New is available for Items, Resources, Terrain Types, NPCs, and Sprites in this step.", true)
 
 
 func _create_new_item() -> void:
@@ -832,6 +1359,45 @@ func _create_new_resource() -> void:
 	_refresh_record_list()
 	_update_action_buttons()
 	_set_status("Created new unsaved resource.")
+
+
+func _create_new_monster() -> void:
+	var new_id := data_store.create_unique_id(ContentEditorData.SECTION_MONSTERS, "new_monster")
+	current_id = new_id
+	current_original_id = ""
+	current_record = {
+		"id": new_id,
+		"display_name": "New Monster",
+		"max_health": 20,
+		"move_speed": 40,
+		"damage": 5,
+		"attack_cooldown": 1,
+		"spawn_time_seconds": 20,
+		"spawn_tiles": ["grass"],
+		"loot_table": [],
+	}
+	has_unsaved_changes = true
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_set_status("Created new unsaved monster.")
+
+
+func _create_new_recipe() -> void:
+	var new_id := data_store.create_unique_id(ContentEditorData.SECTION_RECIPES, "new_recipe")
+	current_id = new_id
+	current_original_id = ""
+	current_record = {
+		"id": new_id,
+		"display_name": "New Recipe",
+		"type": "item",
+		"cost": {},
+	}
+	has_unsaved_changes = true
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_set_status("Created new unsaved recipe.")
 
 
 func _create_new_terrain_type() -> void:
@@ -875,6 +1441,41 @@ func _create_new_npc() -> void:
 	_set_status("Created new unsaved NPC.")
 
 
+func _create_new_sprite() -> void:
+	var new_id := data_store.create_unique_id(ContentEditorData.SECTION_SPRITES, "new_sprite")
+	current_id = new_id
+	current_original_id = ""
+	current_record = {
+		"id": new_id,
+		"display_name": "New Sprite",
+		"type": "single_sprite",
+		"texture_path": "",
+		"region_enabled": false,
+		"region": {
+			"x": 0,
+			"y": 0,
+			"w": 32,
+			"h": 32,
+		},
+		"frame_size": {
+			"w": 32,
+			"h": 32,
+		},
+		"frame_width": 32,
+		"frame_height": 32,
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"category": "item",
+		"tags": [],
+	}
+	has_unsaved_changes = true
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_set_status("Created new unsaved sprite.")
+
+
 func _on_duplicate_pressed() -> void:
 	if has_unsaved_changes:
 		_set_status("Save or Revert before duplicating a record.", true)
@@ -889,12 +1490,18 @@ func _on_duplicate_pressed() -> void:
 			_duplicate_current_record("_copy")
 		ContentEditorData.SECTION_RESOURCES:
 			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_MONSTERS:
+			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_RECIPES:
+			_duplicate_current_record("_copy")
 		ContentEditorData.SECTION_TERRAIN_TYPES:
 			_duplicate_current_record("_copy")
 		ContentEditorData.SECTION_NPCS:
 			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_SPRITES:
+			_duplicate_current_record("_copy")
 		_:
-			_set_status("Duplicate is available for Items, Resources, Terrain Types, and NPCs in this step.", true)
+			_set_status("Duplicate is available for Items, Resources, Terrain Types, NPCs, and Sprites in this step.", true)
 
 
 func _duplicate_current_record(suffix: String) -> void:
@@ -913,6 +1520,7 @@ func _duplicate_current_record(suffix: String) -> void:
 	has_unsaved_changes = true
 	selected_drop_item_id = str(current_record.get("drop_item_id", ""))
 	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
+	selected_sprite_id = str(current_record.get("sprite_id", ""))
 	var loaded_production = current_record.get("production", [])
 	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
 	_build_form_for_current_record()
@@ -939,12 +1547,18 @@ func _on_delete_pressed() -> void:
 			_delete_current_item()
 		ContentEditorData.SECTION_RESOURCES:
 			_set_status("Resource delete is blocked for now to avoid breaking scene references.", true)
+		ContentEditorData.SECTION_MONSTERS:
+			_delete_current_monster()
+		ContentEditorData.SECTION_RECIPES:
+			_delete_current_recipe()
 		ContentEditorData.SECTION_TERRAIN_TYPES:
 			_delete_current_terrain_type()
 		ContentEditorData.SECTION_NPCS:
 			_delete_current_npc()
+		ContentEditorData.SECTION_SPRITES:
+			_delete_current_sprite()
 		_:
-			_set_status("Delete is available for Items, Terrain Types, and NPCs in this step.", true)
+			_set_status("Delete is available for Items, Terrain Types, NPCs, and Sprites in this step.", true)
 
 
 func _delete_current_item() -> void:
@@ -968,6 +1582,52 @@ func _delete_current_item() -> void:
 	_show_empty_form()
 	_update_action_buttons()
 	_set_status("Deleted item.")
+
+
+func _delete_current_monster() -> void:
+	var usages := data_store.find_monster_usages(current_original_id)
+	if not usages.is_empty():
+		_set_status("Cannot delete monster. It is used by: %s" % _join_strings(usages, ", "), true)
+		return
+
+	data_store.delete_record(current_section, current_original_id)
+	var error := data_store.save_section(current_section)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_reload_content_db()
+	current_id = ""
+	current_original_id = ""
+	current_record = {}
+	has_unsaved_changes = false
+	_refresh_record_list()
+	_show_empty_form()
+	_update_action_buttons()
+	_set_status("Deleted monster.")
+
+
+func _delete_current_recipe() -> void:
+	var usages := data_store.find_recipe_usages(current_original_id)
+	if not usages.is_empty():
+		_set_status("Cannot delete recipe. It is used by: %s" % _join_strings(usages, ", "), true)
+		return
+
+	data_store.delete_record(current_section, current_original_id)
+	var error := data_store.save_section(current_section)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_reload_content_db()
+	current_id = ""
+	current_original_id = ""
+	current_record = {}
+	has_unsaved_changes = false
+	_refresh_record_list()
+	_show_empty_form()
+	_update_action_buttons()
+	_set_status("Deleted recipe.")
 
 
 func _delete_current_terrain_type() -> void:
@@ -1012,6 +1672,29 @@ func _delete_current_npc() -> void:
 	_set_status("Deleted NPC.")
 
 
+func _delete_current_sprite() -> void:
+	var usages := data_store.find_sprite_usage(current_original_id)
+	if not usages.is_empty():
+		_set_status("Cannot delete sprite. It is used by: %s" % _join_strings(usages, ", "), true)
+		return
+
+	data_store.delete_record(current_section, current_original_id)
+	var error := data_store.save_section(current_section)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_reload_content_db()
+	current_id = ""
+	current_original_id = ""
+	current_record = {}
+	has_unsaved_changes = false
+	_refresh_record_list()
+	_show_empty_form()
+	_update_action_buttons()
+	_set_status("Deleted sprite.")
+
+
 func _on_save_pressed() -> void:
 	if current_record.is_empty():
 		_set_status("Select or create a record before saving.", true)
@@ -1022,10 +1705,16 @@ func _on_save_pressed() -> void:
 			_save_item()
 		ContentEditorData.SECTION_RESOURCES:
 			_save_resource()
+		ContentEditorData.SECTION_MONSTERS:
+			_save_monster()
+		ContentEditorData.SECTION_RECIPES:
+			_save_recipe()
 		ContentEditorData.SECTION_TERRAIN_TYPES:
 			_save_terrain_type()
 		ContentEditorData.SECTION_NPCS:
 			_save_npc()
+		ContentEditorData.SECTION_SPRITES:
+			_save_sprite()
 		_:
 			_set_status("Visual saving for this section will come in a later step.", true)
 
@@ -1051,6 +1740,34 @@ func _save_resource() -> void:
 	_set_line_edit_text("id", record_id)
 
 	var error := data_store.validate_resource(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
+func _save_monster() -> void:
+	var record := _get_monster_form_record()
+	var record_id := data_store.sanitize_id(str(record.get("id", "")))
+	record["id"] = record_id
+	_set_line_edit_text("id", record_id)
+
+	var error := data_store.validate_monster(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
+func _save_recipe() -> void:
+	var record := _get_recipe_form_record()
+	var record_id := data_store.sanitize_id(str(record.get("id", "")))
+	record["id"] = record_id
+	_set_line_edit_text("id", record_id)
+
+	var error := data_store.validate_recipe(record_id, current_original_id, record)
 	if not error.is_empty():
 		_set_status(error, true)
 		return
@@ -1086,7 +1803,22 @@ func _save_npc() -> void:
 	_save_current_record(record_id, record)
 
 
+func _save_sprite() -> void:
+	var record := _get_sprite_form_record()
+	var record_id := data_store.sanitize_id(str(record.get("id", "")))
+	record["id"] = record_id
+	_set_line_edit_text("id", record_id)
+
+	var error := data_store.validate_sprite(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
 func _save_current_record(record_id: String, record: Dictionary) -> void:
+	_cleanup_optional_fields(record)
 	data_store.set_record(current_section, current_original_id, record_id, record)
 
 	var error := data_store.save_section(current_section)
@@ -1101,12 +1833,13 @@ func _save_current_record(record_id: String, record: Dictionary) -> void:
 	has_unsaved_changes = false
 	selected_drop_item_id = str(current_record.get("drop_item_id", ""))
 	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
+	selected_sprite_id = str(current_record.get("sprite_id", ""))
 	var loaded_production = current_record.get("production", [])
 	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
 	_build_form_for_current_record()
 	_refresh_record_list()
 	_update_action_buttons()
-	_set_status("Saved %s." % record_id)
+	_set_status("Saved %s. ContentDB refreshed." % record_id)
 
 
 func _on_revert_pressed() -> void:
@@ -1129,12 +1862,39 @@ func _on_revert_pressed() -> void:
 	drop_item_filter = ""
 	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
 	workstation_filter = ""
+	selected_sprite_id = str(current_record.get("sprite_id", ""))
+	sprite_filter = ""
 	var loaded_production = current_record.get("production", [])
 	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
 	_build_form_for_current_record()
 	_refresh_record_list()
 	_update_action_buttons()
 	_set_status("Reverted %s." % current_id)
+
+
+func _on_reload_current_pressed() -> void:
+	if current_section.is_empty():
+		return
+
+	var error := data_store.load_section(current_section)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	if not current_original_id.is_empty():
+		_load_record(current_original_id)
+	else:
+		_refresh_record_list()
+		_show_empty_form()
+
+	has_unsaved_changes = false
+	_update_action_buttons()
+	_set_status("Reloaded %s." % data_store.get_section_label(current_section))
+
+
+func _on_refresh_content_db_pressed() -> void:
+	_reload_content_db()
+	_set_status("ContentDB refreshed.")
 
 
 func _discard_unsaved_new_record() -> void:
@@ -1146,6 +1906,8 @@ func _discard_unsaved_new_record() -> void:
 	drop_item_filter = ""
 	selected_workstation_id = ""
 	workstation_filter = ""
+	selected_sprite_id = ""
+	sprite_filter = ""
 	production_rows.clear()
 	_refresh_record_list()
 	_show_empty_form()
@@ -1157,6 +1919,7 @@ func _get_item_form_record() -> Dictionary:
 	return {
 		"id": _get_line_edit_text("id"),
 		"display_name": _get_line_edit_text("display_name"),
+		"sprite_id": selected_sprite_id,
 		"stack_size": _get_spin_box_int("stack_size"),
 		"description": _get_text_edit_text("description"),
 	}
@@ -1166,6 +1929,7 @@ func _get_resource_form_record() -> Dictionary:
 	return {
 		"id": _get_line_edit_text("id"),
 		"display_name": _get_line_edit_text("display_name"),
+		"sprite_id": selected_sprite_id,
 		"max_health": _get_spin_box_int("max_health"),
 		"drop_item_id": selected_drop_item_id,
 		"drop_amount": _get_spin_box_int("drop_amount"),
@@ -1173,10 +1937,38 @@ func _get_resource_form_record() -> Dictionary:
 	}
 
 
+func _get_monster_form_record() -> Dictionary:
+	var record := current_record.duplicate(true)
+	record["id"] = _get_line_edit_text("id")
+	record["display_name"] = _get_line_edit_text("display_name")
+	record["sprite_id"] = selected_sprite_id
+	record["max_health"] = _get_spin_box_int("max_health")
+	record["move_speed"] = _get_spin_box_int("move_speed")
+	record["damage"] = _get_spin_box_int("damage")
+	record["attack_cooldown"] = _get_spin_box_int("attack_cooldown")
+	record["spawn_time_seconds"] = _get_spin_box_int("spawn_time_seconds")
+	record["spawn_tiles"] = _parse_tags(_get_line_edit_text("spawn_tiles"))
+	if not record.has("loot_table"):
+		record["loot_table"] = []
+	return record
+
+
+func _get_recipe_form_record() -> Dictionary:
+	var record := current_record.duplicate(true)
+	record["id"] = _get_line_edit_text("id")
+	record["display_name"] = _get_line_edit_text("display_name")
+	record["type"] = _get_option_button_metadata("type")
+	record["sprite_id"] = selected_sprite_id
+	if not record.has("cost"):
+		record["cost"] = {}
+	return record
+
+
 func _get_terrain_type_form_record() -> Dictionary:
 	return {
 		"id": _get_line_edit_text("id"),
 		"display_name": _get_line_edit_text("display_name"),
+		"sprite_id": selected_sprite_id,
 		"walkable": _get_check_box_pressed("walkable"),
 		"allows_monster_spawn": _get_check_box_pressed("allows_monster_spawn"),
 		"allows_resource_spawn": _get_check_box_pressed("allows_resource_spawn"),
@@ -1190,9 +1982,39 @@ func _get_npc_form_record() -> Dictionary:
 		"max_health": _get_spin_box_int("max_health"),
 		"move_speed": _get_spin_box_int("move_speed"),
 		"role": _get_line_edit_text("role"),
+		"sprite_id": selected_sprite_id,
 		"preferred_workstation": selected_workstation_id,
 		"production": _get_clean_production_rows(),
 		"needs_house": _get_check_box_pressed("needs_house"),
+	}
+
+
+func _get_sprite_form_record() -> Dictionary:
+	var frame_width := _get_spin_box_int("frame_w")
+	var frame_height := _get_spin_box_int("frame_h")
+	return {
+		"id": _get_line_edit_text("id"),
+		"display_name": _get_line_edit_text("display_name"),
+		"type": _get_option_button_metadata("type"),
+		"texture_path": _get_line_edit_text("texture_path"),
+		"region_enabled": _get_check_box_pressed("region_enabled"),
+		"region": {
+			"x": _get_spin_box_int("region_x"),
+			"y": _get_spin_box_int("region_y"),
+			"w": _get_spin_box_int("region_w"),
+			"h": _get_spin_box_int("region_h"),
+		},
+		"frame_size": {
+			"w": frame_width,
+			"h": frame_height,
+		},
+		"frame_width": frame_width,
+		"frame_height": frame_height,
+		"columns": _get_spin_box_int("columns"),
+		"rows": _get_spin_box_int("rows"),
+		"total_frames": _get_spin_box_int("total_frames"),
+		"category": _get_option_button_metadata("category"),
+		"tags": _parse_tags(_get_line_edit_text("tags")),
 	}
 
 
@@ -1236,6 +2058,14 @@ func _get_spin_box_int(field_name: String) -> int:
 	return int(spin_box.value)
 
 
+func _set_spin_box_value(field_name: String, value: int) -> void:
+	if not field_controls.has(field_name):
+		return
+
+	var spin_box: SpinBox = field_controls[field_name]
+	spin_box.value = value
+
+
 func _get_text_edit_text(field_name: String) -> String:
 	if not field_controls.has(field_name):
 		return ""
@@ -1252,6 +2082,25 @@ func _get_check_box_pressed(field_name: String) -> bool:
 	return check_box.button_pressed
 
 
+func _get_option_button_metadata(field_name: String) -> String:
+	if not field_controls.has(field_name):
+		return ""
+
+	var option_button: OptionButton = field_controls[field_name]
+	return str(option_button.get_item_metadata(option_button.selected))
+
+
+func _set_option_button_by_metadata(field_name: String, metadata: String) -> void:
+	if not field_controls.has(field_name):
+		return
+
+	var option_button: OptionButton = field_controls[field_name]
+	for index in range(option_button.item_count):
+		if str(option_button.get_item_metadata(index)) == metadata:
+			option_button.select(index)
+			return
+
+
 func _mark_dirty() -> void:
 	if is_building_form:
 		return
@@ -1262,7 +2111,7 @@ func _mark_dirty() -> void:
 
 
 func _update_action_buttons() -> void:
-	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS
+	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES
 	var has_record := not current_record.is_empty()
 
 	new_button.disabled = not supports_visual_editing or has_unsaved_changes
@@ -1270,6 +2119,8 @@ func _update_action_buttons() -> void:
 	delete_button.disabled = not supports_visual_editing or current_id.is_empty()
 	save_button.disabled = not supports_visual_editing or not has_record
 	revert_button.disabled = not supports_visual_editing or not has_record
+	reload_current_button.disabled = current_section.is_empty()
+	refresh_content_db_button.disabled = false
 
 
 func _reload_content_db() -> void:
@@ -1310,6 +2161,55 @@ func _get_building_recipe_records() -> Array:
 	return building_recipes
 
 
+func _get_sprite_categories() -> Array:
+	return [
+		"item",
+		"monster",
+		"tileset",
+		"resource",
+		"building",
+		"terrain",
+		"ui",
+		"character",
+		"effect",
+	]
+
+
+func _cleanup_optional_fields(record: Dictionary) -> void:
+	for optional_field in [
+		"sprite_id",
+		"output_item_id",
+		"building_id",
+		"tool_id",
+	]:
+		if record.has(optional_field) and str(record.get(optional_field, "")).is_empty():
+			record.erase(optional_field)
+
+
+func _parse_tags(text: String) -> Array:
+	var tags := []
+
+	for raw_tag in text.split(",", false):
+		var tag := raw_tag.strip_edges().to_lower()
+		if tag.is_empty() or tags.has(tag):
+			continue
+
+		tags.append(tag)
+
+	return tags
+
+
+func _join_string_array(value, separator: String) -> String:
+	if not value is Array:
+		return ""
+
+	var parts := []
+	for entry in value:
+		parts.append(str(entry))
+
+	return _join_lines_with_separator(parts, separator)
+
+
 func _stringify_value(value) -> String:
 	if value is Dictionary or value is Array:
 		return JSON.stringify(value)
@@ -1318,6 +2218,10 @@ func _stringify_value(value) -> String:
 
 
 func _join_strings(values: Array, separator: String) -> String:
+	return _join_lines_with_separator(values, separator)
+
+
+func _join_lines_with_separator(values: Array, separator: String) -> String:
 	var text := ""
 	for value in values:
 		if not text.is_empty():

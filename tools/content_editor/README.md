@@ -17,8 +17,11 @@ Tambem existe `res://tools/content_editor/ContentEditorMain.tscn`, uma cena boot
 - `res://data/monsters.json`
 - `res://data/recipes.json`
 - `res://data/terrain_types.json`
+- `res://data/sprites.json`
 
-Atualmente Items, Resources e Terrain Types tem formularios visuais completos. Monsters e Recipes ja aparecem na navegacao e podem ser expandidos com formularios especificos nas proximas etapas.
+Atualmente Items, Resources, Monsters, Recipes, Terrain Types, NPCs e Sprites aparecem na navegacao. Sprites tem cadastro visual com preview simples, segmentacao por categoria, suporte inicial a `single_sprite` e `sprite_sheet`, e Items/Resources/Monsters/Recipes/Terrain Types/NPCs podem apontar para `sprite_id`.
+
+O painel direito mostra o arquivo atual e tem botoes para salvar, recarregar a secao atual e atualizar o ContentDB. Ao salvar, o editor cria backup em `user://content_backups`.
 
 ## Testes rapidos
 
@@ -60,6 +63,25 @@ Atualmente Items, Resources e Terrain Types tem formularios visuais completos. M
 4. Clique em **Save**.
 5. Crie `dark_forest` com **New** e salve.
 6. Reabra o editor e confirme que `dark_forest` continua na lista.
+
+### Sprite
+
+1. Clique em **Sprites**.
+2. Crie `wood_icon` com **New**.
+3. Use **Browse...** para escolher um PNG ou outra textura dentro de `res://`.
+4. Clique em **Save**.
+5. Reabra o editor e confirme que o sprite continua na lista.
+6. Use o filtro de categoria para separar `item`, `monster`, `tileset` e outras categorias.
+
+### Sprite Sheet
+
+1. Clique em **Sprites**.
+2. Crie ou selecione um sprite e mude **Type** para `sprite_sheet`.
+3. Use **Browse...** para escolher a textura.
+4. Configure **Frame Width** e **Frame Height**.
+5. Clique em **Detect Grid**.
+6. Confirme que **Columns**, **Rows** e **Total Frames** foram preenchidos e que o preview mostra o grid numerado.
+7. Clique em **Save**.
 
 ## Export futuro
 

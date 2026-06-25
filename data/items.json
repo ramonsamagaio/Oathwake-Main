@@ -2,21 +2,24 @@
 	"gel": {
 		"description": "Sticky material dropped by Slimes.",
 		"display_name": "Gel",
-		"stack_size": 999.0
+		"sprite_id": "green_gel",
+		"stack_size": 999
 	},
 	"iron_ore": {
 		"description": "",
 		"display_name": "Iron Ore",
-		"stack_size": 999
+		"stack_size": 999.0
 	},
 	"stone": {
 		"description": "Basic material gathered from rocks.",
 		"display_name": "Stone",
-		"stack_size": 999.0
+		"sprite_id": "stone",
+		"stack_size": 999
 	},
 	"wood": {
 		"description": "Basic material gathered from trees.",
 		"display_name": "Wood",
-		"stack_size": 999
+		"sprite_id": "wood",
+		"stack_size": 999.0
 	}
 }

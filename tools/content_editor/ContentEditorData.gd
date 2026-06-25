@@ -6,6 +6,7 @@ const SECTION_MONSTERS := "monsters"
 const SECTION_RECIPES := "recipes"
 const SECTION_TERRAIN_TYPES := "terrain_types"
 const SECTION_NPCS := "npcs"
+const SECTION_SPRITES := "sprites"
 
 const SECTIONS := [
 	SECTION_ITEMS,
@@ -14,6 +15,7 @@ const SECTIONS := [
 	SECTION_RECIPES,
 	SECTION_TERRAIN_TYPES,
 	SECTION_NPCS,
+	SECTION_SPRITES,
 ]
 
 const SECTION_LABELS := {
@@ -23,6 +25,7 @@ const SECTION_LABELS := {
 	SECTION_RECIPES: "Recipes",
 	SECTION_TERRAIN_TYPES: "Terrain Types",
 	SECTION_NPCS: "NPCs",
+	SECTION_SPRITES: "Sprites",
 }
 
 const SECTION_PATHS := {
@@ -32,6 +35,7 @@ const SECTION_PATHS := {
 	SECTION_RECIPES: "res://data/recipes.json",
 	SECTION_TERRAIN_TYPES: "res://data/terrain_types.json",
 	SECTION_NPCS: "res://data/npcs.json",
+	SECTION_SPRITES: "res://data/sprites.json",
 }
 
 var content := {}
@@ -84,6 +88,10 @@ func save_section(section: String) -> String:
 	# This editor writes to res:// while used inside the Godot editor.
 	# A future exported content editor should prefer user://data for writable external content.
 	var path := str(SECTION_PATHS[section])
+	var backup_error := _backup_file(path)
+	if not backup_error.is_empty():
+		return backup_error
+
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		return "Could not save file: %s" % path
@@ -94,6 +102,10 @@ func save_section(section: String) -> String:
 
 func get_section_label(section: String) -> String:
 	return str(SECTION_LABELS.get(section, section.capitalize()))
+
+
+func get_section_path(section: String) -> String:
+	return str(SECTION_PATHS.get(section, ""))
 
 
 func get_section_data(section: String) -> Dictionary:
@@ -194,6 +206,10 @@ func validate_item(record_id: String, original_id: String, record: Dictionary) -
 	if int(record.get("stack_size", 0)) < 1:
 		return "Stack Size must be an integer greater than or equal to 1."
 
+	var sprite_error := _validate_optional_sprite_id(record)
+	if not sprite_error.is_empty():
+		return sprite_error
+
 	return ""
 
 
@@ -215,16 +231,69 @@ func validate_resource(record_id: String, original_id: String, record: Dictionar
 	if float(record.get("respawn_time_seconds", -1.0)) < 0.0:
 		return "Respawn Time Seconds must be greater than or equal to 0."
 
+	var sprite_error := _validate_optional_sprite_id(record)
+	if not sprite_error.is_empty():
+		return sprite_error
+
 	return ""
 
 
-func validate_terrain_type(record_id: String, original_id: String, _record: Dictionary) -> String:
+func validate_monster(record_id: String, original_id: String, record: Dictionary) -> String:
+	var id_error := _validate_record_id(SECTION_MONSTERS, record_id, original_id)
+	if not id_error.is_empty():
+		return id_error
+
+	if int(record.get("max_health", 0)) < 1:
+		return "Max Health must be an integer greater than or equal to 1."
+	if float(record.get("move_speed", -1.0)) < 0.0:
+		return "Move Speed must be greater than or equal to 0."
+	if int(record.get("damage", -1)) < 0:
+		return "Damage must be greater than or equal to 0."
+	if float(record.get("attack_cooldown", -1.0)) < 0.0:
+		return "Attack Cooldown must be greater than or equal to 0."
+	if float(record.get("spawn_time_seconds", -1.0)) < 0.0:
+		return "Spawn Time Seconds must be greater than or equal to 0."
+
+	var spawn_tiles = record.get("spawn_tiles", [])
+	if not spawn_tiles is Array:
+		return "Spawn Tiles must be a list."
+
+	var sprite_error := _validate_optional_sprite_id(record)
+	if not sprite_error.is_empty():
+		return sprite_error
+
+	return ""
+
+
+func validate_recipe(record_id: String, original_id: String, record: Dictionary) -> String:
+	var id_error := _validate_record_id(SECTION_RECIPES, record_id, original_id)
+	if not id_error.is_empty():
+		return id_error
+
+	if str(record.get("display_name", "")).strip_edges().is_empty():
+		return "Display Name cannot be empty."
+
+	if str(record.get("type", "")).strip_edges().is_empty():
+		return "Type cannot be empty."
+
+	var sprite_error := _validate_optional_sprite_id(record)
+	if not sprite_error.is_empty():
+		return sprite_error
+
+	return ""
+
+
+func validate_terrain_type(record_id: String, original_id: String, record: Dictionary) -> String:
 	var id_error := _validate_record_id(SECTION_TERRAIN_TYPES, record_id, original_id)
 	if not id_error.is_empty():
 		return id_error
 
 	if record_id != original_id and not find_terrain_type_usage(original_id).is_empty():
 		return "Cannot rename terrain type because it is used by: %s" % _join_strings(find_terrain_type_usage(original_id), ", ")
+
+	var sprite_error := _validate_optional_sprite_id(record)
+	if not sprite_error.is_empty():
+		return sprite_error
 
 	return ""
 
@@ -267,10 +336,96 @@ func validate_npc(record_id: String, original_id: String, record: Dictionary) ->
 		if float(production_entry.get("interval_seconds", 0.0)) <= 0.0:
 			return "Production interval_seconds must be greater than 0."
 
+	var sprite_error := _validate_optional_sprite_id(record)
+	if not sprite_error.is_empty():
+		return sprite_error
+
+	return ""
+
+
+func validate_sprite(record_id: String, original_id: String, record: Dictionary) -> String:
+	var id_error := _validate_record_id(SECTION_SPRITES, record_id, original_id)
+	if not id_error.is_empty():
+		return id_error
+
+	var sprite_type := str(record.get("type", "single_sprite"))
+	if not ["single_sprite", "sprite_sheet"].has(sprite_type):
+		return "Type must be single_sprite or sprite_sheet."
+
+	var texture_path := str(record.get("texture_path", ""))
+	if not texture_path.is_empty() and not FileAccess.file_exists(texture_path):
+		return "Texture Path must point to an existing file."
+
+	var texture: Texture2D = null
+	if not texture_path.is_empty():
+		var loaded_texture := load(texture_path)
+		if not loaded_texture is Texture2D:
+			return "Texture Path must load a Texture2D."
+		texture = loaded_texture as Texture2D
+
+	var category := str(record.get("category", ""))
+	if category.is_empty():
+		return "Category cannot be empty."
+
+	var tags = record.get("tags", [])
+	if not tags is Array:
+		return "Tags must be a list."
+
+	var region = record.get("region", {})
+	if not region is Dictionary:
+		return "Region must be a dictionary."
+
+	if int(region.get("w", 0)) < 1 or int(region.get("h", 0)) < 1:
+		return "Region width and height must be greater than or equal to 1."
+
+	var frame_size = record.get("frame_size", {})
+	if not frame_size is Dictionary:
+		return "Frame Size must be a dictionary."
+
+	if int(frame_size.get("w", 0)) < 1 or int(frame_size.get("h", 0)) < 1:
+		return "Frame Size width and height must be greater than or equal to 1."
+
+	if sprite_type == "sprite_sheet":
+		if texture_path.is_empty():
+			return "Texture Path is required for sprite_sheet."
+
+		var frame_width := int(record.get("frame_width", frame_size.get("w", 0)))
+		var frame_height := int(record.get("frame_height", frame_size.get("h", 0)))
+		var columns := int(record.get("columns", 0))
+		var rows := int(record.get("rows", 0))
+		var total_frames := int(record.get("total_frames", 0))
+
+		if frame_width < 1 or frame_height < 1:
+			return "Frame Width and Frame Height must be greater than or equal to 1."
+		if columns < 1 or rows < 1 or total_frames < 1:
+			return "Columns, Rows, and Total Frames must be greater than or equal to 1."
+
+		var texture_size := texture.get_size()
+		var texture_width := int(texture_size.x)
+		var texture_height := int(texture_size.y)
+		if texture_width % frame_width != 0:
+			return "Texture width must be divisible by Frame Width."
+		if texture_height % frame_height != 0:
+			return "Texture height must be divisible by Frame Height."
+
+		var expected_columns := int(texture_width / frame_width)
+		var expected_rows := int(texture_height / frame_height)
+		var expected_total_frames := expected_columns * expected_rows
+		if columns != expected_columns:
+			return "Columns must match the texture width divided by Frame Width."
+		if rows != expected_rows:
+			return "Rows must match the texture height divided by Frame Height."
+		if total_frames != expected_total_frames:
+			return "Total Frames must be Columns multiplied by Rows."
+
 	return ""
 
 
 func find_item_usage(item_id: String) -> Array:
+	return find_item_usages(item_id)
+
+
+func find_item_usages(item_id: String) -> Array:
 	var usages := []
 	_append_resource_item_usage(usages, item_id)
 	_append_monster_item_usage(usages, item_id)
@@ -294,6 +449,51 @@ func find_terrain_type_usage(terrain_type_id: String) -> Array:
 	return usages
 
 
+func find_sprite_usage(sprite_id: String) -> Array:
+	return find_sprite_usages(sprite_id)
+
+
+func find_sprite_usages(sprite_id: String) -> Array:
+	var usages := []
+	_append_sprite_usage_in_section(usages, SECTION_ITEMS, sprite_id)
+	_append_sprite_usage_in_section(usages, SECTION_MONSTERS, sprite_id)
+	_append_sprite_usage_in_section(usages, SECTION_RESOURCES, sprite_id)
+	_append_sprite_usage_in_section(usages, SECTION_RECIPES, sprite_id)
+	_append_sprite_usage_in_section(usages, SECTION_TERRAIN_TYPES, sprite_id)
+	return usages
+
+
+func find_recipe_usages(recipe_id: String) -> Array:
+	var usages := []
+	if [
+		"wall",
+		"campfire",
+		"workbench",
+		"axe",
+		"pickaxe",
+		"bed",
+	].has(recipe_id):
+		usages.append("essential gameplay recipe")
+
+	var npcs := get_section_data(SECTION_NPCS)
+	for npc_id in npcs.keys():
+		var npc_data = npcs[npc_id]
+		if npc_data is Dictionary and str(npc_data.get("preferred_workstation", "")) == recipe_id:
+			usages.append("npc %s preferred_workstation" % npc_id)
+
+	return usages
+
+
+func find_monster_usages(_monster_id: String) -> Array:
+	return []
+
+
+func find_resource_usages(resource_id: String) -> Array:
+	var usages := []
+	usages.append("ResourceNode scene references may use resource_type_id '%s'; delete is blocked for now" % resource_id)
+	return usages
+
+
 func _validate_record_id(section: String, record_id: String, original_id: String) -> String:
 	if record_id.is_empty():
 		return "ID cannot be empty."
@@ -305,6 +505,25 @@ func _validate_record_id(section: String, record_id: String, original_id: String
 		return "ID already exists: %s" % record_id
 
 	return ""
+
+
+func _validate_optional_sprite_id(record: Dictionary) -> String:
+	var sprite_id := str(record.get("sprite_id", ""))
+	if sprite_id.is_empty():
+		return ""
+
+	if not has_record(SECTION_SPRITES, sprite_id):
+		return "Sprite must reference an existing sprite."
+
+	return ""
+
+
+func _append_sprite_usage_in_section(usages: Array, section: String, sprite_id: String) -> void:
+	var section_data := get_section_data(section)
+	for record_id in section_data.keys():
+		var record_data = section_data[record_id]
+		if record_data is Dictionary and str(record_data.get("sprite_id", "")) == sprite_id:
+			usages.append("%s %s sprite_id" % [section, record_id])
 
 
 func _append_resource_item_usage(usages: Array, item_id: String) -> void:
@@ -343,10 +562,33 @@ func _append_recipe_item_usage(usages: Array, item_id: String) -> void:
 			usages.append("recipe %s cost" % recipe_id)
 			continue
 
+		if str(recipe_data.get("output_item_id", "")) == item_id:
+			usages.append("recipe %s output_item_id" % recipe_id)
+			continue
+
 		if cost is Array:
 			for cost_entry in cost:
 				if cost_entry is Dictionary and str(cost_entry.get("item_id", cost_entry.get("resource", ""))).to_lower() == item_id:
 					usages.append("recipe %s cost" % recipe_id)
+
+
+func _backup_file(path: String) -> String:
+	if not FileAccess.file_exists(path):
+		return ""
+
+	var backup_dir := "user://content_backups"
+	var dir_error := DirAccess.make_dir_recursive_absolute(backup_dir)
+	if dir_error != OK:
+		return "Could not create content backup directory."
+
+	var timestamp := Time.get_datetime_string_from_system().replace(":", "-")
+	var file_name := path.get_file()
+	var backup_path := "%s/%s_%s.bak" % [backup_dir, file_name, timestamp]
+	var copy_error := DirAccess.copy_absolute(path, backup_path)
+	if copy_error != OK:
+		return "Could not create backup for %s" % path
+
+	return ""
 
 
 func _join_strings(values: Array, separator: String) -> String:
