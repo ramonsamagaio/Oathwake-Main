@@ -11,6 +11,7 @@
 		"drop_amount": 3,
 		"drop_item_id": "wood",
 		"max_health": 30,
-		"respawn_time_seconds": 20
+		"respawn_time_seconds": 20,
+		"sprite_id": "tree1"
 	}
 }

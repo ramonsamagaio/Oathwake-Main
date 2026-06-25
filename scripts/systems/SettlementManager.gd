@@ -3,7 +3,7 @@ extends Node
 signal changed
 
 @export var main_path: NodePath = ".."
-@export var player_path: NodePath = "../Player"
+@export var player_path: NodePath = "../World/Player"
 @export var build_system_path: NodePath = "../BuildSystem"
 @export var housing_system_path: NodePath = "../HousingSystem"
 @export var npc_assignment_range: float = 96.0

@@ -3,6 +3,8 @@ extends CharacterBody2D
 signal health_changed(current_health: int, max_health: int)
 signal tool_changed(current_tool: String)
 
+const AnimationSetLoaderScript = preload("res://scripts/systems/AnimationSetLoader.gd")
+const PlayerAnimationControllerScript = preload("res://scripts/systems/PlayerAnimationController.gd")
 const TOOL_HANDS := "Hands"
 const TOOL_AXE := "Axe"
 const TOOL_PICKAXE := "Pickaxe"
@@ -18,19 +20,27 @@ const TOOL_RESOURCE_DAMAGE := 15
 @export var max_health: int = 100
 @export var attack_damage: int = 10
 @export var attack_range: float = 48.0
+@export var character_id: String = "player"
 
 var health: int = 100
 var spawn_position := Vector2.ZERO
 var initial_spawn_position := Vector2.ZERO
 var has_respawn_point := false
 var current_tool_index := 0
+var last_direction := "down"
+var animation_controller := PlayerAnimationControllerScript.new()
+var animation_set_loader := AnimationSetLoaderScript.new()
 var unlocked_tools := [
 	TOOL_HANDS,
 ]
 
+@onready var body_visual: CanvasItem = $Body
+@onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+
 
 func _ready() -> void:
 	add_to_group("player")
+	_setup_character_visual()
 	spawn_position = global_position
 	initial_spawn_position = global_position
 	health = max_health
@@ -84,6 +94,7 @@ func _physics_process(_delta: float) -> void:
 
 	velocity = direction.normalized() * speed
 	move_and_slide()
+	_update_movement_animation(direction)
 
 
 func take_damage(amount: int) -> void:
@@ -301,6 +312,40 @@ func _is_build_mode_enabled() -> bool:
 		return false
 
 	return build_system.is_build_mode_enabled()
+
+
+func _setup_character_visual() -> void:
+	animation_controller.setup(animated_sprite)
+	animated_sprite.sprite_frames = animation_set_loader.load_for_character(character_id)
+
+	if animation_controller.has_any_valid_animation():
+		animated_sprite.visible = true
+		body_visual.visible = false
+		animation_controller.play_if_available("idle_down")
+	else:
+		animated_sprite.visible = false
+		body_visual.visible = true
+
+
+func _update_movement_animation(input_direction: Vector2) -> void:
+	if not animation_controller.has_any_valid_animation():
+		return
+
+	if input_direction != Vector2.ZERO:
+		_update_last_direction(input_direction)
+		animation_controller.play_if_available("walk_%s" % last_direction)
+		return
+
+	animation_controller.play_if_available("idle_%s" % last_direction)
+
+
+func _update_last_direction(input_direction: Vector2) -> void:
+	var abs_x: float = abs(input_direction.x)
+	var abs_y: float = abs(input_direction.y)
+	if abs_x > abs_y:
+		last_direction = "right" if input_direction.x > 0.0 else "left"
+	elif abs_y > abs_x:
+		last_direction = "down" if input_direction.y > 0.0 else "up"
 
 
 func _die() -> void:

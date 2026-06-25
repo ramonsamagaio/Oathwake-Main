@@ -10,11 +10,13 @@ signal collected(resource_id: String, item_id: String, amount: int)
 @export var respawn_time_seconds: float = 60.0
 
 var display_name := "Resource"
+var sprite_id := ""
 var drop_item_id := ""
 var drop_amount := 1
 var health: int = 30
 var collected_state := false
 var respawn_time_left := 0.0
+var content_sprite: Sprite2D
 
 
 func _ready() -> void:
@@ -26,6 +28,7 @@ func _ready() -> void:
 		print("ResourceNode missing resource_id. Generated fallback id: %s" % resource_id)
 
 	_load_resource_data()
+	_apply_resource_sprite()
 	health = max_health
 
 
@@ -130,6 +133,93 @@ func _load_resource_data() -> void:
 	drop_item_id = str(resource_data.get("drop_item_id", drop_item_id))
 	drop_amount = int(resource_data.get("drop_amount", drop_amount))
 	respawn_time_seconds = float(resource_data.get("respawn_time_seconds", respawn_time_seconds))
+	sprite_id = str(resource_data.get("sprite_id", sprite_id))
+
+
+func _apply_resource_sprite() -> void:
+	if sprite_id.is_empty():
+		return
+
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("has_sprite") or not content_db.has_sprite(sprite_id):
+		push_warning("ResourceNode %s could not find sprite_id: %s" % [resource_id, sprite_id])
+		return
+
+	var sprite_data: Dictionary = content_db.get_sprite(sprite_id)
+	var texture_path := str(sprite_data.get("texture_path", ""))
+	if texture_path.is_empty() or not FileAccess.file_exists(texture_path):
+		push_warning("ResourceNode %s sprite has invalid texture_path: %s" % [resource_id, texture_path])
+		return
+
+	var texture = load(texture_path)
+	if not texture is Texture2D:
+		push_warning("ResourceNode %s sprite texture is not Texture2D: %s" % [resource_id, texture_path])
+		return
+
+	if content_sprite == null:
+		content_sprite = get_node_or_null("ContentSprite") as Sprite2D
+	if content_sprite == null:
+		content_sprite = Sprite2D.new()
+		content_sprite.name = "ContentSprite"
+		add_child(content_sprite)
+		move_child(content_sprite, 0)
+
+	content_sprite.texture = texture
+	content_sprite.centered = true
+	content_sprite.visible = true
+	_apply_sprite_region(content_sprite, sprite_data)
+	_apply_sprite_anchor(content_sprite, sprite_data)
+	_set_placeholder_visuals_visible(false)
+
+
+func _apply_sprite_region(sprite: Sprite2D, sprite_data: Dictionary) -> void:
+	sprite.region_enabled = bool(sprite_data.get("region_enabled", false))
+	if not sprite.region_enabled:
+		return
+
+	var region = sprite_data.get("region", {})
+	if not region is Dictionary:
+		return
+
+	sprite.region_rect = Rect2(
+		float(region.get("x", 0.0)),
+		float(region.get("y", 0.0)),
+		float(region.get("w", 32.0)),
+		float(region.get("h", 32.0))
+	)
+
+
+func _apply_sprite_anchor(sprite: Sprite2D, sprite_data: Dictionary) -> void:
+	var visual_size := _get_sprite_visual_size(sprite, sprite_data)
+	var anchor = sprite_data.get("anchor", {})
+	var anchor_position := Vector2(visual_size.x * 0.5, visual_size.y)
+	if anchor is Dictionary:
+		anchor_position = Vector2(
+			float(anchor.get("x", anchor_position.x)),
+			float(anchor.get("y", anchor_position.y))
+		)
+
+	sprite.offset = Vector2(
+		(visual_size.x * 0.5) - anchor_position.x,
+		(visual_size.y * 0.5) - anchor_position.y
+	)
+
+
+func _get_sprite_visual_size(sprite: Sprite2D, sprite_data: Dictionary) -> Vector2:
+	if sprite.region_enabled:
+		return sprite.region_rect.size
+
+	var frame_size = sprite_data.get("frame_size", {})
+	if frame_size is Dictionary:
+		return Vector2(
+			float(frame_size.get("w", sprite.texture.get_width())),
+			float(frame_size.get("h", sprite.texture.get_height()))
+		)
+
+	if sprite.texture != null:
+		return sprite.texture.get_size()
+
+	return Vector2(32, 32)
 
 
 func _get_fallback_resource_type_id() -> String:
@@ -164,3 +254,15 @@ func _set_collision_shapes_disabled(node: Node, is_disabled: bool) -> void:
 			child.disabled = is_disabled
 
 		_set_collision_shapes_disabled(child, is_disabled)
+
+
+func _set_placeholder_visuals_visible(is_visible: bool) -> void:
+	_set_placeholder_visuals_visible_recursive(self, is_visible)
+
+
+func _set_placeholder_visuals_visible_recursive(node: Node, is_visible: bool) -> void:
+	for child in node.get_children():
+		if child != content_sprite and child is Polygon2D:
+			child.visible = is_visible
+
+		_set_placeholder_visuals_visible_recursive(child, is_visible)

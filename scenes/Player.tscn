@@ -5,6 +5,8 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_player_collision"]
 radius = 12.0
 
+[sub_resource type="SpriteFrames" id="SpriteFrames_empty"]
+
 [node name="Player" type="CharacterBody2D" unique_id=1085074921]
 position = Vector2(0, -3)
 script = ExtResource("1_player_script")
@@ -12,6 +14,10 @@ script = ExtResource("1_player_script")
 [node name="Body" type="Polygon2D" parent="." unique_id=213101848]
 color = Color(0.22, 0.46, 0.95, 1)
 polygon = PackedVector2Array(0, -16, 12, -6, 10, 14, -10, 14, -12, -6)
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+visible = false
+sprite_frames = SubResource("SpriteFrames_empty")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=499730392]
 shape = SubResource("CircleShape2D_player_collision")

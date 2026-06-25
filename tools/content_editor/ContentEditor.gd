@@ -2,6 +2,7 @@ extends Control
 
 const ContentEditorData := preload("res://tools/content_editor/ContentEditorData.gd")
 const SpriteSheetPreviewScript := preload("res://tools/content_editor/SpriteSheetPreview.gd")
+const MIN_WINDOW_SIZE := Vector2i(1280, 800)
 const INITIAL_WINDOW_SIZE := Vector2i(1440, 900)
 
 var data_store = ContentEditorData.new()
@@ -46,6 +47,7 @@ var sprite_preview_rect: TextureRect
 var sprite_sheet_preview: Control
 var animation_grid_preview: Control
 var animation_preview_rect: TextureRect
+var character_preview_info_label: Label
 var texture_file_dialog: FileDialog
 var save_button: Button
 var revert_button: Button
@@ -59,6 +61,9 @@ func _ready() -> void:
 	_configure_content_editor_window()
 	_fit_root_to_viewport()
 	get_viewport().size_changed.connect(_fit_root_to_viewport)
+	var window := get_window()
+	if window != null:
+		window.size_changed.connect(_fit_root_to_viewport)
 	_build_ui()
 	set_process(true)
 
@@ -76,6 +81,7 @@ func _configure_content_editor_window() -> void:
 	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_RESIZE_DISABLED, false)
 	var window := get_window()
 	if window != null:
+		window.min_size = MIN_WINDOW_SIZE
 		window.content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
 		window.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_IGNORE
 		window.content_scale_size = Vector2i.ZERO
@@ -86,22 +92,37 @@ func _configure_content_editor_window() -> void:
 
 
 func _fit_root_to_viewport() -> void:
-	set_anchors_preset(Control.PRESET_TOP_LEFT, false)
+	set_anchors_preset(Control.PRESET_FULL_RECT, false)
+	offset_left = 0.0
+	offset_top = 0.0
+	offset_right = 0.0
+	offset_bottom = 0.0
 	position = Vector2.ZERO
-	size = get_viewport_rect().size
+	size = _get_editor_available_size()
+
+
+func _get_editor_available_size() -> Vector2:
+	var available_size := get_viewport_rect().size
+	var window := get_window()
+	if window != null:
+		var window_size := Vector2(window.size)
+		if window_size.x > available_size.x or window_size.y > available_size.y:
+			available_size = window_size
+
+	return available_size
 
 
 func _process(delta: float) -> void:
 	if not animation_preview_playing:
 		return
-	if current_section != ContentEditorData.SECTION_ANIMATION_SETS:
+	if current_section != ContentEditorData.SECTION_ANIMATION_SETS and current_section != ContentEditorData.SECTION_CHARACTERS:
 		return
 
-	var frames: Array = _get_selected_animation_frames()
+	var frames: Array = _get_current_preview_frames()
 	if frames.is_empty():
 		return
 
-	var fps: float = max(float(_get_spin_box_value("animation_fps")), 0.01)
+	var fps: float = max(_get_current_preview_fps(), 0.01)
 	animation_preview_elapsed += delta
 	if animation_preview_elapsed < 1.0 / fps:
 		return
@@ -109,17 +130,21 @@ func _process(delta: float) -> void:
 	animation_preview_elapsed = 0.0
 	animation_preview_frame_index += 1
 	if animation_preview_frame_index >= frames.size():
-		if _get_check_box_pressed("animation_loop"):
+		if _get_current_preview_loop():
 			animation_preview_frame_index = 0
 		else:
 			animation_preview_frame_index = frames.size() - 1
 			animation_preview_playing = false
 
-	_update_animation_preview_frame()
+	_update_current_preview_frame()
 
 
 func _build_ui() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	offset_left = 0.0
+	offset_top = 0.0
+	offset_right = 0.0
+	offset_bottom = 0.0
 
 	var margin_container := MarginContainer.new()
 	margin_container.name = "MarginContainer"
@@ -132,6 +157,7 @@ func _build_ui() -> void:
 
 	var main_layout := HSplitContainer.new()
 	main_layout.name = "MainLayout"
+	main_layout.split_offset = 160
 	main_layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	main_layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin_container.add_child(main_layout)
@@ -140,6 +166,7 @@ func _build_ui() -> void:
 
 	var content_split := HSplitContainer.new()
 	content_split.name = "ContentSplit"
+	content_split.split_offset = 460
 	content_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content_split.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	main_layout.add_child(content_split)
@@ -993,7 +1020,16 @@ func _add_character_animation_setup() -> void:
 	title.text = "Character Animation Setup"
 	form_container.add_child(title)
 
-	for animation_name in _get_required_character_animation_names():
+	_add_character_direction_mode_option()
+
+	var validate_button := Button.new()
+	validate_button.text = "Validate Character Animations"
+	validate_button.pressed.connect(_on_validate_character_animations_pressed)
+	form_container.add_child(validate_button)
+
+	_add_character_animation_tools()
+
+	for animation_name in _get_character_animation_slot_names():
 		_add_character_animation_slot(animation_name)
 
 	_add_preview_zoom_option("character_grid_zoom", _on_character_grid_zoom_selected)
@@ -1010,6 +1046,7 @@ func _add_character_animation_setup() -> void:
 	animation_preview_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_add_form_row("Character Preview", animation_preview_rect)
 	_update_character_preview_frame()
+	_add_character_preview_controls()
 
 
 func _add_character_animation_slot(animation_name: String) -> void:
@@ -1054,6 +1091,10 @@ func _add_character_animation_slot(animation_name: String) -> void:
 	frames_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	row.add_child(frames_label)
 
+	var status_label := Label.new()
+	status_label.text = "Status: %s" % _get_character_animation_status(animation_name, animation_data)
+	row.add_child(status_label)
+
 	var warning := _get_character_animation_warning(animation_name, animation_data)
 	if not warning.is_empty():
 		var warning_label := Label.new()
@@ -1082,6 +1123,153 @@ func _add_character_slot_loop(parent: Node, animation_name: String, value: bool)
 	check_box.button_pressed = value
 	check_box.toggled.connect(_on_character_slot_loop_changed.bind(animation_name))
 	parent.add_child(check_box)
+
+
+func _add_character_direction_mode_option() -> void:
+	var option_button := OptionButton.new()
+	var modes := {
+		"4 Directions": "4dir",
+		"8 Directions": "8dir",
+	}
+	var selected_mode := _get_character_direction_mode()
+	var selected_index := 0
+	for label in modes.keys():
+		var index := option_button.item_count
+		option_button.add_item(label)
+		option_button.set_item_metadata(index, modes[label])
+		if str(modes[label]) == selected_mode:
+			selected_index = index
+	option_button.select(selected_index)
+	option_button.item_selected.connect(_on_character_direction_mode_selected)
+	_add_form_row("Direction Mode", option_button)
+	field_controls["character_direction_mode"] = option_button
+
+
+func _add_character_animation_tools() -> void:
+	var row := HBoxContainer.new()
+	form_container.add_child(row)
+
+	var clear_button := Button.new()
+	clear_button.text = "Clear Current Animation"
+	clear_button.pressed.connect(_on_clear_current_character_animation_pressed)
+	row.add_child(clear_button)
+
+	var reset_fps_button := Button.new()
+	reset_fps_button.text = "Reset FPS Defaults"
+	reset_fps_button.pressed.connect(_on_reset_character_fps_defaults_pressed)
+	row.add_child(reset_fps_button)
+
+	var reset_count_button := Button.new()
+	reset_count_button.text = "Reset Frame Count Defaults"
+	reset_count_button.pressed.connect(_on_reset_character_frame_count_defaults_pressed)
+	row.add_child(reset_count_button)
+
+	_add_character_copy_tool()
+	_add_character_row_tool()
+	_add_character_range_tool()
+
+
+func _add_character_copy_tool() -> void:
+	var row := HBoxContainer.new()
+	form_container.add_child(row)
+
+	var label := Label.new()
+	label.text = "Copy Frames From"
+	label.custom_minimum_size = Vector2(160, 0)
+	row.add_child(label)
+
+	var option_button := OptionButton.new()
+	for animation_name in _get_character_available_animation_names():
+		var index := option_button.item_count
+		option_button.add_item(animation_name)
+		option_button.set_item_metadata(index, animation_name)
+	option_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(option_button)
+	field_controls["character_copy_source"] = option_button
+
+	var mode_button := OptionButton.new()
+	for mode in ["replace", "append"]:
+		var index := mode_button.item_count
+		mode_button.add_item(mode.capitalize())
+		mode_button.set_item_metadata(index, mode)
+	row.add_child(mode_button)
+	field_controls["character_apply_mode"] = mode_button
+
+	var copy_button := Button.new()
+	copy_button.text = "Copy"
+	copy_button.pressed.connect(_on_copy_character_frames_pressed)
+	row.add_child(copy_button)
+
+
+func _add_character_row_tool() -> void:
+	var row := HBoxContainer.new()
+	form_container.add_child(row)
+	_add_character_tool_spin(row, "character_row_index", "Row", 0)
+	_add_character_tool_spin(row, "character_row_start_column", "Start Col", 0)
+	_add_character_tool_spin(row, "character_row_end_column", "End Col", 3)
+
+	var button := Button.new()
+	button.text = "Add Row as Frames"
+	button.pressed.connect(_on_add_character_row_frames_pressed)
+	row.add_child(button)
+
+
+func _add_character_range_tool() -> void:
+	var row := HBoxContainer.new()
+	form_container.add_child(row)
+	_add_character_tool_spin(row, "character_range_start", "Start Frame", 0)
+	_add_character_tool_spin(row, "character_range_end", "End Frame", 3)
+
+	var button := Button.new()
+	button.text = "Add Range as Frames"
+	button.pressed.connect(_on_add_character_range_frames_pressed)
+	row.add_child(button)
+
+
+func _add_character_tool_spin(parent: Node, field_name: String, label_text: String, value: int) -> void:
+	var label := Label.new()
+	label.text = label_text
+	parent.add_child(label)
+
+	var spin_box := SpinBox.new()
+	spin_box.min_value = 0
+	spin_box.max_value = 999999
+	spin_box.step = 1
+	spin_box.value = value
+	parent.add_child(spin_box)
+	field_controls[field_name] = spin_box
+
+
+func _add_character_preview_controls() -> void:
+	var row := HBoxContainer.new()
+	form_container.add_child(row)
+
+	var play_button := Button.new()
+	play_button.text = "Play"
+	play_button.pressed.connect(_on_play_character_preview_pressed)
+	row.add_child(play_button)
+
+	var stop_button := Button.new()
+	stop_button.text = "Stop"
+	stop_button.pressed.connect(_on_stop_animation_preview_pressed)
+	row.add_child(stop_button)
+
+	var previous_button := Button.new()
+	previous_button.text = "Previous Frame"
+	previous_button.pressed.connect(_on_previous_character_frame_pressed)
+	row.add_child(previous_button)
+
+	var next_button := Button.new()
+	next_button.text = "Next Frame"
+	next_button.pressed.connect(_on_next_character_frame_pressed)
+	row.add_child(next_button)
+
+	_add_preview_zoom_option("character_preview_zoom", _on_character_preview_zoom_selected)
+
+	character_preview_info_label = Label.new()
+	character_preview_info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(character_preview_info_label)
+	_update_character_preview_info()
 
 
 func _add_mapping_apply_mode_option() -> void:
@@ -1114,6 +1302,7 @@ func _add_preview_zoom_option(field_name: String, callback: Callable) -> void:
 		"1x": 1.0,
 		"2x": 2.0,
 		"4x": 4.0,
+		"8x": 8.0,
 	}
 	for label in options.keys():
 		var index := option_button.item_count
@@ -1197,15 +1386,24 @@ func _add_detect_grid_button() -> void:
 
 
 func _add_scrollable_preview_row(label_text: String, preview_control: Control) -> void:
+	var row := VBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+	var label := Label.new()
+	label.text = label_text
+	row.add_child(label)
+
 	var scroll_container := ScrollContainer.new()
-	scroll_container.custom_minimum_size = Vector2(0, 360)
+	scroll_container.custom_minimum_size = Vector2(0, 420)
 	scroll_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll_container.add_child(preview_control)
 
 	preview_control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	preview_control.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_add_form_row(label_text, scroll_container)
+	row.add_child(scroll_container)
+	form_container.add_child(row)
 
 
 func _add_form_row(label_text: String, control: Control) -> void:
@@ -1638,7 +1836,7 @@ func _on_create_or_update_character_animation_set_pressed() -> void:
 func _on_create_required_character_animations_pressed() -> void:
 	_ensure_character_animation_set()
 	var animations := _get_character_animation_set_animations()
-	for animation_name in _get_required_character_animation_names():
+	for animation_name in _get_character_animation_slot_names():
 		if animations.has(animation_name):
 			continue
 
@@ -1649,7 +1847,118 @@ func _on_create_required_character_animations_pressed() -> void:
 
 	_build_form_for_current_record()
 	_mark_dirty()
-	_set_status("Created missing 4-direction animation slots.")
+	_set_status("Created missing character animation slots.")
+
+
+func _on_validate_character_animations_pressed() -> void:
+	var results := _validate_character_animations()
+	var has_errors := false
+	var warning_count := 0
+	for result in results:
+		var line := str(result)
+		if line.begins_with("ERROR"):
+			has_errors = true
+		elif line.begins_with("WARNING"):
+			warning_count += 1
+
+	print("\n".join(results))
+	if has_errors:
+		_set_status("Character validation found errors. Check console.", true)
+	elif warning_count > 0:
+		_set_status("Character validation found %d warning(s). Check console." % warning_count, false)
+	else:
+		_set_status("Character animations valid.")
+
+
+func _on_character_direction_mode_selected(index: int) -> void:
+	var option_button: OptionButton = field_controls["character_direction_mode"]
+	_set_character_direction_mode(str(option_button.get_item_metadata(index)))
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+func _on_clear_current_character_animation_pressed() -> void:
+	if active_character_animation_name.is_empty():
+		_set_status("Select an animation first.", true)
+		return
+
+	_on_clear_character_animation_pressed(active_character_animation_name)
+
+
+func _on_reset_character_fps_defaults_pressed() -> void:
+	_ensure_character_animation_set()
+	for animation_name in _get_character_animation_slot_names():
+		var animation_data := _get_character_animation_data(animation_name)
+		animation_data["fps"] = _get_default_animation_fps(animation_name)
+		_set_character_animation_data(animation_name, animation_data)
+
+	_build_form_for_current_record()
+	_mark_dirty()
+	_set_status("Reset character FPS defaults.")
+
+
+func _on_reset_character_frame_count_defaults_pressed() -> void:
+	_ensure_character_animation_set()
+	for animation_name in _get_character_animation_slot_names():
+		var animation_data := _get_character_animation_data(animation_name)
+		animation_data["frame_count"] = _get_default_character_frame_count(animation_name)
+		_set_character_animation_data(animation_name, animation_data)
+
+	_build_form_for_current_record()
+	_mark_dirty()
+	_set_status("Reset character frame count defaults.")
+
+
+func _on_copy_character_frames_pressed() -> void:
+	if active_character_animation_name.is_empty():
+		_set_status("Select a target animation first.", true)
+		return
+
+	var source_animation := _get_option_button_metadata("character_copy_source")
+	if source_animation.is_empty():
+		_set_status("Choose a source animation.", true)
+		return
+
+	var source_frames := _get_character_animation_frames(source_animation)
+	_apply_character_frames_to_active(source_frames)
+	_set_status("Copied frames from %s to %s." % [source_animation, active_character_animation_name])
+
+
+func _on_add_character_row_frames_pressed() -> void:
+	if active_character_animation_name.is_empty():
+		_set_status("Select a target animation first.", true)
+		return
+
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var columns := int(sheet_record.get("columns", 0))
+	if columns < 1:
+		_set_status("Sprite Sheet columns must be valid.", true)
+		return
+
+	var row_index := _get_spin_box_int("character_row_index")
+	var start_column := _get_spin_box_int("character_row_start_column")
+	var end_column := _get_spin_box_int("character_row_end_column")
+	var frames := []
+	for column in range(min(start_column, end_column), max(start_column, end_column) + 1):
+		frames.append((row_index * columns) + column)
+
+	_apply_character_frames_to_active(frames)
+	_set_status("Added row frames to %s." % active_character_animation_name)
+
+
+func _on_add_character_range_frames_pressed() -> void:
+	if active_character_animation_name.is_empty():
+		_set_status("Select a target animation first.", true)
+		return
+
+	var start_frame := _get_spin_box_int("character_range_start")
+	var end_frame := _get_spin_box_int("character_range_end")
+	var frames := []
+	for frame_index in range(min(start_frame, end_frame), max(start_frame, end_frame) + 1):
+		frames.append(frame_index)
+
+	_apply_character_frames_to_active(frames)
+	_set_status("Added range frames to %s." % active_character_animation_name)
 
 
 func _on_select_character_animation_pressed(animation_name: String) -> void:
@@ -1702,6 +2011,10 @@ func _on_character_grid_zoom_selected(_index: int) -> void:
 		return
 
 	animation_grid_preview.set_zoom_scale(_get_preview_zoom_scale("character_grid_zoom"))
+
+
+func _on_character_preview_zoom_selected(_index: int) -> void:
+	_update_character_preview_frame()
 
 
 func _on_character_grid_frame_clicked(frame_index: int, mouse_button: int) -> void:
@@ -1772,6 +2085,46 @@ func _on_next_animation_frame_pressed() -> void:
 	animation_preview_playing = false
 	animation_preview_frame_index = min(animation_preview_frame_index + 1, frames.size() - 1)
 	_update_animation_preview_frame()
+
+
+func _on_play_character_preview_pressed() -> void:
+	if active_character_animation_name.is_empty():
+		active_character_animation_name = "idle_down"
+
+	var frames := _get_character_animation_frames(active_character_animation_name)
+	if frames.is_empty():
+		_set_status("Animation has no frames.", true)
+		_update_character_preview_info("Animation has no frames.")
+		return
+
+	animation_preview_playing = true
+	animation_preview_elapsed = 0.0
+	animation_preview_frame_index = clamp(animation_preview_frame_index, 0, frames.size() - 1)
+	_update_character_preview_frame()
+
+
+func _on_previous_character_frame_pressed() -> void:
+	var frames := _get_character_animation_frames(active_character_animation_name)
+	if frames.is_empty():
+		_set_status("Animation has no frames.", true)
+		_update_character_preview_info("Animation has no frames.")
+		return
+
+	animation_preview_playing = false
+	animation_preview_frame_index = max(animation_preview_frame_index - 1, 0)
+	_update_character_preview_frame()
+
+
+func _on_next_character_frame_pressed() -> void:
+	var frames := _get_character_animation_frames(active_character_animation_name)
+	if frames.is_empty():
+		_set_status("Animation has no frames.", true)
+		_update_character_preview_info("Animation has no frames.")
+		return
+
+	animation_preview_playing = false
+	animation_preview_frame_index = min(animation_preview_frame_index + 1, frames.size() - 1)
+	_update_character_preview_frame()
 
 
 func _on_helper_add_row_pressed() -> void:
@@ -3120,6 +3473,7 @@ func _get_animation_set_form_record() -> Dictionary:
 			"x": _get_spin_box_int("anchor_x"),
 			"y": _get_spin_box_int("anchor_y"),
 		},
+		"direction_mode": str(current_record.get("direction_mode", "4dir")),
 		"animations": _get_animation_set_animations().duplicate(true),
 	}
 
@@ -3291,6 +3645,7 @@ func _ensure_character_animation_set() -> void:
 				"x": 32,
 				"y": 44,
 			},
+			"direction_mode": "4dir",
 			"animations": {},
 		}
 		data_store.set_record(ContentEditorData.SECTION_ANIMATION_SETS, "", selected_animation_set_id, animation_set_record)
@@ -3348,6 +3703,43 @@ func _set_character_animation_data(animation_name: String, animation_data: Dicti
 	animations[animation_name] = animation_data
 	animation_set_record["animations"] = animations
 	data_store.set_record(ContentEditorData.SECTION_ANIMATION_SETS, selected_animation_set_id, selected_animation_set_id, animation_set_record)
+
+
+func _get_character_direction_mode() -> String:
+	var animation_set_record := _get_character_animation_set_record()
+	return str(animation_set_record.get("direction_mode", "4dir")) if not animation_set_record.is_empty() else "4dir"
+
+
+func _set_character_direction_mode(direction_mode: String) -> void:
+	_ensure_character_animation_set()
+	var animation_set_record := _get_character_animation_set_record()
+	if animation_set_record.is_empty():
+		return
+
+	animation_set_record["direction_mode"] = direction_mode if direction_mode == "8dir" else "4dir"
+	data_store.set_record(ContentEditorData.SECTION_ANIMATION_SETS, selected_animation_set_id, selected_animation_set_id, animation_set_record)
+
+
+func _apply_character_frames_to_active(frames: Array) -> void:
+	_ensure_character_animation_set()
+	var animation_data := _get_character_animation_data(active_character_animation_name)
+	var mode := _get_option_button_metadata("character_apply_mode")
+	if mode == "append":
+		var existing_frames = animation_data.get("frames", [])
+		if not existing_frames is Array:
+			existing_frames = []
+		for frame in frames:
+			existing_frames.append(int(frame))
+		animation_data["frames"] = existing_frames
+	else:
+		var clean_frames := []
+		for frame in frames:
+			clean_frames.append(int(frame))
+		animation_data["frames"] = clean_frames
+
+	_set_character_animation_data(active_character_animation_name, animation_data)
+	_build_form_for_current_record()
+	_mark_dirty()
 
 
 func _make_character_animation_data(animation_name: String, frames: Array) -> Dictionary:
@@ -3497,16 +3889,71 @@ func _update_character_preview_frame() -> void:
 		return
 
 	if active_character_animation_name.is_empty():
-		animation_preview_rect.texture = null
+		_update_character_preview_info("Choose an animation to preview.")
 		return
 
 	var frames := _get_character_animation_frames(active_character_animation_name)
 	if frames.is_empty():
-		animation_preview_rect.texture = null
+		_update_character_preview_info("Animation has no frames.")
 		return
 
 	animation_preview_frame_index = clamp(animation_preview_frame_index, 0, frames.size() - 1)
 	animation_preview_rect.texture = _make_frame_texture(frames[animation_preview_frame_index])
+	var zoom_scale := _get_preview_zoom_scale("character_preview_zoom")
+	if zoom_scale > 0.0 and animation_preview_rect.texture != null:
+		animation_preview_rect.custom_minimum_size = animation_preview_rect.texture.get_size() * zoom_scale
+	else:
+		animation_preview_rect.custom_minimum_size = Vector2(180, 180)
+	_update_character_preview_info()
+
+
+func _update_current_preview_frame() -> void:
+	if current_section == ContentEditorData.SECTION_CHARACTERS:
+		_update_character_preview_frame()
+	else:
+		_update_animation_preview_frame()
+
+
+func _get_current_preview_frames() -> Array:
+	if current_section == ContentEditorData.SECTION_CHARACTERS:
+		return _get_character_animation_frames(active_character_animation_name)
+
+	return _get_selected_animation_frames()
+
+
+func _get_current_preview_fps() -> float:
+	if current_section != ContentEditorData.SECTION_CHARACTERS:
+		return float(_get_spin_box_value("animation_fps"))
+
+	var animation_data := _get_character_animation_data(active_character_animation_name)
+	return float(animation_data.get("fps", _get_default_animation_fps(active_character_animation_name)))
+
+
+func _get_current_preview_loop() -> bool:
+	if current_section != ContentEditorData.SECTION_CHARACTERS:
+		return _get_check_box_pressed("animation_loop")
+
+	var animation_data := _get_character_animation_data(active_character_animation_name)
+	return bool(animation_data.get("loop", true))
+
+
+func _update_character_preview_info(extra_message := "") -> void:
+	if character_preview_info_label == null:
+		return
+
+	var animation_data := _get_character_animation_data(active_character_animation_name)
+	var lines := [
+		"animation_set_id: %s" % selected_animation_set_id,
+		"sprite_sheet_id: %s" % selected_sprite_sheet_id,
+		"current_animation: %s" % active_character_animation_name,
+		"current_frame_index: %d" % animation_preview_frame_index,
+		"fps: %s" % str(animation_data.get("fps", "-")),
+		"loop: %s" % str(animation_data.get("loop", "-")),
+	]
+	if not extra_message.is_empty():
+		lines.append(extra_message)
+
+	character_preview_info_label.text = "\n".join(lines)
 
 
 func _get_character_animation_frames(animation_name: String) -> Array:
@@ -3692,6 +4139,38 @@ func _get_required_character_animation_names() -> Array:
 	]
 
 
+func _get_diagonal_character_animation_names() -> Array:
+	return [
+		"idle_down_left",
+		"idle_down_right",
+		"idle_up_left",
+		"idle_up_right",
+		"walk_down_left",
+		"walk_down_right",
+		"walk_up_left",
+		"walk_up_right",
+	]
+
+
+func _get_character_animation_slot_names() -> Array:
+	var names := _get_required_character_animation_names()
+	if _get_character_direction_mode() == "8dir":
+		names.append_array(_get_diagonal_character_animation_names())
+
+	return names
+
+
+func _get_character_available_animation_names() -> Array:
+	var names := _get_character_animation_slot_names()
+	var animations := _get_character_animation_set_animations()
+	for animation_name in animations.keys():
+		var clean_name := str(animation_name)
+		if not names.has(clean_name):
+			names.append(clean_name)
+	names.sort()
+	return names
+
+
 func _get_default_character_frame_count(animation_name: String) -> int:
 	if animation_name.begins_with("walk"):
 		return 6
@@ -3704,11 +4183,129 @@ func _get_character_animation_warning(animation_name: String, animation_data: Di
 	if not frames is Array:
 		return "Warning: frames is not a list."
 
+	if frames.is_empty():
+		return "Warning: animation has no frames."
+
+	if _has_invalid_character_frame(frames):
+		return "Error: animation has frame outside Sprite Sheet range."
+
 	var frame_count := int(animation_data.get("frame_count", _get_default_character_frame_count(animation_name)))
 	if frames.size() < frame_count:
 		return "Warning: %d/%d frames selected." % [frames.size(), frame_count]
 
+	if animation_name.begins_with("walk") and frames.size() == 1:
+		return "Warning: walk animation has only 1 frame."
+
 	return ""
+
+
+func _get_character_animation_status(animation_name: String, animation_data: Dictionary) -> String:
+	var frames = animation_data.get("frames", [])
+	if not frames is Array:
+		return "Invalid frame"
+	if frames.is_empty():
+		return "Empty"
+	if _has_invalid_character_frame(frames):
+		return "Invalid frame"
+
+	var frame_count := int(animation_data.get("frame_count", _get_default_character_frame_count(animation_name)))
+	if frames.size() < frame_count:
+		return "Missing frames"
+
+	return "Complete"
+
+
+func _has_invalid_character_frame(frames: Array) -> bool:
+	var total_frames := _get_selected_sprite_sheet_total_frames()
+	if total_frames < 1:
+		return false
+
+	for frame in frames:
+		var frame_index := int(frame)
+		if frame_index < 0 or frame_index >= total_frames:
+			return true
+
+	return false
+
+
+func _get_selected_sprite_sheet_total_frames() -> int:
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var total_frames := int(sheet_record.get("total_frames", 0))
+	if total_frames > 0:
+		return total_frames
+
+	return int(sheet_record.get("columns", 0)) * int(sheet_record.get("rows", 0))
+
+
+func _validate_character_animations() -> Array:
+	var results := []
+	var character_id := _get_line_edit_text("id")
+	if character_id.is_empty():
+		results.append("ERROR: Character id is empty.")
+
+	if selected_sprite_sheet_id.is_empty():
+		results.append("ERROR: Character has no sprite_sheet_id.")
+	elif not data_store.has_record(ContentEditorData.SECTION_SPRITES, selected_sprite_sheet_id):
+		results.append("ERROR: Sprite Sheet does not exist: %s" % selected_sprite_sheet_id)
+
+	if selected_animation_set_id.is_empty():
+		results.append("ERROR: Character has no animation_set_id.")
+	elif not data_store.has_record(ContentEditorData.SECTION_ANIMATION_SETS, selected_animation_set_id):
+		results.append("ERROR: Animation Set does not exist: %s" % selected_animation_set_id)
+
+	var sheet_record := _get_selected_sprite_sheet_record()
+	if not sheet_record.is_empty():
+		if int(sheet_record.get("frame_width", 0)) < 1:
+			results.append("ERROR: Sprite Sheet frame_width must be valid.")
+		if int(sheet_record.get("frame_height", 0)) < 1:
+			results.append("ERROR: Sprite Sheet frame_height must be valid.")
+		if int(sheet_record.get("columns", 0)) < 1:
+			results.append("ERROR: Sprite Sheet columns must be valid.")
+		if int(sheet_record.get("rows", 0)) < 1:
+			results.append("ERROR: Sprite Sheet rows must be valid.")
+
+	var animations := _get_character_animation_set_animations()
+	var total_frames := _get_selected_sprite_sheet_total_frames()
+	for animation_name in _get_character_animation_slot_names():
+		if not animations.has(animation_name):
+			results.append("ERROR: Missing required animation: %s" % animation_name)
+			continue
+
+		var animation_data = animations[animation_name]
+		if not animation_data is Dictionary:
+			results.append("ERROR: Animation %s data is invalid." % animation_name)
+			continue
+
+		var frame_count := int(animation_data.get("frame_count", 0))
+		if frame_count < 1:
+			results.append("ERROR: %s frame_count must be >= 1." % animation_name)
+		if float(animation_data.get("fps", 0.0)) <= 0.0:
+			results.append("ERROR: %s fps must be > 0." % animation_name)
+		if not animation_data.has("loop"):
+			results.append("WARNING: %s loop is not defined." % animation_name)
+
+		var frames = animation_data.get("frames", [])
+		if not frames is Array:
+			results.append("ERROR: %s frames must be a list." % animation_name)
+			continue
+
+		if frames.is_empty():
+			results.append("WARNING: %s has no frames." % animation_name)
+		elif frames.size() < frame_count:
+			results.append("WARNING: %s has %d/%d frames." % [animation_name, frames.size(), frame_count])
+
+		if animation_name.begins_with("walk") and frames.size() == 1:
+			results.append("WARNING: %s has only 1 frame." % animation_name)
+
+		for frame in frames:
+			var frame_index := int(frame)
+			if frame_index < 0 or (total_frames > 0 and frame_index >= total_frames):
+				results.append("ERROR: %s has frame outside range: %d." % [animation_name, frame_index])
+
+	if results.is_empty():
+		results.append("OK: Character animations are valid.")
+
+	return results
 
 
 func _get_default_item_id() -> String:

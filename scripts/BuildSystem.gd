@@ -18,7 +18,7 @@ const INVALID_PREVIEW_COLOR := Color(0.90, 0.12, 0.10, 0.55)
 
 @export var tile_size: Vector2i = Vector2i(32, 32)
 @export var main_path: NodePath = ".."
-@export var player_path: NodePath = "../Player"
+@export var player_path: NodePath = "../World/Player"
 @export var build_layer_path: NodePath = "../World/BuildLayer"
 @export var ground_layer_path: NodePath = "../World/GroundLayer"
 @export var obstacle_layer_path: NodePath = "../World/ObstacleLayer"

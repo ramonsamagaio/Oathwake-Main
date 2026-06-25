@@ -3,7 +3,7 @@ extends Node
 const RecipeBookScript = preload("res://scripts/systems/RecipeBook.gd")
 
 @export var main_path: NodePath = ".."
-@export var player_path: NodePath = "../Player"
+@export var player_path: NodePath = "../World/Player"
 @export var build_system_path: NodePath = "../BuildSystem"
 @export var crafting_label_path: NodePath = "../UI/CraftingLabel"
 @export var workbench_range: float = 72.0
