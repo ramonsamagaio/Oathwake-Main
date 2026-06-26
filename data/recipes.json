@@ -45,5 +45,21 @@
 			"wood": 6,
 			"gel": 2
 		}
+	},
+	"chest": {
+		"display_name": "Chest",
+		"type": "building",
+		"tier": 1,
+		"workstation": "workbench",
+		"output_item_id": "chest",
+		"output_amount": 1,
+		"scene_path": "res://scenes/buildings/Chest.tscn",
+		"cost": {
+			"wood": 10,
+			"stone": 2
+		},
+		"placement_cost": {
+			"chest": 1
+		}
 	}
 }

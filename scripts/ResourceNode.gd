@@ -4,6 +4,7 @@ signal collected(resource_id: String, item_id: String, amount: int)
 
 const GatheringCalculatorScript := preload("res://scripts/systems/GatheringCalculator.gd")
 const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextSpawner.gd")
+const WorldItemSpawner := preload("res://scripts/systems/WorldItemSpawner.gd")
 
 @export var resource_id: String = ""
 @export var resource_type_id: String = ""
@@ -198,16 +199,22 @@ func _get_resource_data() -> Dictionary:
 
 func _emit_resource_drops() -> void:
 	var dropped_any := false
+	var drop_results := []
 	for drop_entry in _roll_drop_table(_get_resource_data().get("base_drops", [])):
-		collected.emit(resource_id, str(drop_entry.get("item_id", "")), int(drop_entry.get("amount", 0)))
+		drop_results.append(drop_entry)
 		dropped_any = true
 
 	for drop_entry in _roll_drop_table(_get_resource_data().get("rare_drops", [])):
-		collected.emit(resource_id, str(drop_entry.get("item_id", "")), int(drop_entry.get("amount", 0)))
+		drop_results.append(drop_entry)
 		dropped_any = true
 
 	if not dropped_any:
-		collected.emit(resource_id, drop_item_id, drop_amount)
+		drop_results.append({
+			"item_id": drop_item_id,
+			"amount": drop_amount,
+		})
+
+	WorldItemSpawner.spawn_drops(drop_results, global_position)
 
 
 func _roll_drop_table(drop_rows_value: Variant) -> Array:

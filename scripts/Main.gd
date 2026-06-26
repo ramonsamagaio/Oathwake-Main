@@ -36,6 +36,7 @@ var player_stat_spin_boxes := {}
 @onready var close_monster_spawn_button: Button = $UI/MonsterSpawnPanel/CloseButton
 @onready var monster_spawn_list: VBoxContainer = $UI/MonsterSpawnPanel/SpawnScroll/MonsterList
 @onready var inventory_ui = $UI/InventoryUI
+@onready var storage_ui = $UI/StorageUI
 @onready var hotbar_ui = $UI/HotbarUI
 @onready var character_status_ui = $UI/CharacterStatusUI
 @onready var player = $World/Player
@@ -57,6 +58,7 @@ func _ready() -> void:
 	housing_system.changed.connect(_on_housing_changed)
 	settlement_manager.changed.connect(_update_settlement_labels)
 	inventory_ui.set_inventory(inventory)
+	storage_ui.setup(inventory, player)
 	hotbar_ui.setup(inventory, player)
 	character_status_ui.setup(player)
 	save_button.pressed.connect(save_game)
@@ -114,7 +116,20 @@ func _on_resource_collected(resource_id: String, item_id: String, amount: int) -
 
 
 func add_resource(resource_name: String, amount: int) -> void:
-	inventory.add_item(resource_name, amount)
+	var leftover := add_item_to_inventory(resource_name, amount)
+	if leftover > 0:
+		print("Inventory full. Could not add %d %s" % [leftover, resource_name])
+
+
+func add_item_to_inventory(item_id: String, amount: int) -> int:
+	return inventory.add_item(item_id, amount)
+
+
+func open_storage(storage_node) -> void:
+	if build_system != null and build_system.has_method("set_build_mode_enabled"):
+		build_system.set_build_mode_enabled(false)
+	if storage_ui != null and storage_ui.has_method("open_storage"):
+		storage_ui.open_storage(storage_node)
 
 
 func can_spend_resource(resource_name: String, amount: int) -> bool:
@@ -128,6 +143,7 @@ func spend_resource(resource_name: String, amount: int) -> bool:
 func save_game() -> void:
 	var save_data := {
 		"inventory": inventory.get_all_items(),
+		"inventory_slots": inventory.get_slots(),
 		"walls": build_system.get_built_wall_cells(),
 		"buildings": build_system.get_built_buildings(),
 		"respawning_resources": _get_respawning_resources(),
@@ -152,11 +168,14 @@ func load_game() -> void:
 		return
 
 	var save_data: Dictionary = save_result.get("data", {})
-	var inventory_data = save_data.get("inventory", {})
-	if not inventory_data is Dictionary:
-		inventory_data = {}
-
-	_load_inventory(inventory_data)
+	var inventory_slots = save_data.get("inventory_slots", [])
+	if inventory_slots is Array:
+		inventory.set_slots(inventory_slots)
+	else:
+		var inventory_data = save_data.get("inventory", {})
+		if not inventory_data is Dictionary:
+			inventory_data = {}
+		_load_inventory(inventory_data)
 	inventory_ui.refresh()
 
 	var buildings = save_data.get("buildings", [])

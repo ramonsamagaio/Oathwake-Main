@@ -24,6 +24,8 @@ var production_timers := {}
 func _ready() -> void:
 	add_to_group("npc")
 	add_to_group("npcs")
+	collision_layer = 0
+	collision_mask = 0
 	_load_npc_data()
 
 
@@ -33,7 +35,6 @@ func _process(delta: float) -> void:
 
 func _physics_process(_delta: float) -> void:
 	velocity = Vector2.ZERO
-	move_and_slide()
 
 
 func try_interact_with_player(player_node: Node2D) -> bool:

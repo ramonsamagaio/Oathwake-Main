@@ -1,27 +1,27 @@
 {
 	"player": {
-		"display_name": "Player",
-		"sprite_sheet_id": "player_base",
 		"animation_set_id": "player_base_body",
-		"level": 1,
-		"base_stats": {
-			"str": 6,
-			"dex": 5,
-			"agi": 5,
-			"vit": 6,
-			"wis": 3,
-			"int": 3,
-			"luk": 4
-		},
 		"base_combat": {
-			"base_attack": 2,
-			"base_defense": 1,
-			"base_magic_defense": 1,
-			"base_hit": 75,
-			"base_flee": 5,
+			"attack_cooldown": 0.7,
+			"base_attack": 2.0,
 			"base_crit_chance": 0.03,
 			"base_crit_damage": 1.5,
-			"attack_cooldown": 0.7
-		}
+			"base_defense": 1.0,
+			"base_flee": 5.0,
+			"base_hit": 75.0,
+			"base_magic_defense": 1.0
+		},
+		"base_stats": {
+			"agi": 5.0,
+			"dex": 5.0,
+			"int": 3.0,
+			"luk": 4.0,
+			"str": 6.0,
+			"vit": 6.0,
+			"wis": 3.0
+		},
+		"display_name": "Player",
+		"level": 1.0,
+		"sprite_sheet_id": "player_base"
 	}
 }

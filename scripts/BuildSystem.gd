@@ -6,14 +6,18 @@ const BUILD_TYPE_WALL := RecipeBookScript.WALL_ID
 const BUILD_TYPE_CAMPFIRE := RecipeBookScript.CAMPFIRE_ID
 const BUILD_TYPE_WORKBENCH := RecipeBookScript.WORKBENCH_ID
 const BUILD_TYPE_BED := RecipeBookScript.BED_ID
+const BUILD_TYPE_CHEST := RecipeBookScript.CHEST_ID
+const ChestScene := preload("res://scenes/buildings/Chest.tscn")
 const WALL_TILE := Vector2i(2, 0)
 const CAMPFIRE_TILE := Vector2i(3, 0)
 const WORKBENCH_TILE := Vector2i(4, 0)
 const BED_TILE := Vector2i(5, 0)
+const CHEST_TILE := Vector2i(2, 0)
 const VALID_PREVIEW_COLOR := Color(0.50, 0.32, 0.18, 0.55)
 const VALID_CAMPFIRE_PREVIEW_COLOR := Color(0.88, 0.34, 0.10, 0.55)
 const VALID_WORKBENCH_PREVIEW_COLOR := Color(0.44, 0.28, 0.14, 0.55)
 const VALID_BED_PREVIEW_COLOR := Color(0.42, 0.34, 0.62, 0.55)
+const VALID_CHEST_PREVIEW_COLOR := Color(0.55, 0.34, 0.12, 0.55)
 const INVALID_PREVIEW_COLOR := Color(0.90, 0.12, 0.10, 0.55)
 
 @export var tile_size: Vector2i = Vector2i(32, 32)
@@ -31,7 +35,9 @@ var selected_build_type := BUILD_TYPE_WALL
 var preview: Polygon2D
 var recipe_book := RecipeBookScript.new()
 var building_metadata_by_cell := {}
+var building_scene_by_cell := {}
 var next_bed_id := 1
+var next_chest_id := 1
 
 @onready var main = get_node(main_path)
 @onready var player: CharacterBody2D = get_node(player_path)
@@ -40,10 +46,12 @@ var next_bed_id := 1
 @onready var obstacle_layer: TileMapLayer = get_node(obstacle_layer_path)
 @onready var resources_root: Node2D = get_node(resources_root_path)
 @onready var build_label: Label = get_node(build_label_path)
+var buildings_root: Node2D
 
 
 func _ready() -> void:
 	add_to_group("build_system")
+	buildings_root = _get_or_create_buildings_root()
 
 	if build_layer.tile_set != null:
 		tile_size = build_layer.tile_set.tile_size
@@ -121,6 +129,7 @@ func _try_place_building(tile_position: Vector2i, building_type: String) -> bool
 	_spend_building_cost(building_type)
 	build_layer.set_cell(tile_position, SOURCE_ID, _get_building_tile(building_type))
 	_create_building_metadata(tile_position, building_type)
+	_spawn_building_scene(tile_position, building_type)
 	print("Built %s at tile %s" % [_get_building_display_name(building_type), tile_position])
 	_update_preview()
 	return true
@@ -136,8 +145,14 @@ func _try_remove_building(tile_position: Vector2i) -> bool:
 		print("There is no player-built construction here.")
 		return false
 
+	_sync_building_metadata(tile_position)
 	var building_position := build_layer.to_global(_grid_cell_to_local_center(tile_position))
 	var metadata := _get_building_metadata(tile_position)
+	if building_type == BUILD_TYPE_CHEST and _has_items_in_storage_slots(metadata.get("storage_slots", [])):
+		print("Empty the Chest before removing it.")
+		return false
+
+	_remove_building_scene(tile_position)
 	build_layer.erase_cell(tile_position)
 	building_metadata_by_cell.erase(_cell_key(tile_position))
 	_refund_building_cost(building_type)
@@ -156,6 +171,7 @@ func get_built_buildings() -> Array:
 		if building_type.is_empty():
 			continue
 
+		_sync_building_metadata(cell)
 		buildings.append({
 			"type": building_type,
 			"x": cell.x,
@@ -169,6 +185,7 @@ func load_built_buildings(buildings: Array) -> void:
 	_clear_built_buildings()
 	building_metadata_by_cell.clear()
 	next_bed_id = 1
+	next_chest_id = 1
 
 	for building in buildings:
 		if not building is Dictionary:
@@ -184,6 +201,7 @@ func load_built_buildings(buildings: Array) -> void:
 		)
 		build_layer.set_cell(tile_position, SOURCE_ID, _get_building_tile(building_type))
 		_load_building_metadata(tile_position, building_type, building)
+		_spawn_building_scene(tile_position, building_type)
 
 	_update_preview()
 
@@ -276,12 +294,22 @@ func _clear_built_buildings() -> void:
 	for cell in build_layer.get_used_cells():
 		if not _get_building_type_at_tile(cell).is_empty():
 			build_layer.erase_cell(cell)
+	for cell_key in building_scene_by_cell.keys():
+		var building_scene = building_scene_by_cell[cell_key]
+		if building_scene is Node:
+			building_scene.queue_free()
+	building_scene_by_cell.clear()
 	building_metadata_by_cell.clear()
 
 
 func _get_building_type_at_tile(tile_position: Vector2i) -> String:
 	if build_layer.get_cell_source_id(tile_position) != SOURCE_ID:
 		return ""
+
+	var metadata := _get_building_metadata(tile_position)
+	var metadata_type := str(metadata.get("type", ""))
+	if not metadata_type.is_empty():
+		return metadata_type
 
 	var atlas_coords := build_layer.get_cell_atlas_coords(tile_position)
 	if atlas_coords == WALL_TILE:
@@ -305,6 +333,8 @@ func _get_building_tile(building_type: String) -> Vector2i:
 		return WORKBENCH_TILE
 	if building_type == BUILD_TYPE_BED:
 		return BED_TILE
+	if building_type == BUILD_TYPE_CHEST:
+		return CHEST_TILE
 
 	return WALL_TILE
 
@@ -316,6 +346,8 @@ func _is_known_building_type(building_type: String) -> bool:
 
 func _get_building_cost(building_type: String) -> Array:
 	building_type = _normalize_building_type(building_type)
+	if recipe_book.has_method("get_build_cost"):
+		return recipe_book.get_build_cost(building_type)
 	return recipe_book.get_cost(building_type)
 
 
@@ -572,6 +604,8 @@ func _get_preview_color() -> Color:
 		return VALID_WORKBENCH_PREVIEW_COLOR
 	if selected_build_type == BUILD_TYPE_BED:
 		return VALID_BED_PREVIEW_COLOR
+	if selected_build_type == BUILD_TYPE_CHEST:
+		return VALID_CHEST_PREVIEW_COLOR
 
 	return VALID_PREVIEW_COLOR
 
@@ -604,6 +638,7 @@ func _get_building_ui_order() -> Array:
 		BUILD_TYPE_CAMPFIRE,
 		BUILD_TYPE_WORKBENCH,
 		BUILD_TYPE_BED,
+		BUILD_TYPE_CHEST,
 	]
 
 
@@ -617,6 +652,8 @@ func _get_building_key_text(building_type: String) -> String:
 		return "3"
 	if build_key == KEY_4:
 		return "4"
+	if build_key == KEY_5:
+		return "5"
 
 	return "?"
 
@@ -655,31 +692,50 @@ func _join_lines_with_separator(lines: Array, separator: String) -> String:
 
 
 func _create_building_metadata(tile_position: Vector2i, building_type: String) -> void:
-	if building_type != BUILD_TYPE_BED:
-		return
-
-	var bed_id := "bed_%03d" % next_bed_id
-	next_bed_id += 1
-	building_metadata_by_cell[_cell_key(tile_position)] = {
-		"bed_id": bed_id,
-		"occupied_by_npc_id": "",
+	var metadata := {
+		"type": building_type,
 	}
+
+	if building_type == BUILD_TYPE_BED:
+		var bed_id := "bed_%03d" % next_bed_id
+		next_bed_id += 1
+		metadata["bed_id"] = bed_id
+		metadata["occupied_by_npc_id"] = ""
+
+	if building_type == BUILD_TYPE_CHEST:
+		var chest_id := "chest_%03d" % next_chest_id
+		next_chest_id += 1
+		metadata["storage_id"] = chest_id
+		metadata["storage_slots"] = []
+
+	building_metadata_by_cell[_cell_key(tile_position)] = metadata
 
 
 func _load_building_metadata(tile_position: Vector2i, building_type: String, building: Dictionary) -> void:
-	if building_type != BUILD_TYPE_BED:
-		return
-
-	var bed_id := str(building.get("bed_id", ""))
-	if bed_id.is_empty():
-		bed_id = "bed_%03d" % next_bed_id
-
-	var occupied_by_npc_id := str(building.get("occupied_by_npc_id", ""))
-	building_metadata_by_cell[_cell_key(tile_position)] = {
-		"bed_id": bed_id,
-		"occupied_by_npc_id": occupied_by_npc_id,
+	var metadata := {
+		"type": building_type,
 	}
-	next_bed_id = max(next_bed_id, _get_bed_id_number(bed_id) + 1)
+
+	if building_type == BUILD_TYPE_BED:
+		var bed_id := str(building.get("bed_id", ""))
+		if bed_id.is_empty():
+			bed_id = "bed_%03d" % next_bed_id
+
+		var occupied_by_npc_id := str(building.get("occupied_by_npc_id", ""))
+		metadata["bed_id"] = bed_id
+		metadata["occupied_by_npc_id"] = occupied_by_npc_id
+		next_bed_id = max(next_bed_id, _get_bed_id_number(bed_id) + 1)
+
+	if building_type == BUILD_TYPE_CHEST:
+		var storage_id := str(building.get("storage_id", ""))
+		if storage_id.is_empty():
+			storage_id = "chest_%03d" % next_chest_id
+		metadata["storage_id"] = storage_id
+		var storage_slots: Variant = building.get("storage_slots", [])
+		metadata["storage_slots"] = storage_slots if storage_slots is Array else []
+		next_chest_id = max(next_chest_id, _get_chest_id_number(storage_id) + 1)
+
+	building_metadata_by_cell[_cell_key(tile_position)] = metadata
 
 
 func _get_building_metadata(tile_position: Vector2i) -> Dictionary:
@@ -699,3 +755,95 @@ func _get_bed_id_number(bed_id: String) -> int:
 		return 0
 
 	return int(bed_id.trim_prefix("bed_"))
+
+
+func _get_chest_id_number(chest_id: String) -> int:
+	if not chest_id.begins_with("chest_"):
+		return 0
+
+	return int(chest_id.trim_prefix("chest_"))
+
+
+func _spawn_building_scene(tile_position: Vector2i, building_type: String) -> void:
+	if building_type != BUILD_TYPE_CHEST:
+		return
+
+	if buildings_root == null:
+		buildings_root = _get_or_create_buildings_root()
+	if buildings_root == null:
+		return
+
+	var cell_key := _cell_key(tile_position)
+	_remove_building_scene(tile_position)
+	var chest: Node = ChestScene.instantiate()
+	buildings_root.add_child(chest)
+	chest.global_position = build_layer.to_global(_grid_cell_to_local_center(tile_position))
+
+	var metadata := _get_building_metadata(tile_position)
+	if chest.has_method("set_storage_id"):
+		chest.set_storage_id(str(metadata.get("storage_id", "")))
+	var storage_slots: Variant = metadata.get("storage_slots", [])
+	if storage_slots is Array and chest.has_method("set_storage_slots"):
+		chest.set_storage_slots(storage_slots)
+
+	building_scene_by_cell[cell_key] = chest
+
+
+func _remove_building_scene(tile_position: Vector2i) -> void:
+	var cell_key := _cell_key(tile_position)
+	if not building_scene_by_cell.has(cell_key):
+		return
+
+	var building_scene = building_scene_by_cell[cell_key]
+	if building_scene is Node:
+		building_scene.queue_free()
+	building_scene_by_cell.erase(cell_key)
+
+
+func _sync_building_metadata(tile_position: Vector2i) -> void:
+	var cell_key := _cell_key(tile_position)
+	if not building_scene_by_cell.has(cell_key):
+		return
+
+	var building_scene = building_scene_by_cell[cell_key]
+	if building_scene == null:
+		return
+
+	var metadata := _get_building_metadata(tile_position)
+	if building_scene.has_method("get_storage_id"):
+		metadata["storage_id"] = str(building_scene.get_storage_id())
+	if building_scene.has_method("get_storage_slots"):
+		metadata["storage_slots"] = building_scene.get_storage_slots()
+	building_metadata_by_cell[cell_key] = metadata
+
+
+func _has_items_in_storage_slots(storage_slots: Variant) -> bool:
+	if not storage_slots is Array:
+		return false
+
+	for slot in storage_slots:
+		if not slot is Dictionary:
+			continue
+
+		var item_id := str(slot.get("item_id", ""))
+		var amount := int(slot.get("amount", 0))
+		if not item_id.is_empty() and amount > 0:
+			return true
+
+	return false
+
+
+func _get_or_create_buildings_root() -> Node2D:
+	var world := get_node_or_null("../World") as Node2D
+	if world == null:
+		return null
+
+	var existing := world.get_node_or_null("Buildings") as Node2D
+	if existing != null:
+		return existing
+
+	var new_root := Node2D.new()
+	new_root.name = "Buildings"
+	new_root.y_sort_enabled = true
+	world.add_child(new_root)
+	return new_root

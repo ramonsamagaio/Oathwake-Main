@@ -11,7 +11,7 @@ const RecipeBookScript = preload("res://scripts/systems/RecipeBook.gd")
 var crafting_open := false
 var last_message := ""
 var recipe_book := RecipeBookScript.new()
-var tool_recipe_ids := []
+var workbench_recipe_ids := []
 
 @onready var main = get_node(main_path)
 @onready var player = get_node(player_path)
@@ -21,7 +21,7 @@ var tool_recipe_ids := []
 
 func _ready() -> void:
 	add_to_group("crafting_system")
-	_refresh_tool_recipes()
+	_refresh_workbench_recipes()
 	crafting_label.visible = false
 	_update_crafting_label()
 
@@ -73,7 +73,7 @@ func _toggle_crafting() -> void:
 	if build_system.has_method("set_build_mode_enabled"):
 		build_system.set_build_mode_enabled(false)
 
-	_refresh_tool_recipes()
+	_refresh_workbench_recipes()
 	last_message = ""
 	_set_crafting_open(true)
 
@@ -85,10 +85,10 @@ func _set_crafting_open(is_open: bool) -> void:
 
 
 func _try_craft_recipe(recipe_slot: int) -> bool:
-	if recipe_slot < 0 or recipe_slot >= tool_recipe_ids.size():
+	if recipe_slot < 0 or recipe_slot >= workbench_recipe_ids.size():
 		return false
 
-	var recipe_id := str(tool_recipe_ids[recipe_slot])
+	var recipe_id := str(workbench_recipe_ids[recipe_slot])
 	var recipe := recipe_book.get_recipe(recipe_id)
 	if recipe.is_empty():
 		return false
@@ -97,7 +97,7 @@ func _try_craft_recipe(recipe_slot: int) -> bool:
 	var display_name := str(recipe.get("display_name", tool_name))
 	var cost: Array = recipe.get("cost", [])
 
-	if player.has_tool(tool_name):
+	if _is_tool_recipe(recipe) and player.has_tool(tool_name):
 		_set_message("Already have %s" % display_name)
 		return false
 
@@ -105,23 +105,38 @@ func _try_craft_recipe(recipe_slot: int) -> bool:
 		_set_message("Not enough resources")
 		return false
 
+	var output_item_id := str(recipe.get("output_item_id", recipe_id))
+	var output_amount := int(recipe.get("output_amount", 1))
+	if not _is_tool_recipe(recipe):
+		if not main.inventory.can_add_item(output_item_id, output_amount):
+			_set_message("Inventory full")
+			return false
+
 	_spend_cost(cost)
-	player.unlock_tool(tool_name)
+	if _is_tool_recipe(recipe):
+		player.unlock_tool(tool_name)
+	else:
+		var leftover: int = main.add_item_to_inventory(output_item_id, output_amount)
+		if leftover > 0:
+			_set_message("Inventory full")
+			return false
+
 	_set_message("Crafted %s" % display_name)
 	return true
 
 
-func _refresh_tool_recipes() -> void:
-	tool_recipe_ids.clear()
+func _refresh_workbench_recipes() -> void:
+	workbench_recipe_ids.clear()
 
-	for recipe in recipe_book.get_recipes_by_type("tool"):
+	for recipe in recipe_book.get_all_recipes():
 		var recipe_id := str(recipe.get("id", ""))
 		if recipe_id.is_empty():
 			continue
 
-		tool_recipe_ids.append(recipe_id)
+		if _is_tool_recipe(recipe) or str(recipe.get("workstation", "")) == "workbench":
+			workbench_recipe_ids.append(recipe_id)
 
-	tool_recipe_ids.sort()
+	workbench_recipe_ids.sort()
 
 
 func _get_recipe_slot_from_key(keycode: int) -> int:
@@ -129,7 +144,7 @@ func _get_recipe_slot_from_key(keycode: int) -> int:
 		return -1
 
 	var slot := keycode - KEY_1
-	if slot >= tool_recipe_ids.size():
+	if slot >= workbench_recipe_ids.size():
 		return -1
 
 	return slot
@@ -171,15 +186,15 @@ func _update_crafting_label() -> void:
 		"C Close",
 	]
 
-	if tool_recipe_ids.is_empty():
-		lines.append("No tool recipes found.")
+	if workbench_recipe_ids.is_empty():
+		lines.append("No Workbench recipes found.")
 
-	for index in range(tool_recipe_ids.size()):
-		var recipe_id := str(tool_recipe_ids[index])
+	for index in range(workbench_recipe_ids.size()):
+		var recipe_id := str(workbench_recipe_ids[index])
 		var recipe := recipe_book.get_recipe(recipe_id)
 		var tool_name := _recipe_id_to_tool_name(recipe_id)
 		var display_name := str(recipe.get("display_name", tool_name))
-		var owned_text := " (owned)" if player != null and player.has_tool(tool_name) else ""
+		var owned_text := " (owned)" if _is_tool_recipe(recipe) and player != null and player.has_tool(tool_name) else ""
 		lines.append("%d %s - %s%s" % [
 			index + 1,
 			display_name,
@@ -227,6 +242,10 @@ func _recipe_id_to_tool_name(recipe_id: String) -> String:
 			return "Pickaxe"
 		_:
 			return recipe_id.capitalize()
+
+
+func _is_tool_recipe(recipe: Dictionary) -> bool:
+	return str(recipe.get("type", "")) == "tool"
 
 
 func _join_lines(lines: Array) -> String:

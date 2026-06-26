@@ -4,6 +4,7 @@ const WALL_ID := "wall"
 const CAMPFIRE_ID := "campfire"
 const WORKBENCH_ID := "workbench"
 const BED_ID := "bed"
+const CHEST_ID := "chest"
 
 const FALLBACK_RECIPES := {
 	WALL_ID: {
@@ -37,6 +38,21 @@ const FALLBACK_RECIPES := {
 			"gel": 2,
 		},
 	},
+	CHEST_ID: {
+		"display_name": "Chest",
+		"type": "building",
+		"workstation": "workbench",
+		"output_item_id": CHEST_ID,
+		"output_amount": 1,
+		"cost": {
+			"wood": 10,
+			"stone": 2,
+		},
+		"placement_cost": {
+			CHEST_ID: 1,
+		},
+		"scene_path": "res://scenes/buildings/Chest.tscn",
+	},
 	"axe": {
 		"display_name": "Axe",
 		"type": "tool",
@@ -60,6 +76,7 @@ const BUILD_KEYS := {
 	CAMPFIRE_ID: KEY_2,
 	WORKBENCH_ID: KEY_3,
 	BED_ID: KEY_4,
+	CHEST_ID: KEY_5,
 }
 
 
@@ -76,6 +93,7 @@ func get_recipe(recipe_id: String) -> Dictionary:
 	var recipe := recipe_data.duplicate(true)
 	recipe["id"] = normalized_id
 	recipe["cost"] = _normalize_cost(recipe.get("cost", {}))
+	recipe["placement_cost"] = _normalize_cost(recipe.get("placement_cost", recipe.get("cost", {})))
 	if BUILD_KEYS.has(normalized_id):
 		recipe["build_key"] = BUILD_KEYS[normalized_id]
 
@@ -97,6 +115,14 @@ func get_cost(recipe_id: String) -> Array:
 		return cost
 
 	return []
+
+
+func get_build_cost(recipe_id: String) -> Array:
+	var placement_cost = get_recipe(recipe_id).get("placement_cost", [])
+	if placement_cost is Array:
+		return placement_cost
+
+	return get_cost(recipe_id)
 
 
 func get_scene_path(recipe_id: String) -> String:
@@ -149,6 +175,8 @@ func normalize_recipe_id(recipe_id: String) -> String:
 			return WORKBENCH_ID
 		"Bed":
 			return BED_ID
+		"Chest":
+			return CHEST_ID
 		_:
 			return recipe_id.to_lower()
 

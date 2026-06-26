@@ -3,6 +3,7 @@ extends CharacterBody2D
 const CombatCalculatorScript := preload("res://scripts/systems/CombatCalculator.gd")
 const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextSpawner.gd")
 const OverheadNameplateScene := preload("res://scenes/ui/OverheadNameplate.tscn")
+const WorldItemSpawner := preload("res://scripts/systems/WorldItemSpawner.gd")
 
 @export var monster_id: String = "slime"
 @export var speed: float = 45.0
@@ -138,15 +139,8 @@ func _die() -> void:
 
 
 func _drop_loot() -> void:
-	var main = get_tree().get_first_node_in_group("main")
-	if main == null:
-		return
-
-	if not main.has_method("add_resource"):
-		return
-
 	if loot_table.is_empty():
-		main.add_resource("gel", gel_drop_amount)
+		WorldItemSpawner.spawn_item("gel", gel_drop_amount, global_position)
 		print("%s dropped %d gel" % [display_name, gel_drop_amount])
 		return
 
@@ -166,7 +160,7 @@ func _drop_loot() -> void:
 			amount += int(randi() % (max_amount - min_amount + 1))
 
 		if not item_id.is_empty() and amount > 0:
-			main.add_resource(item_id, amount)
+			WorldItemSpawner.spawn_item(item_id, amount, global_position)
 			print("%s dropped %d %s" % [display_name, amount, item_id])
 
 

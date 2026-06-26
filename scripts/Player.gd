@@ -66,7 +66,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E:
+		if _is_storage_open():
+			return
+
 		if _try_interact_with_nearby_npc():
+			get_viewport().set_input_as_handled()
+			return
+
+		if _try_interact_with_nearby_storage():
 			get_viewport().set_input_as_handled()
 			return
 
@@ -75,10 +82,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE:
+		if _is_storage_open():
+			return
+
 		_attack()
 		get_viewport().set_input_as_handled()
 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if _is_storage_open():
+			return
 		if _is_build_mode_enabled():
 			return
 
@@ -316,6 +328,38 @@ func _try_interact_with_nearby_npc() -> bool:
 			return true
 
 	return false
+
+
+func _try_interact_with_nearby_storage() -> bool:
+	var nearest_storage: Node = null
+	var nearest_distance := 56.0
+
+	for storage in get_tree().get_nodes_in_group("storage"):
+		if not storage is Node2D:
+			continue
+		if not storage.has_method("try_interact_with_player"):
+			continue
+
+		var storage_node := storage as Node2D
+		var distance := global_position.distance_to(storage_node.global_position)
+		if distance > nearest_distance:
+			continue
+
+		nearest_storage = storage
+		nearest_distance = distance
+
+	if nearest_storage == null:
+		return false
+
+	return bool(nearest_storage.call("try_interact_with_player", self))
+
+
+func _is_storage_open() -> bool:
+	var storage_ui := get_tree().get_first_node_in_group("storage_ui")
+	if storage_ui == null or not storage_ui.has_method("is_open"):
+		return false
+
+	return bool(storage_ui.call("is_open"))
 
 
 func _find_nearby_attack_targets(group_name: String) -> Array:

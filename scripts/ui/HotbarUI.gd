@@ -142,18 +142,19 @@ func _get_hotbar_entries() -> Array:
 			})
 
 	if inventory != null:
-		var items: Dictionary = inventory.get_all_items()
-		var item_ids := items.keys()
-		item_ids.sort()
-		for item_id in item_ids:
-			var amount := int(items[item_id])
+		var inventory_slots: Array = inventory.get_hotbar_slots(slot_count)
+		for slot in inventory_slots:
+			if not slot is Dictionary:
+				continue
+			var item_id := str(slot.get("item_id", ""))
+			var amount := int(slot.get("amount", 0))
 			if amount <= 0:
 				continue
 			entries.append({
 				"type": "item",
-				"id": str(item_id),
+				"id": item_id,
 				"amount": amount,
-				"label": _get_item_display_name(str(item_id)),
+				"label": _get_item_display_name(item_id),
 			})
 
 	return entries.slice(0, slot_count)

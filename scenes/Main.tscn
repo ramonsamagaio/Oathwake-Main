@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player_scene"]
 [ext_resource type="Script" path="res://scripts/World.gd" id="2_world_script"]
@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/InventoryUI.tscn" id="14_inventory_ui_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HotbarUI.tscn" id="15_hotbar_ui_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/CharacterStatusUI.tscn" id="16_character_status_ui_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/StorageUI.tscn" id="17_storage_ui_scene"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("5_main_script")
@@ -34,7 +35,7 @@ z_index = -10
 z_index = -5
 
 [node name="BuildLayer" type="TileMapLayer" parent="World"]
-z_index = 1
+z_index = -1
 
 [node name="Resources" type="Node2D" parent="World"]
 y_sort_enabled = true
@@ -286,6 +287,8 @@ focus_mode = 0
 text = "LOAD GAME"
 
 [node name="InventoryUI" parent="UI" instance=ExtResource("14_inventory_ui_scene")]
+
+[node name="StorageUI" parent="UI" instance=ExtResource("17_storage_ui_scene")]
 
 [node name="HotbarUI" parent="UI" instance=ExtResource("15_hotbar_ui_scene")]
 

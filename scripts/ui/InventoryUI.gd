@@ -38,18 +38,17 @@ func refresh() -> void:
 	if grid == null or inventory == null:
 		return
 
-	var item_entries: Array = _get_visible_item_entries()
 	for index in range(slots.size()):
 		var slot = slots[index]
-		if index >= item_entries.size():
-			slot.clear_slot()
-			continue
-
-		var item_entry: Dictionary = item_entries[index]
+		var item_entry: Dictionary = inventory.get_slot(index)
 		var item_id := str(item_entry.get("item_id", ""))
 		var amount := int(item_entry.get("amount", 0))
+		if item_id.is_empty() or amount <= 0:
+			slot.clear_slot(index)
+			continue
+
 		var item_data: Dictionary = _get_item_data(item_id)
-		slot.setup(item_id, amount, item_data, sprite_resolver.get_texture_for_item(item_id))
+		slot.setup(index, item_id, amount, item_data, sprite_resolver.get_texture_for_item(item_id), "player")
 
 
 func _build_ui() -> void:
@@ -88,6 +87,8 @@ func _build_ui() -> void:
 	for _index in range(slot_count):
 		var slot = InventorySlotScene.instantiate()
 		slot.slot_selected.connect(_on_slot_selected)
+		slot.slot_right_clicked.connect(_on_slot_right_clicked)
+		slot.slot_drag_dropped.connect(_on_slot_drag_dropped)
 		grid.add_child(slot)
 		slots.append(slot)
 
@@ -98,38 +99,46 @@ func _build_ui() -> void:
 	layout.add_child(details_label)
 
 
-func _get_visible_item_entries() -> Array:
-	var entries := []
-	var items: Dictionary = inventory.get_all_items()
-	var ids := items.keys()
-	ids.sort()
+func _on_slot_selected(slot_index: int, item_id: String, _inventory_id := "player") -> void:
+	if item_id.is_empty():
+		details_label.text = "Empty slot %d." % (slot_index + 1)
+		return
 
-	for item_id in ids:
-		var amount := int(items[item_id])
-		if amount <= 0:
-			continue
-
-		entries.append({
-			"item_id": str(item_id),
-			"amount": amount,
-		})
-
-	return entries
-
-
-func _on_slot_selected(item_id: String) -> void:
 	var item_data: Dictionary = _get_item_data(item_id)
 	var display_name := str(item_data.get("display_name", item_id.capitalize()))
 	var description := str(item_data.get("description", ""))
 	var stack_size := int(item_data.get("stack_size", 999))
-	var quantity: int = inventory.get_count(item_id) if inventory != null else 0
-	details_label.text = "%s\nID: %s\nQuantity: %d\nStack: %d\n%s" % [
+	var slot_data: Dictionary = inventory.get_slot(slot_index) if inventory != null else {}
+	var quantity := int(slot_data.get("amount", 0))
+	details_label.text = "%s\nID: %s\nSlot: %d\nQuantity: %d\nStack: %d\n%s" % [
 		display_name,
 		item_id,
+		slot_index + 1,
 		quantity,
 		stack_size,
 		description,
 	]
+
+
+func _on_slot_right_clicked(slot_index: int, _inventory_id := "player") -> void:
+	if inventory == null:
+		return
+
+	var removed: Dictionary = inventory.remove_from_slot(slot_index, 1)
+	var item_id := str(removed.get("item_id", ""))
+	if item_id.is_empty():
+		return
+
+	var item_data: Dictionary = _get_item_data(item_id)
+	details_label.text = "Removed 1 %s.\nGround item drop will be added later." % str(item_data.get("display_name", item_id.capitalize()))
+
+
+func _on_slot_drag_dropped(from_index: int, to_index: int, _from_inventory_id := "player", _to_inventory_id := "player") -> void:
+	if inventory == null:
+		return
+
+	inventory.move_slot(from_index, to_index)
+	refresh()
 
 
 func _get_item_data(item_id: String) -> Dictionary:

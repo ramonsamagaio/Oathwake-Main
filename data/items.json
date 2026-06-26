@@ -32,6 +32,17 @@
 		"tool_tier": 1,
 		"tier": 1
 	},
+	"chest": {
+		"description": "A basic storage chest.",
+		"display_name": "Chest",
+		"item_type": "building",
+		"stack_size": 99,
+		"tier": 1,
+		"tags": [
+			"building",
+			"storage"
+		]
+	},
 	"gel": {
 		"description": "Sticky material dropped by Slimes.",
 		"display_name": "Gel",
