@@ -44,6 +44,13 @@ static func show_hit_impact(world_position: Vector2, is_critical := false) -> vo
 	_spawn_hit_impact(world_position, is_critical)
 
 
+static func show_xp(amount: int, world_position: Vector2) -> void:
+	if amount <= 0:
+		return
+
+	_spawn("+XP %d" % amount, world_position, Color(0.55, 0.9, 1.0, 1.0), false, "xp_number")
+
+
 static func _spawn(text: String, world_position: Vector2, color: Color, is_critical: bool, profile_id := "") -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null or tree.current_scene == null:

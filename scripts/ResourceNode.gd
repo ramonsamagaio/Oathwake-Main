@@ -58,6 +58,7 @@ func _collect() -> void:
 		return
 
 	print("Collected resource: %s" % resource_id)
+	_show_xp_reward()
 	set_collected(true, respawn_time_seconds)
 	emit_signal("collected", resource_id, drop_item_id, drop_amount)
 	_emit_resource_drops()
@@ -255,6 +256,14 @@ func _show_gather_feedback(text: String, is_critical: bool, is_damage: bool) -> 
 		return
 
 	FloatingCombatTextSpawner.show_text(text, global_position + Vector2(0, -28), Color(0.72, 0.72, 0.72, 1.0))
+
+
+func _show_xp_reward() -> void:
+	var xp_reward := int(_get_resource_data().get("xp_reward", 0))
+	if xp_reward <= 0:
+		return
+
+	FloatingCombatTextSpawner.show_xp(xp_reward, global_position + Vector2(0, -30))
 
 
 func _apply_resource_sprite() -> void:

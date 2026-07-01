@@ -33,6 +33,7 @@
 			}
 		],
 		"max_health": 76,
+		"xp_reward": 18,
 		"move_speed": 40,
 		"spawn_tiles": [
 			"grass"
@@ -73,6 +74,7 @@
 			}
 		],
 		"max_health": 40,
+		"xp_reward": 8,
 		"move_speed": 42,
 		"spawn_tiles": [
 			"grass"

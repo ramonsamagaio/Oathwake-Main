@@ -207,6 +207,7 @@ func apply_combat_result(combat_result: Dictionary) -> void:
 
 func _die() -> void:
 	is_dead = true
+	_show_xp_reward()
 	_drop_loot()
 	damage_area.monitoring = false
 	set_physics_process(false)
@@ -360,6 +361,14 @@ func get_combat_data() -> Dictionary:
 			"attack_cooldown": damage_cooldown,
 		}
 	return combat_data
+
+
+func _show_xp_reward() -> void:
+	var xp_reward := int(monster_data.get("xp_reward", 0))
+	if xp_reward <= 0:
+		return
+
+	FloatingCombatTextSpawner.show_xp(xp_reward, global_position + Vector2(0, -30))
 
 
 func _get_vfx_profile() -> Dictionary:
