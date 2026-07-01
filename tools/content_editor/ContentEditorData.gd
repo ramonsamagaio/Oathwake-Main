@@ -353,7 +353,7 @@ func _validate_drop_rows(drop_rows_value: Variant, require_one: bool) -> String:
 	return ""
 
 
-func validate_tier(record_id: String, original_id: String, record: Dictionary) -> String:
+func validate_tier(_record_id: String, original_id: String, record: Dictionary) -> String:
 	var tier_id := int(record.get("id", 0))
 	if tier_id < 1 or tier_id > 99:
 		return "Tier ID must be an integer between 1 and 99."
@@ -405,6 +405,16 @@ func validate_recipe(record_id: String, original_id: String, record: Dictionary)
 
 	if str(record.get("type", "")).strip_edges().is_empty():
 		return "Type cannot be empty."
+
+	if int(record.get("tier", 1)) < 1:
+		return "Tier must be greater than or equal to 1."
+
+	if int(record.get("output_amount", 1)) < 1:
+		return "Output Amount must be greater than or equal to 1."
+
+	var output_item_id := str(record.get("output_item_id", "")).strip_edges()
+	if not output_item_id.is_empty() and not has_record(SECTION_ITEMS, output_item_id):
+		return "Output Item must reference an existing item."
 
 	var sprite_error := _validate_optional_sprite_id(record)
 	if not sprite_error.is_empty():
@@ -538,8 +548,8 @@ func validate_sprite(record_id: String, original_id: String, record: Dictionary)
 		if texture_height % frame_height != 0:
 			return "Texture height must be divisible by Frame Height."
 
-		var expected_columns := int(texture_width / frame_width)
-		var expected_rows := int(texture_height / frame_height)
+		var expected_columns := int(float(texture_width) / float(frame_width))
+		var expected_rows := int(float(texture_height) / float(frame_height))
 		var expected_total_frames := expected_columns * expected_rows
 		if columns != expected_columns:
 			return "Columns must match the texture width divided by Frame Width."

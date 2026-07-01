@@ -8,6 +8,8 @@ const SpriteResolverScript := preload("res://scripts/systems/SpriteResolver.gd")
 @export var magnet_speed: float = 240.0
 @export var spawn_magnet_delay: float = 0.3
 @export var retry_pickup_delay: float = 0.45
+@export var spawn_jump_enabled := true
+var metadata: Dictionary = {}
 
 var sprite_resolver := SpriteResolverScript.new()
 var player: Node2D
@@ -27,14 +29,34 @@ func _ready() -> void:
 	monitorable = true
 	magnet_delay_left = spawn_magnet_delay
 	_apply_visual()
-	_play_spawn_jump()
+	if spawn_jump_enabled:
+		_play_spawn_jump()
 
 
-func setup(new_item_id: String, new_amount: int) -> void:
+func setup(new_item_id: String, new_amount: int, new_metadata: Dictionary = {}) -> void:
 	item_id = new_item_id
 	amount = max(new_amount, 1)
+	metadata = new_metadata.duplicate(true) if not new_metadata.is_empty() else {}
 	if is_node_ready():
 		_apply_visual()
+
+
+func is_collected() -> bool:
+	return collected
+
+
+func get_save_data() -> Dictionary:
+	var data := {
+		"item_id": item_id,
+		"amount": amount,
+		"position": {
+			"x": global_position.x,
+			"y": global_position.y,
+		},
+	}
+	if not metadata.is_empty():
+		data["metadata"] = metadata.duplicate(true)
+	return data
 
 
 func _process(delta: float) -> void:
@@ -78,7 +100,7 @@ func _try_collect() -> void:
 		retry_pickup_left = retry_pickup_delay
 		return
 
-	var leftover: int = main.add_item_to_inventory(item_id, amount)
+	var leftover: int = main.add_item_to_inventory(item_id, amount, metadata)
 	if leftover <= 0:
 		collected = true
 		queue_free()
@@ -95,6 +117,7 @@ func _apply_visual() -> void:
 		return
 
 	sprite.texture = sprite_resolver.get_texture_for_item(item_id)
+	sprite.scale = Vector2(0.5, 0.5)
 	amount_label.text = str(amount) if amount > 1 else ""
 
 

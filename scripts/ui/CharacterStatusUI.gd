@@ -1,9 +1,12 @@
 extends Control
 
 const CombatCalculatorScript := preload("res://scripts/systems/CombatCalculator.gd")
+const PlayerStatsResolverScript := preload("res://scripts/systems/PlayerStatsResolver.gd")
 
 var player
+var equipment_system
 var combat_calculator := CombatCalculatorScript.new()
+var stats_resolver := PlayerStatsResolverScript.new()
 var value_labels := {}
 
 
@@ -11,6 +14,10 @@ func _ready() -> void:
 	visible = false
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_build_ui()
+
+
+func set_equipment_system(new_equipment_system) -> void:
+	equipment_system = new_equipment_system
 
 
 func setup(new_player) -> void:
@@ -36,23 +43,55 @@ func refresh() -> void:
 	var damage_preview := combat_calculator.get_damage_preview(actor_data, held_item_data)
 	var base_stats := _get_dictionary(actor_data, "base_stats")
 
+	var total_player_data := stats_resolver.get_total_player_data(player, equipment_system)
+	var total_derived := combat_calculator.calculate_derived_stats(total_player_data, held_item_data)
+	var total_damage_preview := combat_calculator.get_damage_preview(total_player_data, held_item_data)
+	var equip_bonus := stats_resolver.get_equipment_bonus(equipment_system)
+	var equip_stats: Dictionary = equip_bonus.get("stats_bonus", {})
+
 	_set_value("Name", str(actor_data.get("display_name", "Player")))
 	_set_value("Level", str(actor_data.get("level", "N/A")))
 	_set_value("HP", "%d / %d" % [int(player.health), int(player.max_health)])
 	_set_value("Tool", player.get_current_tool() if player.has_method("get_current_tool") else "N/A")
-	_set_value("Damage Range", "%d - %d" % [int(damage_preview.get("min_damage", 0)), int(damage_preview.get("max_damage", 0))])
-	_set_value("Crit Chance", "%.1f%%" % (float(derived.get("crit_chance", 0.0)) * 100.0))
-	_set_value("Crit Damage", "%.2fx" % float(derived.get("crit_damage", 1.0)))
-	_set_value("Hit", "%.1f" % float(derived.get("hit", 0.0)))
-	_set_value("Flee", "%.1f" % float(derived.get("flee", 0.0)))
-	_set_value("Defense", "%.1f" % float(derived.get("defense", 0.0)))
-	_set_value("Magic Defense", "%.1f" % float(derived.get("magic_defense", 0.0)))
-	_set_value("Max HP Derived", "%.0f" % float(derived.get("max_hp", 0.0)))
-	_set_value("Physical Attack", "%.1f" % float(derived.get("physical_attack", 0.0)))
-	_set_value("Attack Cooldown", "%.2fs" % float(derived.get("attack_cooldown", 0.0)))
+	_set_value("Damage Range", "%d - %d (Equipped: %d - %d)" % [
+		int(damage_preview.get("min_damage", 0)), int(damage_preview.get("max_damage", 0)),
+		int(total_damage_preview.get("min_damage", 0)), int(total_damage_preview.get("max_damage", 0)),
+	])
+	_set_value("Crit Chance", "%.1f%% (Total: %.1f%%)" % [
+		float(derived.get("crit_chance", 0.0)) * 100.0,
+		float(total_derived.get("crit_chance", 0.0)) * 100.0,
+	])
+	_set_value("Crit Damage", "%.2fx (Total: %.2fx)" % [
+		float(derived.get("crit_damage", 1.0)),
+		float(total_derived.get("crit_damage", 1.0)),
+	])
+	_set_value("Hit", "%.1f (Total: %.1f)" % [
+		float(derived.get("hit", 0.0)), float(total_derived.get("hit", 0.0)),
+	])
+	_set_value("Flee", "%.1f (Total: %.1f)" % [
+		float(derived.get("flee", 0.0)), float(total_derived.get("flee", 0.0)),
+	])
+	_set_value("Defense", "%.1f (Total: %.1f)" % [
+		float(derived.get("defense", 0.0)), float(total_derived.get("defense", 0.0)),
+	])
+	_set_value("Magic Defense", "%.1f (Total: %.1f)" % [
+		float(derived.get("magic_defense", 0.0)), float(total_derived.get("magic_defense", 0.0)),
+	])
+	_set_value("Max HP Derived", "%.0f (Total: %.0f)" % [
+		float(derived.get("max_hp", 0.0)), float(total_derived.get("max_hp", 0.0)),
+	])
+	_set_value("Physical Attack", "%.1f (Total: %.1f)" % [
+		float(derived.get("physical_attack", 0.0)), float(total_derived.get("physical_attack", 0.0)),
+	])
+	_set_value("Attack Cooldown", "%.2fs (Total: %.2fs)" % [
+		float(derived.get("attack_cooldown", 0.0)), float(total_derived.get("attack_cooldown", 0.0)),
+	])
 
 	for stat_name in ["str", "dex", "agi", "vit", "wis", "int", "luk"]:
-		_set_value(stat_name.to_upper(), str(int(base_stats.get(stat_name, 0))))
+		var base_val := int(base_stats.get(stat_name, 0))
+		var equip_val = int(equip_stats.get(stat_name, 0))
+		var total_val: int = base_val + equip_val
+		_set_value(stat_name.to_upper(), "%d + %d = %d" % [base_val, equip_val, total_val])
 
 
 func _build_ui() -> void:
@@ -61,9 +100,9 @@ func _build_ui() -> void:
 	panel.anchor_top = 0.5
 	panel.anchor_right = 0.5
 	panel.anchor_bottom = 0.5
-	panel.offset_left = -220.0
+	panel.offset_left = -280.0
 	panel.offset_top = -250.0
-	panel.offset_right = 220.0
+	panel.offset_right = 280.0
 	panel.offset_bottom = 250.0
 	add_child(panel)
 
@@ -98,6 +137,10 @@ func _build_ui() -> void:
 		_add_row(layout, field)
 
 	_add_separator(layout)
+	var stats_header := Label.new()
+	stats_header.text = "Base + Equip = Total"
+	stats_header.add_theme_color_override("font_color", Color(0.7, 0.7, 0.9))
+	layout.add_child(stats_header)
 	for stat_name in ["STR", "DEX", "AGI", "VIT", "WIS", "INT", "LUK"]:
 		_add_row(layout, stat_name)
 
@@ -108,7 +151,7 @@ func _add_row(parent: Node, label_text: String) -> void:
 
 	var label := Label.new()
 	label.text = label_text
-	label.custom_minimum_size = Vector2(150, 0)
+	label.custom_minimum_size = Vector2(180, 0)
 	row.add_child(label)
 
 	var value := Label.new()

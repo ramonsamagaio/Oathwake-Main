@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player_scene"]
 [ext_resource type="Script" path="res://scripts/World.gd" id="2_world_script"]
@@ -17,6 +17,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/HotbarUI.tscn" id="15_hotbar_ui_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/CharacterStatusUI.tscn" id="16_character_status_ui_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/StorageUI.tscn" id="17_storage_ui_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/WorkbenchUI.tscn" id="18_workbench_ui_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ResourceBush.tscn" id="19_resource_bush_scene"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("5_main_script")
@@ -48,6 +50,14 @@ resource_id = "tree_01"
 position = Vector2(-160, 96)
 resource_id = "tree_02"
 
+[node name="Tree3" parent="World/Resources" instance=ExtResource("3_tree_scene")]
+position = Vector2(96, -160)
+resource_id = "tree_03"
+
+[node name="Tree4" parent="World/Resources" instance=ExtResource("3_tree_scene")]
+position = Vector2(-224, -96)
+resource_id = "tree_04"
+
 [node name="Rock" parent="World/Resources" instance=ExtResource("4_rock_scene")]
 position = Vector2(112, 64)
 resource_id = "rock_01"
@@ -56,11 +66,51 @@ resource_id = "rock_01"
 position = Vector2(192, -96)
 resource_id = "rock_02"
 
+[node name="Rock3" parent="World/Resources" instance=ExtResource("4_rock_scene")]
+position = Vector2(-64, 192)
+resource_id = "rock_03"
+
+[node name="FiberBush" parent="World/Resources" instance=ExtResource("19_resource_bush_scene")]
+position = Vector2(64, -80)
+resource_id = "fiber_bush_01"
+resource_type_id = "fiber_bush"
+resource_name = "Fiber Bush"
+
+[node name="FiberBush2" parent="World/Resources" instance=ExtResource("19_resource_bush_scene")]
+position = Vector2(-128, -144)
+resource_id = "fiber_bush_02"
+resource_type_id = "fiber_bush"
+resource_name = "Fiber Bush"
+
+[node name="HerbBush" parent="World/Resources" instance=ExtResource("19_resource_bush_scene")]
+position = Vector2(-64, 80)
+resource_id = "herb_bush_01"
+resource_type_id = "herb_bush"
+resource_name = "Herb Bush"
+
+[node name="OakTree" parent="World/Resources" instance=ExtResource("3_tree_scene")]
+position = Vector2(384, -96)
+resource_id = "oak_tree_01"
+resource_type_id = "oak_tree"
+resource_name = "Oak Tree"
+
+[node name="OakTree2" parent="World/Resources" instance=ExtResource("3_tree_scene")]
+position = Vector2(448, 128)
+resource_id = "oak_tree_02"
+resource_type_id = "oak_tree"
+resource_name = "Oak Tree"
+
+[node name="CoalNode" parent="World/Resources" instance=ExtResource("4_rock_scene")]
+position = Vector2(352, 192)
+resource_id = "coal_node_01"
+resource_type_id = "coal_node"
+resource_name = "Coal Node"
+
 [node name="Enemies" type="Node2D" parent="World"]
 y_sort_enabled = true
 
 [node name="Slime" parent="World/Enemies" instance=ExtResource("7_slime_scene")]
-position = Vector2(256, 128)
+position = Vector2(384, 160)
 
 [node name="NPCs" type="Node2D" parent="World"]
 y_sort_enabled = true
@@ -289,6 +339,8 @@ text = "LOAD GAME"
 [node name="InventoryUI" parent="UI" instance=ExtResource("14_inventory_ui_scene")]
 
 [node name="StorageUI" parent="UI" instance=ExtResource("17_storage_ui_scene")]
+
+[node name="WorkbenchUI" parent="UI" instance=ExtResource("18_workbench_ui_scene")]
 
 [node name="HotbarUI" parent="UI" instance=ExtResource("15_hotbar_ui_scene")]
 

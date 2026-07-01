@@ -6,6 +6,7 @@ const RecipeBookScript = preload("res://scripts/systems/RecipeBook.gd")
 @export var player_path: NodePath = "../World/Player"
 @export var build_system_path: NodePath = "../BuildSystem"
 @export var crafting_label_path: NodePath = "../UI/CraftingLabel"
+@export var workbench_ui_path: NodePath = "../UI/WorkbenchUI"
 @export var workbench_range: float = 72.0
 
 var crafting_open := false
@@ -17,21 +18,19 @@ var workbench_recipe_ids := []
 @onready var player = get_node(player_path)
 @onready var build_system = get_node(build_system_path)
 @onready var crafting_label: Label = get_node(crafting_label_path)
+@onready var workbench_ui = get_node(workbench_ui_path)
 
 
 func _ready() -> void:
 	add_to_group("crafting_system")
-	_refresh_workbench_recipes()
 	crafting_label.visible = false
-	_update_crafting_label()
+	if workbench_ui != null and workbench_ui.has_method("setup"):
+		workbench_ui.setup(main, player)
 
 
 func _process(_delta: float) -> void:
-	if crafting_open and not _is_player_near_workbench():
+	if is_crafting_open() and not _is_player_near_workbench():
 		_set_crafting_open(false)
-
-	if crafting_open:
-		_update_crafting_label()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -46,19 +45,21 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
-	if not crafting_open:
-		return
-
-	var recipe_slot := _get_recipe_slot_from_key(event.keycode)
-	if recipe_slot == -1:
-		return
-
-	_try_craft_recipe(recipe_slot)
-	get_viewport().set_input_as_handled()
-
 
 func is_crafting_open() -> bool:
+	if workbench_ui != null and workbench_ui.has_method("is_open"):
+		return workbench_ui.is_open()
 	return crafting_open
+
+
+func try_open_workbench_for_player(player_node: Node2D) -> bool:
+	if player_node == null:
+		return false
+	if not _is_position_near_workbench(player_node.global_position):
+		return false
+
+	_open_crafting()
+	return true
 
 
 func _toggle_crafting() -> void:
@@ -73,15 +74,24 @@ func _toggle_crafting() -> void:
 	if build_system.has_method("set_build_mode_enabled"):
 		build_system.set_build_mode_enabled(false)
 
-	_refresh_workbench_recipes()
-	last_message = ""
-	_set_crafting_open(true)
+	_open_crafting()
 
 
 func _set_crafting_open(is_open: bool) -> void:
 	crafting_open = is_open
-	crafting_label.visible = crafting_open
-	_update_crafting_label()
+	crafting_label.visible = false
+	if workbench_ui != null:
+		if is_open and workbench_ui.has_method("open"):
+			workbench_ui.open()
+		elif not is_open and workbench_ui.has_method("close"):
+			workbench_ui.close()
+
+
+func _open_crafting() -> void:
+	if build_system.has_method("set_build_mode_enabled"):
+		build_system.set_build_mode_enabled(false)
+	last_message = ""
+	_set_crafting_open(true)
 
 
 func _try_craft_recipe(recipe_slot: int) -> bool:
@@ -157,10 +167,14 @@ func _set_message(message: String) -> void:
 
 
 func _is_player_near_workbench() -> bool:
+	return _is_position_near_workbench(player.global_position)
+
+
+func _is_position_near_workbench(global_position: Vector2) -> bool:
 	if not build_system.has_method("is_workbench_near_position"):
 		return false
 
-	return build_system.is_workbench_near_position(player.global_position, workbench_range)
+	return build_system.is_workbench_near_position(global_position, workbench_range)
 
 
 func _can_spend_cost(cost: Array) -> bool:

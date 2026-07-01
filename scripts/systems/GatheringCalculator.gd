@@ -4,15 +4,15 @@ extends RefCounted
 func get_tier_modifier(resource_tier: int, tool_tier: int) -> float:
 	var tier_difference: int = resource_tier - tool_tier
 	if tier_difference <= -2:
-		return 1.5
+		return 1.35
 	if tier_difference == -1:
-		return 1.25
+		return 1.15
 	if tier_difference == 0:
 		return 1.0
 	if tier_difference == 1:
-		return 0.6
+		return 0.45
 	if tier_difference == 2:
-		return 0.25
+		return 0.15
 	return 0.0
 
 
@@ -25,7 +25,7 @@ func calculate_gather_damage(resource_data: Dictionary, tool_data: Dictionary, a
 	var tool_tier: int = int(tool_data.get("tool_tier", tool_data.get("tier", 1)))
 	var tool_type: String = str(tool_data.get("tool_type", "hands"))
 	var required_tool_type: String = str(resource_data.get("required_tool_type", ""))
-	var allow_hands: bool = bool(resource_data.get("allow_hands", resource_tier == 1 and required_tool_type.is_empty()))
+	var allow_hands: bool = bool(resource_data.get("allow_hands", resource_tier == 1))
 
 	if not required_tool_type.is_empty() and tool_type != required_tool_type:
 		if not (tool_type == "hands" and allow_hands and resource_tier == 1):

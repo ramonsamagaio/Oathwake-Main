@@ -77,6 +77,25 @@ O painel direito mostra o arquivo atual e tem botoes para salvar, recarregar a s
 5. Reabra o editor e confirme que o sprite continua na lista.
 6. Use o filtro de categoria para separar `item`, `monster`, `tileset` e outras categorias.
 
+
+### Batch Static Sprites
+
+1. Clique em **Sprites**.
+2. Clique em **Batch Static Sprites**.
+3. Selecione multiplos arquivos PNG, JPG, WebP ou SVG.
+4. Revise a lista criada pelo editor. Cada linha tem preview, arquivo de origem, **Display Name**, **ID** e categoria.
+5. Clique em **Create All**.
+6. Os arquivos externos serao copiados para `res://assets/sprites/static/` e registrados em `data/sprites.json` como `single_sprite`.
+
+### Tiers / Power Budget
+
+1. Clique em **Tiers**.
+2. Selecione um tier.
+3. Ajuste os campos de **Power Budget** para balancear metas de ferramenta, durabilidade, HP de recursos, monstros, repair e storage.
+4. Clique em **Save**.
+
+Observacao: o Power Budget e a tabela-base de balanceamento. Ele nao substitui ajustes finos em itens, recursos e monstros, mas serve como fonte de verdade para evitar que cada sistema cresca para um lado diferente.
+
 ### Sprite Sheet
 
 1. Clique em **Sprites**.

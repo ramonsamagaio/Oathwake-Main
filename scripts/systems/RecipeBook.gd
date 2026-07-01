@@ -5,6 +5,12 @@ const CAMPFIRE_ID := "campfire"
 const WORKBENCH_ID := "workbench"
 const BED_ID := "bed"
 const CHEST_ID := "chest"
+const OAK_CHEST_ID := "oak_chest"
+const ASH_CHEST_ID := "ash_chest"
+const MAPLE_CHEST_ID := "maple_chest"
+const WALNUT_CHEST_ID := "walnut_chest"
+const EBONY_CHEST_ID := "ebony_chest"
+const IRONWOOD_CHEST_ID := "ironwood_chest"
 
 const FALLBACK_RECIPES := {
 	WALL_ID: {
@@ -77,6 +83,12 @@ const BUILD_KEYS := {
 	WORKBENCH_ID: KEY_3,
 	BED_ID: KEY_4,
 	CHEST_ID: KEY_5,
+	OAK_CHEST_ID: KEY_6,
+	ASH_CHEST_ID: KEY_7,
+	MAPLE_CHEST_ID: KEY_8,
+	WALNUT_CHEST_ID: KEY_9,
+	EBONY_CHEST_ID: KEY_0,
+	IRONWOOD_CHEST_ID: KEY_MINUS,
 }
 
 
@@ -177,6 +189,18 @@ func normalize_recipe_id(recipe_id: String) -> String:
 			return BED_ID
 		"Chest":
 			return CHEST_ID
+		"Oak Chest":
+			return OAK_CHEST_ID
+		"Ash Chest":
+			return ASH_CHEST_ID
+		"Maple Chest":
+			return MAPLE_CHEST_ID
+		"Walnut Chest":
+			return WALNUT_CHEST_ID
+		"Ebony Chest":
+			return EBONY_CHEST_ID
+		"Ironwood Chest":
+			return IRONWOOD_CHEST_ID
 		_:
 			return recipe_id.to_lower()
 

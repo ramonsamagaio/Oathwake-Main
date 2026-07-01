@@ -58,6 +58,7 @@ func _collect() -> void:
 
 	print("Collected resource: %s" % resource_id)
 	set_collected(true, respawn_time_seconds)
+	emit_signal("collected", resource_id, drop_item_id, drop_amount)
 	_emit_resource_drops()
 
 
@@ -182,6 +183,7 @@ func _get_resource_data() -> Dictionary:
 			"resource_tier": 1,
 			"resource_hp": max_health,
 			"required_tool_type": "",
+			"allow_hands": true,
 			"skill_type": "",
 			"base_drops": [
 				{

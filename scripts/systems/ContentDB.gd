@@ -107,6 +107,10 @@ func get_all_animation_sets() -> Dictionary:
 	return animation_sets.duplicate(true)
 
 
+func get_all_items() -> Dictionary:
+	return items.duplicate(true)
+
+
 func get_all_characters() -> Dictionary:
 	return characters.duplicate(true)
 

@@ -1,16 +1,28 @@
 extends Control
 
 const InventorySlotScene = preload("res://scenes/ui/InventorySlot.tscn")
+const EquipmentSlotScene = preload("res://scenes/ui/EquipmentSlot.tscn")
 const SpriteResolver = preload("res://scripts/systems/SpriteResolver.gd")
+const TrashSlotScript = preload("res://scripts/ui/TrashSlot.gd")
 
 @export var slot_count: int = 20
 @export var columns: int = 5
 
 var inventory
+var equipment_system
 var slots := []
+var equipment_slot_nodes := []
 var grid: GridContainer
 var details_label: Label
+var selected_slot_index := -1
+var selected_equip_slot_id := ""
 var sprite_resolver := SpriteResolver.new()
+var _drag_source_slot := -1
+
+
+func set_equipment_system(new_equipment_system) -> void:
+	equipment_system = new_equipment_system
+	refresh()
 
 
 func _ready() -> void:
@@ -48,7 +60,10 @@ func refresh() -> void:
 			continue
 
 		var item_data: Dictionary = _get_item_data(item_id)
-		slot.setup(index, item_id, amount, item_data, sprite_resolver.get_texture_for_item(item_id), "player")
+		var metadata = item_entry.get("metadata", {})
+		slot.setup(index, item_id, amount, item_data, sprite_resolver.get_texture_for_item(item_id), "player", metadata)
+
+	_refresh_equipment_slots()
 
 
 func _build_ui() -> void:
@@ -58,9 +73,9 @@ func _build_ui() -> void:
 	panel.anchor_top = 0.5
 	panel.anchor_right = 0.5
 	panel.anchor_bottom = 0.5
-	panel.offset_left = -230.0
+	panel.offset_left = -300.0
 	panel.offset_top = -190.0
-	panel.offset_right = 230.0
+	panel.offset_right = 300.0
 	panel.offset_bottom = 190.0
 	add_child(panel)
 
@@ -80,17 +95,85 @@ func _build_ui() -> void:
 	title.text = "Inventory"
 	layout.add_child(title)
 
+	var main_area := HBoxContainer.new()
+	main_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	layout.add_child(main_area)
+
+	var left_side := VBoxContainer.new()
+	left_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_side.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_area.add_child(left_side)
+
+	var controls := HBoxContainer.new()
+	left_side.add_child(controls)
+
+	var sort_button := Button.new()
+	sort_button.text = "Sort Inventory"
+	sort_button.focus_mode = Control.FOCUS_NONE
+	sort_button.pressed.connect(_on_sort_inventory_pressed)
+	controls.add_child(sort_button)
+
+	var split_button := Button.new()
+	split_button.text = "Split Half"
+	split_button.focus_mode = Control.FOCUS_NONE
+	split_button.pressed.connect(_on_split_half_pressed)
+	controls.add_child(split_button)
+
+	var drop_stack_button := Button.new()
+	drop_stack_button.text = "Drop Stack"
+	drop_stack_button.focus_mode = Control.FOCUS_NONE
+	drop_stack_button.pressed.connect(_on_drop_stack_pressed)
+	controls.add_child(drop_stack_button)
+
 	grid = GridContainer.new()
 	grid.columns = columns
-	layout.add_child(grid)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_side.add_child(grid)
 
 	for _index in range(slot_count):
 		var slot = InventorySlotScene.instantiate()
 		slot.slot_selected.connect(_on_slot_selected)
 		slot.slot_right_clicked.connect(_on_slot_right_clicked)
 		slot.slot_drag_dropped.connect(_on_slot_drag_dropped)
+		slot.equipment_drag_dropped.connect(_on_equipment_drag_dropped_to_inventory)
+		slot.drag_started.connect(_on_slot_drag_started)
 		grid.add_child(slot)
 		slots.append(slot)
+
+	var bottom_row := HBoxContainer.new()
+	bottom_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_side.add_child(bottom_row)
+
+	var trash := _make_trash_slot()
+	trash.trash_dropped.connect(_on_trash_dropped)
+	bottom_row.add_child(trash)
+
+	var eq_panel := VBoxContainer.new()
+	eq_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	eq_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_area.add_child(eq_panel)
+
+	var eq_title := Label.new()
+	eq_title.text = "Equipment"
+	eq_panel.add_child(eq_title)
+
+	var eq_slots_vbox := VBoxContainer.new()
+	eq_slots_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	eq_panel.add_child(eq_slots_vbox)
+
+	for slot_id in ["weapon", "tool", "armor", "accessory"]:
+		var slot_label := Label.new()
+		slot_label.text = slot_id.capitalize()
+		eq_slots_vbox.add_child(slot_label)
+
+		var eq_slot = EquipmentSlotScene.instantiate()
+		eq_slot.slot_id = slot_id
+		eq_slot.equip_selected.connect(_on_equip_slot_selected)
+		eq_slot.equip_right_clicked.connect(_on_equip_right_clicked)
+		eq_slot.equip_drag_dropped.connect(_on_equip_drag_dropped)
+		eq_slots_vbox.add_child(eq_slot)
+		equipment_slot_nodes.append(eq_slot)
 
 	details_label = Label.new()
 	details_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -100,37 +183,56 @@ func _build_ui() -> void:
 
 
 func _on_slot_selected(slot_index: int, item_id: String, _inventory_id := "player") -> void:
+	selected_slot_index = slot_index
+	selected_equip_slot_id = ""
 	if item_id.is_empty():
 		details_label.text = "Empty slot %d." % (slot_index + 1)
 		return
 
-	var item_data: Dictionary = _get_item_data(item_id)
-	var display_name := str(item_data.get("display_name", item_id.capitalize()))
-	var description := str(item_data.get("description", ""))
-	var stack_size := int(item_data.get("stack_size", 999))
 	var slot_data: Dictionary = inventory.get_slot(slot_index) if inventory != null else {}
 	var quantity := int(slot_data.get("amount", 0))
-	details_label.text = "%s\nID: %s\nSlot: %d\nQuantity: %d\nStack: %d\n%s" % [
-		display_name,
-		item_id,
-		slot_index + 1,
-		quantity,
-		stack_size,
-		description,
-	]
+	details_label.text = _get_item_details_text(item_id, quantity, slot_index)
 
 
-func _on_slot_right_clicked(slot_index: int, _inventory_id := "player") -> void:
+func _on_slot_right_clicked(slot_index: int, _inventory_id := "player", shift_pressed := false, ctrl_pressed := false) -> void:
 	if inventory == null:
 		return
 
-	var removed: Dictionary = inventory.remove_from_slot(slot_index, 1)
-	var item_id := str(removed.get("item_id", ""))
+	if ctrl_pressed:
+		if inventory.split_half_to_empty_slot(slot_index):
+			details_label.text = "Split stack."
+		else:
+			details_label.text = "No empty slot."
+		refresh()
+		return
+
+	var slot_data: Dictionary = inventory.get_slot(slot_index)
+	var item_id := str(slot_data.get("item_id", ""))
+	var amount := int(slot_data.get("amount", 0))
+
+	if not shift_pressed and not ctrl_pressed and not item_id.is_empty() and amount == 1:
+		var equip_sys = _get_equipment_system()
+		if equip_sys != null and equip_sys.has_method("get_valid_slot_for_item"):
+			var valid_slot = equip_sys.get_valid_slot_for_item(item_id)
+			if not valid_slot.is_empty():
+				var storage_ui: Node = get_tree().get_first_node_in_group("storage_ui")
+				if storage_ui == null or not storage_ui.is_open():
+					if equip_sys.equip_from_inventory(inventory, slot_index):
+						details_label.text = "Equipped %s." % str(_get_item_data(item_id).get("display_name", item_id.capitalize()))
+						refresh()
+						return
+
+	var remove_amount := int(amount) if shift_pressed else 1
+	var removed: Dictionary = inventory.remove_from_slot(slot_index, remove_amount)
+	item_id = str(removed.get("item_id", ""))
+	amount = int(removed.get("amount", 0))
+	var drop_metadata: Variant = removed.get("metadata")
 	if item_id.is_empty():
 		return
 
+	_drop_removed_item(item_id, amount, drop_metadata if drop_metadata is Dictionary else {})
 	var item_data: Dictionary = _get_item_data(item_id)
-	details_label.text = "Removed 1 %s.\nGround item drop will be added later." % str(item_data.get("display_name", item_id.capitalize()))
+	details_label.text = "Dropped %d %s." % [amount, str(item_data.get("display_name", item_id.capitalize()))]
 
 
 func _on_slot_drag_dropped(from_index: int, to_index: int, _from_inventory_id := "player", _to_inventory_id := "player") -> void:
@@ -141,9 +243,294 @@ func _on_slot_drag_dropped(from_index: int, to_index: int, _from_inventory_id :=
 	refresh()
 
 
+func _refresh_equipment_slots() -> void:
+	if equipment_system == null:
+		return
+	var equip_slots: Dictionary = equipment_system.get_equipment_slots()
+	for eq_slot in equipment_slot_nodes:
+		var slot_data: Dictionary = equip_slots.get(eq_slot.slot_id, {})
+		eq_slot.setup(eq_slot.slot_id, slot_data)
+
+
+func _get_equipment_system():
+	return equipment_system
+
+
+func _on_equip_slot_selected(slot_id: String) -> void:
+	selected_equip_slot_id = slot_id
+	selected_slot_index = -1
+	if equipment_system == null:
+		details_label.text = "Equipment system not available."
+		return
+	var equip_data: Dictionary = equipment_system.get_equipped_slot(slot_id)
+	var item_id := str(equip_data.get("item_id", ""))
+	if item_id.is_empty():
+		details_label.text = "Empty %s slot." % slot_id.capitalize()
+		return
+	var item_data: Dictionary = _get_item_data(item_id)
+	var quantity := int(equip_data.get("amount", 0))
+	var meta: Dictionary = equip_data.get("metadata", {})
+	details_label.text = _get_equip_details_text(item_id, quantity, slot_id, item_data, meta)
+
+
+func _on_equip_right_clicked(slot_id: String) -> void:
+	if inventory == null or equipment_system == null:
+		return
+	if equipment_system.unequip_to_inventory(inventory, slot_id):
+		details_label.text = "Unequipped %s." % slot_id.capitalize()
+		refresh()
+	else:
+		details_label.text = "Inventory full."
+
+
+func _on_equip_drag_dropped(slot_id: String, from_slot_index: int, from_inventory_id: String) -> void:
+	if inventory == null or equipment_system == null:
+		return
+	if from_inventory_id != "player":
+		return
+	if equipment_system.equip_from_inventory(inventory, from_slot_index, slot_id):
+		details_label.text = "Equipped."
+		refresh()
+	else:
+		details_label.text = "Cannot equip."
+
+
+func _on_equipment_drag_dropped_to_inventory(from_slot_id: String, _to_slot_index: int, to_inventory_id: String) -> void:
+	if inventory == null or equipment_system == null:
+		return
+	if to_inventory_id != "player":
+		return
+	if equipment_system.unequip_to_inventory(inventory, from_slot_id):
+		details_label.text = "Unequipped."
+		refresh()
+
+
+func _get_equip_details_text(item_id: String, quantity: int, slot_id: String, item_data: Dictionary, metadata: Dictionary) -> String:
+	var lines := [
+		str(item_data.get("display_name", item_id.capitalize())),
+		"ID: %s" % item_id,
+		"Slot: %s" % slot_id.capitalize(),
+	]
+	if quantity > 0:
+		lines.append("Amount: %d" % quantity)
+	lines.append("Type: %s" % str(item_data.get("item_type", "N/A")))
+	lines.append("Tier: %s" % str(item_data.get("tier", "N/A")))
+	var description := str(item_data.get("description", ""))
+	if not description.is_empty():
+		lines.append(description)
+	if item_data.has("durability"):
+		var max_dura := float(item_data.get("durability", 0.0))
+		var current_dura := float(metadata.get("current_durability", max_dura))
+		lines.append("Durability: %.0f / %.0f" % [current_dura, max_dura])
+	if str(item_data.get("item_type", "")) == "tool":
+		lines.append("Tool: %s T%s" % [str(item_data.get("tool_type", "N/A")), str(item_data.get("tool_tier", "N/A"))])
+		lines.append("Damage: %s" % str(item_data.get("tool_damage", "N/A")))
+	var combat_value: Variant = item_data.get("combat", {})
+	if combat_value is Dictionary:
+		var combat: Dictionary = combat_value
+		lines.append("Attack: %s" % str(combat.get("attack_power", "N/A")))
+		lines.append("Damage Type: %s" % str(combat.get("damage_type", "N/A")))
+		lines.append("Crit Bonus: %s" % str(combat.get("crit_chance_bonus", "N/A")))
+	var stats_bonus: Variant = item_data.get("stats_bonus", {})
+	if stats_bonus is Dictionary:
+		for stat in stats_bonus.keys():
+			lines.append("+%s %s" % [str(stats_bonus[stat]), stat.capitalize()])
+	return "\n".join(lines)
+
+
+func _on_sort_inventory_pressed() -> void:
+	if inventory == null:
+		return
+
+	inventory.sort_items()
+	refresh()
+	details_label.text = "Inventory sorted."
+
+
+func _on_split_half_pressed() -> void:
+	if inventory == null or selected_slot_index < 0:
+		return
+
+	if inventory.split_half_to_empty_slot(selected_slot_index):
+		details_label.text = "Split stack."
+	else:
+		details_label.text = "No empty slot."
+	refresh()
+
+
+func _on_drop_stack_pressed() -> void:
+	if inventory == null or selected_slot_index < 0:
+		return
+
+	var slot_data: Dictionary = inventory.get_slot(selected_slot_index)
+	var amount := int(slot_data.get("amount", 0))
+	if amount <= 0:
+		return
+
+	var removed: Dictionary = inventory.remove_from_slot(selected_slot_index, amount)
+	var item_id := str(removed.get("item_id", ""))
+	var removed_amount := int(removed.get("amount", 0))
+	var drop_metadata: Variant = removed.get("metadata")
+	if item_id.is_empty() or removed_amount <= 0:
+		return
+
+	_drop_removed_item(item_id, removed_amount, drop_metadata if drop_metadata is Dictionary else {})
+	details_label.text = "Dropped %d %s." % [removed_amount, str(_get_item_data(item_id).get("display_name", item_id.capitalize()))]
+	refresh()
+
+
+func _drop_removed_item(item_id: String, amount: int, item_metadata: Dictionary = {}) -> void:
+	var main := get_tree().get_first_node_in_group("main")
+	if main != null and main.has_method("drop_item_near_player"):
+		main.drop_item_near_player(item_id, amount, item_metadata)
+
+
+func _on_slot_drag_started(slot_index: int, inventory_id: String) -> void:
+	_drag_source_slot = slot_index if inventory_id == "player" else -1
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_DRAG_END and not is_drag_successful() and _drag_source_slot >= 0:
+		_drop_from_slot(_drag_source_slot)
+		_drag_source_slot = -1
+
+
+func _drop_from_slot(slot_index: int) -> void:
+	if inventory == null:
+		return
+	var slot_data: Dictionary = inventory.get_slot(slot_index)
+	var item_id := str(slot_data.get("item_id", ""))
+	var amount := int(slot_data.get("amount", 0))
+	if item_id.is_empty() or amount <= 0:
+		return
+	var removed: Dictionary = inventory.remove_from_slot(slot_index, amount)
+	var removed_item_id := str(removed.get("item_id", ""))
+	var removed_amount := int(removed.get("amount", 0))
+	var drop_metadata: Variant = removed.get("metadata")
+	if removed_item_id.is_empty() or removed_amount <= 0:
+		return
+	_drop_removed_item(removed_item_id, removed_amount, drop_metadata if drop_metadata is Dictionary else {})
+	details_label.text = "Dropped %d %s." % [removed_amount, str(_get_item_data(removed_item_id).get("display_name", removed_item_id.capitalize()))]
+	refresh()
+
+
+func _make_trash_slot() -> ColorRect:
+	var trash := TrashSlotScript.new()
+	trash.name = "TrashSlot"
+	trash.color = Color(0.4, 0.1, 0.1, 0.8)
+	trash.custom_minimum_size = Vector2(64, 64)
+	trash.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	var label := Label.new()
+	label.text = "TRASH"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	trash.add_child(label)
+	var confirm := ConfirmationDialog.new()
+	confirm.title = "Destroy Item"
+	confirm.dialog_text = ""
+	confirm.confirmed.connect(_on_trash_confirmed)
+	confirm.canceled.connect(_on_trash_canceled)
+	confirm.hide()
+	trash.add_child(confirm)
+	confirm.set_name("ConfirmDialog")
+	return trash
+
+
+var _pending_trash_data: Dictionary = {}
+
+
+func _on_trash_dropped(slot_index: int, inventory_id: String) -> void:
+	if inventory == null or inventory_id != "player":
+		return
+	var slot_data: Dictionary = inventory.get_slot(slot_index)
+	var item_id := str(slot_data.get("item_id", ""))
+	var amount := int(slot_data.get("amount", 0))
+	if item_id.is_empty() or amount <= 0:
+		return
+	var item_data := _get_item_data(item_id)
+	var display_name := str(item_data.get("display_name", item_id.capitalize()))
+	_pending_trash_data = {"slot_index": slot_index, "item_id": item_id, "amount": amount, "display_name": display_name}
+	var trash := find_child("TrashSlot", true, false) as ColorRect
+	if trash == null:
+		return
+	var confirm := trash.get_node_or_null("ConfirmDialog") as ConfirmationDialog
+	if confirm == null:
+		return
+	confirm.dialog_text = "Destroy %d %s?" % [amount, display_name]
+	confirm.popup_centered()
+
+
+func _on_trash_confirmed() -> void:
+	if _pending_trash_data.is_empty():
+		return
+	var slot_index := int(_pending_trash_data.get("slot_index", -1))
+	var item_id := str(_pending_trash_data.get("item_id", ""))
+	var amount := int(_pending_trash_data.get("amount", 0))
+	_pending_trash_data = {}
+	if inventory == null or slot_index < 0:
+		return
+	var slot_check: Dictionary = inventory.get_slot(slot_index)
+	if str(slot_check.get("item_id", "")) != item_id:
+		return
+	var removed: Dictionary = inventory.remove_from_slot(slot_index, amount)
+	var removed_amount := int(removed.get("amount", 0))
+	if removed_amount > 0:
+		details_label.text = "Destroyed %d %s." % [removed_amount, str(_get_item_data(item_id).get("display_name", item_id.capitalize()))]
+	refresh()
+
+
+func _on_trash_canceled() -> void:
+	_pending_trash_data = {}
+	details_label.text = "Cancelled."
+
+
 func _get_item_data(item_id: String) -> Dictionary:
 	var content_db := get_node_or_null("/root/ContentDB")
 	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
 		return {}
 
 	return content_db.get_item(item_id)
+
+
+func _get_item_details_text(item_id: String, quantity: int, slot_index: int) -> String:
+	var item_data: Dictionary = _get_item_data(item_id)
+	var slot_data: Dictionary = inventory.get_slot(slot_index) if inventory != null else {}
+	var metadata: Dictionary = slot_data.get("metadata", {}) if slot_data.get("metadata", {}) is Dictionary else {}
+	var lines := [
+		str(item_data.get("display_name", item_id.capitalize())),
+		"ID: %s" % item_id,
+		"Slot: %d" % (slot_index + 1),
+		"Amount: %d" % quantity,
+		"Stack: %d" % int(item_data.get("stack_size", 99)),
+		"Tier: %s" % str(item_data.get("tier", "N/A")),
+		"Type: %s" % str(item_data.get("item_type", "N/A")),
+		"Family: %s" % str(item_data.get("material_family", "N/A")),
+	]
+
+	var description := str(item_data.get("description", ""))
+	if not description.is_empty():
+		lines.append(description)
+
+	if str(item_data.get("item_type", "")) == "tool":
+		lines.append("Tool: %s T%s" % [str(item_data.get("tool_type", "N/A")), str(item_data.get("tool_tier", "N/A"))])
+		lines.append("Damage: %s" % str(item_data.get("tool_damage", "N/A")))
+
+	var max_dura := int(item_data.get("durability", 0))
+	if max_dura > 0:
+		var current_dura := int(metadata.get("current_durability", max_dura))
+		if current_dura <= 0:
+			lines.append("Durability: BROKEN")
+		else:
+			lines.append("Durability: %d / %d" % [current_dura, max_dura])
+
+	var combat_value: Variant = item_data.get("combat", {})
+	if combat_value is Dictionary:
+		var combat: Dictionary = combat_value
+		lines.append("Attack: %s" % str(combat.get("attack_power", "N/A")))
+		lines.append("Damage Type: %s" % str(combat.get("damage_type", "N/A")))
+		lines.append("Crit Bonus: %s" % str(combat.get("crit_chance_bonus", "N/A")))
+
+	return "\n".join(lines)

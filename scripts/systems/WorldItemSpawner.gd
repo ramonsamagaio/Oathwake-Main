@@ -14,7 +14,30 @@ const ADJACENT_TILE_OFFSETS := [
 ]
 
 
-static func spawn_item(item_id: String, amount: int, world_position: Vector2) -> Node2D:
+static func spawn_item(item_id: String, amount: int, world_position: Vector2, metadata: Dictionary = {}) -> Node2D:
+	return _spawn_item_at_position(item_id, amount, _get_random_adjacent_drop_position(world_position), true, metadata)
+
+
+static func spawn_item_near_position(item_id: String, amount: int, world_position: Vector2, metadata: Dictionary = {}) -> Node2D:
+	var offset := Vector2(randf_range(-22.0, 22.0), randf_range(-14.0, 14.0))
+	return _spawn_item_at_position(item_id, amount, world_position + offset, true, metadata)
+
+
+static func spawn_loaded_item(item_id: String, amount: int, world_position: Vector2, metadata: Dictionary = {}) -> Node2D:
+	return _spawn_item_at_position(item_id, amount, world_position, false, metadata)
+
+
+static func clear_world_items() -> void:
+	var parent := _get_world_items_parent()
+	if parent == null:
+		return
+
+	for child in parent.get_children():
+		if child is Node:
+			child.queue_free()
+
+
+static func _spawn_item_at_position(item_id: String, amount: int, drop_position: Vector2, play_jump := true, metadata: Dictionary = {}) -> Node2D:
 	if item_id.is_empty() or amount <= 0:
 		return null
 
@@ -22,11 +45,14 @@ static func spawn_item(item_id: String, amount: int, world_position: Vector2) ->
 	if parent == null:
 		return null
 
-	var drop_position := _get_random_adjacent_drop_position(world_position)
-	var world_item = WorldItemScene.instantiate()
+	var world_item: Node2D = WorldItemScene.instantiate()
+	world_item.set("item_id", item_id)
+	world_item.set("amount", amount)
+	world_item.set("spawn_jump_enabled", play_jump)
+	world_item.set("spawn_magnet_delay", 0.3 if play_jump else 0.0)
 	world_item.position = parent.to_local(drop_position)
 	parent.add_child(world_item)
-	world_item.setup(item_id, amount)
+	world_item.call("setup", item_id, amount, metadata)
 	return world_item
 
 

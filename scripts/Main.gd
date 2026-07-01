@@ -2,6 +2,9 @@ extends Node2D
 
 const Inventory = preload("res://scripts/Inventory.gd")
 const SaveSystem = preload("res://scripts/systems/SaveSystem.gd")
+const WorldItemSpawner = preload("res://scripts/systems/WorldItemSpawner.gd")
+const InventoryDebug = preload("res://scripts/systems/InventoryDebug.gd")
+const EquipmentSystem = preload("res://scripts/systems/EquipmentSystem.gd")
 const DebugMonsterScene = preload("res://scenes/enemies/Slime.tscn")
 const DebugTreeScene = preload("res://scenes/Tree.tscn")
 const DebugRockScene = preload("res://scenes/Rock.tscn")
@@ -9,6 +12,7 @@ const SAVE_PATH := "user://savegame.json"
 const BUILD_TYPE_BED := "bed"
 
 var inventory := Inventory.new()
+var equipment_system := EquipmentSystem.new()
 var collected_resource_ids := {}
 var save_system := SaveSystem.new()
 var player_stat_spin_boxes := {}
@@ -58,9 +62,13 @@ func _ready() -> void:
 	housing_system.changed.connect(_on_housing_changed)
 	settlement_manager.changed.connect(_update_settlement_labels)
 	inventory_ui.set_inventory(inventory)
+	inventory_ui.set_equipment_system(equipment_system)
+	equipment_system.changed.connect(inventory_ui.refresh)
+	equipment_system.changed.connect(_update_tool_label)
 	storage_ui.setup(inventory, player)
 	hotbar_ui.setup(inventory, player)
 	character_status_ui.setup(player)
+	character_status_ui.set_equipment_system(equipment_system)
 	save_button.pressed.connect(save_game)
 	load_button.pressed.connect(load_game)
 	_connect_resource_nodes()
@@ -91,6 +99,21 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F7:
+		InventoryDebug.validate_full_item_state(self)
+		get_viewport().set_input_as_handled()
+		return
+
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F8:
+		InventoryDebug.print_all(self)
+		get_viewport().set_input_as_handled()
+		return
+
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F9:
+		InventoryDebug.print_full_item_snapshot(self)
+		get_viewport().set_input_as_handled()
+		return
+
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_J:
 		settlement_manager.assign_nearby_npc_to_house()
 		_update_settlement_labels()
@@ -108,11 +131,12 @@ func _connect_resource_nodes() -> void:
 			resource_node.connect("collected", _on_resource_collected)
 
 
-func _on_resource_collected(resource_id: String, item_id: String, amount: int) -> void:
+func _on_resource_collected(resource_id: String, _item_id: String, _amount: int) -> void:
 	if not resource_id.is_empty():
 		collected_resource_ids[resource_id] = true
 
-	add_resource(item_id, amount)
+	# Resource nodes spawn world items for pickup, so do not grant inventory here.
+	# This keeps collected state tracking separate from the actual item pickup flow.
 
 
 func add_resource(resource_name: String, amount: int) -> void:
@@ -121,8 +145,15 @@ func add_resource(resource_name: String, amount: int) -> void:
 		print("Inventory full. Could not add %d %s" % [leftover, resource_name])
 
 
-func add_item_to_inventory(item_id: String, amount: int) -> int:
-	return inventory.add_item(item_id, amount)
+func add_item_to_inventory(item_id: String, amount: int, metadata: Dictionary = {}) -> int:
+	return inventory.add_item(item_id, amount, metadata)
+
+
+func drop_item_near_player(item_id: String, amount: int, metadata: Dictionary = {}) -> void:
+	if item_id.is_empty() or amount <= 0:
+		return
+
+	WorldItemSpawner.spawn_item_near_position(item_id, amount, player.global_position, metadata)
 
 
 func open_storage(storage_node) -> void:
@@ -144,9 +175,11 @@ func save_game() -> void:
 	var save_data := {
 		"inventory": inventory.get_all_items(),
 		"inventory_slots": inventory.get_slots(),
+		"equipment_slots": equipment_system.get_slots_for_save(),
 		"walls": build_system.get_built_wall_cells(),
 		"buildings": build_system.get_built_buildings(),
 		"respawning_resources": _get_respawning_resources(),
+		"world_items": _get_world_items_save_data(),
 		"unlocked_tools": player.get_unlocked_tools(),
 		"current_tool": player.get_current_tool(),
 		"respawn_point": _get_respawn_point_save_data(),
@@ -176,6 +209,7 @@ func load_game() -> void:
 		if not inventory_data is Dictionary:
 			inventory_data = {}
 		_load_inventory(inventory_data)
+	equipment_system.set_slots_from_save(save_data.get("equipment_slots", {}))
 	inventory_ui.refresh()
 
 	var buildings = save_data.get("buildings", [])
@@ -193,6 +227,11 @@ func load_game() -> void:
 		respawning_resources = []
 
 	_load_respawning_resources(respawning_resources)
+
+	var world_items: Variant = save_data.get("world_items", [])
+	if not world_items is Array:
+		world_items = []
+	_load_world_items(world_items)
 
 	var unlocked_tools = save_data.get("unlocked_tools", [])
 	if not unlocked_tools is Array:
@@ -217,7 +256,16 @@ func _update_health_label(current_health: int, max_health: int) -> void:
 	health_label.text = "Health: %d/%d" % [current_health, max_health]
 
 
-func _update_tool_label(current_tool: String) -> void:
+func _update_tool_label(current_tool := "") -> void:
+	if equipment_system != null:
+		var tool_slot: Dictionary = equipment_system.get_equipped_slot("tool")
+		var item_id := str(tool_slot.get("item_id", ""))
+		if not item_id.is_empty():
+			var content_db := get_node_or_null("/root/ContentDB")
+			if content_db != null and content_db.has_method("has_item") and content_db.has_item(item_id):
+				var item_data: Dictionary = content_db.get_item(item_id)
+				tool_label.text = "Tool: %s" % str(item_data.get("display_name", item_id.capitalize()))
+				return
 	tool_label.text = "Tool: %s" % current_tool
 
 
@@ -328,6 +376,7 @@ func _populate_spawn_debug_panel() -> void:
 	_add_spawn_navigation_button("Trees / Wood", _show_resource_spawn_category.bind("wood"))
 	_add_spawn_navigation_button("Ores / Rocks", _show_resource_spawn_category.bind("ore"))
 	_add_spawn_navigation_button("Other Resources", _show_resource_spawn_category.bind("other"))
+	_add_spawn_navigation_button("Items", _show_items_spawn_category)
 
 
 func _add_spawn_panel_title(title_text: String) -> void:
@@ -361,6 +410,11 @@ func _clear_spawn_panel_content(title_text: String, show_back_button := true) ->
 func _show_monster_spawn_category() -> void:
 	_clear_spawn_panel_content("Monsters")
 	_populate_monster_spawn_buttons()
+
+
+func _show_items_spawn_category() -> void:
+	_clear_spawn_panel_content("Items")
+	_populate_items_spawn_buttons()
 
 
 func _show_resource_spawn_category(category: String) -> void:
@@ -417,6 +471,74 @@ func _populate_resource_spawn_buttons(category: String) -> void:
 		button.focus_mode = Control.FOCUS_NONE
 		button.pressed.connect(_on_debug_spawn_resource_pressed.bind(str(resource_id)))
 		monster_spawn_list.add_child(button)
+
+
+func _populate_items_spawn_buttons(search_text := "") -> void:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("get_all_items"):
+		return
+
+	var items: Dictionary = content_db.get_all_items()
+	var item_ids: Array = items.keys()
+	item_ids.sort()
+
+	var search_line := LineEdit.new()
+	search_line.placeholder_text = "Search items..."
+	search_line.focus_mode = Control.FOCUS_ALL
+	search_line.text = search_text
+	search_line.text_changed.connect(_on_items_search_text_changed)
+	monster_spawn_list.add_child(search_line)
+
+	for item_id in item_ids:
+		var item_data = items[item_id]
+		if not item_data is Dictionary:
+			continue
+		var display_name := str(item_data.get("display_name", str(item_id).capitalize()))
+		var item_type := str(item_data.get("item_type", ""))
+
+		if not search_text.is_empty():
+			var search_lower := search_text.to_lower()
+			var match_name := display_name.to_lower().contains(search_lower)
+			var match_id := str(item_id).to_lower().contains(search_lower)
+			var match_type := item_type.to_lower().contains(search_lower)
+			if not match_name and not match_id and not match_type:
+				continue
+
+		var button := Button.new()
+		button.text = "%s  [%s]" % [display_name, item_type]
+		button.focus_mode = Control.FOCUS_NONE
+		button.pressed.connect(_on_debug_spawn_item_pressed.bind(str(item_id)))
+		monster_spawn_list.add_child(button)
+
+	if search_text.is_empty():
+		search_line.grab_focus()
+
+
+func _on_items_search_text_changed(new_text: String) -> void:
+	_clear_spawn_panel_content("Items", false)
+	_populate_items_spawn_buttons(new_text)
+	_add_spawn_back_button_for_items()
+
+
+func _add_spawn_back_button_for_items() -> void:
+	var back_button := Button.new()
+	back_button.text = "Back"
+	back_button.focus_mode = Control.FOCUS_NONE
+	back_button.pressed.connect(_populate_spawn_debug_panel)
+	var first_child = monster_spawn_list.get_child(0)
+	if first_child != null:
+		monster_spawn_list.add_child(back_button)
+		monster_spawn_list.move_child(back_button, 0)
+	else:
+		monster_spawn_list.add_child(back_button)
+
+
+func _on_debug_spawn_item_pressed(item_id: String) -> void:
+	var leftover := add_item_to_inventory(item_id, 1)
+	if leftover == 0:
+		print("Spawned item: %s" % item_id)
+	else:
+		print("Inventory full, could not spawn: %s" % item_id)
 
 
 func _get_resource_spawn_category(resource_id: String, resource_data: Dictionary) -> String:
@@ -534,6 +656,64 @@ func _get_respawning_resources() -> Array:
 		})
 
 	return respawning_resources
+
+
+func _get_world_items_save_data() -> Array:
+	var world_items := []
+
+	for node in get_tree().get_nodes_in_group("world_item"):
+		if not node is Node2D:
+			continue
+		if node.has_method("is_collected") and node.is_collected():
+			continue
+
+		var item_id := str(node.get("item_id"))
+		var amount := int(node.get("amount"))
+		if item_id.is_empty() or amount <= 0:
+			continue
+
+		if node.has_method("get_save_data"):
+			world_items.append(node.get_save_data())
+		else:
+			var item_position: Vector2 = node.global_position
+			world_items.append({
+				"item_id": item_id,
+				"amount": amount,
+				"position": {
+					"x": item_position.x,
+					"y": item_position.y,
+				},
+			})
+
+	return world_items
+
+
+func _load_world_items(world_items: Array) -> void:
+	WorldItemSpawner.clear_world_items()
+
+	for raw_data in world_items:
+		if not raw_data is Dictionary:
+			continue
+		var world_item_data: Dictionary = raw_data
+
+		var item_id := str(world_item_data.get("item_id", ""))
+		var amount := int(world_item_data.get("amount", 0))
+		var raw_position: Variant = world_item_data.get("position", {})
+		if not raw_position is Dictionary:
+			continue
+		if item_id.is_empty() or amount <= 0:
+			continue
+
+		var position_data: Dictionary = raw_position
+		var world_position := Vector2(
+			float(position_data.get("x", 0.0)),
+			float(position_data.get("y", 0.0))
+		)
+		var raw_metadata: Variant = world_item_data.get("metadata", {})
+		var load_meta_dict := {}
+		if raw_metadata is Dictionary:
+			load_meta_dict = raw_metadata
+		WorldItemSpawner.spawn_loaded_item(item_id, amount, world_position, load_meta_dict)
 
 
 func _load_respawning_resources(respawning_resources: Array) -> void:

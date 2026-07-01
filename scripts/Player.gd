@@ -7,6 +7,8 @@ const AnimationSetLoaderScript = preload("res://scripts/systems/AnimationSetLoad
 const PlayerAnimationControllerScript = preload("res://scripts/systems/PlayerAnimationController.gd")
 const CombatCalculatorScript = preload("res://scripts/systems/CombatCalculator.gd")
 const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextSpawner.gd")
+const ItemInstanceHelper = preload("res://scripts/systems/ItemInstanceHelper.gd")
+const PlayerStatsResolverScript = preload("res://scripts/systems/PlayerStatsResolver.gd")
 const TOOL_HANDS := "Hands"
 const TOOL_AXE := "Axe"
 const TOOL_PICKAXE := "Pickaxe"
@@ -35,6 +37,7 @@ var last_direction := "down"
 var animation_controller := PlayerAnimationControllerScript.new()
 var animation_set_loader := AnimationSetLoaderScript.new()
 var combat_calculator := CombatCalculatorScript.new()
+var player_stats_resolver := PlayerStatsResolverScript.new()
 var debug_base_stats_override := {}
 var unlocked_tools := [
 	TOOL_HANDS,
@@ -66,7 +69,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E:
-		if _is_storage_open():
+		if _is_storage_open() or _is_crafting_open():
 			return
 
 		if _try_interact_with_nearby_npc():
@@ -77,19 +80,23 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
+		if _try_interact_with_nearby_workbench():
+			get_viewport().set_input_as_handled()
+			return
+
 		_select_next_tool()
 		get_viewport().set_input_as_handled()
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE:
-		if _is_storage_open():
+		if _is_storage_open() or _is_crafting_open():
 			return
 
 		_attack()
 		get_viewport().set_input_as_handled()
 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if _is_storage_open():
+		if _is_storage_open() or _is_crafting_open():
 			return
 		if _is_build_mode_enabled():
 			return
@@ -260,23 +267,42 @@ func _attack() -> void:
 
 
 func _attack_enemy(target: Node) -> void:
+	if _is_equipped_weapon_broken():
+		FloatingCombatTextSpawner.show_text("Weapon is broken!", global_position + Vector2(0, -28), Color(0.8, 0.2, 0.2, 1.0))
+		return
+
 	var target_data := {}
 	if target.has_method("get_combat_data"):
 		target_data = target.call("get_combat_data")
 
-	var combat_result := combat_calculator.calculate_damage(_get_combat_data(), target_data, _get_current_held_item_data())
+	var eq_system = _get_equipment_system()
+	var attacker_data := player_stats_resolver.get_total_player_data(self, eq_system)
+	var weapon_data := player_stats_resolver.get_equipped_weapon_data(eq_system)
+	var held_item_data := weapon_data if not weapon_data.is_empty() else _get_current_held_item_data()
+
+	var combat_result := combat_calculator.calculate_damage(attacker_data, target_data, held_item_data)
 	if target.has_method("apply_combat_result"):
 		target.call("apply_combat_result", combat_result)
 	else:
 		target.call("take_damage", int(combat_result.get("damage", attack_damage)))
+	_reduce_equipped_weapon_durability()
 
 
 func _attack_resource(target: Node) -> void:
+	if _is_equipped_tool_broken():
+		FloatingCombatTextSpawner.show_text("Tool is broken!", global_position + Vector2(0, -28), Color(0.8, 0.2, 0.2, 1.0))
+		return
+
+	var eq_system = _get_equipment_system()
+	var actor_data := player_stats_resolver.get_total_player_data(self, eq_system)
+
 	if target.has_method("apply_gather_hit"):
-		target.call("apply_gather_hit", _get_current_held_item_data(), _get_combat_data(), {})
+		target.call("apply_gather_hit", _get_current_held_item_data(), actor_data, {})
+		_reduce_equipped_tool_durability()
 		return
 
 	target.call("take_damage", _get_resource_attack_damage(target))
+	_reduce_equipped_tool_durability()
 
 
 func _get_combat_data() -> Dictionary:
@@ -354,12 +380,28 @@ func _try_interact_with_nearby_storage() -> bool:
 	return bool(nearest_storage.call("try_interact_with_player", self))
 
 
+func _try_interact_with_nearby_workbench() -> bool:
+	var crafting_system = get_tree().get_first_node_in_group("crafting_system")
+	if crafting_system == null or not crafting_system.has_method("try_open_workbench_for_player"):
+		return false
+
+	return bool(crafting_system.call("try_open_workbench_for_player", self))
+
+
 func _is_storage_open() -> bool:
 	var storage_ui := get_tree().get_first_node_in_group("storage_ui")
 	if storage_ui == null or not storage_ui.has_method("is_open"):
 		return false
 
 	return bool(storage_ui.call("is_open"))
+
+
+func _is_crafting_open() -> bool:
+	var crafting_system = get_tree().get_first_node_in_group("crafting_system")
+	if crafting_system == null or not crafting_system.has_method("is_crafting_open"):
+		return false
+
+	return bool(crafting_system.call("is_crafting_open"))
 
 
 func _find_nearby_attack_targets(group_name: String) -> Array:
@@ -398,6 +440,10 @@ func _get_resource_attack_damage(resource_node: Node) -> int:
 			if drop_item_id == "stone" and resource_damage.has("rock"):
 				return int(resource_damage["rock"])
 
+	var item_tool_damage := int(held_item_data.get("tool_damage", 0))
+	if item_tool_damage > 0:
+		return item_tool_damage
+
 	var current_tool := get_current_tool()
 	var resource_type_id := _get_target_resource_type_id(resource_node)
 	var drop_item_id := _get_target_drop_item_id(resource_node)
@@ -410,6 +456,19 @@ func _get_resource_attack_damage(resource_node: Node) -> int:
 
 
 func _current_item_can_hit(flag_name: String, default_value: bool) -> bool:
+	var eq_system = _get_equipment_system()
+	if eq_system != null:
+		var slot_id := "weapon" if flag_name.find("monster") >= 0 else "tool"
+		var slot_data = eq_system.get_equipped_slot(slot_id)
+		var item_id := str(slot_data.get("item_id", ""))
+		if not item_id.is_empty():
+			var content_db := get_node_or_null("/root/ContentDB")
+			if content_db != null and content_db.has_method("has_item") and content_db.has_item(item_id):
+				var item_data: Dictionary = content_db.get_item(item_id)
+				var combat_value: Variant = item_data.get("combat", {})
+				if combat_value is Dictionary:
+					var combat: Dictionary = combat_value
+					return bool(combat.get(flag_name, default_value))
 	var held_item_data := _get_current_held_item_data()
 	var combat_value: Variant = held_item_data.get("combat", {})
 	if combat_value is Dictionary:
@@ -419,7 +478,127 @@ func _current_item_can_hit(flag_name: String, default_value: bool) -> bool:
 
 
 func _get_current_tool_item_id() -> String:
+	var main := get_tree().get_first_node_in_group("main")
+	if main != null:
+		var eq_system = main.get("equipment_system")
+		if eq_system != null and eq_system.has_method("get_equipped_slot"):
+			var tool_slot: Dictionary = eq_system.get_equipped_slot("tool")
+			var item_id := str(tool_slot.get("item_id", ""))
+			if not item_id.is_empty():
+				return item_id
 	return get_current_tool().to_lower()
+
+
+func _get_equipment_system():
+	var main := get_tree().get_first_node_in_group("main")
+	if main == null:
+		return null
+	return main.get("equipment_system")
+
+
+func _get_equipped_slot_metadata(slot_id: String) -> Dictionary:
+	var main := get_tree().get_first_node_in_group("main")
+	if main == null:
+		return {}
+	var eq_system = main.get("equipment_system")
+	if eq_system == null or not eq_system.has_method("get_equipped_slot"):
+		return {}
+	var slot_data = eq_system.get_equipped_slot(slot_id)
+	if not slot_data is Dictionary:
+		return {}
+	var meta = slot_data.get("metadata", {})
+	return meta if meta is Dictionary else {}
+
+
+func _is_equipped_tool_broken() -> bool:
+	var meta := _get_equipped_slot_metadata("tool")
+	var main := get_tree().get_first_node_in_group("main")
+	if main == null:
+		return false
+	var eq_system = main.get("equipment_system")
+	if eq_system == null:
+		return false
+	var tool_slot = eq_system.get_equipped_slot("tool")
+	if not tool_slot is Dictionary:
+		return false
+	var item_id := str(tool_slot.get("item_id", ""))
+	if item_id.is_empty():
+		return false
+	return ItemInstanceHelper.is_broken({"item_id": item_id, "metadata": meta})
+
+
+func _is_equipped_weapon_broken() -> bool:
+	var meta := _get_equipped_slot_metadata("weapon")
+	var main := get_tree().get_first_node_in_group("main")
+	if main == null:
+		return false
+	var eq_system = main.get("equipment_system")
+	if eq_system == null:
+		return false
+	var weapon_slot = eq_system.get_equipped_slot("weapon")
+	if not weapon_slot is Dictionary:
+		return false
+	var item_id := str(weapon_slot.get("item_id", ""))
+	if item_id.is_empty():
+		return false
+	return ItemInstanceHelper.is_broken({"item_id": item_id, "metadata": meta})
+
+
+func _get_slot_metadata_from_dict(slot: Dictionary) -> Dictionary:
+	var raw = slot.get("metadata", {})
+	return raw if raw is Dictionary else {}
+
+
+func _reduce_equipped_tool_durability() -> void:
+	var main := get_tree().get_first_node_in_group("main")
+	if main == null:
+		return
+	var eq_system = main.get("equipment_system")
+	if eq_system == null or not eq_system.has_method("get_equipped_slot") or not eq_system.has_method("set_equipped_slot"):
+		return
+	var tool_slot = eq_system.get_equipped_slot("tool")
+	if not tool_slot is Dictionary:
+		return
+	var item_id := str(tool_slot.get("item_id", ""))
+	if item_id.is_empty():
+		return
+	var max_dura := ItemInstanceHelper.get_max_durability(item_id)
+	if max_dura <= 0:
+		return
+	var meta: Dictionary = _get_slot_metadata_from_dict(tool_slot)
+	var current_dura: int = meta.get("current_durability", max_dura)
+	if current_dura <= 0:
+		return
+	meta["current_durability"] = max(0, current_dura - 1)
+	tool_slot["metadata"] = meta
+	eq_system.set_equipped_slot("tool", tool_slot)
+	eq_system.changed.emit()
+
+
+func _reduce_equipped_weapon_durability() -> void:
+	var main := get_tree().get_first_node_in_group("main")
+	if main == null:
+		return
+	var eq_system = main.get("equipment_system")
+	if eq_system == null or not eq_system.has_method("get_equipped_slot") or not eq_system.has_method("set_equipped_slot"):
+		return
+	var weapon_slot = eq_system.get_equipped_slot("weapon")
+	if not weapon_slot is Dictionary:
+		return
+	var item_id := str(weapon_slot.get("item_id", ""))
+	if item_id.is_empty():
+		return
+	var max_dura := ItemInstanceHelper.get_max_durability(item_id)
+	if max_dura <= 0:
+		return
+	var meta: Dictionary = _get_slot_metadata_from_dict(weapon_slot)
+	var current_dura: int = meta.get("current_durability", max_dura)
+	if current_dura <= 0:
+		return
+	meta["current_durability"] = max(0, current_dura - 1)
+	weapon_slot["metadata"] = meta
+	eq_system.set_equipped_slot("weapon", weapon_slot)
+	eq_system.changed.emit()
 
 
 func _play_hit_flash(flash_color: Color) -> void:

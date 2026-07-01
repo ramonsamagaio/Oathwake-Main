@@ -148,8 +148,8 @@ func _try_remove_building(tile_position: Vector2i) -> bool:
 	_sync_building_metadata(tile_position)
 	var building_position := build_layer.to_global(_grid_cell_to_local_center(tile_position))
 	var metadata := _get_building_metadata(tile_position)
-	if building_type == BUILD_TYPE_CHEST and _has_items_in_storage_slots(metadata.get("storage_slots", [])):
-		print("Empty the Chest before removing it.")
+	if _is_storage_building_type(building_type) and _has_items_in_storage_slots(metadata.get("storage_slots", [])):
+		print("Empty the %s before removing it." % _get_building_display_name(building_type))
 		return false
 
 	_remove_building_scene(tile_position)
@@ -333,7 +333,7 @@ func _get_building_tile(building_type: String) -> Vector2i:
 		return WORKBENCH_TILE
 	if building_type == BUILD_TYPE_BED:
 		return BED_TILE
-	if building_type == BUILD_TYPE_CHEST:
+	if _is_storage_building_type(building_type):
 		return CHEST_TILE
 
 	return WALL_TILE
@@ -354,6 +354,50 @@ func _get_building_cost(building_type: String) -> Array:
 func _get_building_display_name(building_type: String) -> String:
 	building_type = _normalize_building_type(building_type)
 	return recipe_book.get_display_name(building_type)
+
+
+func _is_storage_building_type(building_type: String) -> bool:
+	building_type = _normalize_building_type(building_type)
+	var item_data := _get_storage_item_data(building_type)
+	if item_data.is_empty():
+		return false
+
+	if str(item_data.get("building_type", "")) == "storage":
+		return true
+
+	var tags: Variant = item_data.get("tags", [])
+	return tags is Array and tags.has("storage")
+
+
+func _get_storage_item_data(building_type: String) -> Dictionary:
+	var recipe := recipe_book.get_recipe(building_type)
+	var item_id := str(recipe.get("output_item_id", building_type))
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
+		return {}
+
+	return content_db.get_item(item_id)
+
+
+func _get_storage_display_name(building_type: String) -> String:
+	var item_data := _get_storage_item_data(building_type)
+	return str(item_data.get("display_name", _get_building_display_name(building_type)))
+
+
+func _get_storage_slot_count(building_type: String) -> int:
+	var item_data := _get_storage_item_data(building_type)
+	return max(int(item_data.get("storage_slots", 20)), 1)
+
+
+func _get_loaded_storage_slot_count(building_type: String, building: Dictionary) -> int:
+	var default_slot_count := _get_storage_slot_count(building_type)
+	var saved_slot_count := int(building.get("storage_slot_count", building.get("slot_count", default_slot_count)))
+	var storage_slots: Variant = building.get("storage_slots", [])
+	if storage_slots is Array:
+		saved_slot_count = max(saved_slot_count, storage_slots.size())
+	if saved_slot_count > default_slot_count:
+		print("Storage %s loaded with %d slots to preserve saved items." % [str(building.get("storage_id", building_type)), saved_slot_count])
+	return max(saved_slot_count, default_slot_count)
 
 
 func _normalize_building_type(building_type: String) -> String:
@@ -604,7 +648,7 @@ func _get_preview_color() -> Color:
 		return VALID_WORKBENCH_PREVIEW_COLOR
 	if selected_build_type == BUILD_TYPE_BED:
 		return VALID_BED_PREVIEW_COLOR
-	if selected_build_type == BUILD_TYPE_CHEST:
+	if _is_storage_building_type(selected_build_type):
 		return VALID_CHEST_PREVIEW_COLOR
 
 	return VALID_PREVIEW_COLOR
@@ -633,29 +677,66 @@ func _update_build_label() -> void:
 
 
 func _get_building_ui_order() -> Array:
-	return [
+	var building_ids := [
 		BUILD_TYPE_WALL,
 		BUILD_TYPE_CAMPFIRE,
 		BUILD_TYPE_WORKBENCH,
 		BUILD_TYPE_BED,
-		BUILD_TYPE_CHEST,
 	]
+	var storage_building_ids: Array[String] = []
+
+	for recipe in recipe_book.get_recipes_by_type("building"):
+		var recipe_id := str(recipe.get("id", ""))
+		if recipe_id.is_empty() or building_ids.has(recipe_id):
+			continue
+		if _is_storage_building_type(recipe_id):
+			storage_building_ids.append(recipe_id)
+
+	storage_building_ids.sort_custom(_compare_building_ids_by_tier)
+	for storage_building_id in storage_building_ids:
+		building_ids.append(storage_building_id)
+
+	return building_ids
+
+
+func _compare_building_ids_by_tier(a: String, b: String) -> bool:
+	var a_recipe := recipe_book.get_recipe(a)
+	var b_recipe := recipe_book.get_recipe(b)
+	var a_tier := int(a_recipe.get("tier", 999))
+	var b_tier := int(b_recipe.get("tier", 999))
+	if a_tier == b_tier:
+		return a < b
+
+	return a_tier < b_tier
 
 
 func _get_building_key_text(building_type: String) -> String:
 	var build_key := recipe_book.get_build_key(building_type)
-	if build_key == KEY_1:
-		return "1"
-	if build_key == KEY_2:
-		return "2"
-	if build_key == KEY_3:
-		return "3"
-	if build_key == KEY_4:
-		return "4"
-	if build_key == KEY_5:
-		return "5"
-
-	return "?"
+	match build_key:
+		KEY_1:
+			return "1"
+		KEY_2:
+			return "2"
+		KEY_3:
+			return "3"
+		KEY_4:
+			return "4"
+		KEY_5:
+			return "5"
+		KEY_6:
+			return "6"
+		KEY_7:
+			return "7"
+		KEY_8:
+			return "8"
+		KEY_9:
+			return "9"
+		KEY_0:
+			return "0"
+		KEY_MINUS:
+			return "-"
+		_:
+			return "?"
 
 
 func _get_building_cost_text(building_type: String) -> String:
@@ -702,10 +783,13 @@ func _create_building_metadata(tile_position: Vector2i, building_type: String) -
 		metadata["bed_id"] = bed_id
 		metadata["occupied_by_npc_id"] = ""
 
-	if building_type == BUILD_TYPE_CHEST:
+	if _is_storage_building_type(building_type):
 		var chest_id := "chest_%03d" % next_chest_id
 		next_chest_id += 1
+		metadata["building_id"] = building_type
 		metadata["storage_id"] = chest_id
+		metadata["display_name"] = _get_storage_display_name(building_type)
+		metadata["storage_slot_count"] = _get_storage_slot_count(building_type)
 		metadata["storage_slots"] = []
 
 	building_metadata_by_cell[_cell_key(tile_position)] = metadata
@@ -726,11 +810,14 @@ func _load_building_metadata(tile_position: Vector2i, building_type: String, bui
 		metadata["occupied_by_npc_id"] = occupied_by_npc_id
 		next_bed_id = max(next_bed_id, _get_bed_id_number(bed_id) + 1)
 
-	if building_type == BUILD_TYPE_CHEST:
+	if _is_storage_building_type(building_type):
 		var storage_id := str(building.get("storage_id", ""))
 		if storage_id.is_empty():
 			storage_id = "chest_%03d" % next_chest_id
+		metadata["building_id"] = str(building.get("building_id", building_type))
 		metadata["storage_id"] = storage_id
+		metadata["display_name"] = str(building.get("display_name", _get_storage_display_name(building_type)))
+		metadata["storage_slot_count"] = _get_loaded_storage_slot_count(building_type, building)
 		var storage_slots: Variant = building.get("storage_slots", [])
 		metadata["storage_slots"] = storage_slots if storage_slots is Array else []
 		next_chest_id = max(next_chest_id, _get_chest_id_number(storage_id) + 1)
@@ -765,7 +852,7 @@ func _get_chest_id_number(chest_id: String) -> int:
 
 
 func _spawn_building_scene(tile_position: Vector2i, building_type: String) -> void:
-	if building_type != BUILD_TYPE_CHEST:
+	if not _is_storage_building_type(building_type):
 		return
 
 	if buildings_root == null:
@@ -780,6 +867,12 @@ func _spawn_building_scene(tile_position: Vector2i, building_type: String) -> vo
 	chest.global_position = build_layer.to_global(_grid_cell_to_local_center(tile_position))
 
 	var metadata := _get_building_metadata(tile_position)
+	if chest.has_method("set_building_id"):
+		chest.set_building_id(str(metadata.get("building_id", building_type)))
+	if chest.has_method("set_display_name"):
+		chest.set_display_name(str(metadata.get("display_name", _get_storage_display_name(building_type))))
+	if chest.has_method("set_slot_count"):
+		chest.set_slot_count(int(metadata.get("storage_slot_count", _get_storage_slot_count(building_type))))
 	if chest.has_method("set_storage_id"):
 		chest.set_storage_id(str(metadata.get("storage_id", "")))
 	var storage_slots: Variant = metadata.get("storage_slots", [])
@@ -810,6 +903,12 @@ func _sync_building_metadata(tile_position: Vector2i) -> void:
 		return
 
 	var metadata := _get_building_metadata(tile_position)
+	if building_scene.has_method("get_building_id"):
+		metadata["building_id"] = str(building_scene.get_building_id())
+	if building_scene.has_method("get_display_name"):
+		metadata["display_name"] = str(building_scene.get_display_name())
+	if building_scene.has_method("get_slot_count"):
+		metadata["storage_slot_count"] = int(building_scene.get_slot_count())
 	if building_scene.has_method("get_storage_id"):
 		metadata["storage_id"] = str(building_scene.get_storage_id())
 	if building_scene.has_method("get_storage_slots"):

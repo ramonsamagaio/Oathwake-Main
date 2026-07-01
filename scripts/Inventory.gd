@@ -2,6 +2,8 @@ extends RefCounted
 
 signal changed
 
+const ItemInstanceHelper = preload("res://scripts/systems/ItemInstanceHelper.gd")
+
 const DEFAULT_SLOT_COUNT := 20
 const EMPTY_SLOT := {
 	"item_id": "",
@@ -19,6 +21,10 @@ func get_slots() -> Array:
 	return inventory_slots.duplicate(true)
 
 
+func get_slot_count() -> int:
+	return inventory_slots.size()
+
+
 func get_slot(index: int) -> Dictionary:
 	if not _is_valid_slot_index(index):
 		return EMPTY_SLOT.duplicate(true)
@@ -26,7 +32,7 @@ func get_slot(index: int) -> Dictionary:
 	return inventory_slots[index].duplicate(true)
 
 
-func set_slot(index: int, item_id: String, amount: int) -> void:
+func set_slot(index: int, item_id: String, amount: int, metadata: Dictionary = {}) -> void:
 	if not _is_valid_slot_index(index):
 		return
 
@@ -39,10 +45,30 @@ func set_slot(index: int, item_id: String, amount: int) -> void:
 		push_error("Inventory cannot set unknown item_id: %s" % item_id)
 		return
 
-	inventory_slots[index] = {
+	var new_slot := {
 		"item_id": normalized_id,
 		"amount": min(amount, _get_stack_size(normalized_id)),
 	}
+	if not metadata.is_empty():
+		new_slot["metadata"] = metadata.duplicate(true)
+		ItemInstanceHelper.ensure_item_metadata(new_slot)
+	else:
+		ItemInstanceHelper.ensure_item_metadata(new_slot)
+	inventory_slots[index] = new_slot
+	changed.emit()
+
+
+func set_slot_metadata(index: int, metadata: Dictionary) -> void:
+	if not _is_valid_slot_index(index):
+		return
+	if metadata.is_empty():
+		return
+	var slot: Dictionary = inventory_slots[index]
+	var item_id := str(slot.get("item_id", ""))
+	if item_id.is_empty():
+		return
+	slot["metadata"] = metadata.duplicate(true)
+	inventory_slots[index] = slot
 	changed.emit()
 
 
@@ -54,7 +80,7 @@ func clear_slot(index: int) -> void:
 	changed.emit()
 
 
-func add_item(item_id: String, amount: int) -> int:
+func add_item(item_id: String, amount: int, metadata: Dictionary = {}) -> int:
 	if amount <= 0:
 		return 0
 
@@ -92,16 +118,27 @@ func add_item(item_id: String, amount: int) -> int:
 			continue
 
 		var add_amount: int = min(stack_size, remaining)
-		inventory_slots[index] = {
+		var new_slot := {
 			"item_id": normalized_id,
 			"amount": add_amount,
 		}
+		if not metadata.is_empty():
+			new_slot["metadata"] = metadata.duplicate(true)
+			ItemInstanceHelper.ensure_item_metadata(new_slot)
+		else:
+			ItemInstanceHelper.ensure_item_metadata(new_slot)
+		inventory_slots[index] = new_slot
 		remaining -= add_amount
 
 	if remaining != amount:
 		changed.emit()
 
 	return remaining
+
+
+func add_item_with_metadata(item_id: String, amount: int, metadata: Dictionary = {}) -> int:
+	var normalized_id := _normalize_item_id(item_id)
+	return add_item(normalized_id, amount, metadata)
 
 
 func remove_item(item_id: String, amount: int) -> bool:
@@ -158,9 +195,11 @@ func remove_from_slot(index: int, amount: int) -> Dictionary:
 		inventory_slots[index] = slot
 
 	changed.emit()
+	var slot_metadata: Variant = slot.get("metadata")
 	return {
 		"item_id": item_id,
 		"amount": removed_amount,
+		"metadata": slot_metadata.duplicate(true) if slot_metadata is Dictionary else {},
 	}
 
 
@@ -209,6 +248,65 @@ func move_slot(from_index: int, to_index: int) -> void:
 
 func split_stack(from_index: int, amount: int) -> Dictionary:
 	return remove_from_slot(from_index, amount)
+
+
+func split_half_to_empty_slot(from_index: int) -> bool:
+	if not _is_valid_slot_index(from_index):
+		return false
+
+	var from_slot: Dictionary = inventory_slots[from_index]
+	var item_id := str(from_slot.get("item_id", ""))
+	var amount := int(from_slot.get("amount", 0))
+	if item_id.is_empty() or amount <= 1:
+		return false
+
+	var empty_index := get_first_empty_slot_index()
+	if empty_index == -1:
+		return false
+
+	var split_amount: int = int(floor(float(amount) * 0.5))
+	if split_amount <= 0:
+		return false
+
+	from_slot["amount"] = amount - split_amount
+	var metadata: Variant = from_slot.get("metadata")
+	inventory_slots[from_index] = from_slot
+	var new_slot := {
+		"item_id": item_id,
+		"amount": split_amount,
+	}
+	if metadata is Dictionary and not metadata.is_empty():
+		new_slot["metadata"] = metadata.duplicate(true)
+	inventory_slots[empty_index] = new_slot
+	changed.emit()
+	return true
+
+
+func get_first_empty_slot_index() -> int:
+	for index in range(inventory_slots.size()):
+		var slot: Dictionary = inventory_slots[index]
+		if str(slot.get("item_id", "")).is_empty() or int(slot.get("amount", 0)) <= 0:
+			return index
+
+	return -1
+
+
+func sort_items() -> void:
+	var occupied_slots := []
+	for slot in inventory_slots:
+		if not slot is Dictionary:
+			continue
+		var item_id := str(slot.get("item_id", ""))
+		var amount := int(slot.get("amount", 0))
+		if item_id.is_empty() or amount <= 0:
+			continue
+		occupied_slots.append(slot.duplicate(true))
+
+	occupied_slots.sort_custom(_compare_slots_for_sort)
+	_clear_all_slots()
+	for index in range(min(occupied_slots.size(), inventory_slots.size())):
+		inventory_slots[index] = occupied_slots[index]
+	changed.emit()
 
 
 func can_add_item(item_id: String, amount: int) -> bool:
@@ -321,10 +419,29 @@ func set_slots(slot_data: Array) -> void:
 			push_error("Inventory cannot load unknown item_id: %s" % item_id)
 			continue
 
-		inventory_slots[index] = {
+		var new_slot := {
 			"item_id": item_id,
 			"amount": min(amount, _get_stack_size(item_id)),
 		}
+		var metadata = slot.get("metadata", {})
+		if metadata is Dictionary and not metadata.is_empty():
+			new_slot["metadata"] = metadata.duplicate(true)
+		ItemInstanceHelper.ensure_item_metadata(new_slot)
+		inventory_slots[index] = new_slot
+
+	changed.emit()
+
+
+func resize_slots(new_slot_count: int) -> void:
+	var safe_slot_count: int = max(new_slot_count, 1)
+	if safe_slot_count == inventory_slots.size():
+		return
+
+	if safe_slot_count > inventory_slots.size():
+		for _index in range(safe_slot_count - inventory_slots.size()):
+			inventory_slots.append(EMPTY_SLOT.duplicate(true))
+	else:
+		inventory_slots.resize(safe_slot_count)
 
 	changed.emit()
 
@@ -374,6 +491,54 @@ func _get_stack_size(item_id: String) -> int:
 
 	var item_data: Dictionary = content_db.get_item(item_id)
 	return max(int(item_data.get("stack_size", 99)), 1)
+
+
+func _compare_item_ids_for_sort(a, b) -> bool:
+	var a_key := _get_item_sort_key(str(a))
+	var b_key := _get_item_sort_key(str(b))
+	return a_key < b_key
+
+
+func _compare_slots_for_sort(a, b) -> bool:
+	var a_slot: Dictionary = a if a is Dictionary else {}
+	var b_slot: Dictionary = b if b is Dictionary else {}
+	var a_item := str(a_slot.get("item_id", ""))
+	var b_item := str(b_slot.get("item_id", ""))
+	var a_key := _get_item_sort_key(a_item)
+	var b_key := _get_item_sort_key(b_item)
+	if a_key == b_key:
+		var a_dura := _get_sort_durability(a_slot)
+		var b_dura := _get_sort_durability(b_slot)
+		return a_dura < b_dura
+	return a_key < b_key
+
+
+func _get_sort_durability(slot: Dictionary) -> int:
+	var metadata = slot.get("metadata", {})
+	if not metadata is Dictionary:
+		return 999999
+	if not metadata.has("current_durability"):
+		return 999999
+	return int(metadata.get("current_durability", 999999))
+
+
+func _get_item_sort_key(item_id: String) -> String:
+	var item_data := _get_item_data(item_id)
+	return "%04d|%s|%s|%s|%s" % [
+		int(item_data.get("tier", 999)),
+		str(item_data.get("item_type", "")),
+		str(item_data.get("material_family", "")),
+		str(item_data.get("display_name", item_id.capitalize())),
+		item_id,
+	]
+
+
+func _get_item_data(item_id: String) -> Dictionary:
+	var content_db := _get_content_db()
+	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
+		return {}
+
+	return content_db.get_item(item_id)
 
 
 func _get_content_db() -> Node:

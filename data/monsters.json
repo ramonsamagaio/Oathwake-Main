@@ -1,76 +1,82 @@
 {
-	"slime": {
-		"display_name": "Gosma",
-		"max_health": 32,
-		"move_speed": 45,
-		"damage": 3,
-		"attack_cooldown": 1.2,
-		"spawn_time_seconds": 20,
-		"spawn_tiles": ["grass"],
-		"level": 1,
-		"base_stats": {
-			"str": 3,
-			"dex": 3,
-			"agi": 2,
-			"vit": 3,
-			"wis": 1,
-			"int": 1,
-			"luk": 1
-		},
+	"skeleton": {
+		"attack_cooldown": 1.35,
 		"base_combat": {
-			"base_attack": 3,
-			"base_defense": 0,
-			"base_magic_defense": 0,
-			"base_hit": 65,
-			"base_flee": 3,
+			"attack_cooldown": 1.35,
+			"base_attack": 7,
+			"base_crit_chance": 0.015,
+			"base_crit_damage": 1.45,
+			"base_defense": 2,
+			"base_flee": 4,
+			"base_hit": 70,
+			"base_magic_defense": 0
+		},
+		"base_stats": {
+			"agi": 4,
+			"dex": 5,
+			"int": 2,
+			"luk": 2,
+			"str": 6,
+			"vit": 6,
+			"wis": 2
+		},
+		"behavior": "aggressive_contact_chaser",
+		"damage": 7,
+		"display_name": "Skeleton",
+		"level": 2,
+		"loot_table": [
+			{
+				"chance": 1.0,
+				"item_id": "gel",
+				"max_amount": 2,
+				"min_amount": 2
+			}
+		],
+		"max_health": 76,
+		"move_speed": 40,
+		"spawn_tiles": [
+			"grass"
+		],
+		"spawn_time_seconds": 25
+	},
+	"slime": {
+		"attack_cooldown": 1.25,
+		"base_combat": {
+			"attack_cooldown": 1.25,
+			"base_attack": 4,
 			"base_crit_chance": 0.01,
 			"base_crit_damage": 1.4,
-			"attack_cooldown": 1.2
+			"base_defense": 0,
+			"base_flee": 3,
+			"base_hit": 66,
+			"base_magic_defense": 0
 		},
-		"loot_table": [
-			{
-				"item_id": "gel",
-				"chance": 1.0,
-				"min_amount": 1,
-				"max_amount": 1
-			}
-		]
-	},
-	"skeleton": {
-		"display_name": "Skeleton",
-		"max_health": 64,
-		"move_speed": 42,
-		"damage": 6,
-		"attack_cooldown": 1.2,
-		"spawn_time_seconds": 25,
-		"spawn_tiles": ["grass"],
-		"level": 2,
 		"base_stats": {
-			"str": 6,
-			"dex": 6,
-			"agi": 4,
-			"vit": 6,
-			"wis": 2,
-			"int": 2,
-			"luk": 2
+			"agi": 2,
+			"dex": 3,
+			"int": 1,
+			"luk": 1,
+			"str": 3,
+			"vit": 3,
+			"wis": 1
 		},
-		"base_combat": {
-			"base_attack": 6,
-			"base_defense": 1,
-			"base_magic_defense": 0,
-			"base_hit": 70,
-			"base_flee": 4,
-			"base_crit_chance": 0.02,
-			"base_crit_damage": 1.4,
-			"attack_cooldown": 1.2
-		},
+		"behavior": "aggressive_contact_chaser",
+		"damage": 4,
+		"display_name": "Gosma",
+		"level": 1,
 		"loot_table": [
 			{
-				"item_id": "gel",
 				"chance": 1.0,
-				"min_amount": 2,
-				"max_amount": 2
+				"item_id": "gel",
+				"max_amount": 1,
+				"min_amount": 1
 			}
-		]
+		],
+		"max_health": 40,
+		"move_speed": 42,
+		"spawn_tiles": [
+			"grass"
+		],
+		"spawn_time_seconds": 20
 	}
 }

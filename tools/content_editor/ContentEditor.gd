@@ -5,6 +5,7 @@ const SpriteSheetPreviewScript := preload("res://tools/content_editor/SpriteShee
 const CombatCalculatorScript := preload("res://scripts/systems/CombatCalculator.gd")
 const MIN_WINDOW_SIZE := Vector2i(1280, 800)
 const INITIAL_WINDOW_SIZE := Vector2i(1440, 900)
+const BATCH_STATIC_SPRITE_IMPORT_DIR := "res://assets/sprites/static"
 
 var data_store = ContentEditorData.new()
 var current_section: String = ContentEditorData.SECTION_ITEMS
@@ -54,6 +55,11 @@ var animation_grid_preview: Control
 var animation_preview_rect: TextureRect
 var character_preview_info_label: Label
 var texture_file_dialog: FileDialog
+var batch_static_sprite_button: Button
+var batch_sprite_file_dialog: FileDialog
+var batch_sprite_window: Window
+var batch_sprite_rows := []
+var batch_sprite_rows_container: VBoxContainer
 var save_button: Button
 var revert_button: Button
 var reload_current_button: Button
@@ -65,10 +71,9 @@ var status_label: Label
 func _ready() -> void:
 	_configure_content_editor_window()
 	_fit_root_to_viewport()
-	get_viewport().size_changed.connect(_fit_root_to_viewport)
-	var window := get_window()
-	if window != null:
-		window.size_changed.connect(_fit_root_to_viewport)
+	var active_window := get_window()
+	if active_window != null:
+		active_window.size_changed.connect(_fit_root_to_viewport)
 	_build_ui()
 	set_process(true)
 
@@ -253,6 +258,13 @@ func _build_record_panel(parent: Node) -> void:
 	delete_button.pressed.connect(_on_delete_pressed)
 	action_row.add_child(delete_button)
 
+	batch_static_sprite_button = Button.new()
+	batch_static_sprite_button.name = "BatchStaticSpriteButton"
+	batch_static_sprite_button.text = "Batch Static Sprites"
+	batch_static_sprite_button.tooltip_text = "Import multiple static sprite PNGs/JPGs/WebPs/SVGs into the Sprites section."
+	batch_static_sprite_button.pressed.connect(_on_batch_static_sprite_pressed)
+	action_row.add_child(batch_static_sprite_button)
+
 
 func _build_form_panel(parent: Node) -> void:
 	var panel := VBoxContainer.new()
@@ -329,6 +341,19 @@ func _build_form_panel(parent: Node) -> void:
 	])
 	texture_file_dialog.file_selected.connect(_on_texture_file_selected)
 	add_child(texture_file_dialog)
+
+	batch_sprite_file_dialog = FileDialog.new()
+	batch_sprite_file_dialog.name = "BatchStaticSpriteFileDialog"
+	batch_sprite_file_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	batch_sprite_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILES
+	batch_sprite_file_dialog.filters = PackedStringArray([
+		"*.png ; PNG Images",
+		"*.jpg, *.jpeg ; JPEG Images",
+		"*.webp ; WebP Images",
+		"*.svg ; SVG Images",
+	])
+	batch_sprite_file_dialog.files_selected.connect(_on_batch_static_sprite_files_selected)
+	add_child(batch_sprite_file_dialog)
 
 
 func _on_section_button_pressed(section: String) -> void:
@@ -584,9 +609,21 @@ func _build_item_form() -> void:
 	_add_line_edit("Tags", "tags", _join_string_array(current_record.get("tags", []), ", "))
 
 	var item_type: String = str(current_record.get("item_type", "material"))
+	var is_equippable := item_type == "weapon" or item_type == "tool" or item_type == "armor" or item_type == "accessory"
+
+	if is_equippable:
+		_add_equipment_slot_option_button(str(current_record.get("equipment_slot", item_type)))
+		_add_equipment_stats_bonus_editor()
+
 	if item_type == "weapon" or item_type == "tool":
 		_add_tool_progression_editor()
 		_add_item_combat_editor(item_type)
+
+	if item_type == "armor":
+		_add_armor_editor()
+
+	if item_type == "accessory":
+		_add_accessory_editor()
 
 
 func _build_resource_form() -> void:
@@ -601,6 +638,7 @@ func _build_resource_form() -> void:
 	_add_spin_box("Resource Tier", "resource_tier", int(current_record.get("resource_tier", 1)), 1, 7, 1)
 	_add_spin_box("Resource HP", "resource_hp", int(current_record.get("resource_hp", current_record.get("max_health", 20))), 1, 999999, 1)
 	_add_tool_type_option_button("Required Tool Type", "required_tool_type", str(current_record.get("required_tool_type", "axe")))
+	_add_check_box("Allow Hands (harvest without tool)", "allow_hands", bool(current_record.get("allow_hands", true)))
 	_add_skill_type_option_button(str(current_record.get("skill_type", "lumbering")))
 	_add_spin_box("XP Reward", "xp_reward", int(current_record.get("xp_reward", 0)), 0, 999999, 1)
 	_add_drop_table_editor("Base Drops", "base_drops", current_record.get("base_drops", []))
@@ -623,6 +661,26 @@ func _build_tier_form() -> void:
 	_add_line_edit("Weapon Material", "weapon_material", str(current_record.get("weapon_material", "")))
 	_add_line_edit("Armor Material", "armor_material", str(current_record.get("armor_material", "")))
 
+	var budget = current_record.get("power_budget", {})
+	if not budget is Dictionary:
+		budget = {}
+	_add_read_only_value("Balance Note", "Power Budget controls default tier targets used to normalize tools, resources, monsters, repair and storage.")
+	_add_spin_box("Budget Tool Damage", "budget_tool_damage", int(budget.get("tool_damage", 8)), 0, 999999, 1)
+	_add_spin_box("Budget Tool Durability", "budget_tool_durability", int(budget.get("tool_durability", 90)), 0, 999999, 1)
+	_add_spin_box("Budget Tree HP", "budget_resource_hp_tree", int(budget.get("resource_hp_tree", 22)), 0, 999999, 1)
+	_add_spin_box("Budget Rock/Ore HP", "budget_resource_hp_ore_or_rock", int(budget.get("resource_hp_ore_or_rock", 28)), 0, 999999, 1)
+	_add_spin_box("Budget XP Reward", "budget_xp_reward", int(budget.get("xp_reward", 10)), 0, 999999, 1)
+	_add_float_spin_box("Budget Crit Chance", "budget_crit_chance", float(budget.get("crit_chance", 0.01)), 0.0, 1.0, 0.001)
+	_add_float_spin_box("Budget Crit Power", "budget_crit_power", float(budget.get("crit_power", 1.5)), 1.0, 5.0, 0.01)
+	_add_float_spin_box("Budget Attack Cooldown", "budget_attack_cooldown", float(budget.get("attack_cooldown", 1.0)), 0.1, 10.0, 0.01)
+	_add_float_spin_box("Budget Repair Multiplier", "budget_repair_cost_multiplier", float(budget.get("repair_cost_multiplier", 0.45)), 0.0, 10.0, 0.01)
+	_add_spin_box("Budget Storage Slots", "budget_storage_slots", int(budget.get("storage_slots", 20)), 1, 999, 1)
+	_add_spin_box("Budget Monster HP", "budget_monster_hp_target", int(budget.get("monster_hp_target", 40)), 1, 999999, 1)
+	_add_spin_box("Budget Monster Damage", "budget_monster_damage_target", int(budget.get("monster_damage_target", 4)), 0, 999999, 1)
+	_add_spin_box("Budget Resource Respawn", "budget_resource_respawn_seconds", int(budget.get("resource_respawn_seconds", 45)), 0, 999999, 1)
+	_add_line_edit("Progression Rule", "progression_rule", str(current_record.get("progression_rule", "")))
+	_add_text_edit("Early Access Role", "early_access_role", str(current_record.get("early_access_role", "")), 80)
+
 
 func _build_monster_form() -> void:
 	form_title_label.text = "Monster: %s" % str(current_record.get("id", ""))
@@ -643,7 +701,13 @@ func _build_recipe_form() -> void:
 	_add_line_edit("ID", "id", str(current_record.get("id", "")))
 	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
 	_add_recipe_type_option_button(str(current_record.get("type", "item")))
+	_add_string_option_button("Workstation", "workstation", ["basic", "workbench", "furnace", "anvil", "cooking_fire", "alchemy_table"], str(current_record.get("workstation", "workbench")))
+	_add_spin_box("Tier", "tier", int(current_record.get("tier", 1)), 1, 7, 1)
+	_add_output_item_picker(str(current_record.get("output_item_id", current_record.get("id", ""))))
+	_add_spin_box("Output Amount", "output_amount", int(current_record.get("output_amount", 1)), 1, 999, 1)
 	_add_sprite_picker(str(current_record.get("sprite_id", "")))
+	_add_skill_type_option_button(str(current_record.get("skill_type", "lumbering")))
+	_add_spin_box("XP Reward", "xp_reward", int(current_record.get("xp_reward", 0)), 0, 999999, 1)
 	_add_read_only_value("Cost", _stringify_value(current_record.get("cost", {})))
 
 
@@ -907,6 +971,8 @@ func _add_tool_progression_editor() -> void:
 	_add_spin_box("Tool Damage", "tool_damage", int(current_record.get("tool_damage", 0)), 0, 999999, 1)
 	_add_float_spin_box("Tool Speed", "tool_speed", float(current_record.get("tool_speed", 1.0)), 0.01, 999999.0, 0.01)
 	_add_spin_box("Durability", "durability", int(current_record.get("durability", 0)), 0, 999999, 1)
+	_add_float_spin_box("Repair Cost Multiplier", "repair_cost_multiplier", float(current_record.get("repair_cost_multiplier", 0.5)), 0.0, 10.0, 0.05)
+	_add_check_box("Can Repair", "can_repair", bool(current_record.get("can_repair", true)))
 	_add_float_spin_box("Crit Chance", "crit_chance", float(current_record.get("crit_chance", 0.0)), 0.0, 1.0, 0.01)
 	_add_float_spin_box("Crit Power", "crit_power", float(current_record.get("crit_power", 1.5)), 1.0, 999999.0, 0.01)
 
@@ -1120,6 +1186,13 @@ func _add_drop_item_picker(initial_item_id: String) -> void:
 	_add_form_row("Drop Item", option_button)
 	field_controls["drop_item_id"] = option_button
 	_refresh_drop_item_options()
+
+
+func _add_output_item_picker(initial_item_id: String) -> void:
+	var option_button := OptionButton.new()
+	_populate_item_option(option_button, initial_item_id)
+	_add_form_row("Output Item", option_button)
+	field_controls["output_item_id"] = option_button
 
 
 func _add_workstation_picker(initial_recipe_id: String) -> void:
@@ -1734,6 +1807,9 @@ func _add_item_type_option_button(initial_type: String) -> void:
 		"consumable",
 		"weapon",
 		"tool",
+		"armor",
+		"accessory",
+		"building",
 		"quest",
 		"misc",
 	]
@@ -1752,6 +1828,55 @@ func _add_item_type_option_button(initial_type: String) -> void:
 	option_button.item_selected.connect(_on_item_type_selected)
 	_add_form_row("Item Type", option_button)
 	field_controls["item_type"] = option_button
+
+
+func _add_equipment_slot_option_button(initial_slot: String) -> void:
+	_add_string_option_button("Equipment Slot", "equipment_slot", ["weapon", "tool", "armor", "accessory"], initial_slot)
+
+
+func _add_equipment_stats_bonus_editor() -> void:
+	var title := Label.new()
+	title.text = "Stats Bonus"
+	form_container.add_child(title)
+
+	var stats_bonus: Dictionary = _get_record_dictionary(current_record, "stats_bonus")
+	_add_spin_box("STR", "stats_bonus_str", int(stats_bonus.get("str", 0)), 0, 999, 1)
+	_add_spin_box("DEX", "stats_bonus_dex", int(stats_bonus.get("dex", 0)), 0, 999, 1)
+	_add_spin_box("AGI", "stats_bonus_agi", int(stats_bonus.get("agi", 0)), 0, 999, 1)
+	_add_spin_box("VIT", "stats_bonus_vit", int(stats_bonus.get("vit", 0)), 0, 999, 1)
+	_add_spin_box("WIS", "stats_bonus_wis", int(stats_bonus.get("wis", 0)), 0, 999, 1)
+	_add_spin_box("INT", "stats_bonus_int", int(stats_bonus.get("int", 0)), 0, 999, 1)
+	_add_spin_box("LUK", "stats_bonus_luk", int(stats_bonus.get("luk", 0)), 0, 999, 1)
+
+
+func _add_armor_editor() -> void:
+	var title := Label.new()
+	title.text = "Armor"
+	form_container.add_child(title)
+
+	_add_spin_box("Defense", "defense", int(current_record.get("defense", 0)), 0, 999999, 1)
+	_add_spin_box("Magic Defense", "magic_defense", int(current_record.get("magic_defense", 0)), 0, 999999, 1)
+	_add_spin_box("Max HP Bonus", "max_hp_bonus", int(current_record.get("max_hp_bonus", 0)), 0, 99999, 1)
+	_add_spin_box("Flee Bonus", "flee_bonus", int(current_record.get("flee_bonus", 0)), 0, 999, 1)
+	_add_spin_box("Hit Bonus", "hit_bonus", int(current_record.get("hit_bonus", 0)), 0, 999, 1)
+	_add_spin_box("Durability", "durability", int(current_record.get("durability", 0)), 0, 999999, 1)
+	_add_float_spin_box("Repair Cost Multiplier", "armor_repair_cost_multiplier", float(current_record.get("repair_cost_multiplier", 0.5)), 0.0, 10.0, 0.05)
+	_add_check_box("Can Repair", "armor_can_repair", bool(current_record.get("can_repair", true)))
+
+
+func _add_accessory_editor() -> void:
+	var title := Label.new()
+	title.text = "Accessory"
+	form_container.add_child(title)
+
+	_add_float_spin_box("Crit Chance Bonus", "accessory_crit_chance", float(current_record.get("crit_chance_bonus", 0.0)), 0.0, 1.0, 0.01)
+	_add_float_spin_box("Crit Damage Bonus", "accessory_crit_damage", float(current_record.get("crit_damage_bonus", 0.0)), 0.0, 999999.0, 0.01)
+	_add_spin_box("Hit Bonus", "acc_hit_bonus", int(current_record.get("hit_bonus", 0)), 0, 999, 1)
+	_add_spin_box("Flee Bonus", "acc_flee_bonus", int(current_record.get("flee_bonus", 0)), 0, 999, 1)
+	_add_spin_box("Max HP Bonus", "acc_max_hp_bonus", int(current_record.get("max_hp_bonus", 0)), 0, 99999, 1)
+	_add_spin_box("Durability", "acc_durability", int(current_record.get("durability", 0)), 0, 999999, 1)
+	_add_float_spin_box("Repair Cost Multiplier", "acc_repair_cost_multiplier", float(current_record.get("repair_cost_multiplier", 0.5)), 0.0, 10.0, 0.05)
+	_add_check_box("Can Repair", "acc_can_repair", bool(current_record.get("can_repair", true)))
 
 
 func _add_damage_type_option_button(initial_type: String) -> void:
@@ -3181,6 +3306,305 @@ func _is_valid_production_row_index(row_index: int) -> bool:
 	return row_index >= 0 and row_index < production_rows.size()
 
 
+
+func _on_batch_static_sprite_pressed() -> void:
+	if current_section != ContentEditorData.SECTION_SPRITES:
+		_set_status("Batch Static Sprites is only available in the Sprites section.", true)
+		return
+	if has_unsaved_changes:
+		_set_status("Save or Revert before importing static sprites.", true)
+		return
+	if batch_sprite_file_dialog == null:
+		_set_status("Batch sprite file dialog is not ready.", true)
+		return
+
+	_ensure_static_sprite_import_dir()
+	var suggested_dir := ProjectSettings.globalize_path(BATCH_STATIC_SPRITE_IMPORT_DIR)
+	if not suggested_dir.is_empty():
+		batch_sprite_file_dialog.current_dir = suggested_dir
+	batch_sprite_file_dialog.popup_centered_ratio(0.8)
+
+
+func _on_batch_static_sprite_files_selected(paths: PackedStringArray) -> void:
+	if paths.is_empty():
+		_set_status("No files selected for batch sprite import.", true)
+		return
+	_show_batch_static_sprite_review(paths)
+
+
+func _show_batch_static_sprite_review(paths: PackedStringArray) -> void:
+	if batch_sprite_window != null and is_instance_valid(batch_sprite_window):
+		batch_sprite_window.queue_free()
+
+	batch_sprite_rows.clear()
+	batch_sprite_window = Window.new()
+	batch_sprite_window.title = "Batch Static Sprites"
+	batch_sprite_window.size = Vector2i(960, 640)
+	batch_sprite_window.min_size = Vector2i(720, 420)
+	batch_sprite_window.exclusive = true
+	batch_sprite_window.close_requested.connect(func() -> void: batch_sprite_window.hide())
+	add_child(batch_sprite_window)
+
+	var root := VBoxContainer.new()
+	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	batch_sprite_window.add_child(root)
+
+	var intro := Label.new()
+	intro.text = "Review selected static sprites. Edit Display Name and ID, then click Create All. Files outside res:// will be copied to %s." % BATCH_STATIC_SPRITE_IMPORT_DIR
+	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	root.add_child(intro)
+
+	var header := HBoxContainer.new()
+	root.add_child(header)
+	for label_text in ["Preview", "Source File", "Display Name", "ID", "Category"]:
+		var label := Label.new()
+		label.text = label_text
+		label.custom_minimum_size = Vector2(90, 0)
+		if label_text == "Source File":
+			label.custom_minimum_size = Vector2(260, 0)
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL if label_text == "Source File" else Control.SIZE_SHRINK_CENTER
+		header.add_child(label)
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(scroll)
+
+	batch_sprite_rows_container = VBoxContainer.new()
+	batch_sprite_rows_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(batch_sprite_rows_container)
+
+	for path in paths:
+		_add_batch_static_sprite_row(str(path))
+
+	var action_row := HBoxContainer.new()
+	root.add_child(action_row)
+
+	var create_button := Button.new()
+	create_button.text = "Create All"
+	create_button.pressed.connect(_on_create_batch_static_sprites_pressed)
+	action_row.add_child(create_button)
+
+	var cancel_button := Button.new()
+	cancel_button.text = "Cancel"
+	cancel_button.pressed.connect(func() -> void: batch_sprite_window.hide())
+	action_row.add_child(cancel_button)
+
+	batch_sprite_window.popup_centered()
+	_set_status("Reviewing %d static sprite(s)." % paths.size())
+
+
+func _add_batch_static_sprite_row(source_path: String) -> void:
+	if batch_sprite_rows_container == null:
+		return
+
+	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	batch_sprite_rows_container.add_child(row)
+
+	var preview := TextureRect.new()
+	preview.custom_minimum_size = Vector2(72, 72)
+	preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	preview.texture = _load_any_image_texture(source_path)
+	row.add_child(preview)
+
+	var source_label := Label.new()
+	source_label.text = source_path.get_file()
+	source_label.tooltip_text = source_path
+	source_label.custom_minimum_size = Vector2(260, 0)
+	source_label.clip_text = true
+	source_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	source_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(source_label)
+
+	var base_name := source_path.get_file().get_basename()
+	var suggested_display_name := _humanize_id(base_name)
+	var suggested_id := data_store.create_unique_id(ContentEditorData.SECTION_SPRITES, base_name)
+
+	var name_edit := LineEdit.new()
+	name_edit.text = suggested_display_name
+	name_edit.custom_minimum_size = Vector2(190, 0)
+	row.add_child(name_edit)
+
+	var id_edit := LineEdit.new()
+	id_edit.text = suggested_id
+	id_edit.custom_minimum_size = Vector2(170, 0)
+	row.add_child(id_edit)
+
+	name_edit.text_changed.connect(func(new_text: String) -> void:
+		if id_edit.text.strip_edges().is_empty() or id_edit.text == suggested_id:
+			id_edit.text = data_store.create_unique_id(ContentEditorData.SECTION_SPRITES, new_text)
+	)
+
+	var category_option := OptionButton.new()
+	for category in ["item", "resource", "monster", "building", "terrain", "ui", "effect", "character", "misc"]:
+		var index := category_option.item_count
+		category_option.add_item(category.capitalize())
+		category_option.set_item_metadata(index, category)
+	category_option.select(0)
+	category_option.custom_minimum_size = Vector2(120, 0)
+	row.add_child(category_option)
+
+	batch_sprite_rows.append({
+		"source_path": source_path,
+		"name_edit": name_edit,
+		"id_edit": id_edit,
+		"category_option": category_option,
+	})
+
+
+func _on_create_batch_static_sprites_pressed() -> void:
+	if batch_sprite_rows.is_empty():
+		_set_status("No batch sprite rows to create.", true)
+		return
+	if not _ensure_static_sprite_import_dir():
+		_set_status("Could not create static sprite import directory: %s" % BATCH_STATIC_SPRITE_IMPORT_DIR, true)
+		return
+
+	var created_ids := []
+	var used_ids := {}
+	for row_data in batch_sprite_rows:
+		if not row_data is Dictionary:
+			continue
+
+		var source_path := str(row_data.get("source_path", ""))
+		var name_edit := row_data.get("name_edit") as LineEdit
+		var id_edit := row_data.get("id_edit") as LineEdit
+		var category_option := row_data.get("category_option") as OptionButton
+		if source_path.is_empty() or name_edit == null or id_edit == null or category_option == null:
+			continue
+
+		var record_id := data_store.sanitize_id(id_edit.text)
+		if record_id.is_empty():
+			record_id = data_store.sanitize_id(name_edit.text)
+		if record_id.is_empty():
+			record_id = data_store.sanitize_id(source_path.get_file().get_basename())
+		record_id = _make_batch_sprite_id_unique(record_id, used_ids)
+		used_ids[record_id] = true
+
+		var texture_path := _copy_static_sprite_to_project(source_path, record_id)
+		if texture_path.is_empty():
+			_set_status("Could not import sprite file: %s" % source_path, true)
+			return
+
+		var image_size := _get_image_file_size(source_path)
+		var frame_w = max(int(image_size.x), 1)
+		var frame_h = max(int(image_size.y), 1)
+		var category := str(category_option.get_item_metadata(category_option.selected))
+		var display_name := name_edit.text.strip_edges()
+		if display_name.is_empty():
+			display_name = _humanize_id(record_id)
+
+		var record := {
+			"display_name": display_name,
+			"type": "single_sprite",
+			"texture_path": texture_path,
+			"region_enabled": false,
+			"region": {"x": 0, "y": 0, "w": frame_w, "h": frame_h},
+			"frame_size": {"w": frame_w, "h": frame_h},
+			"frame_width": frame_w,
+			"frame_height": frame_h,
+			"columns": 1,
+			"rows": 1,
+			"total_frames": 1,
+			"category": category,
+			"tags": ["static", "batch_imported"],
+		}
+
+		data_store.set_record(ContentEditorData.SECTION_SPRITES, "", record_id, record)
+		created_ids.append(record_id)
+
+	var error := data_store.save_section(ContentEditorData.SECTION_SPRITES)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_reload_content_db()
+	_populate_sprite_category_filter()
+	_refresh_record_list()
+	if not created_ids.is_empty():
+		_load_record(str(created_ids[0]))
+	if batch_sprite_window != null and is_instance_valid(batch_sprite_window):
+		batch_sprite_window.hide()
+	_set_status("Imported %d static sprite(s): %s" % [created_ids.size(), _join_strings(created_ids, ", ")])
+
+
+func _make_batch_sprite_id_unique(base_id: String, used_ids: Dictionary) -> String:
+	var clean_id := data_store.sanitize_id(base_id)
+	if clean_id.is_empty():
+		clean_id = "static_sprite"
+	if not data_store.has_record(ContentEditorData.SECTION_SPRITES, clean_id) and not used_ids.has(clean_id):
+		return clean_id
+
+	var index := 2
+	while data_store.has_record(ContentEditorData.SECTION_SPRITES, "%s_%d" % [clean_id, index]) or used_ids.has("%s_%d" % [clean_id, index]):
+		index += 1
+	return "%s_%d" % [clean_id, index]
+
+
+func _ensure_static_sprite_import_dir() -> bool:
+	var absolute_dir := ProjectSettings.globalize_path(BATCH_STATIC_SPRITE_IMPORT_DIR)
+	var error := DirAccess.make_dir_recursive_absolute(absolute_dir)
+	return error == OK or error == ERR_ALREADY_EXISTS
+
+
+func _copy_static_sprite_to_project(source_path: String, record_id: String) -> String:
+	var extension := source_path.get_extension().to_lower()
+	if extension.is_empty():
+		extension = "png"
+	var target_res_path := "%s/%s.%s" % [BATCH_STATIC_SPRITE_IMPORT_DIR, record_id, extension]
+	if source_path == target_res_path:
+		return source_path
+
+	var source_abs := source_path
+	if source_path.begins_with("res://") or source_path.begins_with("user://"):
+		source_abs = ProjectSettings.globalize_path(source_path)
+	var target_abs := ProjectSettings.globalize_path(target_res_path)
+	if source_abs == target_abs:
+		return target_res_path
+
+	var copy_error := DirAccess.copy_absolute(source_abs, target_abs)
+	if copy_error != OK:
+		return ""
+	return target_res_path
+
+
+func _load_any_image_texture(path: String) -> Texture2D:
+	if path.begins_with("res://") or path.begins_with("user://"):
+		var resource := load(path)
+		if resource is Texture2D:
+			return resource as Texture2D
+
+	var image := Image.new()
+	var error := image.load(path)
+	if error != OK:
+		return null
+	return ImageTexture.create_from_image(image)
+
+
+func _get_image_file_size(path: String) -> Vector2i:
+	var image := Image.new()
+	var error := image.load(path)
+	if error != OK:
+		var texture := _load_any_image_texture(path)
+		if texture != null:
+			return Vector2i(texture.get_width(), texture.get_height())
+		return Vector2i(32, 32)
+	return Vector2i(image.get_width(), image.get_height())
+
+
+func _humanize_id(raw_id: String) -> String:
+	var clean_id := data_store.sanitize_id(raw_id)
+	if clean_id.is_empty():
+		return "New Sprite"
+	var words := []
+	for part in clean_id.split("_", false):
+		words.append(str(part).capitalize())
+	return _join_strings(words, " ")
+
+
 func _on_new_pressed() -> void:
 	if has_unsaved_changes:
 		_set_status("Save or Revert before creating a new record.", true)
@@ -4013,12 +4437,20 @@ func _get_item_form_record() -> Dictionary:
 	record["tags"] = _parse_tags(_get_line_edit_text("tags"))
 
 	var item_type := str(record.get("item_type", "material"))
+	var is_equippable := item_type == "weapon" or item_type == "tool" or item_type == "armor" or item_type == "accessory"
+
+	if is_equippable:
+		record["equipment_slot"] = _get_option_button_metadata("equipment_slot")
+		record["stats_bonus"] = _get_equipment_stats_bonus_record()
+
 	if item_type == "weapon" or item_type == "tool":
 		record["tool_type"] = _get_option_button_metadata("tool_type")
 		record["tool_tier"] = _get_spin_box_int("tool_tier")
 		record["tool_damage"] = _get_spin_box_int("tool_damage")
 		record["tool_speed"] = _get_spin_box_value("tool_speed")
 		record["durability"] = _get_spin_box_int("durability")
+		record["repair_cost_multiplier"] = _get_spin_box_value("repair_cost_multiplier")
+		record["can_repair"] = _get_check_box_pressed("can_repair")
 		record["crit_chance"] = _get_spin_box_value("crit_chance")
 		record["crit_power"] = _get_spin_box_value("crit_power")
 		var combat: Dictionary = _get_record_dictionary(record, "combat")
@@ -4035,6 +4467,26 @@ func _get_item_form_record() -> Dictionary:
 			combat["resource_damage"] = _get_resource_damage_record()
 		record["combat"] = combat
 
+	if item_type == "armor":
+		record["defense"] = _get_spin_box_int("defense")
+		record["magic_defense"] = _get_spin_box_int("magic_defense")
+		record["max_hp_bonus"] = _get_spin_box_int("max_hp_bonus")
+		record["flee_bonus"] = _get_spin_box_int("flee_bonus")
+		record["hit_bonus"] = _get_spin_box_int("hit_bonus")
+		record["durability"] = _get_spin_box_int("durability")
+		record["repair_cost_multiplier"] = _get_spin_box_value("armor_repair_cost_multiplier")
+		record["can_repair"] = _get_check_box_pressed("armor_can_repair")
+
+	if item_type == "accessory":
+		record["crit_chance_bonus"] = _get_spin_box_value("accessory_crit_chance")
+		record["crit_damage_bonus"] = _get_spin_box_value("accessory_crit_damage")
+		record["hit_bonus"] = _get_spin_box_int("acc_hit_bonus")
+		record["flee_bonus"] = _get_spin_box_int("acc_flee_bonus")
+		record["max_hp_bonus"] = _get_spin_box_int("acc_max_hp_bonus")
+		record["durability"] = _get_spin_box_int("acc_durability")
+		record["repair_cost_multiplier"] = _get_spin_box_value("acc_repair_cost_multiplier")
+		record["can_repair"] = _get_check_box_pressed("acc_can_repair")
+
 	return record
 
 
@@ -4050,6 +4502,7 @@ func _get_resource_form_record() -> Dictionary:
 	record["resource_tier"] = _get_spin_box_int("resource_tier")
 	record["resource_hp"] = _get_spin_box_int("resource_hp")
 	record["required_tool_type"] = _get_option_button_metadata("required_tool_type")
+	record["allow_hands"] = _get_check_box_pressed("allow_hands")
 	record["skill_type"] = _get_option_button_metadata("skill_type")
 	record["xp_reward"] = _get_spin_box_int("xp_reward")
 	record["base_drops"] = _get_drop_rows_record("base_drops")
@@ -4078,7 +4531,13 @@ func _get_recipe_form_record() -> Dictionary:
 	record["id"] = _get_line_edit_text("id")
 	record["display_name"] = _get_line_edit_text("display_name")
 	record["type"] = _get_option_button_metadata("type")
+	record["workstation"] = _get_option_button_metadata("workstation")
+	record["tier"] = _get_spin_box_int("tier")
+	record["output_item_id"] = _get_option_button_metadata("output_item_id")
+	record["output_amount"] = _get_spin_box_int("output_amount")
 	record["sprite_id"] = selected_sprite_id
+	record["skill_type"] = _get_option_button_metadata("skill_type")
+	record["xp_reward"] = _get_spin_box_int("xp_reward")
 	if not record.has("cost"):
 		record["cost"] = {}
 	return record
@@ -4176,6 +4635,23 @@ func _get_tier_form_record() -> Dictionary:
 	record["tool_material"] = _get_line_edit_text("tool_material")
 	record["weapon_material"] = _get_line_edit_text("weapon_material")
 	record["armor_material"] = _get_line_edit_text("armor_material")
+	record["power_budget"] = {
+		"tool_damage": _get_spin_box_int("budget_tool_damage"),
+		"tool_durability": _get_spin_box_int("budget_tool_durability"),
+		"resource_hp_tree": _get_spin_box_int("budget_resource_hp_tree"),
+		"resource_hp_ore_or_rock": _get_spin_box_int("budget_resource_hp_ore_or_rock"),
+		"xp_reward": _get_spin_box_int("budget_xp_reward"),
+		"crit_chance": _get_spin_box_value("budget_crit_chance"),
+		"crit_power": _get_spin_box_value("budget_crit_power"),
+		"attack_cooldown": _get_spin_box_value("budget_attack_cooldown"),
+		"repair_cost_multiplier": _get_spin_box_value("budget_repair_cost_multiplier"),
+		"storage_slots": _get_spin_box_int("budget_storage_slots"),
+		"monster_hp_target": _get_spin_box_int("budget_monster_hp_target"),
+		"monster_damage_target": _get_spin_box_int("budget_monster_damage_target"),
+		"resource_respawn_seconds": _get_spin_box_int("budget_resource_respawn_seconds"),
+	}
+	record["progression_rule"] = _get_line_edit_text("progression_rule")
+	record["early_access_role"] = _get_text_edit_text("early_access_role")
 	return record
 
 
@@ -4280,6 +4756,13 @@ func _get_item_stat_scaling_record() -> Dictionary:
 	return stat_scaling
 
 
+func _get_equipment_stats_bonus_record() -> Dictionary:
+	var stats_bonus := {}
+	for stat_name in ["str", "dex", "agi", "vit", "wis", "int", "luk"]:
+		stats_bonus[stat_name] = _get_spin_box_int("stats_bonus_%s" % stat_name)
+	return stats_bonus
+
+
 func _get_resource_damage_record() -> Dictionary:
 	var resource_damage := {}
 	for row_data in item_resource_damage_rows:
@@ -4382,6 +4865,10 @@ func _update_action_buttons() -> void:
 	revert_button.disabled = not supports_visual_editing or not has_record
 	reload_current_button.disabled = current_section.is_empty()
 	refresh_content_db_button.disabled = false
+
+	if batch_static_sprite_button != null:
+		batch_static_sprite_button.visible = current_section == ContentEditorData.SECTION_SPRITES
+		batch_static_sprite_button.disabled = current_section != ContentEditorData.SECTION_SPRITES or has_unsaved_changes
 
 
 func _reload_content_db() -> void:
