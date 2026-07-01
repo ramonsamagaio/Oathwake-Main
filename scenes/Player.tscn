@@ -1,6 +1,7 @@
-[gd_scene format=3 uid="uid://ocffh2angc1c"]
+[gd_scene load_steps=4 format=3 uid="uid://ocffh2angc1c"]
 
 [ext_resource type="Script" uid="uid://dtuqb1c0jb3t2" path="res://scripts/Player.gd" id="1_player_script"]
+[ext_resource type="Script" path="res://scripts/camera/CameraShake2D.gd" id="2_camera_shake_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player_collision"]
 radius = 12.0
@@ -26,3 +27,4 @@ shape = SubResource("CircleShape2D_player_collision")
 zoom = Vector2(2, 2)
 position_smoothing_enabled = true
 position_smoothing_speed = 6.0
+script = ExtResource("2_camera_shake_script")

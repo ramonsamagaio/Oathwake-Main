@@ -11,6 +11,7 @@ const SECTION_ANIMATION_SETS := "animation_sets"
 const SECTION_CHARACTERS := "characters"
 const SECTION_TIERS := "tiers"
 const SECTION_PLAYER_TUNING := "player_tuning"
+const SECTION_FONT_PROFILES := "font_profiles"
 const SECTION_COMBAT_PREVIEW := "combat_preview"
 
 const DEFAULT_PLAYER_TUNING := {
@@ -22,6 +23,23 @@ const DEFAULT_PLAYER_TUNING := {
 	"run_stop_slide_strength": 0.50,
 	"smoke_puff_enabled": true,
 	"smoke_puff_cooldown": 0.28,
+}
+
+const DEFAULT_FONT_PROFILES := {
+	"base_ui": {"display_name": "Base UI", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 14, "font_color": "#FFFFFF", "outline_size": 0, "outline_color": "#000000"},
+	"ui_title": {"display_name": "UI Titles", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 18, "font_color": "#F2D98C", "outline_size": 1, "outline_color": "#000000"},
+	"ui_button": {"display_name": "UI Buttons", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 14, "font_color": "#FFFFFF", "outline_size": 0, "outline_color": "#000000"},
+	"damage_number": {"display_name": "Damage Numbers", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 16, "font_color": "#FFF2A6", "outline_size": 2, "outline_color": "#000000"},
+	"critical_damage_number": {"display_name": "Critical Damage Numbers", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 22, "font_color": "#FF9E1F", "outline_size": 3, "outline_color": "#000000"},
+	"heal_number": {"display_name": "Heal Numbers", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 16, "font_color": "#73FF8C", "outline_size": 2, "outline_color": "#000000"},
+	"miss_text": {"display_name": "Miss Text", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 15, "font_color": "#B8B8B8", "outline_size": 2, "outline_color": "#000000"},
+	"xp_number": {"display_name": "XP Numbers", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 15, "font_color": "#7CCBFF", "outline_size": 2, "outline_color": "#000000"},
+	"item_quantity": {"display_name": "Item Quantity", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 12, "font_color": "#FFFFFF", "outline_size": 1, "outline_color": "#000000"},
+	"item_tooltip": {"display_name": "Item Tooltip", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 13, "font_color": "#FFFFFF", "outline_size": 0, "outline_color": "#000000"},
+	"player_name": {"display_name": "Player Name", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 14, "font_color": "#FFFFFF", "outline_size": 2, "outline_color": "#000000"},
+	"monster_name": {"display_name": "Monster Name", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 14, "font_color": "#FFB3B3", "outline_size": 2, "outline_color": "#000000"},
+	"console": {"display_name": "Console / Debug Text", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 13, "font_color": "#D8D8D8", "outline_size": 0, "outline_color": "#000000"},
+	"content_editor": {"display_name": "Content Editor", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 13, "font_color": "#FFFFFF", "outline_size": 0, "outline_color": "#000000"},
 }
 
 const SECTIONS := [
@@ -36,6 +54,7 @@ const SECTIONS := [
 	SECTION_CHARACTERS,
 	SECTION_TIERS,
 	SECTION_PLAYER_TUNING,
+	SECTION_FONT_PROFILES,
 	SECTION_COMBAT_PREVIEW,
 ]
 
@@ -51,6 +70,7 @@ const SECTION_LABELS := {
 	SECTION_CHARACTERS: "Characters",
 	SECTION_TIERS: "Tiers",
 	SECTION_PLAYER_TUNING: "Player Tuning",
+	SECTION_FONT_PROFILES: "Font Profiles",
 	SECTION_COMBAT_PREVIEW: "Combat Preview",
 }
 
@@ -66,6 +86,7 @@ const SECTION_PATHS := {
 	SECTION_CHARACTERS: "res://data/characters.json",
 	SECTION_TIERS: "res://data/tiers.json",
 	SECTION_PLAYER_TUNING: "res://data/player_tuning.json",
+	SECTION_FONT_PROFILES: "res://data/font_profiles.json",
 }
 
 var content := {}
@@ -93,6 +114,9 @@ func load_section(section: String) -> String:
 			content[section] = {
 				"default": DEFAULT_PLAYER_TUNING.duplicate(true),
 			}
+			return ""
+		if section == SECTION_FONT_PROFILES:
+			content[section] = DEFAULT_FONT_PROFILES.duplicate(true)
 			return ""
 		return "File not found: %s" % path
 
@@ -411,6 +435,50 @@ func validate_player_tuning(record_id: String, _original_id: String, record: Dic
 		return "smoke_puff_enabled is required."
 
 	return ""
+
+
+func validate_font_profile(record_id: String, original_id: String, record: Dictionary) -> String:
+	var id_error := _validate_record_id(SECTION_FONT_PROFILES, record_id, original_id)
+	if not id_error.is_empty():
+		return id_error
+
+	if str(record.get("display_name", "")).strip_edges().is_empty():
+		return "Display Name cannot be empty."
+	if int(record.get("font_size", 0)) < 1:
+		return "Font Size must be greater than 0."
+	if int(record.get("outline_size", -1)) < 0:
+		return "Outline Size must be greater than or equal to 0."
+	if not _is_html_color(str(record.get("font_color", ""))):
+		return "Font Color must use #RRGGBB or #RRGGBBAA."
+	if not _is_html_color(str(record.get("outline_color", ""))):
+		return "Outline Color must use #RRGGBB or #RRGGBBAA."
+
+	var font_path := str(record.get("font_path", ""))
+	if not font_path.is_empty() and not _is_supported_font_path(font_path):
+		return "Font Path must be .ttf, .otf, .fnt, or empty fallback."
+
+	return ""
+
+
+func _is_html_color(value: String) -> bool:
+	var text := value.strip_edges()
+	if not text.begins_with("#"):
+		return false
+	if text.length() != 7 and text.length() != 9:
+		return false
+	for index in range(1, text.length()):
+		var code := text.unicode_at(index)
+		var is_digit := code >= 48 and code <= 57
+		var is_upper := code >= 65 and code <= 70
+		var is_lower := code >= 97 and code <= 102
+		if not is_digit and not is_upper and not is_lower:
+			return false
+	return true
+
+
+func _is_supported_font_path(path: String) -> bool:
+	var lower := path.to_lower()
+	return lower.ends_with(".ttf") or lower.ends_with(".otf") or lower.ends_with(".fnt")
 
 
 func validate_monster(record_id: String, original_id: String, record: Dictionary) -> String:

@@ -5,6 +5,7 @@ const SaveSystem = preload("res://scripts/systems/SaveSystem.gd")
 const WorldItemSpawner = preload("res://scripts/systems/WorldItemSpawner.gd")
 const InventoryDebug = preload("res://scripts/systems/InventoryDebug.gd")
 const EquipmentSystem = preload("res://scripts/systems/EquipmentSystem.gd")
+const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 const DebugMonsterScene = preload("res://scenes/enemies/Slime.tscn")
 const DebugTreeScene = preload("res://scenes/Tree.tscn")
 const DebugRockScene = preload("res://scenes/Rock.tscn")
@@ -56,6 +57,7 @@ func _ready() -> void:
 	_configure_save_buttons()
 	_configure_player_stats_debug_ui()
 	_configure_monster_spawn_debug_ui()
+	_apply_oathwake_ui_font()
 	inventory.changed.connect(_update_resource_labels)
 	player.health_changed.connect(_update_health_label)
 	player.tool_changed.connect(_update_tool_label)
@@ -77,6 +79,29 @@ func _ready() -> void:
 	_update_health_label(player.health, player.max_health)
 	_update_settlement_labels()
 	load_game()
+
+
+func _apply_oathwake_ui_font() -> void:
+	var ui := get_node_or_null("UI")
+	if ui == null:
+		return
+	_apply_oathwake_ui_font_recursive(ui)
+
+
+func _apply_oathwake_ui_font_recursive(node: Node) -> void:
+	if node is Label:
+		OathwakeTextStyle.apply_profile_to_label(node as Label, "base_ui")
+	elif node is Button:
+		OathwakeTextStyle.apply_profile_to_control(node as Control, "ui_button")
+	elif node is LineEdit:
+		OathwakeTextStyle.apply_profile_to_control(node as Control, "base_ui")
+	elif node is OptionButton:
+		OathwakeTextStyle.apply_profile_to_control(node as Control, "base_ui")
+	elif node is SpinBox:
+		OathwakeTextStyle.apply_profile_to_control(node as Control, "base_ui")
+
+	for child in node.get_children():
+		_apply_oathwake_ui_font_recursive(child)
 
 
 func _unhandled_input(event: InputEvent) -> void:

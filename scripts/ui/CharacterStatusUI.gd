@@ -2,6 +2,7 @@ extends Control
 
 const CombatCalculatorScript := preload("res://scripts/systems/CombatCalculator.gd")
 const PlayerStatsResolverScript := preload("res://scripts/systems/PlayerStatsResolver.gd")
+const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 
 var player
 var equipment_system
@@ -143,6 +144,7 @@ func _build_ui() -> void:
 	layout.add_child(stats_header)
 	for stat_name in ["STR", "DEX", "AGI", "VIT", "WIS", "INT", "LUK"]:
 		_add_row(layout, stat_name)
+	_apply_character_status_fonts()
 
 
 func _add_row(parent: Node, label_text: String) -> void:
@@ -160,6 +162,26 @@ func _add_row(parent: Node, label_text: String) -> void:
 	value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(value)
 	value_labels[label_text] = value
+
+
+func _apply_character_status_fonts() -> void:
+	_apply_character_status_fonts_recursive(self)
+	if value_labels.has("Name"):
+		OathwakeTextStyle.apply_profile_to_label(value_labels["Name"], "player_name")
+
+
+func _apply_character_status_fonts_recursive(node: Node) -> void:
+	if node is Label:
+		var label := node as Label
+		if label.text == "Character Status" or label.text == "Base + Equip = Total":
+			OathwakeTextStyle.apply_profile_to_label(label, "ui_title")
+		else:
+			OathwakeTextStyle.apply_profile_to_label(label, "base_ui")
+	elif node is Button:
+		OathwakeTextStyle.apply_profile_to_control(node as Control, "ui_button")
+
+	for child in node.get_children():
+		_apply_character_status_fonts_recursive(child)
 
 
 func _add_separator(parent: Node) -> void:

@@ -15,28 +15,31 @@ static func show_damage(amount: int, world_position: Vector2, is_critical := fal
 		color = Color(1.0, 0.62, 0.12, 1.0)
 		text = "CRIT %d" % amount
 
-	_spawn(text, world_position, color, is_critical)
+	var profile_id := "critical_damage_number" if is_critical else "damage_number"
+	_spawn(text, world_position, color, is_critical, profile_id)
+	if is_critical:
+		_request_critical_screen_shake()
 
 
 static func show_miss(world_position: Vector2) -> void:
-	_spawn("Miss", world_position, Color(0.72, 0.72, 0.72, 1.0), false)
+	_spawn("Miss", world_position, Color(0.72, 0.72, 0.72, 1.0), false, "miss_text")
 
 
 static func show_heal(amount: int, world_position: Vector2) -> void:
 	if amount <= 0:
 		return
 
-	_spawn("+%d" % amount, world_position, Color(0.45, 1.0, 0.55, 1.0), false)
+	_spawn("+%d" % amount, world_position, Color(0.45, 1.0, 0.55, 1.0), false, "heal_number")
 
 
-static func show_text(text: String, world_position: Vector2, color := Color(0.72, 0.72, 0.72, 1.0), is_critical := false) -> void:
+static func show_text(text: String, world_position: Vector2, color := Color(0.72, 0.72, 0.72, 1.0), is_critical := false, profile_id := "console") -> void:
 	if text.is_empty():
 		return
 
-	_spawn(text, world_position, color, is_critical)
+	_spawn(text, world_position, color, is_critical, profile_id)
 
 
-static func _spawn(text: String, world_position: Vector2, color: Color, is_critical: bool) -> void:
+static func _spawn(text: String, world_position: Vector2, color: Color, is_critical: bool, profile_id := "") -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null or tree.current_scene == null:
 		return
@@ -44,4 +47,20 @@ static func _spawn(text: String, world_position: Vector2, color: Color, is_criti
 	var floating_text := FloatingCombatTextScene.instantiate()
 	tree.current_scene.add_child(floating_text)
 	floating_text.global_position = world_position
-	floating_text.setup(text, color, is_critical)
+	floating_text.setup(text, color, is_critical, profile_id)
+
+
+static func _request_critical_screen_shake() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+
+	var camera := tree.get_first_node_in_group("game_camera")
+	if camera != null and camera.has_method("request_shake"):
+		camera.call("request_shake", 1.8, 0.10)
+		return
+
+	if tree.current_scene != null:
+		var fallback_camera := tree.current_scene.get_node_or_null("World/Player/Camera2D")
+		if fallback_camera != null and fallback_camera.has_method("request_shake"):
+			fallback_camera.call("request_shake", 1.8, 0.10)

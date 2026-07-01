@@ -1,0 +1,114 @@
+{
+	"base_ui": {
+		"display_name": "Base UI",
+		"font_color": "#FFFFFF",
+		"font_path": "res://assets/fonts/PixeloidSans.ttf",
+		"font_size": 14,
+		"outline_color": "#000000",
+		"outline_size": 0
+	},
+	"console": {
+		"display_name": "Console / Debug Text",
+		"font_color": "#D8D8D8",
+		"font_path": "res://assets/fonts/m5x7.ttf",
+		"font_size": 13,
+		"outline_color": "#000000",
+		"outline_size": 0
+	},
+	"content_editor": {
+		"display_name": "Content Editor",
+		"font_color": "#FFFFFF",
+		"font_path": "res://assets/fonts/oathwake_ui.ttf",
+		"font_size": 13,
+		"outline_color": "#000000",
+		"outline_size": 0
+	},
+	"critical_damage_number": {
+		"display_name": "Critical Damage Numbers",
+		"font_color": "#FF9E1F",
+		"font_path": "res://assets/fonts/alagard.ttf",
+		"font_size": 22,
+		"outline_color": "#000000",
+		"outline_size": 3
+	},
+	"damage_number": {
+		"display_name": "Damage Numbers",
+		"font_color": "#FFF2A6",
+		"font_path": "res://assets/fonts/m5x7.ttf",
+		"font_size": 16,
+		"outline_color": "#000000",
+		"outline_size": 2
+	},
+	"heal_number": {
+		"display_name": "Heal Numbers",
+		"font_color": "#73FF8C",
+		"font_path": "res://assets/fonts/m5x7.ttf",
+		"font_size": 16,
+		"outline_color": "#000000",
+		"outline_size": 2
+	},
+	"item_quantity": {
+		"display_name": "Item Quantity",
+		"font_color": "#FFFFFF",
+		"font_path": "res://assets/fonts/m5x7.ttf",
+		"font_size": 12,
+		"outline_color": "#000000",
+		"outline_size": 1
+	},
+	"item_tooltip": {
+		"display_name": "Item Tooltip",
+		"font_color": "#FFFFFF",
+		"font_path": "res://assets/fonts/PixeloidMono.ttf",
+		"font_size": 13,
+		"outline_color": "#000000",
+		"outline_size": 0
+	},
+	"miss_text": {
+		"display_name": "Miss Text",
+		"font_color": "#B8B8B8",
+		"font_path": "res://assets/fonts/m5x7.ttf",
+		"font_size": 20,
+		"outline_color": "#000000",
+		"outline_size": 2
+	},
+	"monster_name": {
+		"display_name": "Monster Name",
+		"font_color": "#FFB3B3",
+		"font_path": "res://assets/fonts/PixeloidSans.ttf",
+		"font_size": 14,
+		"outline_color": "#000000",
+		"outline_size": 2
+	},
+	"player_name": {
+		"display_name": "Player Name",
+		"font_color": "#FFFFFF",
+		"font_path": "res://assets/fonts/PixeloidSans-Bold.ttf",
+		"font_size": 14,
+		"outline_color": "#000000",
+		"outline_size": 2
+	},
+	"ui_button": {
+		"display_name": "UI Buttons",
+		"font_color": "#FFFFFF",
+		"font_path": "res://assets/fonts/PixeloidSans-Bold.ttf",
+		"font_size": 14,
+		"outline_color": "#000000",
+		"outline_size": 0
+	},
+	"ui_title": {
+		"display_name": "UI Titles",
+		"font_color": "#F2D98C",
+		"font_path": "res://assets/fonts/alagard.ttf",
+		"font_size": 18,
+		"outline_color": "#000000",
+		"outline_size": 1
+	},
+	"xp_number": {
+		"display_name": "XP Numbers",
+		"font_color": "#7CCBFF",
+		"font_path": "res://assets/fonts/PixeloidSans-Bold.ttf",
+		"font_size": 15,
+		"outline_color": "#000000",
+		"outline_size": 2
+	}
+}

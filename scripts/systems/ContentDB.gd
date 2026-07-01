@@ -11,6 +11,7 @@ const ANIMATION_SETS_PATH := "res://data/animation_sets.json"
 const CHARACTERS_PATH := "res://data/characters.json"
 const TIERS_PATH := "res://data/tiers.json"
 const PLAYER_TUNING_PATH := "res://data/player_tuning.json"
+const FONT_PROFILES_PATH := "res://data/font_profiles.json"
 
 var items := {}
 var resources := {}
@@ -23,6 +24,7 @@ var animation_sets := {}
 var characters := {}
 var tiers := {}
 var player_tuning := {}
+var font_profiles := {}
 
 
 func _ready() -> void:
@@ -41,6 +43,7 @@ func load_all() -> void:
 	characters = _load_json_dictionary(CHARACTERS_PATH)
 	tiers = _load_json_dictionary(TIERS_PATH)
 	player_tuning = _load_json_dictionary(PLAYER_TUNING_PATH)
+	font_profiles = _load_json_dictionary(FONT_PROFILES_PATH)
 
 	if not items.is_empty() and not resources.is_empty() and not monsters.is_empty() and not recipes.is_empty() and not terrain_types.is_empty() and not npcs.is_empty():
 		print("ContentDB loaded successfully")
@@ -90,6 +93,10 @@ func get_player_tuning(id: String = "default") -> Dictionary:
 	return _get_entry(player_tuning, id, "player tuning")
 
 
+func get_font_profile(id: String) -> Dictionary:
+	return _get_entry(font_profiles, id, "font profile")
+
+
 func get_all_terrain_types() -> Dictionary:
 	return terrain_types.duplicate(true)
 
@@ -128,6 +135,10 @@ func get_all_tiers() -> Dictionary:
 
 func get_all_player_tuning() -> Dictionary:
 	return player_tuning.duplicate(true)
+
+
+func get_all_font_profiles() -> Dictionary:
+	return font_profiles.duplicate(true)
 
 
 func has_item(id: String) -> bool:
@@ -172,6 +183,10 @@ func has_tier(tier_id: int) -> bool:
 
 func has_player_tuning(id: String = "default") -> bool:
 	return player_tuning.has(id)
+
+
+func has_font_profile(id: String) -> bool:
+	return font_profiles.has(id)
 
 
 func _load_json_dictionary(path: String) -> Dictionary:

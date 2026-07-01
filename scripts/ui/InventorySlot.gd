@@ -1,6 +1,7 @@
 extends Button
 
 const ItemInstanceHelper = preload("res://scripts/systems/ItemInstanceHelper.gd")
+const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 
 signal slot_selected(slot_index: int, item_id: String, inventory_id: String)
 signal slot_right_clicked(slot_index: int, inventory_id: String, shift_pressed: bool, ctrl_pressed: bool)
@@ -39,6 +40,7 @@ func setup(index: int, new_item_id: String, new_amount: int, item_data: Dictiona
 	custom_minimum_size = Vector2(64, 64)
 	focus_mode = Control.FOCUS_NONE
 	_apply_slot_style()
+	OathwakeTextStyle.apply_profile_to_control(self, "item_quantity")
 
 
 func clear_slot(index := -1) -> void:
@@ -54,6 +56,7 @@ func clear_slot(index := -1) -> void:
 	custom_minimum_size = Vector2(64, 64)
 	focus_mode = Control.FOCUS_NONE
 	_apply_slot_style()
+	OathwakeTextStyle.apply_profile_to_control(self, "item_quantity")
 
 
 func _pressed() -> void:
@@ -84,6 +87,7 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	preview.expand_icon = true
 	preview.custom_minimum_size = Vector2(56, 48)
 	preview.disabled = true
+	OathwakeTextStyle.apply_profile_to_control(preview, "item_quantity")
 	set_drag_preview(preview)
 	return {
 		"type": "inventory_slot",

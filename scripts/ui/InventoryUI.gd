@@ -4,6 +4,7 @@ const InventorySlotScene = preload("res://scenes/ui/InventorySlot.tscn")
 const EquipmentSlotScene = preload("res://scenes/ui/EquipmentSlot.tscn")
 const SpriteResolver = preload("res://scripts/systems/SpriteResolver.gd")
 const TrashSlotScript = preload("res://scripts/ui/TrashSlot.gd")
+const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 
 @export var slot_count: int = 20
 @export var columns: int = 5
@@ -180,6 +181,33 @@ func _build_ui() -> void:
 	details_label.custom_minimum_size = Vector2(0, 90)
 	details_label.text = "Select an item."
 	layout.add_child(details_label)
+	_apply_inventory_ui_fonts()
+
+
+func _apply_inventory_ui_fonts() -> void:
+	_apply_inventory_ui_fonts_recursive(self)
+	if details_label != null:
+		OathwakeTextStyle.apply_profile_to_label(details_label, "item_tooltip")
+
+
+func _apply_inventory_ui_fonts_recursive(node: Node) -> void:
+	if node is Label:
+		var label := node as Label
+		if label.text == "Inventory" or label.text == "Equipment":
+			OathwakeTextStyle.apply_profile_to_label(label, "ui_title")
+		else:
+			OathwakeTextStyle.apply_profile_to_label(label, "base_ui")
+	elif node is Button:
+		OathwakeTextStyle.apply_profile_to_control(node as Control, "ui_button")
+	elif node is LineEdit:
+		OathwakeTextStyle.apply_profile_to_control(node as Control, "base_ui")
+	elif node is OptionButton:
+		OathwakeTextStyle.apply_profile_to_control(node as Control, "base_ui")
+	elif node is SpinBox:
+		OathwakeTextStyle.apply_profile_to_control(node as Control, "base_ui")
+
+	for child in node.get_children():
+		_apply_inventory_ui_fonts_recursive(child)
 
 
 func _on_slot_selected(slot_index: int, item_id: String, _inventory_id := "player") -> void:

@@ -3,6 +3,7 @@ extends Control
 const ContentEditorData := preload("res://tools/content_editor/ContentEditorData.gd")
 const SpriteSheetPreviewScript := preload("res://tools/content_editor/SpriteSheetPreview.gd")
 const CombatCalculatorScript := preload("res://scripts/systems/CombatCalculator.gd")
+const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 const MIN_WINDOW_SIZE := Vector2i(1280, 800)
 const INITIAL_WINDOW_SIZE := Vector2i(1440, 900)
 const BATCH_STATIC_SPRITE_IMPORT_DIR := "res://assets/sprites/static"
@@ -54,6 +55,7 @@ var sprite_sheet_preview: Control
 var animation_grid_preview: Control
 var animation_preview_rect: TextureRect
 var character_preview_info_label: Label
+var font_profile_preview_label: Label
 var texture_file_dialog: FileDialog
 var batch_static_sprite_button: Button
 var batch_sprite_file_dialog: FileDialog
@@ -587,6 +589,8 @@ func _build_form_for_current_record() -> void:
 			_build_tier_form()
 		ContentEditorData.SECTION_PLAYER_TUNING:
 			_build_player_tuning_form()
+		ContentEditorData.SECTION_FONT_PROFILES:
+			_build_font_profile_form()
 		ContentEditorData.SECTION_COMBAT_PREVIEW:
 			_build_combat_preview_form()
 		_:
@@ -698,6 +702,39 @@ func _build_player_tuning_form() -> void:
 	_add_float_spin_box("Run Stop Slide Strength", "run_stop_slide_strength", float(current_record.get("run_stop_slide_strength", 0.50)), 0.0, 1.0, 0.01)
 	_add_check_box("Smoke Puff Enabled", "smoke_puff_enabled", bool(current_record.get("smoke_puff_enabled", true)))
 	_add_float_spin_box("Smoke Puff Cooldown", "smoke_puff_cooldown", float(current_record.get("smoke_puff_cooldown", 0.28)), 0.0, 10.0, 0.01)
+
+
+func _build_font_profile_form() -> void:
+	form_title_label.text = "Font Profile: %s" % str(current_record.get("id", ""))
+	_add_line_edit("ID", "id", str(current_record.get("id", "")))
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_font_path_picker(str(current_record.get("font_path", "")))
+	_add_spin_box("Font Size", "font_size", int(current_record.get("font_size", 14)), 1, 256, 1)
+	_add_line_edit("Font Color", "font_color", str(current_record.get("font_color", "#FFFFFF")))
+	_add_spin_box("Outline Size", "outline_size", int(current_record.get("outline_size", 0)), 0, 32, 1)
+	_add_line_edit("Outline Color", "outline_color", str(current_record.get("outline_color", "#000000")))
+
+	font_profile_preview_label = Label.new()
+	font_profile_preview_label.text = "Oathwake 123 CRIT +XP"
+	font_profile_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	font_profile_preview_label.custom_minimum_size = Vector2(0, 64)
+	form_container.add_child(font_profile_preview_label)
+
+	var update_preview_button := Button.new()
+	update_preview_button.text = "Update Preview"
+	update_preview_button.pressed.connect(_update_font_profile_preview)
+	form_container.add_child(update_preview_button)
+
+	for field_name in ["display_name", "font_color", "outline_color"]:
+		if field_controls.has(field_name):
+			var line_edit: LineEdit = field_controls[field_name]
+			line_edit.text_changed.connect(func(_new_text: String) -> void: _update_font_profile_preview())
+	for field_name in ["font_size", "outline_size"]:
+		if field_controls.has(field_name):
+			var spin_box: SpinBox = field_controls[field_name]
+			spin_box.value_changed.connect(func(_new_value: float) -> void: _update_font_profile_preview())
+
+	_update_font_profile_preview()
 
 
 func _build_monster_form() -> void:
@@ -921,6 +958,50 @@ func _add_texture_path_picker(value: String) -> void:
 	row.add_child(browse_button)
 
 	form_container.add_child(row)
+
+
+func _add_font_path_picker(value: String) -> void:
+	var options := _get_available_font_paths()
+	if not value.is_empty() and not options.has(value):
+		options.append(value)
+
+	var option_button := OptionButton.new()
+	option_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	option_button.add_item("Default / Fallback")
+	option_button.set_item_metadata(0, "")
+	var selected_index := 0
+	for font_path in options:
+		var index := option_button.item_count
+		option_button.add_item(font_path)
+		option_button.set_item_metadata(index, font_path)
+		if font_path == value:
+			selected_index = index
+	option_button.select(selected_index)
+	option_button.item_selected.connect(func(_index: int) -> void:
+		_mark_dirty()
+		_update_font_profile_preview()
+	)
+	_add_form_row("Select Font", option_button)
+	field_controls["font_path"] = option_button
+
+
+func _get_available_font_paths() -> Array:
+	var font_paths := []
+	var fonts_dir := DirAccess.open("res://assets/fonts")
+	if fonts_dir == null:
+		return font_paths
+
+	fonts_dir.list_dir_begin()
+	var file_name := fonts_dir.get_next()
+	while not file_name.is_empty():
+		if not fonts_dir.current_is_dir():
+			var lower := file_name.to_lower()
+			if lower.ends_with(".ttf") or lower.ends_with(".otf") or lower.ends_with(".fnt"):
+				font_paths.append("res://assets/fonts/%s" % file_name)
+		file_name = fonts_dir.get_next()
+	fonts_dir.list_dir_end()
+	font_paths.sort()
+	return font_paths
 
 
 func _add_check_box(label_text: String, field_name: String, value: bool) -> CheckBox:
@@ -3970,6 +4051,8 @@ func _on_delete_pressed() -> void:
 			_set_status("Tier delete is blocked for now to preserve the Early Access progression.", true)
 		ContentEditorData.SECTION_PLAYER_TUNING:
 			_set_status("Player Tuning keeps a single default record.", true)
+		ContentEditorData.SECTION_FONT_PROFILES:
+			_set_status("Core font profiles should be edited, not deleted.", true)
 		_:
 			_set_status("Delete is available for visual content sections.", true)
 
@@ -4179,6 +4262,8 @@ func _on_save_pressed() -> void:
 			_save_tier()
 		ContentEditorData.SECTION_PLAYER_TUNING:
 			_save_player_tuning()
+		ContentEditorData.SECTION_FONT_PROFILES:
+			_save_font_profile()
 		_:
 			_set_status("Visual saving for this section will come in a later step.", true)
 
@@ -4336,6 +4421,20 @@ func _save_player_tuning() -> void:
 	record["id"] = record_id
 
 	var error := data_store.validate_player_tuning(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
+func _save_font_profile() -> void:
+	var record := _get_font_profile_form_record()
+	var record_id := data_store.sanitize_id(str(record.get("id", "")))
+	record["id"] = record_id
+	_set_line_edit_text("id", record_id)
+
+	var error := data_store.validate_font_profile(record_id, current_original_id, record)
 	if not error.is_empty():
 		_set_status(error, true)
 		return
@@ -4704,6 +4803,18 @@ func _get_player_tuning_form_record() -> Dictionary:
 	}
 
 
+func _get_font_profile_form_record() -> Dictionary:
+	return {
+		"id": _get_line_edit_text("id"),
+		"display_name": _get_line_edit_text("display_name"),
+		"font_path": _get_option_button_metadata("font_path"),
+		"font_size": _get_spin_box_int("font_size"),
+		"font_color": _get_line_edit_text("font_color"),
+		"outline_size": _get_spin_box_int("outline_size"),
+		"outline_color": _get_line_edit_text("outline_color"),
+	}
+
+
 func _get_clean_production_rows() -> Array:
 	var clean_rows := []
 
@@ -4785,6 +4896,21 @@ func _get_option_button_metadata(field_name: String) -> String:
 		return ""
 
 	return str(option_button.get_item_metadata(option_button.selected))
+
+
+func _update_font_profile_preview() -> void:
+	if font_profile_preview_label == null:
+		return
+
+	var settings := LabelSettings.new()
+	var font := OathwakeTextStyle.load_font_from_path(_get_option_button_metadata("font_path"))
+	if font != null:
+		settings.font = font
+	settings.font_size = max(_get_spin_box_int("font_size"), 1)
+	settings.font_color = OathwakeTextStyle.parse_color(_get_line_edit_text("font_color"), Color.WHITE)
+	settings.outline_size = max(_get_spin_box_int("outline_size"), 0)
+	settings.outline_color = OathwakeTextStyle.parse_color(_get_line_edit_text("outline_color"), Color.BLACK)
+	font_profile_preview_label.label_settings = settings
 
 
 func _get_preview_zoom_scale(field_name: String) -> float:
@@ -4904,8 +5030,8 @@ func _mark_dirty() -> void:
 
 
 func _update_action_buttons() -> void:
-	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES or current_section == ContentEditorData.SECTION_ANIMATION_SETS or current_section == ContentEditorData.SECTION_CHARACTERS or current_section == ContentEditorData.SECTION_TIERS or current_section == ContentEditorData.SECTION_PLAYER_TUNING
-	var is_singleton_section := current_section == ContentEditorData.SECTION_PLAYER_TUNING
+	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES or current_section == ContentEditorData.SECTION_ANIMATION_SETS or current_section == ContentEditorData.SECTION_CHARACTERS or current_section == ContentEditorData.SECTION_TIERS or current_section == ContentEditorData.SECTION_PLAYER_TUNING or current_section == ContentEditorData.SECTION_FONT_PROFILES
+	var is_singleton_section := current_section == ContentEditorData.SECTION_PLAYER_TUNING or current_section == ContentEditorData.SECTION_FONT_PROFILES
 	var has_record := not current_record.is_empty()
 
 	new_button.disabled = not supports_visual_editing or has_unsaved_changes or is_singleton_section
