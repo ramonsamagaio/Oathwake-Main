@@ -93,6 +93,7 @@ func take_damage(amount: int) -> void:
 
 	health = max(health - amount, 0)
 	_update_nameplate()
+	_show_nameplate_after_damage()
 	_play_hit_feedback(false)
 	if show_floating_damage:
 		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), false, "enemy")
@@ -116,6 +117,7 @@ func apply_combat_result(combat_result: Dictionary) -> void:
 
 	health = max(health - amount, 0)
 	_update_nameplate()
+	_show_nameplate_after_damage()
 	var is_critical := bool(combat_result.get("is_critical", false))
 	_play_hit_feedback(is_critical)
 	if show_floating_damage:
@@ -227,10 +229,22 @@ func _update_nameplate() -> void:
 	nameplate.set_health(health, max_health)
 
 
+func _show_nameplate_after_damage() -> void:
+	if nameplate == null or not is_instance_valid(nameplate):
+		return
+	if nameplate.has_method("show_after_damage"):
+		nameplate.call("show_after_damage")
+
+
 func _play_hit_feedback(is_critical: bool) -> void:
 	if not enable_hit_flash:
 		return
 
+	var vfx_profile := _get_vfx_profile()
+	var hit_flash_duration := float(vfx_profile.get("hit_flash_duration", 0.10))
+	var critical_hit_flash_duration := float(vfx_profile.get("critical_hit_flash_duration", 0.14))
+	var hit_bump_scale := float(vfx_profile.get("hit_bump_scale", 1.04))
+	var critical_bump_scale := float(vfx_profile.get("critical_bump_scale", 1.08))
 	var flash_color := Color(1.0, 0.65, 0.55, 1.0) if is_critical else Color(1.0, 0.35, 0.35, 1.0)
 	for child in get_children():
 		if not child is CanvasItem:
@@ -242,10 +256,10 @@ func _play_hit_feedback(is_critical: bool) -> void:
 		var original_color := canvas_item.modulate
 		canvas_item.modulate = flash_color
 		var tween := create_tween()
-		tween.tween_property(canvas_item, "modulate", original_color, 0.12 if is_critical else 0.08)
+		tween.tween_property(canvas_item, "modulate", original_color, critical_hit_flash_duration if is_critical else hit_flash_duration)
 
 	if enable_knockback:
-		var bump_scale := original_scale * (1.08 if is_critical else 1.04)
+		var bump_scale := original_scale * (critical_bump_scale if is_critical else hit_bump_scale)
 		var scale_tween := create_tween()
 		scale_tween.tween_property(self, "scale", bump_scale, 0.04)
 		scale_tween.tween_property(self, "scale", original_scale, 0.08)
@@ -261,3 +275,10 @@ func get_combat_data() -> Dictionary:
 			"attack_cooldown": damage_cooldown,
 		}
 	return combat_data
+
+
+func _get_vfx_profile() -> Dictionary:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and content_db.has_method("has_vfx_profile") and content_db.has_vfx_profile("default"):
+		return content_db.get_vfx_profile("default")
+	return {}

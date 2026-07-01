@@ -57,10 +57,10 @@ static func _request_critical_screen_shake() -> void:
 
 	var camera := tree.get_first_node_in_group("game_camera")
 	if camera != null and camera.has_method("request_shake"):
-		camera.call("request_shake", 1.8, 0.10)
+		camera.call("request_shake")
 		return
 
 	if tree.current_scene != null:
 		var fallback_camera := tree.current_scene.get_node_or_null("World/Player/Camera2D")
 		if fallback_camera != null and fallback_camera.has_method("request_shake"):
-			fallback_camera.call("request_shake", 1.8, 0.10)
+			fallback_camera.call("request_shake")

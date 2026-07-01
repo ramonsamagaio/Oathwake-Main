@@ -405,6 +405,9 @@ func _select_section(section: String, force := false) -> void:
 	elif current_section == ContentEditorData.SECTION_PLAYER_TUNING and data_store.has_record(ContentEditorData.SECTION_PLAYER_TUNING, "default"):
 		_load_record("default")
 		return
+	elif current_section == ContentEditorData.SECTION_VFX_PROFILES and data_store.has_record(ContentEditorData.SECTION_VFX_PROFILES, "default"):
+		_load_record("default")
+		return
 	else:
 		_show_empty_form()
 	_update_action_buttons()
@@ -591,6 +594,8 @@ func _build_form_for_current_record() -> void:
 			_build_player_tuning_form()
 		ContentEditorData.SECTION_FONT_PROFILES:
 			_build_font_profile_form()
+		ContentEditorData.SECTION_VFX_PROFILES:
+			_build_vfx_profile_form()
 		ContentEditorData.SECTION_COMBAT_PREVIEW:
 			_build_combat_preview_form()
 		_:
@@ -735,6 +740,23 @@ func _build_font_profile_form() -> void:
 			spin_box.value_changed.connect(func(_new_value: float) -> void: _update_font_profile_preview())
 
 	_update_font_profile_preview()
+
+
+func _build_vfx_profile_form() -> void:
+	form_title_label.text = "VFX Profile: %s" % str(current_record.get("id", "default"))
+	_add_read_only_value("ID", "default")
+	_add_float_spin_box("Critical Shake Strength", "critical_shake_strength", float(current_record.get("critical_shake_strength", 2.8)), 0.0, 999.0, 0.01)
+	_add_float_spin_box("Critical Shake Duration", "critical_shake_duration", float(current_record.get("critical_shake_duration", 0.14)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Tree Wind Strength", "tree_wind_strength", float(current_record.get("tree_wind_strength", 1.5)), 0.0, 999.0, 0.01)
+	_add_float_spin_box("Tree Wind Speed", "tree_wind_speed", float(current_record.get("tree_wind_speed", 1.2)), 0.0, 999.0, 0.01)
+	_add_float_spin_box("Smoke Puff Lifetime", "smoke_puff_lifetime", float(current_record.get("smoke_puff_lifetime", 0.35)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Smoke Puff Scale", "smoke_puff_scale", float(current_record.get("smoke_puff_scale", 1.2)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Floating Text Duration", "floating_text_duration", float(current_record.get("floating_text_duration", 1.45)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Critical Text Duration", "critical_text_duration", float(current_record.get("critical_text_duration", 1.6)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Hit Flash Duration", "hit_flash_duration", float(current_record.get("hit_flash_duration", 0.10)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Critical Hit Flash Duration", "critical_hit_flash_duration", float(current_record.get("critical_hit_flash_duration", 0.14)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Hit Bump Scale", "hit_bump_scale", float(current_record.get("hit_bump_scale", 1.04)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Critical Bump Scale", "critical_bump_scale", float(current_record.get("critical_bump_scale", 1.08)), 0.0, 10.0, 0.01)
 
 
 func _build_monster_form() -> void:
@@ -4264,6 +4286,8 @@ func _on_save_pressed() -> void:
 			_save_player_tuning()
 		ContentEditorData.SECTION_FONT_PROFILES:
 			_save_font_profile()
+		ContentEditorData.SECTION_VFX_PROFILES:
+			_save_vfx_profile()
 		_:
 			_set_status("Visual saving for this section will come in a later step.", true)
 
@@ -4435,6 +4459,19 @@ func _save_font_profile() -> void:
 	_set_line_edit_text("id", record_id)
 
 	var error := data_store.validate_font_profile(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
+func _save_vfx_profile() -> void:
+	var record := _get_vfx_profile_form_record()
+	var record_id := "default"
+	record["id"] = record_id
+
+	var error := data_store.validate_vfx_profile(record_id, current_original_id, record)
 	if not error.is_empty():
 		_set_status(error, true)
 		return
@@ -4815,6 +4852,24 @@ func _get_font_profile_form_record() -> Dictionary:
 	}
 
 
+func _get_vfx_profile_form_record() -> Dictionary:
+	return {
+		"id": "default",
+		"critical_shake_strength": _get_float_spin_box_value("critical_shake_strength"),
+		"critical_shake_duration": _get_float_spin_box_value("critical_shake_duration"),
+		"tree_wind_strength": _get_float_spin_box_value("tree_wind_strength"),
+		"tree_wind_speed": _get_float_spin_box_value("tree_wind_speed"),
+		"smoke_puff_lifetime": _get_float_spin_box_value("smoke_puff_lifetime"),
+		"smoke_puff_scale": _get_float_spin_box_value("smoke_puff_scale"),
+		"floating_text_duration": _get_float_spin_box_value("floating_text_duration"),
+		"critical_text_duration": _get_float_spin_box_value("critical_text_duration"),
+		"hit_flash_duration": _get_float_spin_box_value("hit_flash_duration"),
+		"critical_hit_flash_duration": _get_float_spin_box_value("critical_hit_flash_duration"),
+		"hit_bump_scale": _get_float_spin_box_value("hit_bump_scale"),
+		"critical_bump_scale": _get_float_spin_box_value("critical_bump_scale"),
+	}
+
+
 func _get_clean_production_rows() -> Array:
 	var clean_rows := []
 
@@ -5030,8 +5085,8 @@ func _mark_dirty() -> void:
 
 
 func _update_action_buttons() -> void:
-	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES or current_section == ContentEditorData.SECTION_ANIMATION_SETS or current_section == ContentEditorData.SECTION_CHARACTERS or current_section == ContentEditorData.SECTION_TIERS or current_section == ContentEditorData.SECTION_PLAYER_TUNING or current_section == ContentEditorData.SECTION_FONT_PROFILES
-	var is_singleton_section := current_section == ContentEditorData.SECTION_PLAYER_TUNING or current_section == ContentEditorData.SECTION_FONT_PROFILES
+	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES or current_section == ContentEditorData.SECTION_ANIMATION_SETS or current_section == ContentEditorData.SECTION_CHARACTERS or current_section == ContentEditorData.SECTION_TIERS or current_section == ContentEditorData.SECTION_PLAYER_TUNING or current_section == ContentEditorData.SECTION_FONT_PROFILES or current_section == ContentEditorData.SECTION_VFX_PROFILES
+	var is_singleton_section := current_section == ContentEditorData.SECTION_PLAYER_TUNING or current_section == ContentEditorData.SECTION_FONT_PROFILES or current_section == ContentEditorData.SECTION_VFX_PROFILES
 	var has_record := not current_record.is_empty()
 
 	new_button.disabled = not supports_visual_editing or has_unsaved_changes or is_singleton_section

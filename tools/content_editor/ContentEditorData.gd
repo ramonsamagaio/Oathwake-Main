@@ -12,6 +12,7 @@ const SECTION_CHARACTERS := "characters"
 const SECTION_TIERS := "tiers"
 const SECTION_PLAYER_TUNING := "player_tuning"
 const SECTION_FONT_PROFILES := "font_profiles"
+const SECTION_VFX_PROFILES := "vfx_profiles"
 const SECTION_COMBAT_PREVIEW := "combat_preview"
 
 const DEFAULT_PLAYER_TUNING := {
@@ -55,6 +56,7 @@ const SECTIONS := [
 	SECTION_TIERS,
 	SECTION_PLAYER_TUNING,
 	SECTION_FONT_PROFILES,
+	SECTION_VFX_PROFILES,
 	SECTION_COMBAT_PREVIEW,
 ]
 
@@ -71,6 +73,7 @@ const SECTION_LABELS := {
 	SECTION_TIERS: "Tiers",
 	SECTION_PLAYER_TUNING: "Player Tuning",
 	SECTION_FONT_PROFILES: "Font Profiles",
+	SECTION_VFX_PROFILES: "VFX Profiles",
 	SECTION_COMBAT_PREVIEW: "Combat Preview",
 }
 
@@ -87,6 +90,7 @@ const SECTION_PATHS := {
 	SECTION_TIERS: "res://data/tiers.json",
 	SECTION_PLAYER_TUNING: "res://data/player_tuning.json",
 	SECTION_FONT_PROFILES: "res://data/font_profiles.json",
+	SECTION_VFX_PROFILES: "res://data/vfx_profiles.json",
 }
 
 var content := {}
@@ -117,6 +121,24 @@ func load_section(section: String) -> String:
 			return ""
 		if section == SECTION_FONT_PROFILES:
 			content[section] = DEFAULT_FONT_PROFILES.duplicate(true)
+			return ""
+		if section == SECTION_VFX_PROFILES:
+			content[section] = {
+				"default": {
+					"critical_shake_strength": 2.8,
+					"critical_shake_duration": 0.14,
+					"tree_wind_strength": 1.5,
+					"tree_wind_speed": 1.2,
+					"smoke_puff_lifetime": 0.35,
+					"smoke_puff_scale": 1.2,
+					"floating_text_duration": 1.45,
+					"critical_text_duration": 1.60,
+					"hit_flash_duration": 0.10,
+					"critical_hit_flash_duration": 0.14,
+					"hit_bump_scale": 1.04,
+					"critical_bump_scale": 1.08,
+				},
+			}
 			return ""
 		return "File not found: %s" % path
 
@@ -456,6 +478,37 @@ func validate_font_profile(record_id: String, original_id: String, record: Dicti
 	var font_path := str(record.get("font_path", ""))
 	if not font_path.is_empty() and not _is_supported_font_path(font_path):
 		return "Font Path must be .ttf, .otf, .fnt, or empty fallback."
+
+	return ""
+
+
+func validate_vfx_profile(record_id: String, _original_id: String, record: Dictionary) -> String:
+	if record_id != "default":
+		return "VFX Profiles must keep the default record id."
+
+	for field_name in [
+		"critical_shake_strength",
+		"critical_shake_duration",
+		"tree_wind_strength",
+		"tree_wind_speed",
+		"smoke_puff_lifetime",
+		"smoke_puff_scale",
+		"floating_text_duration",
+		"critical_text_duration",
+		"hit_flash_duration",
+		"critical_hit_flash_duration",
+		"hit_bump_scale",
+		"critical_bump_scale",
+	]:
+		if float(record.get(field_name, -1.0)) < 0.0:
+			return "%s must be greater than or equal to 0." % field_name
+
+	if float(record.get("critical_text_duration", 0.0)) < float(record.get("floating_text_duration", 0.0)):
+		return "critical_text_duration should be greater than or equal to floating_text_duration."
+	if float(record.get("critical_hit_flash_duration", 0.0)) < float(record.get("hit_flash_duration", 0.0)):
+		return "critical_hit_flash_duration should be greater than or equal to hit_flash_duration."
+	if float(record.get("critical_bump_scale", 0.0)) < float(record.get("hit_bump_scale", 0.0)):
+		return "critical_bump_scale should be greater than or equal to hit_bump_scale."
 
 	return ""
 

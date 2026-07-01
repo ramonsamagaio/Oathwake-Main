@@ -19,7 +19,7 @@ var font_profile_id := "damage_number"
 func _ready() -> void:
 	var jitter: float = randf_range(-horizontal_jitter, horizontal_jitter)
 	position.x += jitter
-
+	_apply_vfx_profile()
 	_apply_label_style()
 
 	var active_duration := critical_duration if is_critical else duration
@@ -63,3 +63,18 @@ func _make_label_settings() -> LabelSettings:
 		-1,
 		-1
 	)
+
+
+func _apply_vfx_profile() -> void:
+	var vfx_profile := _get_vfx_profile()
+	if is_critical:
+		duration = float(vfx_profile.get("critical_text_duration", critical_duration))
+	else:
+		duration = float(vfx_profile.get("floating_text_duration", duration))
+
+
+func _get_vfx_profile() -> Dictionary:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and content_db.has_method("has_vfx_profile") and content_db.has_vfx_profile("default"):
+		return content_db.get_vfx_profile("default")
+	return {}

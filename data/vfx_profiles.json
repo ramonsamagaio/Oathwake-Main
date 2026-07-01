@@ -1,0 +1,16 @@
+{
+	"default": {
+		"critical_shake_strength": 2.8,
+		"critical_shake_duration": 0.14,
+		"tree_wind_strength": 1.5,
+		"tree_wind_speed": 1.2,
+		"smoke_puff_lifetime": 0.35,
+		"smoke_puff_scale": 1.2,
+		"floating_text_duration": 1.45,
+		"critical_text_duration": 1.60,
+		"hit_flash_duration": 0.10,
+		"critical_hit_flash_duration": 0.14,
+		"hit_bump_scale": 1.04,
+		"critical_bump_scale": 1.08
+	}
+}

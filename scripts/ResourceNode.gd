@@ -298,9 +298,36 @@ func _apply_content_sprite_material(sprite: Sprite2D) -> void:
 	if resource_type_id == "tree":
 		var material := ShaderMaterial.new()
 		material.shader = TreeWindShader
+		_apply_tree_wind_profile(material)
 		sprite.material = material
 	else:
 		sprite.material = null
+
+
+func _apply_tree_wind_profile(material: ShaderMaterial) -> void:
+	if material == null:
+		return
+
+	var vfx_profile := _get_vfx_profile()
+	_set_shader_parameter_if_available(material, "wind_strength", float(vfx_profile.get("tree_wind_strength", 1.5)))
+	_set_shader_parameter_if_available(material, "wind_speed", float(vfx_profile.get("tree_wind_speed", 1.2)))
+
+
+func _set_shader_parameter_if_available(material: ShaderMaterial, parameter_name: String, value: Variant) -> void:
+	if material == null or material.shader == null:
+		return
+
+	for uniform in material.shader.get_shader_uniform_list():
+		if str(uniform.get("name", "")) == parameter_name:
+			material.set_shader_parameter(parameter_name, value)
+			return
+
+
+func _get_vfx_profile() -> Dictionary:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and content_db.has_method("has_vfx_profile") and content_db.has_vfx_profile("default"):
+		return content_db.get_vfx_profile("default")
+	return {}
 
 
 func _apply_sprite_region(sprite: Sprite2D, sprite_data: Dictionary) -> void:

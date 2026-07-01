@@ -16,8 +16,13 @@ func _ready() -> void:
 
 
 func request_shake(strength: float = -1.0, duration: float = -1.0) -> void:
+	var vfx_profile := _get_vfx_profile()
 	var requested_strength := default_critical_shake_strength if strength < 0.0 else strength
 	var requested_duration := default_critical_shake_duration if duration < 0.0 else duration
+	if strength < 0.0:
+		requested_strength = float(vfx_profile.get("critical_shake_strength", requested_strength))
+	if duration < 0.0:
+		requested_duration = float(vfx_profile.get("critical_shake_duration", requested_duration))
 	if requested_strength <= 0.0 or requested_duration <= 0.0:
 		return
 
@@ -45,3 +50,10 @@ func _process(delta: float) -> void:
 	if shake_time_left == 0.0:
 		offset = base_offset
 		shake_strength = 0.0
+
+
+func _get_vfx_profile() -> Dictionary:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and content_db.has_method("has_vfx_profile") and content_db.has_vfx_profile("default"):
+		return content_db.get_vfx_profile("default")
+	return {}
