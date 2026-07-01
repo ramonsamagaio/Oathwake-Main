@@ -26,20 +26,20 @@ const DEFAULT_PLAYER_TUNING := {
 }
 
 const DEFAULT_FONT_PROFILES := {
-	"base_ui": {"display_name": "Base UI", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 14, "font_color": "#FFFFFF", "outline_size": 0, "outline_color": "#000000"},
-	"ui_title": {"display_name": "UI Titles", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 18, "font_color": "#F2D98C", "outline_size": 1, "outline_color": "#000000"},
-	"ui_button": {"display_name": "UI Buttons", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 14, "font_color": "#FFFFFF", "outline_size": 0, "outline_color": "#000000"},
-	"damage_number": {"display_name": "Damage Numbers", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 16, "font_color": "#FFF2A6", "outline_size": 2, "outline_color": "#000000"},
-	"critical_damage_number": {"display_name": "Critical Damage Numbers", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 22, "font_color": "#FF9E1F", "outline_size": 3, "outline_color": "#000000"},
-	"heal_number": {"display_name": "Heal Numbers", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 16, "font_color": "#73FF8C", "outline_size": 2, "outline_color": "#000000"},
-	"miss_text": {"display_name": "Miss Text", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 15, "font_color": "#B8B8B8", "outline_size": 2, "outline_color": "#000000"},
-	"xp_number": {"display_name": "XP Numbers", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 15, "font_color": "#7CCBFF", "outline_size": 2, "outline_color": "#000000"},
-	"item_quantity": {"display_name": "Item Quantity", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 12, "font_color": "#FFFFFF", "outline_size": 1, "outline_color": "#000000"},
-	"item_tooltip": {"display_name": "Item Tooltip", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 13, "font_color": "#FFFFFF", "outline_size": 0, "outline_color": "#000000"},
-	"player_name": {"display_name": "Player Name", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 14, "font_color": "#FFFFFF", "outline_size": 2, "outline_color": "#000000"},
-	"monster_name": {"display_name": "Monster Name", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 14, "font_color": "#FFB3B3", "outline_size": 2, "outline_color": "#000000"},
-	"console": {"display_name": "Console / Debug Text", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 13, "font_color": "#D8D8D8", "outline_size": 0, "outline_color": "#000000"},
-	"content_editor": {"display_name": "Content Editor", "font_path": "res://assets/fonts/oathwake_ui.ttf", "font_size": 13, "font_color": "#FFFFFF", "outline_size": 0, "outline_color": "#000000"},
+	"base_ui": {"display_name": "Base UI", "font_path": "res://assets/fonts/PixeloidSans.ttf", "font_size": 14, "font_color": "#FFFFFF", "outline_size": 0, "outline_color": "#000000"},
+	"ui_title": {"display_name": "UI Titles", "font_path": "res://assets/fonts/alagard.ttf", "font_size": 18, "font_color": "#F2D98C", "outline_size": 1, "outline_color": "#000000"},
+	"ui_button": {"display_name": "UI Buttons", "font_path": "res://assets/fonts/PixeloidSans-Bold.ttf", "font_size": 14, "font_color": "#FFFFFF", "outline_size": 0, "outline_color": "#000000"},
+	"damage_number": {"display_name": "Damage Numbers", "font_path": "res://assets/fonts/m5x7.ttf", "font_size": 16, "font_color": "#FFF2A6", "outline_size": 2, "outline_color": "#000000"},
+	"critical_damage_number": {"display_name": "Critical Damage Numbers", "font_path": "res://assets/fonts/alagard.ttf", "font_size": 22, "font_color": "#FF9E1F", "outline_size": 3, "outline_color": "#000000"},
+	"heal_number": {"display_name": "Heal Numbers", "font_path": "res://assets/fonts/m5x7.ttf", "font_size": 16, "font_color": "#73FF8C", "outline_size": 2, "outline_color": "#000000"},
+	"miss_text": {"display_name": "Miss Text", "font_path": "res://assets/fonts/m5x7.ttf", "font_size": 20, "font_color": "#B8B8B8", "outline_size": 2, "outline_color": "#000000"},
+	"xp_number": {"display_name": "XP Numbers", "font_path": "res://assets/fonts/PixeloidSans-Bold.ttf", "font_size": 15, "font_color": "#7CCBFF", "outline_size": 2, "outline_color": "#000000"},
+	"item_quantity": {"display_name": "Item Quantity", "font_path": "res://assets/fonts/m5x7.ttf", "font_size": 12, "font_color": "#FFFFFF", "outline_size": 1, "outline_color": "#000000"},
+	"item_tooltip": {"display_name": "Item Tooltip", "font_path": "res://assets/fonts/PixeloidMono.ttf", "font_size": 13, "font_color": "#FFFFFF", "outline_size": 0, "outline_color": "#000000"},
+	"player_name": {"display_name": "Player Name", "font_path": "res://assets/fonts/PixeloidSans-Bold.ttf", "font_size": 14, "font_color": "#FFFFFF", "outline_size": 2, "outline_color": "#000000"},
+	"monster_name": {"display_name": "Monster Name", "font_path": "res://assets/fonts/PixeloidSans.ttf", "font_size": 14, "font_color": "#FFB3B3", "outline_size": 2, "outline_color": "#000000"},
+	"console": {"display_name": "Console / Debug Text", "font_path": "res://assets/fonts/m5x7.ttf", "font_size": 13, "font_color": "#D8D8D8", "outline_size": 0, "outline_color": "#000000"},
+	"content_editor": {"display_name": "Content Editor", "font_path": "res://assets/fonts/PixeloidSans.ttf", "font_size": 13, "font_color": "#FFFFFF", "outline_size": 0, "outline_color": "#000000"},
 }
 
 const SECTIONS := [

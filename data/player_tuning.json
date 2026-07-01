@@ -3,8 +3,8 @@
 		"acceleration": 600.0,
 		"deceleration": 2000.0,
 		"run_speed": 120.0,
-		"run_stop_slide_strength": 1.0,
-		"run_stop_slide_time": 10.0,
+		"run_stop_slide_strength": 0.5,
+		"run_stop_slide_time": 0.18,
 		"smoke_puff_cooldown": 0.28,
 		"smoke_puff_enabled": true,
 		"walk_speed": 70.0

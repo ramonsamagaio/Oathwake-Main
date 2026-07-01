@@ -1,9 +1,12 @@
 extends RefCounted
 
 const FALLBACK_FONT_PATHS := [
-	"res://assets/fonts/oathwake_ui.ttf",
-	"res://assets/fonts/oathwake_ui.otf",
-	"res://assets/fonts/pixel_font.ttf",
+	"res://assets/fonts/PixeloidSans.ttf",
+	"res://assets/fonts/PixeloidSans-Bold.ttf",
+	"res://assets/fonts/PixeloidMono.ttf",
+	"res://assets/fonts/alagard.ttf",
+	"res://assets/fonts/m6x11.ttf",
+	"res://assets/fonts/m5x7.ttf",
 ]
 
 
