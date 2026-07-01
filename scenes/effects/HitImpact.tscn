@@ -1,0 +1,45 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/effects/HitImpact.gd" id="1_hit_impact_script"]
+
+[sub_resource type="Gradient" id="Gradient_hit_impact"]
+colors = PackedColorArray(1, 1, 1, 0.95, 1, 1, 1, 0)
+offsets = PackedFloat32Array(0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_hit_impact"]
+gradient = SubResource("Gradient_hit_impact")
+
+[node name="HitImpact" type="Node2D"]
+script = ExtResource("1_hit_impact_script")
+
+[node name="Burst" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, -6, 6, 0, 0, 6, -6, 0)
+color = Color(1, 1, 1, 0.95)
+
+[node name="Cross" type="Line2D" parent="."]
+width = 2.0
+default_color = Color(1, 1, 1, 0.9)
+gradient = SubResource("Gradient_hit_impact")
+points = PackedVector2Array(-8, 0, 8, 0)
+
+[node name="Sparks" type="Node2D" parent="."]
+
+[node name="Line2D" type="Line2D" parent="Sparks"]
+width = 1.5
+default_color = Color(1, 1, 1, 0.7)
+points = PackedVector2Array(0, -5, 4, -9)
+
+[node name="Line2D2" type="Line2D" parent="Sparks"]
+width = 1.5
+default_color = Color(1, 1, 1, 0.7)
+points = PackedVector2Array(0, -5, -4, -9)
+
+[node name="Line2D3" type="Line2D" parent="Sparks"]
+width = 1.5
+default_color = Color(1, 1, 1, 0.7)
+points = PackedVector2Array(0, 5, 4, 9)
+
+[node name="Line2D4" type="Line2D" parent="Sparks"]
+width = 1.5
+default_color = Color(1, 1, 1, 0.7)
+points = PackedVector2Array(0, 5, -4, 9)

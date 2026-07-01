@@ -2,6 +2,9 @@ extends CharacterBody2D
 
 signal health_changed(current_health: int, max_health: int)
 signal tool_changed(current_tool: String)
+signal attack_started
+signal attack_hit_frame
+signal attack_finished
 
 const AnimationSetLoaderScript = preload("res://scripts/systems/AnimationSetLoader.gd")
 const PlayerAnimationControllerScript = preload("res://scripts/systems/PlayerAnimationController.gd")
@@ -228,6 +231,7 @@ func take_damage(amount: int) -> void:
 
 	health = max(health - amount, 0)
 	health_changed.emit(health, max_health)
+	FloatingCombatTextSpawner.show_hit_impact(global_position + Vector2(0, -18), false)
 	_play_hit_flash(Color(1.0, 0.35, 0.35, 1.0))
 	if show_floating_damage:
 		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), false, "player")
@@ -258,6 +262,7 @@ func apply_combat_result(combat_result: Dictionary) -> void:
 
 	health = max(health - amount, 0)
 	health_changed.emit(health, max_health)
+	FloatingCombatTextSpawner.show_hit_impact(global_position + Vector2(0, -18), bool(combat_result.get("is_critical", false)))
 	_play_hit_flash(Color(1.0, 0.35, 0.35, 1.0))
 	if show_floating_damage:
 		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), bool(combat_result.get("is_critical", false)), "player")
@@ -357,6 +362,8 @@ func get_current_held_item_data() -> Dictionary:
 
 
 func _attack() -> void:
+	attack_started.emit()
+	_play_attack_feedback()
 	for target in _find_nearby_attack_targets("enemy"):
 		if _current_item_can_hit("can_hit_monsters", true):
 			_attack_enemy(target)
@@ -364,6 +371,7 @@ func _attack() -> void:
 	for target in _find_nearby_attack_targets("resource_node"):
 		if _current_item_can_hit("can_hit_resources", true):
 			_attack_resource(target)
+	attack_finished.emit()
 
 
 func _attack_enemy(target: Node) -> void:
@@ -381,6 +389,7 @@ func _attack_enemy(target: Node) -> void:
 	var held_item_data := weapon_data if not weapon_data.is_empty() else _get_current_held_item_data()
 
 	var combat_result := combat_calculator.calculate_damage(attacker_data, target_data, held_item_data)
+	attack_hit_frame.emit()
 	if target.has_method("apply_combat_result"):
 		target.call("apply_combat_result", combat_result)
 	else:
@@ -397,10 +406,12 @@ func _attack_resource(target: Node) -> void:
 	var actor_data := player_stats_resolver.get_total_player_data(self, eq_system)
 
 	if target.has_method("apply_gather_hit"):
+		attack_hit_frame.emit()
 		target.call("apply_gather_hit", _get_current_held_item_data(), actor_data, {})
 		_reduce_equipped_tool_durability()
 		return
 
+	attack_hit_frame.emit()
 	target.call("take_damage", _get_resource_attack_damage(target))
 	_reduce_equipped_tool_durability()
 
@@ -717,6 +728,15 @@ func _play_hit_flash(flash_color: Color) -> void:
 		canvas_item.modulate = flash_color
 		var tween := create_tween()
 		tween.tween_property(canvas_item, "modulate", original_color, 0.12)
+
+
+func _play_attack_feedback() -> void:
+	var bump_tween := create_tween()
+	bump_tween.tween_property(self, "scale", Vector2(1.04, 0.96), 0.05)
+	bump_tween.tween_property(self, "scale", Vector2.ONE, 0.08)
+	var flash_tween := create_tween()
+	flash_tween.tween_property(self, "modulate", Color(1.0, 0.95, 0.95, 1.0), 0.04)
+	flash_tween.tween_property(self, "modulate", Color.WHITE, 0.08)
 
 
 func _get_target_resource_type_id(resource_node: Node) -> String:

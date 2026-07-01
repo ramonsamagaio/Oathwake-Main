@@ -1,5 +1,6 @@
 extends RefCounted
 
+const HitImpactScene := preload("res://scenes/effects/HitImpact.tscn")
 const FloatingCombatTextScene := preload("res://scenes/ui/FloatingCombatText.tscn")
 
 
@@ -39,6 +40,10 @@ static func show_text(text: String, world_position: Vector2, color := Color(0.72
 	_spawn(text, world_position, color, is_critical, profile_id)
 
 
+static func show_hit_impact(world_position: Vector2, is_critical := false) -> void:
+	_spawn_hit_impact(world_position, is_critical)
+
+
 static func _spawn(text: String, world_position: Vector2, color: Color, is_critical: bool, profile_id := "") -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null or tree.current_scene == null:
@@ -48,6 +53,18 @@ static func _spawn(text: String, world_position: Vector2, color: Color, is_criti
 	tree.current_scene.add_child(floating_text)
 	floating_text.global_position = world_position
 	floating_text.setup(text, color, is_critical, profile_id)
+
+
+static func _spawn_hit_impact(world_position: Vector2, is_critical: bool) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or tree.current_scene == null:
+		return
+
+	var hit_impact := HitImpactScene.instantiate()
+	tree.current_scene.add_child(hit_impact)
+	hit_impact.global_position = world_position
+	if hit_impact.has_method("setup"):
+		hit_impact.call("setup", is_critical)
 
 
 static func _request_critical_screen_shake() -> void:

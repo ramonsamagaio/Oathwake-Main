@@ -5,6 +5,10 @@ const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextS
 const OverheadNameplateScene := preload("res://scenes/ui/OverheadNameplate.tscn")
 const WorldItemSpawner := preload("res://scripts/systems/WorldItemSpawner.gd")
 
+signal attack_started
+signal attack_hit_frame
+signal attack_finished
+
 @export var monster_id: String = "slime"
 @export var speed: float = 45.0
 @export var damage: int = 10
@@ -15,6 +19,12 @@ const WorldItemSpawner := preload("res://scripts/systems/WorldItemSpawner.gd")
 @export var show_floating_damage := true
 @export var enable_hit_flash := true
 @export var enable_knockback := true
+@export var hop_enabled := true
+@export var hop_interval: float = 0.55
+@export var hop_move_time: float = 0.20
+@export var hop_pause_time: float = 0.20
+@export var hop_squash_scale: Vector2 = Vector2(1.15, 0.85)
+@export var hop_stretch_scale: Vector2 = Vector2(0.92, 1.12)
 
 var player: CharacterBody2D
 var player_in_contact := false
@@ -29,6 +39,10 @@ var nameplate: Node2D
 var monster_data := {}
 var combat_calculator := CombatCalculatorScript.new()
 var original_scale := Vector2.ONE
+var _hop_timer := 0.0
+var _hop_phase_timer := 0.0
+var _hop_phase := "pause"
+var _hop_direction := Vector2.ZERO
 
 @onready var damage_area: Area2D = $DamageArea
 
@@ -48,8 +62,30 @@ func _physics_process(delta: float) -> void:
 	if player == null or not is_instance_valid(player):
 		player = get_tree().get_first_node_in_group("player") as CharacterBody2D
 
-	_move_toward_player()
+	_update_movement(delta)
 	_update_damage(delta)
+
+
+func _update_movement(delta: float) -> void:
+	if not hop_enabled:
+		_move_toward_player()
+		return
+
+	if player == null:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		scale = original_scale
+		_hop_timer = 0.0
+		_hop_phase_timer = 0.0
+		_hop_phase = "pause"
+		return
+
+	_hop_timer -= delta
+	if _hop_timer <= 0.0 and _hop_phase == "pause":
+		_start_hop()
+
+	_update_hop_phase(delta)
+	move_and_slide()
 
 
 func _move_toward_player() -> void:
@@ -63,6 +99,42 @@ func _move_toward_player() -> void:
 	move_and_slide()
 
 
+func _start_hop() -> void:
+	_hop_timer = hop_interval
+	_hop_phase = "pause"
+	_hop_phase_timer = hop_pause_time
+	_hop_direction = global_position.direction_to(player.global_position) if player != null else Vector2.ZERO
+	if _hop_direction == Vector2.ZERO:
+		_hop_direction = Vector2.RIGHT
+
+
+func _update_hop_phase(delta: float) -> void:
+	if _hop_phase == "pause":
+		velocity = Vector2.ZERO
+		scale = original_scale
+		_hop_phase_timer -= delta
+		if _hop_phase_timer <= 0.0:
+			_hop_phase = "move"
+			_hop_phase_timer = hop_move_time
+			scale = Vector2(original_scale.x * hop_squash_scale.x, original_scale.y * hop_squash_scale.y)
+		return
+
+	if _hop_phase == "move":
+		velocity = _hop_direction.normalized() * speed
+		scale = Vector2(original_scale.x * hop_stretch_scale.x, original_scale.y * hop_stretch_scale.y)
+		_hop_phase_timer -= delta
+		if _hop_phase_timer <= 0.0:
+			_hop_phase = "recover"
+			_hop_phase_timer = 0.08
+		return
+
+	velocity = Vector2.ZERO
+	scale = original_scale
+	_hop_phase_timer -= delta
+	if _hop_phase_timer <= 0.0:
+		_hop_phase = "pause"
+
+
 func _update_damage(delta: float) -> void:
 	if damage_timer > 0.0:
 		damage_timer -= delta
@@ -73,15 +145,19 @@ func _update_damage(delta: float) -> void:
 
 
 func _attack_player() -> void:
+	attack_started.emit()
+	_play_attack_tell()
 	var target_data := {}
 	if player.has_method("_get_combat_data"):
 		target_data = player.call("_get_combat_data")
 
 	var combat_result := combat_calculator.calculate_damage(get_combat_data(), target_data)
+	attack_hit_frame.emit()
 	if player.has_method("apply_combat_result"):
 		player.call("apply_combat_result", combat_result)
 	else:
 		player.take_damage(int(combat_result.get("damage", damage)))
+	attack_finished.emit()
 
 
 func take_damage(amount: int) -> void:
@@ -94,6 +170,7 @@ func take_damage(amount: int) -> void:
 	health = max(health - amount, 0)
 	_update_nameplate()
 	_show_nameplate_after_damage()
+	FloatingCombatTextSpawner.show_hit_impact(global_position + Vector2(0, -18), false)
 	_play_hit_feedback(false)
 	if show_floating_damage:
 		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), false, "enemy")
@@ -119,6 +196,7 @@ func apply_combat_result(combat_result: Dictionary) -> void:
 	_update_nameplate()
 	_show_nameplate_after_damage()
 	var is_critical := bool(combat_result.get("is_critical", false))
+	FloatingCombatTextSpawner.show_hit_impact(global_position + Vector2(0, -18), is_critical)
 	_play_hit_feedback(is_critical)
 	if show_floating_damage:
 		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), is_critical, "enemy")
@@ -263,6 +341,13 @@ func _play_hit_feedback(is_critical: bool) -> void:
 		var scale_tween := create_tween()
 		scale_tween.tween_property(self, "scale", bump_scale, 0.04)
 		scale_tween.tween_property(self, "scale", original_scale, 0.08)
+
+
+func _play_attack_tell() -> void:
+	var tell_tween := create_tween()
+	tell_tween.tween_property(self, "scale", original_scale * Vector2(1.05, 0.95), 0.05)
+	tell_tween.tween_property(self, "scale", original_scale, 0.06)
+	tell_tween.tween_property(self, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.01)
 
 
 func get_combat_data() -> Dictionary:
