@@ -5,6 +5,7 @@ signal collected(resource_id: String, item_id: String, amount: int)
 const GatheringCalculatorScript := preload("res://scripts/systems/GatheringCalculator.gd")
 const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextSpawner.gd")
 const WorldItemSpawner := preload("res://scripts/systems/WorldItemSpawner.gd")
+const TreeWindShader := preload("res://shaders/tree_wind.gdshader")
 
 @export var resource_id: String = ""
 @export var resource_type_id: String = ""
@@ -289,7 +290,17 @@ func _apply_resource_sprite() -> void:
 	content_sprite.visible = true
 	_apply_sprite_region(content_sprite, sprite_data)
 	_apply_sprite_anchor(content_sprite, sprite_data)
+	_apply_content_sprite_material(content_sprite)
 	_set_placeholder_visuals_visible(false)
+
+
+func _apply_content_sprite_material(sprite: Sprite2D) -> void:
+	if resource_type_id == "tree":
+		var material := ShaderMaterial.new()
+		material.shader = TreeWindShader
+		sprite.material = material
+	else:
+		sprite.material = null
 
 
 func _apply_sprite_region(sprite: Sprite2D, sprite_data: Dictionary) -> void:

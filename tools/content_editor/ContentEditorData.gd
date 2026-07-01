@@ -10,7 +10,19 @@ const SECTION_SPRITES := "sprites"
 const SECTION_ANIMATION_SETS := "animation_sets"
 const SECTION_CHARACTERS := "characters"
 const SECTION_TIERS := "tiers"
+const SECTION_PLAYER_TUNING := "player_tuning"
 const SECTION_COMBAT_PREVIEW := "combat_preview"
+
+const DEFAULT_PLAYER_TUNING := {
+	"walk_speed": 80.0,
+	"run_speed": 130.0,
+	"acceleration": 720.0,
+	"deceleration": 980.0,
+	"run_stop_slide_time": 0.18,
+	"run_stop_slide_strength": 0.50,
+	"smoke_puff_enabled": true,
+	"smoke_puff_cooldown": 0.28,
+}
 
 const SECTIONS := [
 	SECTION_ITEMS,
@@ -23,6 +35,7 @@ const SECTIONS := [
 	SECTION_ANIMATION_SETS,
 	SECTION_CHARACTERS,
 	SECTION_TIERS,
+	SECTION_PLAYER_TUNING,
 	SECTION_COMBAT_PREVIEW,
 ]
 
@@ -37,6 +50,7 @@ const SECTION_LABELS := {
 	SECTION_ANIMATION_SETS: "Animation Sets",
 	SECTION_CHARACTERS: "Characters",
 	SECTION_TIERS: "Tiers",
+	SECTION_PLAYER_TUNING: "Player Tuning",
 	SECTION_COMBAT_PREVIEW: "Combat Preview",
 }
 
@@ -51,6 +65,7 @@ const SECTION_PATHS := {
 	SECTION_ANIMATION_SETS: "res://data/animation_sets.json",
 	SECTION_CHARACTERS: "res://data/characters.json",
 	SECTION_TIERS: "res://data/tiers.json",
+	SECTION_PLAYER_TUNING: "res://data/player_tuning.json",
 }
 
 var content := {}
@@ -74,6 +89,11 @@ func load_section(section: String) -> String:
 
 	var path := str(SECTION_PATHS[section])
 	if not FileAccess.file_exists(path):
+		if section == SECTION_PLAYER_TUNING:
+			content[section] = {
+				"default": DEFAULT_PLAYER_TUNING.duplicate(true),
+			}
+			return ""
 		return "File not found: %s" % path
 
 	var file := FileAccess.open(path, FileAccess.READ)
@@ -364,6 +384,31 @@ func validate_tier(_record_id: String, original_id: String, record: Dictionary) 
 
 	if str(record.get("display_name", "")).strip_edges().is_empty():
 		return "Display Name is required."
+
+	return ""
+
+
+func validate_player_tuning(record_id: String, _original_id: String, record: Dictionary) -> String:
+	if record_id != "default":
+		return "Player Tuning must keep the default record id."
+
+	for field_name in [
+		"walk_speed",
+		"run_speed",
+		"acceleration",
+		"deceleration",
+		"run_stop_slide_time",
+		"run_stop_slide_strength",
+		"smoke_puff_cooldown",
+	]:
+		if float(record.get(field_name, -1.0)) < 0.0:
+			return "%s must be greater than or equal to 0." % field_name
+
+	if float(record.get("run_speed", 0.0)) < float(record.get("walk_speed", 0.0)):
+		return "run_speed should be greater than or equal to walk_speed."
+
+	if not record.has("smoke_puff_enabled"):
+		return "smoke_puff_enabled is required."
 
 	return ""
 

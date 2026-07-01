@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="AgnusDei OPENCODE GPT"
+config/name="Oathwake"
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"

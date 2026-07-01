@@ -9,6 +9,7 @@ const CombatCalculatorScript = preload("res://scripts/systems/CombatCalculator.g
 const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextSpawner.gd")
 const ItemInstanceHelper = preload("res://scripts/systems/ItemInstanceHelper.gd")
 const PlayerStatsResolverScript = preload("res://scripts/systems/PlayerStatsResolver.gd")
+const SmokePuffScene := preload("res://scenes/effects/SmokePuff.tscn")
 const TOOL_HANDS := "Hands"
 const TOOL_AXE := "Axe"
 const TOOL_PICKAXE := "Pickaxe"
@@ -21,6 +22,14 @@ const BASE_RESOURCE_DAMAGE := 5
 const TOOL_RESOURCE_DAMAGE := 15
 
 @export var speed: float = 180.0
+@export var walk_speed: float = 80.0
+@export var run_speed: float = 130.0
+@export var acceleration: float = 720.0
+@export var deceleration: float = 980.0
+@export var run_stop_slide_time: float = 0.18
+@export var run_stop_slide_strength: float = 0.50
+@export var smoke_puff_enabled := true
+@export var smoke_puff_cooldown: float = 0.28
 @export var max_health: int = 100
 @export var attack_damage: int = 10
 @export var attack_range: float = 48.0
@@ -34,6 +43,11 @@ var initial_spawn_position := Vector2.ZERO
 var has_respawn_point := false
 var current_tool_index := 0
 var last_direction := "down"
+var was_running := false
+var is_running := false
+var run_slide_timer := 0.0
+var smoke_puff_timer := 0.0
+var last_move_direction := Vector2.DOWN
 var animation_controller := PlayerAnimationControllerScript.new()
 var animation_set_loader := AnimationSetLoaderScript.new()
 var combat_calculator := CombatCalculatorScript.new()
@@ -49,6 +63,7 @@ var unlocked_tools := [
 
 func _ready() -> void:
 	add_to_group("player")
+	_load_player_tuning()
 	_setup_character_visual()
 	spawn_position = global_position
 	initial_spawn_position = global_position
@@ -105,7 +120,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	var direction := Vector2.ZERO
 
 	if Input.is_key_pressed(KEY_A):
@@ -117,9 +132,94 @@ func _physics_process(_delta: float) -> void:
 	if Input.is_key_pressed(KEY_S):
 		direction.y += 1.0
 
-	velocity = direction.normalized() * speed
+	var has_input := direction.length_squared() > 0.0
+	if has_input:
+		direction = direction.normalized()
+
+	var wants_to_run := Input.is_key_pressed(KEY_SHIFT)
+	is_running = has_input and wants_to_run
+
+	if has_input:
+		var current_speed := run_speed if is_running else walk_speed
+		var target_velocity := direction * current_speed
+		velocity = velocity.move_toward(target_velocity, acceleration * delta)
+		last_move_direction = direction
+		run_slide_timer = 0.0
+
+		if is_running:
+			if not was_running:
+				_spawn_smoke_puff()
+				smoke_puff_timer = smoke_puff_cooldown
+			else:
+				smoke_puff_timer -= delta
+				if smoke_puff_timer <= 0.0:
+					_spawn_smoke_puff()
+					smoke_puff_timer = smoke_puff_cooldown
+		else:
+			smoke_puff_timer = 0.0
+	else:
+		if was_running:
+			run_slide_timer = run_stop_slide_time
+			_spawn_smoke_puff()
+
+		var stop_deceleration := deceleration
+		if run_slide_timer > 0.0:
+			stop_deceleration *= run_stop_slide_strength
+			run_slide_timer = max(run_slide_timer - delta, 0.0)
+
+		velocity = velocity.move_toward(Vector2.ZERO, stop_deceleration * delta)
+		if velocity.length() < 1.0:
+			velocity = Vector2.ZERO
+
 	move_and_slide()
-	_update_movement_animation(direction)
+
+	var animation_direction := Vector2.ZERO
+	if has_input:
+		animation_direction = direction
+	elif velocity.length() > 3.0:
+		animation_direction = velocity.normalized()
+
+	_update_movement_animation(animation_direction)
+	was_running = is_running
+
+
+func _load_player_tuning() -> void:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null:
+		return
+	if not content_db.has_method("has_player_tuning"):
+		return
+	if not content_db.has_player_tuning("default"):
+		return
+
+	var tuning: Dictionary = content_db.get_player_tuning("default")
+	walk_speed = float(tuning.get("walk_speed", walk_speed))
+	run_speed = float(tuning.get("run_speed", run_speed))
+	acceleration = float(tuning.get("acceleration", acceleration))
+	deceleration = float(tuning.get("deceleration", deceleration))
+	run_stop_slide_time = float(tuning.get("run_stop_slide_time", run_stop_slide_time))
+	run_stop_slide_strength = float(tuning.get("run_stop_slide_strength", run_stop_slide_strength))
+	smoke_puff_enabled = bool(tuning.get("smoke_puff_enabled", smoke_puff_enabled))
+	smoke_puff_cooldown = float(tuning.get("smoke_puff_cooldown", smoke_puff_cooldown))
+
+
+func _spawn_smoke_puff() -> void:
+	if not smoke_puff_enabled:
+		return
+
+	var parent := get_parent()
+	if parent == null:
+		return
+
+	var puff := SmokePuffScene.instantiate()
+	parent.add_child(puff)
+
+	var foot_offset := Vector2(0, 12)
+	var side_jitter := Vector2(randf_range(-4.0, 4.0), randf_range(-2.0, 2.0))
+	puff.global_position = global_position + foot_offset + side_jitter
+
+	if puff is Node2D:
+		puff.z_index = z_index - 1
 
 
 func take_damage(amount: int) -> void:

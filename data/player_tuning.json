@@ -1,0 +1,12 @@
+{
+	"default": {
+		"walk_speed": 80.0,
+		"run_speed": 130.0,
+		"acceleration": 720.0,
+		"deceleration": 980.0,
+		"run_stop_slide_time": 0.18,
+		"run_stop_slide_strength": 0.50,
+		"smoke_puff_enabled": true,
+		"smoke_puff_cooldown": 0.28
+	}
+}

@@ -400,6 +400,9 @@ func _select_section(section: String, force := false) -> void:
 	_refresh_record_list()
 	if current_section == ContentEditorData.SECTION_COMBAT_PREVIEW:
 		_build_combat_preview_form()
+	elif current_section == ContentEditorData.SECTION_PLAYER_TUNING and data_store.has_record(ContentEditorData.SECTION_PLAYER_TUNING, "default"):
+		_load_record("default")
+		return
 	else:
 		_show_empty_form()
 	_update_action_buttons()
@@ -582,6 +585,8 @@ func _build_form_for_current_record() -> void:
 			_build_character_form()
 		ContentEditorData.SECTION_TIERS:
 			_build_tier_form()
+		ContentEditorData.SECTION_PLAYER_TUNING:
+			_build_player_tuning_form()
 		ContentEditorData.SECTION_COMBAT_PREVIEW:
 			_build_combat_preview_form()
 		_:
@@ -680,6 +685,19 @@ func _build_tier_form() -> void:
 	_add_spin_box("Budget Resource Respawn", "budget_resource_respawn_seconds", int(budget.get("resource_respawn_seconds", 45)), 0, 999999, 1)
 	_add_line_edit("Progression Rule", "progression_rule", str(current_record.get("progression_rule", "")))
 	_add_text_edit("Early Access Role", "early_access_role", str(current_record.get("early_access_role", "")), 80)
+
+
+func _build_player_tuning_form() -> void:
+	form_title_label.text = "Player Tuning: default"
+	_add_read_only_value("ID", "default")
+	_add_float_spin_box("Walk Speed", "walk_speed", float(current_record.get("walk_speed", 80.0)), 0.0, 999999.0, 1.0)
+	_add_float_spin_box("Run Speed", "run_speed", float(current_record.get("run_speed", 130.0)), 0.0, 999999.0, 1.0)
+	_add_float_spin_box("Acceleration", "acceleration", float(current_record.get("acceleration", 720.0)), 0.0, 999999.0, 1.0)
+	_add_float_spin_box("Deceleration", "deceleration", float(current_record.get("deceleration", 980.0)), 0.0, 999999.0, 1.0)
+	_add_float_spin_box("Run Stop Slide Time", "run_stop_slide_time", float(current_record.get("run_stop_slide_time", 0.18)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Run Stop Slide Strength", "run_stop_slide_strength", float(current_record.get("run_stop_slide_strength", 0.50)), 0.0, 1.0, 0.01)
+	_add_check_box("Smoke Puff Enabled", "smoke_puff_enabled", bool(current_record.get("smoke_puff_enabled", true)))
+	_add_float_spin_box("Smoke Puff Cooldown", "smoke_puff_cooldown", float(current_record.get("smoke_puff_cooldown", 0.28)), 0.0, 10.0, 0.01)
 
 
 func _build_monster_form() -> void:
@@ -3950,6 +3968,8 @@ func _on_delete_pressed() -> void:
 			_delete_current_character()
 		ContentEditorData.SECTION_TIERS:
 			_set_status("Tier delete is blocked for now to preserve the Early Access progression.", true)
+		ContentEditorData.SECTION_PLAYER_TUNING:
+			_set_status("Player Tuning keeps a single default record.", true)
 		_:
 			_set_status("Delete is available for visual content sections.", true)
 
@@ -4157,6 +4177,8 @@ func _on_save_pressed() -> void:
 			_save_character()
 		ContentEditorData.SECTION_TIERS:
 			_save_tier()
+		ContentEditorData.SECTION_PLAYER_TUNING:
+			_save_player_tuning()
 		_:
 			_set_status("Visual saving for this section will come in a later step.", true)
 
@@ -4301,6 +4323,19 @@ func _save_tier() -> void:
 	_set_spin_box_value("id", int(record_id))
 
 	var error := data_store.validate_tier(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
+func _save_player_tuning() -> void:
+	var record := _get_player_tuning_form_record()
+	var record_id := "default"
+	record["id"] = record_id
+
+	var error := data_store.validate_player_tuning(record_id, current_original_id, record)
 	if not error.is_empty():
 		_set_status(error, true)
 		return
@@ -4655,6 +4690,20 @@ func _get_tier_form_record() -> Dictionary:
 	return record
 
 
+func _get_player_tuning_form_record() -> Dictionary:
+	return {
+		"id": "default",
+		"walk_speed": _get_spin_box_value("walk_speed"),
+		"run_speed": _get_spin_box_value("run_speed"),
+		"acceleration": _get_spin_box_value("acceleration"),
+		"deceleration": _get_spin_box_value("deceleration"),
+		"run_stop_slide_time": _get_spin_box_value("run_stop_slide_time"),
+		"run_stop_slide_strength": _get_spin_box_value("run_stop_slide_strength"),
+		"smoke_puff_enabled": _get_check_box_pressed("smoke_puff_enabled"),
+		"smoke_puff_cooldown": _get_spin_box_value("smoke_puff_cooldown"),
+	}
+
+
 func _get_clean_production_rows() -> Array:
 	var clean_rows := []
 
@@ -4855,12 +4904,13 @@ func _mark_dirty() -> void:
 
 
 func _update_action_buttons() -> void:
-	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES or current_section == ContentEditorData.SECTION_ANIMATION_SETS or current_section == ContentEditorData.SECTION_CHARACTERS or current_section == ContentEditorData.SECTION_TIERS
+	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES or current_section == ContentEditorData.SECTION_ANIMATION_SETS or current_section == ContentEditorData.SECTION_CHARACTERS or current_section == ContentEditorData.SECTION_TIERS or current_section == ContentEditorData.SECTION_PLAYER_TUNING
+	var is_singleton_section := current_section == ContentEditorData.SECTION_PLAYER_TUNING
 	var has_record := not current_record.is_empty()
 
-	new_button.disabled = not supports_visual_editing or has_unsaved_changes
-	duplicate_button.disabled = not supports_visual_editing or has_unsaved_changes or current_original_id.is_empty()
-	delete_button.disabled = not supports_visual_editing or current_id.is_empty()
+	new_button.disabled = not supports_visual_editing or has_unsaved_changes or is_singleton_section
+	duplicate_button.disabled = not supports_visual_editing or has_unsaved_changes or current_original_id.is_empty() or is_singleton_section
+	delete_button.disabled = not supports_visual_editing or current_id.is_empty() or is_singleton_section
 	save_button.disabled = not supports_visual_editing or not has_record
 	revert_button.disabled = not supports_visual_editing or not has_record
 	reload_current_button.disabled = current_section.is_empty()
