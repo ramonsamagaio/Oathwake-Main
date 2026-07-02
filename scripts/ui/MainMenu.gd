@@ -4,6 +4,8 @@ const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 const SaveSlotSelectScene := preload("res://scenes/ui/SaveSlotSelect.tscn")
 
+@export var show_background := true
+
 var _menu_panel: Panel
 var _credits_panel: Panel
 var _save_slot_select: Control
@@ -16,10 +18,11 @@ func _ready() -> void:
 func _build_ui() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
-	var background := ColorRect.new()
-	background.color = Color(0.08, 0.10, 0.14, 1.0)
-	background.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(background)
+	if show_background:
+		var background := ColorRect.new()
+		background.color = Color(0.08, 0.10, 0.14, 1.0)
+		background.set_anchors_preset(Control.PRESET_FULL_RECT)
+		add_child(background)
 
 	_menu_panel = Panel.new()
 	_menu_panel.custom_minimum_size = Vector2(520, 560)
