@@ -92,8 +92,8 @@ func _build_ui() -> void:
 	add_child(_game_logo)
 
 	_press_any_key = _make_centered_texture_rect(PRESS_ANY_KEY_PATH, Vector2(520, 110))
-	_press_any_key.anchor_top = 0.76
-	_press_any_key.anchor_bottom = 0.76
+	_press_any_key.anchor_top = 0.64
+	_press_any_key.anchor_bottom = 0.64
 	_press_any_key.offset_top = -55.0
 	_press_any_key.offset_bottom = 55.0
 	add_child(_press_any_key)
