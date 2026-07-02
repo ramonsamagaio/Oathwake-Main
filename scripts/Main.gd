@@ -3,6 +3,7 @@ extends Node2D
 const Inventory = preload("res://scripts/Inventory.gd")
 const SaveSystem = preload("res://scripts/systems/SaveSystem.gd")
 const SaveSlotManager = preload("res://scripts/systems/SaveSlotManager.gd")
+const SettingsManager = preload("res://scripts/systems/SettingsManager.gd")
 const WorldItemSpawner = preload("res://scripts/systems/WorldItemSpawner.gd")
 const InventoryDebug = preload("res://scripts/systems/InventoryDebug.gd")
 const EquipmentSystem = preload("res://scripts/systems/EquipmentSystem.gd")
@@ -17,6 +18,7 @@ var equipment_system := EquipmentSystem.new()
 var collected_resource_ids := {}
 var save_system := SaveSystem.new()
 var save_slot_manager := SaveSlotManager.new()
+var settings_manager := SettingsManager.new()
 var player_stat_spin_boxes := {}
 var monster_spawner := MonsterSpawner.new()
 
@@ -57,6 +59,8 @@ var monster_spawner := MonsterSpawner.new()
 
 func _ready() -> void:
 	add_to_group("main")
+	settings_manager.load_settings()
+	settings_manager.apply_settings()
 	add_child(monster_spawner)
 	_configure_save_buttons()
 	_configure_player_stats_debug_ui()
