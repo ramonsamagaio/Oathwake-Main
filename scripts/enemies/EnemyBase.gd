@@ -26,6 +26,7 @@ var damage_timer := 0.0
 var health: int = 30
 var is_dead := false
 var display_name := "Slime"
+var behavior := "aggressive_contact_chaser"
 var spawn_time_seconds := 20.0
 var spawn_tiles := []
 var loot_table := []
@@ -185,6 +186,7 @@ func _load_monster_data() -> void:
 		return
 
 	display_name = str(monster_data.get("display_name", display_name))
+	behavior = str(monster_data.get("behavior", behavior))
 	max_health = int(monster_data.get("max_health", max_health))
 	speed = float(monster_data.get("move_speed", speed))
 	damage = int(monster_data.get("damage", damage))
@@ -200,6 +202,14 @@ func _load_monster_data() -> void:
 		loot_table = loaded_loot_table
 
 	print("%s loaded monster data from ContentDB" % display_name)
+
+
+func can_chase_player() -> bool:
+	return behavior == "aggressive_contact_chaser"
+
+
+func is_stationary_behavior() -> bool:
+	return behavior == "stationary"
 
 
 func _setup_nameplate() -> void:

@@ -25,6 +25,12 @@ func _physics_process(delta: float) -> void:
 
 
 func _update_movement(delta: float) -> void:
+	if not can_chase_player():
+		velocity = Vector2.ZERO
+		move_and_slide()
+		scale = original_scale
+		return
+
 	if not hop_enabled:
 		_move_toward_player()
 		return
@@ -47,7 +53,7 @@ func _update_movement(delta: float) -> void:
 
 
 func _move_toward_player() -> void:
-	if player == null:
+	if player == null or not can_chase_player():
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return
@@ -91,4 +97,3 @@ func _update_hop_phase(delta: float) -> void:
 	_hop_phase_timer -= delta
 	if _hop_phase_timer <= 0.0:
 		_hop_phase = "pause"
-

@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player_scene"]
 [ext_resource type="Script" path="res://scripts/World.gd" id="2_world_script"]
@@ -20,6 +20,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/StorageUI.tscn" id="18_storage_ui_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/WorkbenchUI.tscn" id="19_workbench_ui_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ResourceBush.tscn" id="20_resource_bush_scene"]
+[ext_resource type="PackedScene" path="res://scenes/systems/MonsterSpawnZone.tscn" id="21_monster_spawn_zone_scene"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("5_main_script")
@@ -110,11 +111,19 @@ resource_name = "Coal Node"
 [node name="Enemies" type="Node2D" parent="World"]
 y_sort_enabled = true
 
-[node name="Slime" parent="World/Enemies" instance=ExtResource("7_slime_scene")]
+[node name="SlimeSpawnZone" parent="World/Enemies" instance=ExtResource("21_monster_spawn_zone_scene")]
 position = Vector2(384, 160)
+monster_id = "slime"
+max_alive = 1
+spawn_interval = 1.0
+spawn_radius = 32.0
 
-[node name="Skeleton" parent="World/Enemies" instance=ExtResource("8_skeleton_scene")]
+[node name="SkeletonSpawnZone" parent="World/Enemies" instance=ExtResource("21_monster_spawn_zone_scene")]
 position = Vector2(160, 64)
+monster_id = "skeleton"
+max_alive = 1
+spawn_interval = 1.0
+spawn_radius = 32.0
 
 [node name="NPCs" type="Node2D" parent="World"]
 y_sort_enabled = true
