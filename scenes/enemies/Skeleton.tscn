@@ -1,0 +1,30 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/Slime.gd" id="1_slime_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_skeleton_collision"]
+radius = 14.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_damage_area"]
+radius = 18.0
+
+[node name="Skeleton" type="CharacterBody2D"]
+script = ExtResource("1_slime_script")
+monster_id = "skeleton"
+hop_enabled = false
+
+[node name="Body" type="Polygon2D" parent="."]
+color = Color(0.78, 0.76, 0.70, 1)
+polygon = PackedVector2Array(-14, 7, -10, -9, -2, -15, 8, -15, 15, -8, 18, 4, 10, 16, -6, 16)
+
+[node name="Highlight" type="Polygon2D" parent="."]
+color = Color(0.95, 0.94, 0.90, 1)
+polygon = PackedVector2Array(-4, -8, 2, -12, 8, -8, 1, -4)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_skeleton_collision")
+
+[node name="DamageArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea"]
+shape = SubResource("CircleShape2D_damage_area")

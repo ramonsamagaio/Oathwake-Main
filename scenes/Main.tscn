@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player_scene"]
 [ext_resource type="Script" path="res://scripts/World.gd" id="2_world_script"]
@@ -7,18 +7,19 @@
 [ext_resource type="Script" path="res://scripts/Main.gd" id="5_main_script"]
 [ext_resource type="Script" path="res://scripts/BuildSystem.gd" id="6_build_system_script"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/Slime.tscn" id="7_slime_scene"]
-[ext_resource type="Script" path="res://scripts/world/DayNightCycle.gd" id="8_day_night_script"]
-[ext_resource type="Script" path="res://scripts/enemies/NightEnemySpawner.gd" id="9_enemy_spawner_script"]
-[ext_resource type="Script" path="res://scripts/systems/CraftingSystem.gd" id="10_crafting_system_script"]
-[ext_resource type="PackedScene" path="res://scenes/npcs/NPC.tscn" id="11_npc_scene"]
-[ext_resource type="Script" path="res://scripts/systems/HousingSystem.gd" id="12_housing_system_script"]
-[ext_resource type="Script" path="res://scripts/systems/SettlementManager.gd" id="13_settlement_manager_script"]
-[ext_resource type="PackedScene" path="res://scenes/ui/InventoryUI.tscn" id="14_inventory_ui_scene"]
-[ext_resource type="PackedScene" path="res://scenes/ui/HotbarUI.tscn" id="15_hotbar_ui_scene"]
-[ext_resource type="PackedScene" path="res://scenes/ui/CharacterStatusUI.tscn" id="16_character_status_ui_scene"]
-[ext_resource type="PackedScene" path="res://scenes/ui/StorageUI.tscn" id="17_storage_ui_scene"]
-[ext_resource type="PackedScene" path="res://scenes/ui/WorkbenchUI.tscn" id="18_workbench_ui_scene"]
-[ext_resource type="PackedScene" path="res://scenes/ResourceBush.tscn" id="19_resource_bush_scene"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/Skeleton.tscn" id="8_skeleton_scene"]
+[ext_resource type="Script" path="res://scripts/world/DayNightCycle.gd" id="9_day_night_script"]
+[ext_resource type="Script" path="res://scripts/enemies/NightEnemySpawner.gd" id="10_enemy_spawner_script"]
+[ext_resource type="Script" path="res://scripts/systems/CraftingSystem.gd" id="11_crafting_system_script"]
+[ext_resource type="PackedScene" path="res://scenes/npcs/NPC.tscn" id="12_npc_scene"]
+[ext_resource type="Script" path="res://scripts/systems/HousingSystem.gd" id="13_housing_system_script"]
+[ext_resource type="Script" path="res://scripts/systems/SettlementManager.gd" id="14_settlement_manager_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/InventoryUI.tscn" id="15_inventory_ui_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/HotbarUI.tscn" id="16_hotbar_ui_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/CharacterStatusUI.tscn" id="17_character_status_ui_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/StorageUI.tscn" id="18_storage_ui_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/WorkbenchUI.tscn" id="19_workbench_ui_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ResourceBush.tscn" id="20_resource_bush_scene"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("5_main_script")
@@ -70,19 +71,19 @@ resource_id = "rock_02"
 position = Vector2(-64, 192)
 resource_id = "rock_03"
 
-[node name="FiberBush" parent="World/Resources" instance=ExtResource("19_resource_bush_scene")]
+[node name="FiberBush" parent="World/Resources" instance=ExtResource("20_resource_bush_scene")]
 position = Vector2(64, -80)
 resource_id = "fiber_bush_01"
 resource_type_id = "fiber_bush"
 resource_name = "Fiber Bush"
 
-[node name="FiberBush2" parent="World/Resources" instance=ExtResource("19_resource_bush_scene")]
+[node name="FiberBush2" parent="World/Resources" instance=ExtResource("20_resource_bush_scene")]
 position = Vector2(-128, -144)
 resource_id = "fiber_bush_02"
 resource_type_id = "fiber_bush"
 resource_name = "Fiber Bush"
 
-[node name="HerbBush" parent="World/Resources" instance=ExtResource("19_resource_bush_scene")]
+[node name="HerbBush" parent="World/Resources" instance=ExtResource("20_resource_bush_scene")]
 position = Vector2(-64, 80)
 resource_id = "herb_bush_01"
 resource_type_id = "herb_bush"
@@ -112,10 +113,13 @@ y_sort_enabled = true
 [node name="Slime" parent="World/Enemies" instance=ExtResource("7_slime_scene")]
 position = Vector2(384, 160)
 
+[node name="Skeleton" parent="World/Enemies" instance=ExtResource("8_skeleton_scene")]
+position = Vector2(160, 64)
+
 [node name="NPCs" type="Node2D" parent="World"]
 y_sort_enabled = true
 
-[node name="Villager" parent="World/NPCs" instance=ExtResource("11_npc_scene")]
+[node name="Villager" parent="World/NPCs" instance=ExtResource("12_npc_scene")]
 position = Vector2(-64, 128)
 
 [node name="Player" parent="World" instance=ExtResource("1_player_scene")]
@@ -172,32 +176,39 @@ offset_right = 160.0
 offset_bottom = 135.0
 text = "Health: 100/100"
 
-[node name="DayNightLabel" type="Label" parent="UI"]
-offset_left = 16.0
-offset_top = 208.0
-offset_right = 160.0
-offset_bottom = 231.0
-text = "Day"
-
-[node name="VillagersLabel" type="Label" parent="UI"]
+[node name="XpLabel" type="Label" parent="UI"]
 offset_left = 16.0
 offset_top = 136.0
 offset_right = 200.0
 offset_bottom = 159.0
-text = "Villagers: 0"
+text = "LV 1 | XP 0/30"
 
-[node name="HousesLabel" type="Label" parent="UI"]
+[node name="DayNightLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 232.0
+offset_right = 160.0
+offset_bottom = 255.0
+text = "Day"
+
+[node name="VillagersLabel" type="Label" parent="UI"]
 offset_left = 16.0
 offset_top = 160.0
 offset_right = 200.0
 offset_bottom = 183.0
+text = "Villagers: 0"
+
+[node name="HousesLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 184.0
+offset_right = 200.0
+offset_bottom = 207.0
 text = "Houses: 0"
 
 [node name="HousedVillagersLabel" type="Label" parent="UI"]
 offset_left = 16.0
-offset_top = 184.0
+offset_top = 208.0
 offset_right = 240.0
-offset_bottom = 207.0
+offset_bottom = 231.0
 text = "Housed Villagers: 0/0"
 
 [node name="CraftingLabel" type="Label" parent="UI"]
@@ -336,31 +347,31 @@ offset_bottom = -20.0
 focus_mode = 0
 text = "LOAD GAME"
 
-[node name="InventoryUI" parent="UI" instance=ExtResource("14_inventory_ui_scene")]
+[node name="InventoryUI" parent="UI" instance=ExtResource("15_inventory_ui_scene")]
 
-[node name="StorageUI" parent="UI" instance=ExtResource("17_storage_ui_scene")]
+[node name="StorageUI" parent="UI" instance=ExtResource("18_storage_ui_scene")]
 
-[node name="WorkbenchUI" parent="UI" instance=ExtResource("18_workbench_ui_scene")]
+[node name="WorkbenchUI" parent="UI" instance=ExtResource("19_workbench_ui_scene")]
 
-[node name="HotbarUI" parent="UI" instance=ExtResource("15_hotbar_ui_scene")]
+[node name="HotbarUI" parent="UI" instance=ExtResource("16_hotbar_ui_scene")]
 
-[node name="CharacterStatusUI" parent="UI" instance=ExtResource("16_character_status_ui_scene")]
+[node name="CharacterStatusUI" parent="UI" instance=ExtResource("17_character_status_ui_scene")]
 
 [node name="BuildSystem" type="Node" parent="."]
 script = ExtResource("6_build_system_script")
 
 [node name="CraftingSystem" type="Node" parent="."]
-script = ExtResource("10_crafting_system_script")
+script = ExtResource("11_crafting_system_script")
 
 [node name="HousingSystem" type="Node" parent="."]
-script = ExtResource("12_housing_system_script")
+script = ExtResource("13_housing_system_script")
 
 [node name="SettlementManager" type="Node" parent="."]
-script = ExtResource("13_settlement_manager_script")
+script = ExtResource("14_settlement_manager_script")
 
 [node name="DayNightCycle" type="Node" parent="."]
-script = ExtResource("8_day_night_script")
+script = ExtResource("9_day_night_script")
 
 [node name="NightEnemySpawner" type="Node" parent="."]
-script = ExtResource("9_enemy_spawner_script")
+script = ExtResource("10_enemy_spawner_script")
 slime_scene = ExtResource("7_slime_scene")

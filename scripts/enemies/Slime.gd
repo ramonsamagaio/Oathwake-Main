@@ -369,6 +369,8 @@ func _show_xp_reward() -> void:
 		return
 
 	FloatingCombatTextSpawner.show_xp(xp_reward, global_position + Vector2(0, -30))
+	if player != null and is_instance_valid(player) and player.has_method("gain_xp"):
+		player.call("gain_xp", xp_reward)
 
 
 func _get_vfx_profile() -> Dictionary:

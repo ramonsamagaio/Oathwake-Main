@@ -6,9 +6,9 @@ const WorldItemSpawner = preload("res://scripts/systems/WorldItemSpawner.gd")
 const InventoryDebug = preload("res://scripts/systems/InventoryDebug.gd")
 const EquipmentSystem = preload("res://scripts/systems/EquipmentSystem.gd")
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
-const DebugMonsterScene = preload("res://scenes/enemies/Slime.tscn")
 const DebugTreeScene = preload("res://scenes/Tree.tscn")
 const DebugRockScene = preload("res://scenes/Rock.tscn")
+const MonsterSpawner = preload("res://scripts/systems/MonsterSpawner.gd")
 const SAVE_PATH := "user://savegame.json"
 const BUILD_TYPE_BED := "bed"
 
@@ -17,6 +17,7 @@ var equipment_system := EquipmentSystem.new()
 var collected_resource_ids := {}
 var save_system := SaveSystem.new()
 var player_stat_spin_boxes := {}
+var monster_spawner := MonsterSpawner.new()
 
 @export var bed_respawn_range: float = 72.0
 
@@ -26,6 +27,7 @@ var player_stat_spin_boxes := {}
 @onready var gel_label: Label = $UI/GelLabel
 @onready var tool_label: Label = $UI/ToolLabel
 @onready var health_label: Label = $UI/HealthLabel
+@onready var xp_label: Label = $UI/XpLabel
 @onready var villagers_label: Label = $UI/VillagersLabel
 @onready var houses_label: Label = $UI/HousesLabel
 @onready var housed_villagers_label: Label = $UI/HousedVillagersLabel
@@ -54,6 +56,7 @@ var player_stat_spin_boxes := {}
 
 func _ready() -> void:
 	add_to_group("main")
+	add_child(monster_spawner)
 	_configure_save_buttons()
 	_configure_player_stats_debug_ui()
 	_configure_monster_spawn_debug_ui()
@@ -71,12 +74,17 @@ func _ready() -> void:
 	hotbar_ui.setup(inventory, player)
 	character_status_ui.setup(player)
 	character_status_ui.set_equipment_system(equipment_system)
+	if player.has_signal("xp_changed"):
+		player.xp_changed.connect(_update_xp_label)
+	if player.has_signal("level_changed"):
+		player.level_changed.connect(_update_xp_label_from_player)
 	save_button.pressed.connect(save_game)
 	load_button.pressed.connect(load_game)
 	_connect_resource_nodes()
 	_update_resource_labels()
 	_update_tool_label(player.get_current_tool())
 	_update_health_label(player.health, player.max_health)
+	_update_xp_label_from_player()
 	_update_settlement_labels()
 	load_game()
 
@@ -90,7 +98,10 @@ func _apply_oathwake_ui_font() -> void:
 
 func _apply_oathwake_ui_font_recursive(node: Node) -> void:
 	if node is Label:
-		OathwakeTextStyle.apply_profile_to_label(node as Label, "base_ui")
+		if node.name == "XpLabel":
+			OathwakeTextStyle.apply_profile_to_label(node as Label, "xp_number")
+		else:
+			OathwakeTextStyle.apply_profile_to_label(node as Label, "base_ui")
 	elif node is Button:
 		OathwakeTextStyle.apply_profile_to_control(node as Control, "ui_button")
 	elif node is LineEdit:
@@ -207,6 +218,7 @@ func save_game() -> void:
 		"world_items": _get_world_items_save_data(),
 		"unlocked_tools": player.get_unlocked_tools(),
 		"current_tool": player.get_current_tool(),
+		"player_progression": _get_player_progression_save_data(),
 		"respawn_point": _get_respawn_point_save_data(),
 		"settlement": settlement_manager.get_save_data(),
 	}
@@ -264,6 +276,7 @@ func load_game() -> void:
 
 	player.set_unlocked_tools(unlocked_tools)
 	player.set_current_tool(str(save_data.get("current_tool", player.get_current_tool())))
+	_load_player_progression(save_data.get("player_progression", {}))
 	_load_respawn_point(save_data.get("respawn_point", {}))
 	housing_system.validate_houses(false)
 	settlement_manager.load_save_data(save_data.get("settlement", {}))
@@ -279,6 +292,20 @@ func _update_resource_labels() -> void:
 
 func _update_health_label(current_health: int, max_health: int) -> void:
 	health_label.text = "Health: %d/%d" % [current_health, max_health]
+
+
+func _update_xp_label(current_xp: Variant = null, xp_to_next_level: Variant = null, level: Variant = null) -> void:
+	if xp_label == null:
+		return
+
+	var xp_value := int(current_xp if current_xp != null else player.current_xp)
+	var xp_next := int(xp_to_next_level if xp_to_next_level != null else player.xp_to_next_level)
+	var level_value := int(level if level != null else player.level)
+	xp_label.text = "LV %d | XP %d/%d" % [level_value, xp_value, xp_next]
+
+
+func _update_xp_label_from_player(_level = null) -> void:
+	_update_xp_label()
 
 
 func _update_tool_label(current_tool := "") -> void:
@@ -587,10 +614,10 @@ func _on_close_monster_spawn_pressed() -> void:
 
 
 func _on_debug_spawn_monster_pressed(monster_id: String) -> void:
-	var monster = DebugMonsterScene.instantiate()
-	monster.monster_id = monster_id
+	var monster = monster_spawner.spawn_monster(monster_id, player.global_position + Vector2(96, 0))
+	if monster == null:
+		return
 	enemies_root.add_child(monster)
-	monster.global_position = player.global_position + Vector2(96, 0)
 	print("Spawned monster: %s" % monster_id)
 
 
@@ -849,6 +876,20 @@ func _load_respawn_point(respawn_point_data) -> void:
 		player.set_respawn_point(respawn_position)
 	else:
 		player.clear_respawn_point()
+
+
+func _get_player_progression_save_data() -> Dictionary:
+	if not player.has_method("get_progression_data"):
+		return {}
+
+	return player.get_progression_data()
+
+
+func _load_player_progression(player_progression_data) -> void:
+	if not player.has_method("load_progression_data"):
+		return
+
+	player.load_progression_data(player_progression_data)
 
 
 func _is_bed_position_valid(respawn_position: Vector2) -> bool:

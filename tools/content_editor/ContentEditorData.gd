@@ -539,6 +539,8 @@ func validate_monster(record_id: String, original_id: String, record: Dictionary
 	if not id_error.is_empty():
 		return id_error
 
+	if int(record.get("level", 0)) < 1:
+		return "Level must be an integer greater than or equal to 1."
 	if int(record.get("max_health", 0)) < 1:
 		return "Max Health must be an integer greater than or equal to 1."
 	if float(record.get("move_speed", -1.0)) < 0.0:
@@ -547,8 +549,18 @@ func validate_monster(record_id: String, original_id: String, record: Dictionary
 		return "Damage must be greater than or equal to 0."
 	if float(record.get("attack_cooldown", -1.0)) < 0.0:
 		return "Attack Cooldown must be greater than or equal to 0."
+	if int(record.get("xp_reward", -1)) < 0:
+		return "XP Reward must be greater than or equal to 0."
 	if float(record.get("spawn_time_seconds", -1.0)) < 0.0:
 		return "Spawn Time Seconds must be greater than or equal to 0."
+
+	var scene_path := str(record.get("scene_path", ""))
+	if not scene_path.is_empty() and not scene_path.to_lower().ends_with(".tscn"):
+		return "Scene Path must point to a .tscn scene."
+
+	var behavior := str(record.get("behavior", "aggressive_contact_chaser"))
+	if not ["aggressive_contact_chaser", "passive", "stationary"].has(behavior):
+		return "Behavior must be aggressive_contact_chaser, passive, or stationary."
 
 	var spawn_tiles = record.get("spawn_tiles", [])
 	if not spawn_tiles is Array:

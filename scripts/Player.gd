@@ -5,6 +5,8 @@ signal tool_changed(current_tool: String)
 signal attack_started
 signal attack_hit_frame
 signal attack_finished
+signal xp_changed(current_xp, xp_to_next_level, level)
+signal level_changed(level)
 
 const AnimationSetLoaderScript = preload("res://scripts/systems/AnimationSetLoader.gd")
 const PlayerAnimationControllerScript = preload("res://scripts/systems/PlayerAnimationController.gd")
@@ -40,6 +42,9 @@ const TOOL_RESOURCE_DAMAGE := 15
 @export var show_floating_damage := true
 @export var enable_hit_flash := true
 
+var level := 1
+var current_xp := 0
+var xp_to_next_level := 30
 var health: int = 100
 var spawn_position := Vector2.ZERO
 var initial_spawn_position := Vector2.ZERO
@@ -72,6 +77,7 @@ func _ready() -> void:
 	initial_spawn_position = global_position
 	health = max_health
 	health_changed.emit(health, max_health)
+	xp_changed.emit(current_xp, xp_to_next_level, level)
 	tool_changed.emit(get_current_tool())
 
 
@@ -240,6 +246,33 @@ func take_damage(amount: int) -> void:
 		_die()
 
 
+func gain_xp(amount: int) -> void:
+	if amount <= 0:
+		return
+
+	var leveled_up := false
+	current_xp += amount
+	while current_xp >= xp_to_next_level:
+		current_xp -= xp_to_next_level
+		_level_up()
+		leveled_up = true
+
+	if not leveled_up:
+		xp_changed.emit(current_xp, xp_to_next_level, level)
+
+
+func _level_up() -> void:
+	level += 1
+	xp_to_next_level = int(30 + level * 18)
+	max_health += 5
+	health = max_health
+	attack_damage += 1
+	health_changed.emit(health, max_health)
+	level_changed.emit(level)
+	xp_changed.emit(current_xp, xp_to_next_level, level)
+	FloatingCombatTextSpawner.show_text("LEVEL UP", global_position + Vector2(0, -34), Color(0.55, 0.9, 1.0, 1.0), false, "xp_number")
+
+
 func heal(amount: int) -> void:
 	if amount <= 0:
 		return
@@ -269,6 +302,25 @@ func apply_combat_result(combat_result: Dictionary) -> void:
 
 	if health == 0:
 		_die()
+
+
+func get_progression_data() -> Dictionary:
+	return {
+		"level": level,
+		"current_xp": current_xp,
+		"xp_to_next_level": xp_to_next_level,
+	}
+
+
+func load_progression_data(save_data) -> void:
+	if not save_data is Dictionary:
+		return
+
+	level = max(int(save_data.get("level", level)), 1)
+	current_xp = max(int(save_data.get("current_xp", current_xp)), 0)
+	xp_to_next_level = max(int(save_data.get("xp_to_next_level", xp_to_next_level)), 1)
+	xp_changed.emit(current_xp, xp_to_next_level, level)
+	level_changed.emit(level)
 
 
 func get_current_tool() -> String:

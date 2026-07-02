@@ -51,7 +51,8 @@ func refresh() -> void:
 	var equip_stats: Dictionary = equip_bonus.get("stats_bonus", {})
 
 	_set_value("Name", str(actor_data.get("display_name", "Player")))
-	_set_value("Level", str(actor_data.get("level", "N/A")))
+	_set_value("Level", str(_get_player_level(actor_data)))
+	_set_value("XP", _get_player_xp_text())
 	_set_value("HP", "%d / %d" % [int(player.health), int(player.max_health)])
 	_set_value("Tool", player.get_current_tool() if player.has_method("get_current_tool") else "N/A")
 	_set_value("Damage Range", "%d - %d (Equipped: %d - %d)" % [
@@ -134,7 +135,7 @@ func _build_ui() -> void:
 	header.add_child(close_button)
 
 	_add_separator(layout)
-	for field in ["Name", "Level", "HP", "Tool", "Damage Range", "Crit Chance", "Crit Damage", "Hit", "Flee", "Defense", "Magic Defense", "Max HP Derived", "Physical Attack", "Attack Cooldown"]:
+	for field in ["Name", "Level", "XP", "HP", "Tool", "Damage Range", "Crit Chance", "Crit Damage", "Hit", "Flee", "Defense", "Magic Defense", "Max HP Derived", "Physical Attack", "Attack Cooldown"]:
 		_add_row(layout, field)
 
 	_add_separator(layout)
@@ -209,6 +210,20 @@ func _get_held_item_data() -> Dictionary:
 		return player.get_current_held_item_data()
 
 	return {}
+
+
+func _get_player_level(actor_data: Dictionary) -> int:
+	if player != null and player.has_method("get_progression_data"):
+		var progression: Dictionary = player.get_progression_data()
+		return int(progression.get("level", actor_data.get("level", 1)))
+	return int(actor_data.get("level", 1))
+
+
+func _get_player_xp_text() -> String:
+	if player != null and player.has_method("get_progression_data"):
+		var progression: Dictionary = player.get_progression_data()
+		return "%d / %d" % [int(progression.get("current_xp", 0)), int(progression.get("xp_to_next_level", 30))]
+	return "0 / 30"
 
 
 func _get_dictionary(data: Dictionary, key: String) -> Dictionary:

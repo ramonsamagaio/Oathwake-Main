@@ -33,6 +33,7 @@
 			}
 		],
 		"max_health": 76,
+		"scene_path": "res://scenes/enemies/Skeleton.tscn",
 		"xp_reward": 18,
 		"move_speed": 40,
 		"spawn_tiles": [
@@ -74,6 +75,7 @@
 			}
 		],
 		"max_health": 40,
+		"scene_path": "res://scenes/enemies/Slime.tscn",
 		"xp_reward": 8,
 		"move_speed": 42,
 		"spawn_tiles": [

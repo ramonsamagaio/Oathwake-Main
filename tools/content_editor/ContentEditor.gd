@@ -763,11 +763,15 @@ func _build_monster_form() -> void:
 	form_title_label.text = "Monster: %s" % str(current_record.get("id", ""))
 	_add_line_edit("ID", "id", str(current_record.get("id", "")))
 	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_spin_box("Level", "level", int(current_record.get("level", 1)), 1, 999999, 1)
 	_add_sprite_picker(str(current_record.get("sprite_id", "")))
 	_add_spin_box("Max Health", "max_health", int(current_record.get("max_health", 20)), 1, 999999, 1)
 	_add_spin_box("Move Speed", "move_speed", int(current_record.get("move_speed", 40)), 0, 999999, 1)
 	_add_spin_box("Damage", "damage", int(current_record.get("damage", 5)), 0, 999999, 1)
-	_add_spin_box("Attack Cooldown", "attack_cooldown", int(current_record.get("attack_cooldown", 1)), 0, 999999, 1)
+	_add_float_spin_box("Attack Cooldown", "attack_cooldown", float(current_record.get("attack_cooldown", 1.0)), 0.0, 999999.0, 0.01)
+	_add_spin_box("XP Reward", "xp_reward", int(current_record.get("xp_reward", 0)), 0, 999999, 1)
+	_add_line_edit("Scene Path", "scene_path", str(current_record.get("scene_path", "")))
+	_add_string_option_button("Behavior", "behavior", ["aggressive_contact_chaser", "passive", "stationary"], str(current_record.get("behavior", "aggressive_contact_chaser")))
 	_add_spin_box("Spawn Time Seconds", "spawn_time_seconds", int(current_record.get("spawn_time_seconds", 20)), 0, 999999, 1)
 	_add_line_edit("Spawn Tiles", "spawn_tiles", _join_string_array(current_record.get("spawn_tiles", []), ", "))
 	_add_read_only_value("Loot Table", _stringify_value(current_record.get("loot_table", [])))
@@ -3800,10 +3804,14 @@ func _create_new_monster() -> void:
 	current_record = {
 		"id": new_id,
 		"display_name": "New Monster",
+		"level": 1,
 		"max_health": 20,
 		"move_speed": 40,
 		"damage": 5,
 		"attack_cooldown": 1,
+		"xp_reward": 0,
+		"scene_path": "",
+		"behavior": "aggressive_contact_chaser",
 		"spawn_time_seconds": 20,
 		"spawn_tiles": ["grass"],
 		"loot_table": [],
@@ -4685,11 +4693,15 @@ func _get_monster_form_record() -> Dictionary:
 	var record := current_record.duplicate(true)
 	record["id"] = _get_line_edit_text("id")
 	record["display_name"] = _get_line_edit_text("display_name")
+	record["level"] = _get_spin_box_int("level")
 	record["sprite_id"] = selected_sprite_id
 	record["max_health"] = _get_spin_box_int("max_health")
 	record["move_speed"] = _get_spin_box_int("move_speed")
 	record["damage"] = _get_spin_box_int("damage")
-	record["attack_cooldown"] = _get_spin_box_int("attack_cooldown")
+	record["attack_cooldown"] = _get_spin_box_value("attack_cooldown")
+	record["xp_reward"] = _get_spin_box_int("xp_reward")
+	record["scene_path"] = _get_line_edit_text("scene_path")
+	record["behavior"] = _get_option_button_metadata("behavior")
 	record["spawn_time_seconds"] = _get_spin_box_int("spawn_time_seconds")
 	record["spawn_tiles"] = _parse_tags(_get_line_edit_text("spawn_tiles"))
 	if not record.has("loot_table"):
@@ -4916,6 +4928,10 @@ func _get_spin_box_value(field_name: String) -> float:
 
 	var spin_box: SpinBox = field_controls[field_name]
 	return spin_box.value
+
+
+func _get_float_spin_box_value(field_name: String) -> float:
+	return _get_spin_box_value(field_name)
 
 
 func _set_spin_box_value(field_name: String, value: int) -> void:
