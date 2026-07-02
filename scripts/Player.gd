@@ -15,6 +15,20 @@ const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextS
 const ItemInstanceHelper = preload("res://scripts/systems/ItemInstanceHelper.gd")
 const PlayerStatsResolverScript = preload("res://scripts/systems/PlayerStatsResolver.gd")
 const SmokePuffScene := preload("res://scenes/effects/SmokePuff.tscn")
+const WALK_FOOTSTEP_PATHS := [
+	"res://assets/audio/sfx/footsteps/Dirt Walk 1.wav",
+	"res://assets/audio/sfx/footsteps/Dirt Walk 2.wav",
+	"res://assets/audio/sfx/footsteps/Dirt Walk 3.wav",
+	"res://assets/audio/sfx/footsteps/Dirt Walk 4.wav",
+	"res://assets/audio/sfx/footsteps/Dirt Walk 5.wav",
+]
+const RUN_FOOTSTEP_PATHS := [
+	"res://assets/audio/sfx/footsteps/Dirt Run 1.wav",
+	"res://assets/audio/sfx/footsteps/Dirt Run 2.wav",
+	"res://assets/audio/sfx/footsteps/Dirt Run 3.wav",
+	"res://assets/audio/sfx/footsteps/Dirt Run 4.wav",
+	"res://assets/audio/sfx/footsteps/Dirt Run 5.wav",
+]
 const TOOL_HANDS := "Hands"
 const TOOL_AXE := "Axe"
 const TOOL_PICKAXE := "Pickaxe"
@@ -69,6 +83,12 @@ var unlocked_tools := [
 	TOOL_HANDS,
 ]
 var _attack_in_progress := false
+var _walk_footstep_streams: Array[AudioStream] = []
+var _run_footstep_streams: Array[AudioStream] = []
+var _footstep_player: AudioStreamPlayer2D
+var _footstep_timer := 0.0
+var _last_walk_footstep_index := -1
+var _last_run_footstep_index := -1
 
 @onready var body_visual: CanvasItem = $Body
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
@@ -78,6 +98,7 @@ func _ready() -> void:
 	add_to_group("player")
 	_load_player_tuning()
 	_setup_character_visual()
+	_setup_footstep_audio()
 	spawn_position = global_position
 	initial_spawn_position = global_position
 	health = max_health
@@ -194,6 +215,7 @@ func _physics_process(delta: float) -> void:
 		animation_direction = velocity.normalized()
 
 	_update_movement_animation(animation_direction)
+	_update_footsteps(delta, has_input)
 	was_running = is_running
 
 
@@ -234,6 +256,82 @@ func _spawn_smoke_puff() -> void:
 
 	if puff is Node2D:
 		puff.z_index = z_index - 1
+
+
+func _setup_footstep_audio() -> void:
+	_walk_footstep_streams = _load_audio_streams(WALK_FOOTSTEP_PATHS)
+	_run_footstep_streams = _load_audio_streams(RUN_FOOTSTEP_PATHS)
+	_footstep_player = AudioStreamPlayer2D.new()
+	_footstep_player.bus = "Master"
+	add_child(_footstep_player)
+
+
+func _update_footsteps(delta: float, has_input: bool) -> void:
+	if _footstep_player == null:
+		return
+
+	if not has_input or velocity.length() <= 1.0 or _is_ui_blocking_footsteps():
+		_footstep_timer = 0.0
+		return
+
+	_footstep_timer -= delta
+	if _footstep_timer > 0.0:
+		return
+
+	if is_running:
+		_play_footstep(_run_footstep_streams, true)
+		_footstep_timer = 0.26
+	else:
+		_play_footstep(_walk_footstep_streams, false)
+		_footstep_timer = 0.42
+
+
+func _play_footstep(streams: Array[AudioStream], running: bool) -> void:
+	if streams.is_empty() or _footstep_player == null:
+		return
+
+	var stream_index := _pick_audio_index(streams.size(), _last_run_footstep_index if running else _last_walk_footstep_index)
+	if stream_index < 0:
+		return
+
+	_footstep_player.stream = streams[stream_index]
+	_footstep_player.volume_db = -7.0 if running else -10.0
+	_footstep_player.play()
+	if running:
+		_last_run_footstep_index = stream_index
+	else:
+		_last_walk_footstep_index = stream_index
+
+
+func _load_audio_streams(paths: Array) -> Array[AudioStream]:
+	var streams: Array[AudioStream] = []
+	for path_value in paths:
+		var path := str(path_value)
+		if not ResourceLoader.exists(path):
+			push_warning("Player missing footstep audio: %s" % path)
+			continue
+		var stream := load(path) as AudioStream
+		if stream == null:
+			push_warning("Player could not load footstep audio: %s" % path)
+			continue
+		streams.append(stream)
+	return streams
+
+
+func _pick_audio_index(count: int, previous_index: int) -> int:
+	if count <= 0:
+		return -1
+	if count == 1:
+		return 0
+
+	var random_index := randi() % count
+	if random_index == previous_index:
+		random_index = (random_index + 1 + int(randi() % (count - 1))) % count
+	return random_index
+
+
+func _is_ui_blocking_footsteps() -> bool:
+	return _is_inventory_open() or _is_storage_open() or _is_crafting_open()
 
 
 func take_damage(amount: int) -> void:
@@ -591,6 +689,14 @@ func _is_storage_open() -> bool:
 		return false
 
 	return bool(storage_ui.call("is_open"))
+
+
+func _is_inventory_open() -> bool:
+	var main := get_tree().get_first_node_in_group("main")
+	if main == null:
+		return false
+	var inventory_ui = main.get("inventory_ui")
+	return inventory_ui != null and bool(inventory_ui.visible)
 
 
 func _is_crafting_open() -> bool:

@@ -12,6 +12,7 @@ const DebugTreeScene = preload("res://scenes/Tree.tscn")
 const DebugRockScene = preload("res://scenes/Rock.tscn")
 const MonsterSpawner = preload("res://scripts/systems/MonsterSpawner.gd")
 const BUILD_TYPE_BED := "bed"
+const OVERWORLD_THEME_PATH := "res://assets/audio/themes/OVERWORLD THEME 01.mp3"
 
 var inventory := Inventory.new()
 var equipment_system := EquipmentSystem.new()
@@ -21,6 +22,7 @@ var save_slot_manager: Node
 var settings_manager: Node
 var player_stat_spin_boxes := {}
 var monster_spawner := MonsterSpawner.new()
+var overworld_music_player: AudioStreamPlayer
 
 @export var bed_respawn_range: float = 72.0
 
@@ -68,6 +70,7 @@ func _ready() -> void:
 		settings_manager.load_settings()
 		settings_manager.apply_settings()
 	add_child(monster_spawner)
+	_setup_overworld_music()
 	_configure_save_buttons()
 	_configure_player_stats_debug_ui()
 	_configure_monster_spawn_debug_ui()
@@ -98,6 +101,35 @@ func _ready() -> void:
 	_update_xp_label_from_player()
 	_update_settlement_labels()
 	load_game()
+
+
+func _setup_overworld_music() -> void:
+	overworld_music_player = AudioStreamPlayer.new()
+	overworld_music_player.bus = "Master"
+	overworld_music_player.volume_db = -8.0
+	var stream := _load_audio_stream(OVERWORLD_THEME_PATH)
+	if stream == null:
+		push_warning("Main could not load overworld theme: %s" % OVERWORLD_THEME_PATH)
+		return
+
+	_set_stream_loop(stream, true)
+	overworld_music_player.stream = stream
+	add_child(overworld_music_player)
+	overworld_music_player.play()
+
+
+func _load_audio_stream(path: String) -> AudioStream:
+	if not ResourceLoader.exists(path):
+		return null
+
+	return load(path) as AudioStream
+
+
+func _set_stream_loop(stream: Resource, loop_enabled: bool) -> void:
+	for property_info in stream.get_property_list():
+		if str(property_info.get("name", "")) == "loop":
+			stream.set("loop", loop_enabled)
+			return
 
 
 func _apply_oathwake_ui_font() -> void:
