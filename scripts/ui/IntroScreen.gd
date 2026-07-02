@@ -22,6 +22,7 @@ var _transition_started := false
 
 
 func _ready() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_ui()
 	_load_audio()
 	call_deferred("_run_intro_sequence")
@@ -48,9 +49,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		_start_sfx_player.play()
 	await _fade_canvas_item(_game_logo, 0.0, 0.28)
 	await _fade_canvas_item(_press_any_key, 0.0, 0.22)
+	_game_logo.visible = false
+	_press_any_key.visible = false
+	_black_overlay.visible = false
 	_menu_instance.visible = true
+	_menu_instance.modulate.a = 1.0
 	_menu_instance.mouse_filter = Control.MOUSE_FILTER_STOP
-	await _fade_canvas_item(_menu_instance, 1.0, 0.35)
+	move_child(_menu_instance, get_child_count() - 1)
 	get_viewport().set_input_as_handled()
 
 
@@ -58,14 +63,17 @@ func _build_ui() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
 	_fallback_background = ColorRect.new()
-	_fallback_background.color = Color(0.04, 0.05, 0.07, 1.0)
+	_fallback_background.color = Color(0.01, 0.012, 0.018, 1.0)
 	_fallback_background.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_fallback_background.modulate.a = 0.0
+	_fallback_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fallback_background.modulate.a = 1.0
 	add_child(_fallback_background)
 
 	_video_player = VideoStreamPlayer.new()
 	_video_player.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_video_player.expand = true
+	_video_player.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_video_player.modulate.a = 0.0
 	_video_player.visible = false
 	_video_player.finished.connect(_on_video_finished)
 	add_child(_video_player)
@@ -92,6 +100,7 @@ func _build_ui() -> void:
 	_black_overlay = ColorRect.new()
 	_black_overlay.color = Color.BLACK
 	_black_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_black_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_black_overlay)
 
 
@@ -109,10 +118,10 @@ func _load_audio() -> void:
 
 func _run_intro_sequence() -> void:
 	await _wait(0.15)
+	await _fade_canvas_item(_black_overlay, 0.0, 0.24)
 	await _fade_canvas_item(_studio_logo, 1.0, 0.55)
 	await _wait(0.75)
 	await _fade_canvas_item(_studio_logo, 0.0, 0.45)
-	await _fade_canvas_item(_black_overlay, 0.0, 0.35)
 	_start_background_media()
 	await _wait(2.0)
 	await _fade_canvas_item(_game_logo, 1.0, 0.55)
@@ -122,14 +131,13 @@ func _run_intro_sequence() -> void:
 
 
 func _start_background_media() -> void:
-	_fallback_background.modulate.a = 1.0
 	var video_stream := _load_video_stream(VIDEO_PATH)
 	if video_stream != null:
 		_video_player.stream = video_stream
-		_video_player.visible = true
-		_video_player.modulate.a = 0.0
 		_video_player.play()
-		_fade_canvas_item(_video_player, 1.0, 0.6)
+		await get_tree().process_frame
+		_video_player.visible = true
+		await _fade_canvas_item(_video_player, 1.0, 0.6)
 	else:
 		push_warning("IntroScreen could not load intro video: %s" % VIDEO_PATH)
 
