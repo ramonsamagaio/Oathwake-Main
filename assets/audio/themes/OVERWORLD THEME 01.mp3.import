@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://sw23nfajadsv"
+path="res://.godot/imported/OVERWORLD THEME 01.mp3-6a20ea2ddb2f5bba74c0807045230360.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/themes/OVERWORLD THEME 01.mp3"
+dest_files=["res://.godot/imported/OVERWORLD THEME 01.mp3-6a20ea2ddb2f5bba74c0807045230360.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

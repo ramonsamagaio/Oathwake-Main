@@ -1,6 +1,7 @@
 extends Control
 
 const SpriteResolver = preload("res://scripts/systems/SpriteResolver.gd")
+const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 
 @export var slot_count: int = 10
 
@@ -80,6 +81,7 @@ func _build_ui() -> void:
 	panel.offset_right = 350.0
 	panel.offset_bottom = -18.0
 	add_child(panel)
+	OathwakeUISkin.apply_panel(panel)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 8)
@@ -100,6 +102,7 @@ func _build_ui() -> void:
 		button.pressed.connect(select_slot.bind(index))
 		row.add_child(button)
 		slots.append(button)
+		OathwakeUISkin.apply_slot_button(button)
 
 
 func _setup_empty_slot(slot: Button, index: int) -> void:

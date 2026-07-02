@@ -1,6 +1,7 @@
 extends Control
 
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
+const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 const SaveSlotSelectScene := preload("res://scenes/ui/SaveSlotSelect.tscn")
 
 var _menu_panel: Panel
@@ -31,6 +32,7 @@ func _build_ui() -> void:
 	_menu_panel.offset_right = 260.0
 	_menu_panel.offset_bottom = 280.0
 	add_child(_menu_panel)
+	OathwakeUISkin.apply_panel(_menu_panel)
 
 	var layout := VBoxContainer.new()
 	layout.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -84,6 +86,7 @@ func _make_menu_button(text_value: String, callback: Callable) -> Button:
 	if callback.is_valid():
 		button.pressed.connect(callback)
 	OathwakeTextStyle.apply_profile_to_control(button, "ui_button")
+	OathwakeUISkin.apply_button(button)
 	return button
 
 
@@ -98,6 +101,7 @@ func _build_credits_panel() -> Panel:
 	panel.offset_top = -150.0
 	panel.offset_right = 260.0
 	panel.offset_bottom = 150.0
+	OathwakeUISkin.apply_panel(panel)
 
 	var layout := VBoxContainer.new()
 	layout.set_anchors_preset(Control.PRESET_FULL_RECT)

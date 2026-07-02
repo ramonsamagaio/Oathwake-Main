@@ -3,6 +3,7 @@ extends Control
 signal back_requested
 
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
+const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 const GAME_SCENE_PATH := "res://scenes/Main.tscn"
 const SLOT_IDS := ["slot_1", "slot_2", "slot_3"]
 
@@ -45,6 +46,7 @@ func _build_ui() -> void:
 	panel.offset_right = 280.0
 	panel.offset_bottom = 210.0
 	add_child(panel)
+	OathwakeUISkin.apply_panel(panel)
 
 	var layout := VBoxContainer.new()
 	layout.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -70,6 +72,7 @@ func _build_ui() -> void:
 		layout.add_child(button)
 		_slot_buttons[slot_id] = button
 		OathwakeTextStyle.apply_profile_to_control(button, "ui_button")
+		OathwakeUISkin.apply_button(button)
 
 	var back_button := Button.new()
 	back_button.text = "Back"
@@ -77,6 +80,7 @@ func _build_ui() -> void:
 	back_button.pressed.connect(_on_back_pressed)
 	layout.add_child(back_button)
 	OathwakeTextStyle.apply_profile_to_control(back_button, "ui_button")
+	OathwakeUISkin.apply_button(back_button)
 
 	_confirm_dialog = ConfirmationDialog.new()
 	_confirm_dialog.title = "Overwrite Save"

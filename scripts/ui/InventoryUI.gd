@@ -5,6 +5,7 @@ const EquipmentSlotScene = preload("res://scenes/ui/EquipmentSlot.tscn")
 const SpriteResolver = preload("res://scripts/systems/SpriteResolver.gd")
 const TrashSlotScript = preload("res://scripts/ui/TrashSlot.gd")
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
+const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 
 @export var slot_count: int = 20
 @export var columns: int = 5
@@ -79,6 +80,7 @@ func _build_ui() -> void:
 	panel.offset_right = 300.0
 	panel.offset_bottom = 190.0
 	add_child(panel)
+	OathwakeUISkin.apply_panel(panel)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 12)
@@ -114,18 +116,21 @@ func _build_ui() -> void:
 	sort_button.focus_mode = Control.FOCUS_NONE
 	sort_button.pressed.connect(_on_sort_inventory_pressed)
 	controls.add_child(sort_button)
+	OathwakeUISkin.apply_button(sort_button)
 
 	var split_button := Button.new()
 	split_button.text = "Split Half"
 	split_button.focus_mode = Control.FOCUS_NONE
 	split_button.pressed.connect(_on_split_half_pressed)
 	controls.add_child(split_button)
+	OathwakeUISkin.apply_button(split_button)
 
 	var drop_stack_button := Button.new()
 	drop_stack_button.text = "Drop Stack"
 	drop_stack_button.focus_mode = Control.FOCUS_NONE
 	drop_stack_button.pressed.connect(_on_drop_stack_pressed)
 	controls.add_child(drop_stack_button)
+	OathwakeUISkin.apply_button(drop_stack_button)
 
 	grid = GridContainer.new()
 	grid.columns = columns
