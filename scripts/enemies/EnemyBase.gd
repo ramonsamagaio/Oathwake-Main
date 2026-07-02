@@ -19,6 +19,9 @@ signal attack_finished
 @export var show_floating_damage := true
 @export var enable_hit_flash := true
 @export var enable_knockback := true
+@export var attack_windup_time: float = 0.08
+@export var attack_hit_time: float = 0.04
+@export var attack_recovery_time: float = 0.10
 
 var player: CharacterBody2D
 var player_in_contact := false
@@ -34,6 +37,7 @@ var nameplate: Node2D
 var monster_data := {}
 var combat_calculator := CombatCalculatorScript.new()
 var original_scale := Vector2.ONE
+var _attack_in_progress := false
 
 @onready var damage_area: Area2D = $DamageArea
 
@@ -53,14 +57,20 @@ func _update_damage(delta: float) -> void:
 	if damage_timer > 0.0:
 		damage_timer -= delta
 
-	if player_in_contact and damage_timer <= 0.0 and _can_damage_player():
+	if player_in_contact and damage_timer <= 0.0 and _can_damage_player() and not _attack_in_progress:
 		_attack_player()
 		damage_timer = damage_cooldown
 
 
 func _attack_player() -> void:
+	if _attack_in_progress:
+		return
+
+	_attack_in_progress = true
 	attack_started.emit()
 	_play_attack_tell()
+	await _wait_attack_step(attack_windup_time)
+	await _wait_attack_step(attack_hit_time)
 	var target_data := {}
 	if player.has_method("_get_combat_data"):
 		target_data = player.call("_get_combat_data")
@@ -71,7 +81,9 @@ func _attack_player() -> void:
 		player.call("apply_combat_result", combat_result)
 	else:
 		player.take_damage(int(combat_result.get("damage", damage)))
+	await _wait_attack_step(attack_recovery_time)
 	attack_finished.emit()
+	_attack_in_progress = false
 
 
 func take_damage(amount: int) -> void:
@@ -191,6 +203,9 @@ func _load_monster_data() -> void:
 	speed = float(monster_data.get("move_speed", speed))
 	damage = int(monster_data.get("damage", damage))
 	damage_cooldown = float(monster_data.get("attack_cooldown", damage_cooldown))
+	attack_windup_time = float(monster_data.get("attack_windup_time", attack_windup_time))
+	attack_hit_time = float(monster_data.get("attack_hit_time", attack_hit_time))
+	attack_recovery_time = float(monster_data.get("attack_recovery_time", attack_recovery_time))
 	spawn_time_seconds = float(monster_data.get("spawn_time_seconds", spawn_time_seconds))
 
 	var loaded_spawn_tiles = monster_data.get("spawn_tiles", spawn_tiles)
@@ -298,3 +313,9 @@ func _get_vfx_profile() -> Dictionary:
 	if content_db != null and content_db.has_method("has_vfx_profile") and content_db.has_vfx_profile("default"):
 		return content_db.get_vfx_profile("default")
 	return {}
+
+
+func _wait_attack_step(duration: float) -> void:
+	if duration <= 0.0:
+		return
+	await get_tree().create_timer(duration).timeout

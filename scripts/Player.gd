@@ -41,6 +41,10 @@ const TOOL_RESOURCE_DAMAGE := 15
 @export var character_id: String = "player"
 @export var show_floating_damage := true
 @export var enable_hit_flash := true
+@export var attack_timing_enabled := false
+@export var attack_windup_time: float = 0.0
+@export var attack_hit_time: float = 0.0
+@export var attack_recovery_time: float = 0.0
 
 var level := 1
 var current_xp := 0
@@ -64,6 +68,7 @@ var debug_base_stats_override := {}
 var unlocked_tools := [
 	TOOL_HANDS,
 ]
+var _attack_in_progress := false
 
 @onready var body_visual: CanvasItem = $Body
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
@@ -414,8 +419,28 @@ func get_current_held_item_data() -> Dictionary:
 
 
 func _attack() -> void:
+	if not attack_timing_enabled:
+		attack_started.emit()
+		_play_attack_feedback()
+		_perform_attack_hits()
+		attack_finished.emit()
+		return
+
+	if _attack_in_progress:
+		return
+
+	_attack_in_progress = true
 	attack_started.emit()
 	_play_attack_feedback()
+	await _wait_attack_step(attack_windup_time)
+	await _wait_attack_step(attack_hit_time)
+	_perform_attack_hits()
+	await _wait_attack_step(attack_recovery_time)
+	attack_finished.emit()
+	_attack_in_progress = false
+
+
+func _perform_attack_hits() -> void:
 	for target in _find_nearby_attack_targets("enemy"):
 		if _current_item_can_hit("can_hit_monsters", true):
 			_attack_enemy(target)
@@ -423,7 +448,6 @@ func _attack() -> void:
 	for target in _find_nearby_attack_targets("resource_node"):
 		if _current_item_can_hit("can_hit_resources", true):
 			_attack_resource(target)
-	attack_finished.emit()
 
 
 func _attack_enemy(target: Node) -> void:
@@ -473,6 +497,10 @@ func _get_combat_data() -> Dictionary:
 	var content_db := get_node_or_null("/root/ContentDB")
 	if content_db != null and content_db.has_method("has_character") and content_db.has_character(character_id):
 		character_data = content_db.get_character(character_id)
+		attack_timing_enabled = bool(character_data.get("attack_timing_enabled", attack_timing_enabled))
+		attack_windup_time = float(character_data.get("attack_windup_time", attack_windup_time))
+		attack_hit_time = float(character_data.get("attack_hit_time", attack_hit_time))
+		attack_recovery_time = float(character_data.get("attack_recovery_time", attack_recovery_time))
 
 	var combat_data: Dictionary = character_data.duplicate(true) if character_data is Dictionary else {}
 	combat_data["max_health"] = max_health
@@ -506,6 +534,12 @@ func _get_current_held_item_data() -> Dictionary:
 			"can_hit_resources": true,
 		},
 	}
+
+
+func _wait_attack_step(duration: float) -> void:
+	if duration <= 0.0:
+		return
+	await get_tree().create_timer(duration).timeout
 
 
 func _try_interact_with_nearby_npc() -> bool:

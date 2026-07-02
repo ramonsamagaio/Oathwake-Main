@@ -1,6 +1,9 @@
 {
 	"skeleton": {
 		"attack_cooldown": 1.35,
+		"attack_hit_time": 0.04,
+		"attack_recovery_time": 0.12,
+		"attack_windup_time": 0.10,
 		"base_combat": {
 			"attack_cooldown": 1.35,
 			"base_attack": 7,
@@ -43,6 +46,9 @@
 	},
 	"slime": {
 		"attack_cooldown": 1.25,
+		"attack_hit_time": 0.03,
+		"attack_recovery_time": 0.08,
+		"attack_windup_time": 0.06,
 		"base_combat": {
 			"attack_cooldown": 1.25,
 			"base_attack": 4,

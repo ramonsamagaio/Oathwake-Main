@@ -1,5 +1,9 @@
 {
 	"player": {
+		"attack_hit_time": 0.0,
+		"attack_recovery_time": 0.0,
+		"attack_timing_enabled": false,
+		"attack_windup_time": 0.0,
 		"animation_set_id": "player_base_body",
 		"base_combat": {
 			"attack_cooldown": 0.7,
