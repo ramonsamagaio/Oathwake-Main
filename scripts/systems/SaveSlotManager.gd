@@ -1,4 +1,4 @@
-extends RefCounted
+extends Node
 
 const SaveSystem := preload("res://scripts/systems/SaveSystem.gd")
 const DEFAULT_SLOT := "slot_1"

@@ -17,8 +17,8 @@ var inventory := Inventory.new()
 var equipment_system := EquipmentSystem.new()
 var collected_resource_ids := {}
 var save_system := SaveSystem.new()
-var save_slot_manager := SaveSlotManager.new()
-var settings_manager := SettingsManager.new()
+var save_slot_manager: Node
+var settings_manager: Node
 var player_stat_spin_boxes := {}
 var monster_spawner := MonsterSpawner.new()
 
@@ -59,8 +59,14 @@ var monster_spawner := MonsterSpawner.new()
 
 func _ready() -> void:
 	add_to_group("main")
-	settings_manager.load_settings()
-	settings_manager.apply_settings()
+	save_slot_manager = get_node_or_null("/root/SaveSlotManager")
+	if save_slot_manager == null:
+		save_slot_manager = SaveSlotManager.new()
+	settings_manager = get_node_or_null("/root/SettingsManager")
+	if settings_manager == null:
+		settings_manager = SettingsManager.new()
+		settings_manager.load_settings()
+		settings_manager.apply_settings()
 	add_child(monster_spawner)
 	_configure_save_buttons()
 	_configure_player_stats_debug_ui()
@@ -228,7 +234,7 @@ func save_game() -> void:
 		"settlement": settlement_manager.get_save_data(),
 	}
 
-	var save_path := save_slot_manager.get_active_save_path()
+	var save_path: String = save_slot_manager.get_active_save_path()
 	var save_error := save_system.save_json(save_path, save_data)
 	if not save_error.is_empty():
 		print(save_error)
@@ -238,7 +244,7 @@ func save_game() -> void:
 
 
 func load_game() -> void:
-	var save_path := save_slot_manager.get_active_save_path()
+	var save_path: String = save_slot_manager.get_active_save_path()
 	var save_result := save_system.load_json(save_path)
 	if not bool(save_result.get("ok", false)):
 		print(str(save_result.get("error", "Could not load save file.")))

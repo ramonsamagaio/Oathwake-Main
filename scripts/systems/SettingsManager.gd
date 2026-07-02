@@ -1,4 +1,4 @@
-extends RefCounted
+extends Node
 
 const DEFAULT_SETTINGS_PATH := "res://data/settings.json"
 const USER_SETTINGS_PATH := "user://settings.json"
@@ -9,6 +9,11 @@ var settings := {
 	"vsync": true,
 	"ui_scale": 1.0,
 }
+
+
+func _ready() -> void:
+	load_settings()
+	apply_settings()
 
 
 func load_settings() -> Dictionary:
