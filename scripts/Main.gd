@@ -2,6 +2,7 @@ extends Node2D
 
 const Inventory = preload("res://scripts/Inventory.gd")
 const SaveSystem = preload("res://scripts/systems/SaveSystem.gd")
+const SaveSlotManager = preload("res://scripts/systems/SaveSlotManager.gd")
 const WorldItemSpawner = preload("res://scripts/systems/WorldItemSpawner.gd")
 const InventoryDebug = preload("res://scripts/systems/InventoryDebug.gd")
 const EquipmentSystem = preload("res://scripts/systems/EquipmentSystem.gd")
@@ -9,13 +10,13 @@ const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 const DebugTreeScene = preload("res://scenes/Tree.tscn")
 const DebugRockScene = preload("res://scenes/Rock.tscn")
 const MonsterSpawner = preload("res://scripts/systems/MonsterSpawner.gd")
-const SAVE_PATH := "user://savegame.json"
 const BUILD_TYPE_BED := "bed"
 
 var inventory := Inventory.new()
 var equipment_system := EquipmentSystem.new()
 var collected_resource_ids := {}
 var save_system := SaveSystem.new()
+var save_slot_manager := SaveSlotManager.new()
 var player_stat_spin_boxes := {}
 var monster_spawner := MonsterSpawner.new()
 
@@ -223,16 +224,18 @@ func save_game() -> void:
 		"settlement": settlement_manager.get_save_data(),
 	}
 
-	var save_error := save_system.save_json(SAVE_PATH, save_data)
+	var save_path := save_slot_manager.get_active_save_path()
+	var save_error := save_system.save_json(save_path, save_data)
 	if not save_error.is_empty():
 		print(save_error)
 		return
 
-	print("Game saved to %s" % SAVE_PATH)
+	print("Game saved to %s" % save_path)
 
 
 func load_game() -> void:
-	var save_result := save_system.load_json(SAVE_PATH)
+	var save_path := save_slot_manager.get_active_save_path()
+	var save_result := save_system.load_json(save_path)
 	if not bool(save_result.get("ok", false)):
 		print(str(save_result.get("error", "Could not load save file.")))
 		return
@@ -281,7 +284,7 @@ func load_game() -> void:
 	housing_system.validate_houses(false)
 	settlement_manager.load_save_data(save_data.get("settlement", {}))
 	_update_settlement_labels()
-	print("Game loaded from %s" % SAVE_PATH)
+	print("Game loaded from %s" % save_path)
 
 
 func _update_resource_labels() -> void:

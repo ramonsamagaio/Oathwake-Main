@@ -2,6 +2,10 @@ extends RefCounted
 
 
 func save_json(path: String, data: Dictionary) -> String:
+	var directory_error := _ensure_parent_directory(path)
+	if not directory_error.is_empty():
+		return directory_error
+
 	var save_file := FileAccess.open(path, FileAccess.WRITE)
 	if save_file == null:
 		return "Could not save game to %s" % path
@@ -47,3 +51,18 @@ func load_json(path: String) -> Dictionary:
 		"error": "",
 		"data": json.data,
 	}
+
+
+func _ensure_parent_directory(path: String) -> String:
+	var base_dir := path.get_base_dir()
+	if base_dir.is_empty():
+		return ""
+
+	if DirAccess.dir_exists_absolute(base_dir):
+		return ""
+
+	var make_error := DirAccess.make_dir_recursive_absolute(base_dir)
+	if make_error != OK:
+		return "Could not create save directory: %s" % base_dir
+
+	return ""
