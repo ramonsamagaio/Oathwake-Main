@@ -13,6 +13,11 @@ const DebugRockScene = preload("res://scenes/Rock.tscn")
 const MonsterSpawner = preload("res://scripts/systems/MonsterSpawner.gd")
 const BUILD_TYPE_BED := "bed"
 const OVERWORLD_THEME_PATH := "res://assets/audio/themes/OVERWORLD THEME 01.mp3"
+const FOREST_AMBIENCE_PATH := "res://assets/audio/ambience/Forest Day.wav"
+const AMBIENCE_CHECK_INTERVAL := 0.35
+const AMBIENCE_ACTIVE_VOLUME_DB := -22.0
+const AMBIENCE_INACTIVE_VOLUME_DB := -80.0
+const AMBIENCE_FADE_TIME := 1.0
 
 var inventory := Inventory.new()
 var equipment_system := EquipmentSystem.new()
@@ -23,9 +28,14 @@ var settings_manager: Node
 var player_stat_spin_boxes := {}
 var monster_spawner := MonsterSpawner.new()
 var overworld_music_player: AudioStreamPlayer
+var _forest_ambience_player: AudioStreamPlayer
+var _ambience_volume_tween: Tween
+var _ambience_check_timer := 0.0
+var _ambience_active := false
 
 @export var bed_respawn_range: float = 72.0
 
+@onready var world = $World
 @onready var resources_root: Node2D = $World/Resources
 @onready var wood_label: Label = $UI/WoodLabel
 @onready var stone_label: Label = $UI/StoneLabel
@@ -71,6 +81,7 @@ func _ready() -> void:
 		settings_manager.apply_settings()
 	add_child(monster_spawner)
 	_setup_overworld_music()
+	_setup_forest_ambience()
 	_configure_save_buttons()
 	_configure_player_stats_debug_ui()
 	_configure_monster_spawn_debug_ui()
@@ -103,6 +114,10 @@ func _ready() -> void:
 	load_game()
 
 
+func _process(delta: float) -> void:
+	_update_terrain_ambience(delta)
+
+
 func _setup_overworld_music() -> void:
 	overworld_music_player = AudioStreamPlayer.new()
 	overworld_music_player.bus = "Master"
@@ -118,6 +133,23 @@ func _setup_overworld_music() -> void:
 	overworld_music_player.play()
 
 
+func _setup_forest_ambience() -> void:
+	_forest_ambience_player = AudioStreamPlayer.new()
+	_forest_ambience_player.name = "ForestAmbiencePlayer"
+	_forest_ambience_player.bus = "Master"
+	_forest_ambience_player.autoplay = false
+	_forest_ambience_player.volume_db = AMBIENCE_INACTIVE_VOLUME_DB
+
+	var stream := _load_audio_stream(FOREST_AMBIENCE_PATH)
+	if stream == null:
+		push_warning("Main could not load forest ambience: %s" % FOREST_AMBIENCE_PATH)
+		return
+
+	_set_stream_loop(stream, true)
+	_forest_ambience_player.stream = stream
+	add_child(_forest_ambience_player)
+
+
 func _load_audio_stream(path: String) -> AudioStream:
 	if not ResourceLoader.exists(path):
 		return null
@@ -130,6 +162,41 @@ func _set_stream_loop(stream: Resource, loop_enabled: bool) -> void:
 		if str(property_info.get("name", "")) == "loop":
 			stream.set("loop", loop_enabled)
 			return
+
+
+func _update_terrain_ambience(delta: float) -> void:
+	if player == null or world == null or _forest_ambience_player == null:
+		return
+	if not world.has_method("get_tile_type_at_position"):
+		return
+	if _forest_ambience_player.stream == null:
+		return
+
+	_ambience_check_timer += delta
+	if _ambience_check_timer < AMBIENCE_CHECK_INTERVAL:
+		return
+
+	_ambience_check_timer = 0.0
+	var tile_type := str(world.get_tile_type_at_position(player.global_position)).to_lower()
+	var should_be_active := tile_type == "grass" or tile_type == "forest"
+	if should_be_active == _ambience_active:
+		return
+
+	_set_forest_ambience_active(should_be_active)
+
+
+func _set_forest_ambience_active(is_active: bool) -> void:
+	_ambience_active = is_active
+	if _ambience_volume_tween != null:
+		_ambience_volume_tween.kill()
+		_ambience_volume_tween = null
+
+	if is_active and not _forest_ambience_player.playing:
+		_forest_ambience_player.play()
+
+	_ambience_volume_tween = create_tween()
+	var target_volume := AMBIENCE_ACTIVE_VOLUME_DB if is_active else AMBIENCE_INACTIVE_VOLUME_DB
+	_ambience_volume_tween.tween_property(_forest_ambience_player, "volume_db", target_volume, AMBIENCE_FADE_TIME)
 
 
 func _apply_oathwake_ui_font() -> void:
