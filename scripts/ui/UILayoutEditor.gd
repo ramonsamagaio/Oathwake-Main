@@ -66,7 +66,7 @@ class AssetTile:
 		var thumb_rect := Rect2(Vector2(6, 6), Vector2(size.x - 12.0, 60.0))
 		if editor_ref != null and editor_ref.has_method("_get_asset_preview_texture"):
 			var texture: Texture2D = editor_ref._get_asset_preview_texture(asset_path)
-			if texture != null and not missing:
+			if texture != null:
 				var fitted: Rect2 = editor_ref._get_fitted_rect(texture.get_size(), thumb_rect, "keep_aspect_centered")
 				draw_texture_rect(texture, fitted, false, Color(1, 1, 1, 1))
 			else:
@@ -97,6 +97,7 @@ var show_rects := true
 var show_labels := true
 var visual_layer_enabled := true
 var interaction_layer_enabled := true
+var _is_dragging_preview := false
 
 var _updating_ui := false
 var _applying_history := false
@@ -106,6 +107,7 @@ var _drag_start_mouse := Vector2.ZERO
 var _drag_start_element: Dictionary = {}
 var _undo_stack: Array = []
 var _redo_stack: Array = []
+var _texture_cache: Dictionary = {}
 
 var _elements_list: ItemList
 var _preview_canvas: PreviewCanvas
@@ -818,7 +820,7 @@ func _draw_preview_canvas(canvas: Control) -> void:
 			if show_rect:
 				_draw_element_rect(canvas, screen_rect, element, alpha, element_id, is_interaction, show_asset)
 
-	if show_labels:
+	if show_labels and not _is_dragging_preview:
 		for element_id in sorted_ids:
 			var element := UILayoutConfig.get_element(layout, element_id)
 			if element.is_empty():
@@ -837,29 +839,31 @@ func _draw_preview_canvas(canvas: Control) -> void:
 			var alpha := clampf(float(element.get("opacity", 1.0)), 0.0, 1.0)
 			if not visible:
 				alpha *= 0.18
-			_draw_element_label(canvas, screen_rect, element, alpha)
+			_draw_element_label(canvas, screen_rect, element, alpha, element_id)
 
 	if not selected_element_id.is_empty():
 		var selected_rect := _get_element_rect(selected_element_id)
 		if selected_rect.size.x > 0.0 and selected_rect.size.y > 0.0:
 			var selected_screen_rect := Rect2(origin + selected_rect.position * scale, selected_rect.size * scale)
-			canvas.draw_rect(selected_screen_rect, Color(1.0, 1.0, 1.0, 1.0), false, 3.0)
+			var selected_data := UILayoutConfig.get_element(layout, selected_element_id)
+			var selected_border := 3.0
+			var selected_asset_visible := show_assets and bool(selected_data.get("show_asset", false)) and str(selected_data.get("type", "")) not in ["interaction", "guide"]
+			if selected_asset_visible and not show_rects:
+				selected_border = 1.0
+			canvas.draw_rect(selected_screen_rect, Color(1.0, 1.0, 1.0, 1.0), false, selected_border)
 			_draw_resize_handle(canvas, selected_screen_rect)
 
 
 func _draw_element_asset(canvas: Control, screen_rect: Rect2, element: Dictionary, alpha: float, element_id: String) -> void:
 	var asset_path := UILayoutConfig.normalize_asset_path(str(element.get("asset_path", "")))
-	if asset_path.is_empty() or not _asset_exists(asset_path):
+	var texture := _get_cached_texture(asset_path)
+	if texture == null:
 		var missing_color := Color(0.18, 0.18, 0.2, maxf(0.24, alpha))
 		canvas.draw_rect(screen_rect, missing_color, true)
 		canvas.draw_rect(screen_rect, Color(0.65, 0.2, 0.2, maxf(0.45, alpha)), false, 1.0)
 		var font := canvas.get_theme_default_font()
 		if font != null:
 			canvas.draw_string(font, screen_rect.position + Vector2(6, 16), "missing asset", HORIZONTAL_ALIGNMENT_LEFT, -1, canvas.get_theme_default_font_size(), Color(1.0, 0.8, 0.8, alpha))
-		return
-
-	var texture := _get_asset_preview_texture(asset_path)
-	if texture == null:
 		return
 
 	var fit_mode := str(element.get("fit_mode", "stretch"))
@@ -894,7 +898,9 @@ func _draw_element_rect(canvas: Control, screen_rect: Rect2, element: Dictionary
 	canvas.draw_rect(screen_rect, border, false, 2.0)
 
 
-func _draw_element_label(canvas: Control, screen_rect: Rect2, element: Dictionary, alpha: float) -> void:
+func _draw_element_label(canvas: Control, screen_rect: Rect2, element: Dictionary, alpha: float, element_id: String) -> void:
+	if _should_suppress_label(element_id):
+		return
 	var label_text := str(element.get("label", ""))
 	if label_text.is_empty():
 		label_text = str(element.get("type", ""))
@@ -904,6 +910,16 @@ func _draw_element_label(canvas: Control, screen_rect: Rect2, element: Dictionar
 	if font == null:
 		return
 	canvas.draw_string(font, screen_rect.position + Vector2(6, 14), label_text, HORIZONTAL_ALIGNMENT_LEFT, -1, canvas.get_theme_default_font_size(), Color(1.0, 1.0, 1.0, alpha))
+
+
+func _should_suppress_label(element_id: String) -> bool:
+	if element_id.begins_with("inventory.slot_"):
+		return true
+	if element_id.begins_with("hotbar.slot_"):
+		return true
+	if element_id.ends_with("_hitbox"):
+		return true
+	return false
 
 
 func _draw_resize_handle(canvas: Control, rect: Rect2) -> void:
@@ -947,12 +963,18 @@ func _begin_drag(mode: String, element_id: String, mouse_canvas_pos: Vector2) ->
 	_drag_element_id = element_id
 	_drag_start_mouse = mouse_canvas_pos
 	_drag_start_element = element.duplicate(true)
+	_is_dragging_preview = true
 
 
 func _end_drag() -> void:
+	var had_drag := not _drag_mode.is_empty()
 	_drag_mode = ""
 	_drag_element_id = ""
 	_drag_start_element = {}
+	_is_dragging_preview = false
+	if had_drag:
+		_refresh_property_panel()
+	_queue_redraw()
 
 
 func _update_drag(current_mouse_canvas_pos: Vector2) -> void:
@@ -973,7 +995,16 @@ func _update_drag(current_mouse_canvas_pos: Vector2) -> void:
 		updated["height"] = max(1, _snap_value(float(_drag_start_element.get("height", 0.0)) + delta.y))
 
 	UILayoutConfig.set_element(layout, _drag_element_id, updated)
-	_refresh_property_panel()
+	_updating_ui = true
+	if _x_spin != null:
+		_x_spin.value = float(updated.get("x", 0))
+	if _y_spin != null:
+		_y_spin.value = float(updated.get("y", 0))
+	if _width_spin != null:
+		_width_spin.value = float(updated.get("width", 0))
+	if _height_spin != null:
+		_height_spin.value = float(updated.get("height", 0))
+	_updating_ui = false
 	_queue_redraw()
 
 
@@ -1127,18 +1158,26 @@ func _get_fit_mode_from_index(index: int) -> String:
 
 
 func _asset_exists(asset_path: String) -> bool:
-	var normalized := UILayoutConfig.normalize_asset_path(asset_path)
-	return not normalized.is_empty() and ResourceLoader.exists(normalized)
+	return _get_cached_texture(asset_path) != null
 
 
 func _get_asset_preview_texture(asset_path: String) -> Texture2D:
+	return _get_cached_texture(asset_path)
+
+
+func _get_cached_texture(asset_path: String) -> Texture2D:
 	var normalized := UILayoutConfig.normalize_asset_path(asset_path)
-	if normalized.is_empty() or not ResourceLoader.exists(normalized):
+	if normalized.is_empty():
 		return null
-	var resource := load(normalized)
-	if resource is Texture2D:
-		return resource
-	return null
+	if _texture_cache.has(normalized):
+		return _texture_cache[normalized]
+	if not ResourceLoader.exists(normalized):
+		_texture_cache[normalized] = null
+		return null
+	var resource := ResourceLoader.load(normalized)
+	var texture := resource if resource is Texture2D else null
+	_texture_cache[normalized] = texture
+	return texture
 
 
 func _get_fitted_rect(texture_size: Vector2, target_rect: Rect2, fit_mode: String) -> Rect2:

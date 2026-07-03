@@ -294,11 +294,11 @@ static func _make_element_defaults(type_name: String) -> Dictionary:
 		"interaction":
 			show_asset = false
 			show_rect = true
-			opacity = 0.35
+			opacity = 0.24
 		"guide":
 			show_asset = false
 			show_rect = true
-			opacity = 0.15
+			opacity = 0.08
 		"graphic":
 			show_asset = true
 			show_rect = true
@@ -381,7 +381,7 @@ static func _get_prescribed_element_overrides(element_id: String) -> Dictionary:
 				"asset_path": "",
 				"show_asset": false,
 				"show_rect": true,
-				"opacity": 0.15,
+				"opacity": 0.08,
 				"z_index": 2,
 				"fit_mode": "stretch",
 			}
@@ -401,7 +401,7 @@ static func _get_prescribed_element_overrides(element_id: String) -> Dictionary:
 				"asset_path": "",
 				"show_asset": false,
 				"show_rect": true,
-				"opacity": 0.35,
+				"opacity": 0.24,
 				"z_index": 13,
 				"fit_mode": "stretch",
 			}
