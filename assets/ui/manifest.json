@@ -1,0 +1,585 @@
+[
+  {
+    "file": "buttons/button_large_normal.png",
+    "size": "240x56",
+    "source_sheet": "buttons",
+    "components": [
+      1
+    ]
+  },
+  {
+    "file": "buttons/button_large_hover.png",
+    "size": "240x56",
+    "source_sheet": "buttons",
+    "components": [
+      2
+    ]
+  },
+  {
+    "file": "buttons/button_large_pressed.png",
+    "size": "240x56",
+    "source_sheet": "buttons",
+    "components": [
+      3
+    ]
+  },
+  {
+    "file": "buttons/button_large_disabled.png",
+    "size": "240x56",
+    "source_sheet": "buttons",
+    "components": [
+      4
+    ]
+  },
+  {
+    "file": "buttons/button_medium_normal.png",
+    "size": "180x44",
+    "source_sheet": "buttons",
+    "components": [
+      5
+    ]
+  },
+  {
+    "file": "buttons/button_medium_hover.png",
+    "size": "180x44",
+    "source_sheet": "buttons",
+    "components": [
+      6
+    ]
+  },
+  {
+    "file": "buttons/button_medium_pressed.png",
+    "size": "180x44",
+    "source_sheet": "buttons",
+    "components": [
+      7
+    ]
+  },
+  {
+    "file": "buttons/button_medium_disabled.png",
+    "size": "180x44",
+    "source_sheet": "buttons",
+    "components": [
+      8
+    ]
+  },
+  {
+    "file": "buttons/button_icon_normal.png",
+    "size": "48x48",
+    "source_sheet": "buttons",
+    "components": [
+      9
+    ]
+  },
+  {
+    "file": "buttons/button_icon_hover.png",
+    "size": "48x48",
+    "source_sheet": "buttons",
+    "components": [
+      10
+    ]
+  },
+  {
+    "file": "buttons/button_icon_pressed.png",
+    "size": "48x48",
+    "source_sheet": "buttons",
+    "components": [
+      11
+    ]
+  },
+  {
+    "file": "buttons/button_icon_disabled.png",
+    "size": "48x48",
+    "source_sheet": "buttons",
+    "components": [
+      12
+    ]
+  },
+  {
+    "file": "buttons/button_close_normal.png",
+    "size": "32x32",
+    "source_sheet": "buttons",
+    "components": [
+      13
+    ]
+  },
+  {
+    "file": "buttons/button_close_hover.png",
+    "size": "32x32",
+    "source_sheet": "buttons",
+    "components": [
+      14
+    ]
+  },
+  {
+    "file": "buttons/button_close_pressed.png",
+    "size": "32x32",
+    "source_sheet": "buttons",
+    "components": [
+      15
+    ]
+  },
+  {
+    "file": "buttons/button_close_disabled.png",
+    "size": "32x32",
+    "source_sheet": "buttons",
+    "components": [
+      16
+    ]
+  },
+  {
+    "file": "buttons/tab_inactive.png",
+    "size": "96x32",
+    "source_sheet": "buttons",
+    "components": [
+      17
+    ]
+  },
+  {
+    "file": "buttons/tab_active.png",
+    "size": "96x32",
+    "source_sheet": "buttons",
+    "components": [
+      18
+    ]
+  },
+  {
+    "file": "menu/logo_frame.png",
+    "size": "320x96",
+    "source_sheet": "menu",
+    "components": [
+      1
+    ]
+  },
+  {
+    "file": "menu/panel_menu_options.png",
+    "size": "256x224",
+    "source_sheet": "menu",
+    "components": [
+      2
+    ]
+  },
+  {
+    "file": "menu/save_slot_empty.png",
+    "size": "320x88",
+    "source_sheet": "menu",
+    "components": [
+      3
+    ]
+  },
+  {
+    "file": "menu/save_slot_filled.png",
+    "size": "320x88",
+    "source_sheet": "menu",
+    "components": [
+      4
+    ]
+  },
+  {
+    "file": "menu/save_slot_selected.png",
+    "size": "320x88",
+    "source_sheet": "menu",
+    "components": [
+      5
+    ]
+  },
+  {
+    "file": "menu/confirmation_box.png",
+    "size": "320x120",
+    "source_sheet": "menu",
+    "components": [
+      6
+    ]
+  },
+  {
+    "file": "menu/credits_panel.png",
+    "size": "320x240",
+    "source_sheet": "menu",
+    "components": [
+      7
+    ]
+  },
+  {
+    "file": "hud/health_bar_frame.png",
+    "size": "192x24",
+    "source_sheet": "hud",
+    "components": [
+      1
+    ]
+  },
+  {
+    "file": "hud/health_bar_fill.png",
+    "size": "176x12",
+    "source_sheet": "hud",
+    "components": [
+      2
+    ]
+  },
+  {
+    "file": "hud/xp_bar_frame.png",
+    "size": "192x20",
+    "source_sheet": "hud",
+    "components": [
+      3
+    ]
+  },
+  {
+    "file": "hud/xp_bar_fill.png",
+    "size": "176x10",
+    "source_sheet": "hud",
+    "components": [
+      4
+    ]
+  },
+  {
+    "file": "hud/hotbar_frame.png",
+    "size": "520x72",
+    "source_sheet": "hud",
+    "components": [
+      5
+    ]
+  },
+  {
+    "file": "hud/portrait_frame.png",
+    "size": "64x64",
+    "source_sheet": "hud",
+    "components": [
+      6
+    ]
+  },
+  {
+    "file": "hud/hotbar_slot_selected.png",
+    "size": "56x56",
+    "source_sheet": "hud",
+    "components": [
+      7
+    ]
+  },
+  {
+    "file": "hud/hotbar_slot_empty.png",
+    "size": "56x56",
+    "source_sheet": "hud",
+    "components": [
+      8
+    ]
+  },
+  {
+    "file": "hud/hotbar_slot_cooldown.png",
+    "size": "56x56",
+    "source_sheet": "hud",
+    "components": [
+      9
+    ]
+  },
+  {
+    "file": "hud/name_level_plate.png",
+    "size": "128x24",
+    "source_sheet": "hud",
+    "components": [
+      10
+    ]
+  },
+  {
+    "file": "inventory/inventory_window.png",
+    "size": "320x240",
+    "source_sheet": "inventory",
+    "components": [
+      1
+    ]
+  },
+  {
+    "file": "inventory/crafting_window.png",
+    "size": "320x240",
+    "source_sheet": "inventory",
+    "components": [
+      2
+    ]
+  },
+  {
+    "file": "inventory/equipment_slot.png",
+    "size": "64x64",
+    "source_sheet": "inventory",
+    "components": [
+      3
+    ]
+  },
+  {
+    "file": "inventory/item_slot_selected.png",
+    "size": "64x64",
+    "source_sheet": "inventory",
+    "components": [
+      4
+    ]
+  },
+  {
+    "file": "inventory/item_slot_hover.png",
+    "size": "64x64",
+    "source_sheet": "inventory",
+    "components": [
+      5
+    ]
+  },
+  {
+    "file": "inventory/item_slot_normal.png",
+    "size": "64x64",
+    "source_sheet": "inventory",
+    "components": [
+      6
+    ]
+  },
+  {
+    "file": "inventory/item_slot_blocked.png",
+    "size": "64x64",
+    "source_sheet": "inventory",
+    "components": [
+      7
+    ]
+  },
+  {
+    "file": "inventory/tooltip_bg.png",
+    "size": "192x96",
+    "source_sheet": "inventory",
+    "components": [
+      8
+    ]
+  },
+  {
+    "file": "inventory/quantity_badge.png",
+    "size": "20x20",
+    "source_sheet": "inventory",
+    "components": [
+      9
+    ]
+  },
+  {
+    "file": "inventory/category_tab_active.png",
+    "size": "32x32",
+    "source_sheet": "inventory",
+    "components": [
+      10
+    ]
+  },
+  {
+    "file": "inventory/category_tab_inactive.png",
+    "size": "32x32",
+    "source_sheet": "inventory",
+    "components": [
+      11
+    ]
+  },
+  {
+    "file": "inventory/drag_highlight.png",
+    "size": "64x64",
+    "source_sheet": "inventory",
+    "components": [
+      12,
+      13,
+      14,
+      17,
+      18,
+      19,
+      20,
+      21
+    ]
+  },
+  {
+    "file": "inventory/durability_bar_frame.png",
+    "size": "160x24",
+    "source_sheet": "inventory",
+    "components": [
+      15
+    ]
+  },
+  {
+    "file": "inventory/durability_bar_fill.png",
+    "size": "160x24",
+    "source_sheet": "inventory",
+    "components": [
+      16
+    ]
+  },
+  {
+    "file": "inventory/weight_bar_frame.png",
+    "size": "160x24",
+    "source_sheet": "inventory",
+    "components": [
+      22
+    ]
+  },
+  {
+    "file": "inventory/weight_bar_fill.png",
+    "size": "160x24",
+    "source_sheet": "inventory",
+    "components": [
+      23
+    ]
+  },
+  {
+    "file": "settings/checkbox_off.png",
+    "size": "24x24",
+    "source_sheet": "settings",
+    "components": [
+      1
+    ]
+  },
+  {
+    "file": "settings/checkbox_on.png",
+    "size": "24x24",
+    "source_sheet": "settings",
+    "components": [
+      2
+    ]
+  },
+  {
+    "file": "settings/toggle_off.png",
+    "size": "48x24",
+    "source_sheet": "settings",
+    "components": [
+      3
+    ]
+  },
+  {
+    "file": "settings/toggle_on.png",
+    "size": "48x24",
+    "source_sheet": "settings",
+    "components": [
+      4
+    ]
+  },
+  {
+    "file": "settings/slider_track.png",
+    "size": "160x24",
+    "source_sheet": "settings",
+    "components": [
+      5
+    ]
+  },
+  {
+    "file": "settings/slider_knob.png",
+    "size": "24x24",
+    "source_sheet": "settings",
+    "components": [
+      6
+    ]
+  },
+  {
+    "file": "settings/dropdown_closed.png",
+    "size": "160x32",
+    "source_sheet": "settings",
+    "components": [
+      7
+    ]
+  },
+  {
+    "file": "settings/dropdown_open.png",
+    "size": "160x32",
+    "source_sheet": "settings",
+    "components": [
+      8
+    ]
+  },
+  {
+    "file": "settings/scrollbar_bg.png",
+    "size": "16x128",
+    "source_sheet": "settings",
+    "components": [
+      9
+    ]
+  },
+  {
+    "file": "settings/scrollbar_thumb.png",
+    "size": "16x40",
+    "source_sheet": "settings",
+    "components": [
+      10
+    ]
+  },
+  {
+    "file": "settings/resolution_selector.png",
+    "size": "160x32",
+    "source_sheet": "settings",
+    "components": [
+      11
+    ]
+  },
+  {
+    "file": "misc/nameplate_bg.png",
+    "size": "128x28",
+    "source_sheet": "misc",
+    "components": [
+      2
+    ]
+  },
+  {
+    "file": "misc/toast_bg.png",
+    "size": "198x40",
+    "source_sheet": "misc",
+    "components": [
+      1
+    ]
+  },
+  {
+    "file": "misc/tutorial_panel.png",
+    "size": "224x96",
+    "source_sheet": "misc",
+    "components": [
+      4
+    ]
+  },
+  {
+    "file": "misc/dialog_box.png",
+    "size": "320x120",
+    "source_sheet": "misc",
+    "components": [
+      3
+    ]
+  },
+  {
+    "file": "misc/ui_cursor.png",
+    "size": "24x24",
+    "source_sheet": "misc",
+    "components": [
+      5
+    ]
+  },
+  {
+    "file": "misc/icon_locked.png",
+    "size": "24x24",
+    "source_sheet": "misc",
+    "components": [
+      6
+    ]
+  },
+  {
+    "file": "misc/icon_warning.png",
+    "size": "24x24",
+    "source_sheet": "misc",
+    "components": [
+      7
+    ]
+  },
+  {
+    "file": "misc/icon_info.png",
+    "size": "24x24",
+    "source_sheet": "misc",
+    "components": [
+      8
+    ]
+  },
+  {
+    "file": "misc/divider_ornament.png",
+    "size": "224x16",
+    "source_sheet": "misc",
+    "components": [
+      9
+    ]
+  },
+  {
+    "file": "misc/damage_feedback_bg.png",
+    "size": "128x40",
+    "source_sheet": "misc",
+    "components": [
+      10
+    ]
+  }
+]
