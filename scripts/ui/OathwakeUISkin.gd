@@ -10,8 +10,7 @@ static var _fallback_texture_cache: Dictionary = {}
 static func apply_panel(control: Control, skin_key := "panel") -> void:
 	if control == null:
 		return
-	var stylebox := _make_stylebox(str(skin_key))
-	control.add_theme_stylebox_override("panel", stylebox)
+	control.add_theme_stylebox_override("panel", _make_stylebox(str(skin_key)))
 
 
 static func apply_button(button: Button, size_key := "large") -> void:
@@ -47,6 +46,10 @@ static func apply_slot_button(button: Button, variant := "empty") -> void:
 	button.add_theme_stylebox_override("disabled", disabled if disabled != null else normal)
 
 
+static func apply_hotbar_slot_button(button: Button, variant := "empty") -> void:
+	apply_slot_button(button, "hotbar_%s" % str(variant))
+
+
 static func apply_tooltip(control: Control) -> void:
 	apply_panel(control, "tooltip")
 
@@ -56,7 +59,9 @@ static func apply_dialog(control: Control) -> void:
 
 
 static func apply_inventory_panel(control: Control) -> void:
-	apply_panel(control, "inventory_window")
+	# The inventory_window asset already contains a decorative grid.
+	# Dynamic inventory UI should use a clean frame and draw slots separately.
+	apply_panel(control, "panel")
 
 
 static func apply_hotbar_panel(control: Control) -> void:
@@ -146,7 +151,7 @@ static func _make_fallback_stylebox(key: String) -> StyleBoxFlat:
 	var stylebox := StyleBoxFlat.new()
 	var lowered := key.to_lower()
 	var is_button := lowered.begins_with("button_")
-	var is_slot := lowered.begins_with("item_slot_") or lowered.begins_with("save_slot_")
+	var is_slot := lowered.begins_with("item_slot_") or lowered.begins_with("save_slot_") or lowered.begins_with("hotbar_slot_")
 	var is_tooltip := lowered == "tooltip"
 	var is_dialog := lowered == "dialog" or lowered == "confirmation_box"
 	var is_hotbar := lowered == "hotbar_frame"
@@ -293,6 +298,18 @@ static func _resolve_slot_style_keys(variant: String) -> Dictionary:
 			"hover": save_hover,
 			"pressed": save_pressed,
 			"disabled": save_disabled,
+		}
+
+	if lowered.begins_with("hotbar_"):
+		var hotbar_state := lowered.substr(7, lowered.length() - 7)
+		var hotbar_normal := "hotbar_slot_selected" if hotbar_state == "selected" else "hotbar_slot_empty"
+		var hotbar_hover := "hotbar_slot_selected"
+		var hotbar_pressed := "hotbar_slot_selected"
+		return {
+			"normal": hotbar_normal,
+			"hover": hotbar_hover,
+			"pressed": hotbar_pressed,
+			"disabled": hotbar_normal,
 		}
 
 	match lowered:
