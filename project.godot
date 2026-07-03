@@ -16,19 +16,18 @@ config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 config/main_scene="res://scenes/ui/IntroScreen.tscn"
 
+[autoload]
+
+ContentDB="*res://scripts/systems/ContentDB.gd"
+SaveSlotManager="*res://scripts/systems/SaveSlotManager.gd"
+SettingsManager="*res://scripts/systems/SettingsManager.gd"
+
 [display]
 
 window/size/viewport_width=1600
 window/size/viewport_height=900
 window/size/window_width_override=1600
 window/size/window_height_override=900
-window/size/mode=0
-
-[autoload]
-
-ContentDB="*res://scripts/systems/ContentDB.gd"
-SaveSlotManager="*res://scripts/systems/SaveSlotManager.gd"
-SettingsManager="*res://scripts/systems/SettingsManager.gd"
 
 [physics]
 
