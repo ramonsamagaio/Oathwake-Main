@@ -224,10 +224,10 @@ func _build_ui() -> void:
 	drag_handle.anchor_top = 0.0
 	drag_handle.anchor_right = 1.0
 	drag_handle.anchor_bottom = 0.0
-	drag_handle.offset_left = 22.0
-	drag_handle.offset_top = 86.0
-	drag_handle.offset_right = -22.0
-	drag_handle.offset_bottom = 132.0
+	drag_handle.offset_left = 34.0
+	drag_handle.offset_top = 18.0
+	drag_handle.offset_right = -34.0
+	drag_handle.offset_bottom = 62.0
 	drag_handle.gui_input.connect(_on_window_drag_handle_gui_input)
 	_window_panel.add_child(drag_handle)
 	_window_panel.move_child(drag_handle, _window_panel.get_child_count() - 1)
