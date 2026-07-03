@@ -81,7 +81,7 @@ func _build_ui() -> void:
 	panel.offset_right = 350.0
 	panel.offset_bottom = -18.0
 	add_child(panel)
-	OathwakeUISkin.apply_panel(panel)
+	OathwakeUISkin.apply_hotbar_panel(panel)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 8)
@@ -102,7 +102,7 @@ func _build_ui() -> void:
 		button.pressed.connect(select_slot.bind(index))
 		row.add_child(button)
 		slots.append(button)
-		OathwakeUISkin.apply_slot_button(button)
+		OathwakeUISkin.apply_hotbar_slot_button(button, "empty")
 
 
 func _setup_empty_slot(slot: Button, index: int) -> void:
@@ -128,8 +128,10 @@ func _update_selection() -> void:
 	for index in range(slots.size()):
 		var slot: Button = slots[index]
 		if index == selected_slot:
+			OathwakeUISkin.apply_hotbar_slot_button(slot, "selected")
 			slot.add_theme_color_override("font_color", Color(1.0, 0.92, 0.45, 1.0))
 		else:
+			OathwakeUISkin.apply_hotbar_slot_button(slot, "empty")
 			slot.remove_theme_color_override("font_color")
 
 
