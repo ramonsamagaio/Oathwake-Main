@@ -77,9 +77,9 @@ func _build_ui() -> void:
 	panel.anchor_right = 0.5
 	panel.anchor_bottom = 1.0
 	panel.offset_left = -350.0
-	panel.offset_top = -86.0
+	panel.offset_top = -112.0
 	panel.offset_right = 350.0
-	panel.offset_bottom = -18.0
+	panel.offset_bottom = -44.0
 	add_child(panel)
 	OathwakeUISkin.apply_hotbar_panel(panel)
 
