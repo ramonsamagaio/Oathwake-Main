@@ -1,5 +1,8 @@
 extends Button
 
+const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
+const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
+
 signal equip_selected(slot_id: String)
 signal equip_right_clicked(slot_id: String)
 signal equip_drag_dropped(slot_id: String, from_slot_index: int, from_inventory_id: String)
@@ -20,6 +23,9 @@ func setup(new_slot_id: String, equip_data: Dictionary) -> void:
 
 
 func _update_display() -> void:
+	custom_minimum_size = Vector2(150, 52)
+	focus_mode = Control.FOCUS_NONE
+	OathwakeTextStyle.apply_profile_to_control(self, "base_ui")
 	if item_id.is_empty() or amount <= 0:
 		text = "[ %s ]" % slot_id.capitalize()
 		icon = null
@@ -102,6 +108,8 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	preview.expand_icon = true
 	preview.custom_minimum_size = Vector2(56, 48)
 	preview.disabled = true
+	OathwakeUISkin.apply_slot_button(preview, "selected")
+	OathwakeTextStyle.apply_profile_to_control(preview, "base_ui")
 	set_drag_preview(preview)
 	return {
 		"type": "equipment_slot",
@@ -219,6 +227,4 @@ func _apply_slot_style() -> void:
 		add_theme_stylebox_override("pressed", broken_style)
 		return
 
-	remove_theme_stylebox_override("normal")
-	remove_theme_stylebox_override("hover")
-	remove_theme_stylebox_override("pressed")
+	OathwakeUISkin.apply_slot_button(self, "empty")
