@@ -14,6 +14,7 @@ static func apply_element_to_control(control: Control, layout: Dictionary, eleme
 	_apply_visibility(control, element)
 	_apply_anchor(control, str(element.get("anchor", "top_left")))
 	_apply_offsets(control, element)
+	control.z_index = int(element.get("z_index", 0))
 
 
 static func apply_element_to_local_control(control: Control, layout: Dictionary, element_id: String) -> void:
@@ -27,6 +28,7 @@ static func apply_element_to_local_control(control: Control, layout: Dictionary,
 	_apply_visibility(control, element)
 	control.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_apply_offsets(control, element)
+	control.z_index = int(element.get("z_index", 0))
 
 
 static func get_element_rect(layout: Dictionary, element_id: String) -> Rect2:
