@@ -1,0 +1,97 @@
+{
+	"version": 1,
+	"canvas": {
+		"width": 1600,
+		"height": 900
+	},
+	"elements": {
+		"inventory.window": {
+			"label": "Inventory Window",
+			"type": "window",
+			"anchor": "center",
+			"x": -340,
+			"y": -310,
+			"width": 680,
+			"height": 560,
+			"visible": true,
+			"locked": false
+		},
+		"inventory.drag_handle": {
+			"label": "Inventory Drag Handle",
+			"type": "interaction",
+			"parent": "inventory.window",
+			"x": 34,
+			"y": 18,
+			"width": 612,
+			"height": 44,
+			"visible": true,
+			"locked": false
+		},
+		"hotbar.panel": {
+			"label": "Hotbar",
+			"type": "hud",
+			"anchor": "bottom_center",
+			"x": -350,
+			"y": -120,
+			"width": 700,
+			"height": 68,
+			"visible": true,
+			"locked": false
+		},
+		"hud.status_panel": {
+			"label": "HUD Status Panel",
+			"type": "hud",
+			"anchor": "top_left",
+			"x": 20,
+			"y": 20,
+			"width": 380,
+			"height": 170,
+			"visible": true,
+			"locked": false
+		},
+		"hud.health_bar": {
+			"label": "Health Bar",
+			"type": "hud_child",
+			"parent": "hud.status_panel",
+			"x": 18,
+			"y": 54,
+			"width": 240,
+			"height": 22,
+			"visible": true,
+			"locked": false
+		},
+		"hud.xp_bar": {
+			"label": "XP Bar",
+			"type": "hud_child",
+			"parent": "hud.status_panel",
+			"x": 18,
+			"y": 86,
+			"width": 240,
+			"height": 18,
+			"visible": true,
+			"locked": false
+		},
+		"hud.alignment_flame": {
+			"label": "Alignment Flame",
+			"type": "hud_child",
+			"parent": "hud.status_panel",
+			"x": 300,
+			"y": 42,
+			"width": 48,
+			"height": 64,
+			"visible": true,
+			"locked": false
+		},
+		"hud.minimap": {
+			"label": "Minimap Placeholder",
+			"type": "hud",
+			"anchor": "top_right",
+			"x": -260,
+			"y": 20,
+			"width": 240,
+			"height": 180,
+			"visible": true,
+			"locked": false
+		}
+	}
+}

@@ -1,6 +1,8 @@
 extends Control
 
 const SpriteResolver = preload("res://scripts/systems/SpriteResolver.gd")
+const UILayoutConfig = preload("res://scripts/ui/UILayoutConfig.gd")
+const UILayoutApplier = preload("res://scripts/ui/UILayoutApplier.gd")
 const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 
 @export var slot_count: int = 10
@@ -70,6 +72,8 @@ func refresh() -> void:
 
 
 func _build_ui() -> void:
+	var layout := UILayoutConfig.load_layout()
+
 	var panel := PanelContainer.new()
 	panel.name = "HotbarPanel"
 	panel.anchor_left = 0.5
@@ -82,6 +86,7 @@ func _build_ui() -> void:
 	panel.offset_bottom = -76.0
 	add_child(panel)
 	OathwakeUISkin.apply_hotbar_panel(panel)
+	UILayoutApplier.apply_element_to_control(panel, layout, "hotbar.panel")
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 8)

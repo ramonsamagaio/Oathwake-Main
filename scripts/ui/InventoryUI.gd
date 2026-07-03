@@ -4,6 +4,8 @@ const InventorySlotScene = preload("res://scenes/ui/InventorySlot.tscn")
 const EquipmentSlotScene = preload("res://scenes/ui/EquipmentSlot.tscn")
 const SpriteResolver = preload("res://scripts/systems/SpriteResolver.gd")
 const TrashSlotScript = preload("res://scripts/ui/TrashSlot.gd")
+const UILayoutConfig = preload("res://scripts/ui/UILayoutConfig.gd")
+const UILayoutApplier = preload("res://scripts/ui/UILayoutApplier.gd")
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 
@@ -72,6 +74,8 @@ func refresh() -> void:
 
 
 func _build_ui() -> void:
+	var layout := UILayoutConfig.load_layout()
+
 	_window_panel = Panel.new()
 	_window_panel.name = "Panel"
 	_window_panel.anchor_left = 0.5
@@ -85,6 +89,7 @@ func _build_ui() -> void:
 	_window_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_window_panel)
 	OathwakeUISkin.apply_panel(_window_panel, "panel")
+	UILayoutApplier.apply_element_to_control(_window_panel, layout, "inventory.window")
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -231,6 +236,7 @@ func _build_ui() -> void:
 	drag_handle.gui_input.connect(_on_window_drag_handle_gui_input)
 	_window_panel.add_child(drag_handle)
 	_window_panel.move_child(drag_handle, _window_panel.get_child_count() - 1)
+	UILayoutApplier.apply_element_to_local_control(drag_handle, layout, "inventory.drag_handle")
 
 	_apply_inventory_ui_fonts()
 
