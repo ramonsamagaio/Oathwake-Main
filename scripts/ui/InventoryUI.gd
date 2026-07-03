@@ -79,9 +79,9 @@ func _build_ui() -> void:
 	_window_panel.anchor_right = 0.5
 	_window_panel.anchor_bottom = 0.5
 	_window_panel.offset_left = -340.0
-	_window_panel.offset_top = -285.0
+	_window_panel.offset_top = -310.0
 	_window_panel.offset_right = 340.0
-	_window_panel.offset_bottom = 185.0
+	_window_panel.offset_bottom = 250.0
 	_window_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_window_panel)
 	OathwakeUISkin.apply_panel(_window_panel, "panel")
@@ -89,20 +89,21 @@ func _build_ui() -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	margin.offset_left = 34.0
-	margin.offset_top = 44.0
+	margin.offset_top = 64.0
 	margin.offset_right = -34.0
-	margin.offset_bottom = -26.0
+	margin.offset_bottom = -34.0
 	_window_panel.add_child(margin)
 
 	var layout := VBoxContainer.new()
 	layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	layout.add_theme_constant_override("separation", 8)
+	layout.add_theme_constant_override("separation", 7)
 	margin.add_child(layout)
 
 	var title := Label.new()
 	title.text = "Inventory"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layout.add_child(title)
 	OathwakeTextStyle.apply_profile_to_label(title, "ui_title")
 
@@ -116,7 +117,7 @@ func _build_ui() -> void:
 	left_side.custom_minimum_size = Vector2(370, 0)
 	left_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	left_side.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left_side.add_theme_constant_override("separation", 8)
+	left_side.add_theme_constant_override("separation", 7)
 	main_area.add_child(left_side)
 
 	var controls := HBoxContainer.new()
@@ -124,14 +125,9 @@ func _build_ui() -> void:
 	controls.add_theme_constant_override("separation", 14)
 	left_side.add_child(controls)
 
-	var sort_button := _make_inventory_button("Sort", _on_sort_inventory_pressed)
-	controls.add_child(sort_button)
-
-	var split_button := _make_inventory_button("Split", _on_split_half_pressed)
-	controls.add_child(split_button)
-
-	var drop_stack_button := _make_inventory_button("Drop", _on_drop_stack_pressed)
-	controls.add_child(drop_stack_button)
+	controls.add_child(_make_inventory_button("Sort", _on_sort_inventory_pressed))
+	controls.add_child(_make_inventory_button("Split", _on_split_half_pressed))
+	controls.add_child(_make_inventory_button("Drop", _on_drop_stack_pressed))
 
 	grid = GridContainer.new()
 	grid.columns = columns
@@ -142,6 +138,7 @@ func _build_ui() -> void:
 
 	for _index in range(slot_count):
 		var slot = InventorySlotScene.instantiate()
+		slot.custom_minimum_size = Vector2(58, 58)
 		slot.slot_selected.connect(_on_slot_selected)
 		slot.slot_right_clicked.connect(_on_slot_right_clicked)
 		slot.slot_drag_dropped.connect(_on_slot_drag_dropped)
@@ -152,9 +149,9 @@ func _build_ui() -> void:
 		OathwakeUISkin.apply_slot_button(slot, "empty")
 
 	var bottom_row := HBoxContainer.new()
-	bottom_row.custom_minimum_size = Vector2(0, 76)
+	bottom_row.custom_minimum_size = Vector2(0, 96)
 	bottom_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bottom_row.add_theme_constant_override("separation", 8)
+	bottom_row.add_theme_constant_override("separation", 10)
 	left_side.add_child(bottom_row)
 
 	var trash := _make_trash_slot()
@@ -162,7 +159,7 @@ func _build_ui() -> void:
 	bottom_row.add_child(trash)
 
 	var details_panel := PanelContainer.new()
-	details_panel.custom_minimum_size = Vector2(0, 74)
+	details_panel.custom_minimum_size = Vector2(0, 96)
 	details_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	OathwakeUISkin.apply_tooltip(details_panel)
 	bottom_row.add_child(details_panel)
@@ -174,17 +171,13 @@ func _build_ui() -> void:
 	details_margin.add_theme_constant_override("margin_bottom", 8)
 	details_panel.add_child(details_margin)
 
-	var details_scroll := ScrollContainer.new()
-	details_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	details_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	details_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	details_margin.add_child(details_scroll)
-
 	details_label = Label.new()
 	details_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	details_label.clip_text = true
 	details_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	details_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	details_label.text = "Select an item."
-	details_scroll.add_child(details_label)
+	details_margin.add_child(details_label)
 
 	var eq_panel := VBoxContainer.new()
 	eq_panel.custom_minimum_size = Vector2(160, 0)
@@ -196,6 +189,7 @@ func _build_ui() -> void:
 	var eq_title := Label.new()
 	eq_title.text = "Equipment"
 	eq_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	eq_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	eq_panel.add_child(eq_title)
 	OathwakeTextStyle.apply_profile_to_label(eq_title, "ui_title")
 
@@ -208,6 +202,7 @@ func _build_ui() -> void:
 		var slot_label := Label.new()
 		slot_label.text = slot_id.capitalize()
 		slot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		slot_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		eq_slots_vbox.add_child(slot_label)
 		OathwakeTextStyle.apply_profile_to_label(slot_label, "base_ui")
 
@@ -229,12 +224,13 @@ func _build_ui() -> void:
 	drag_handle.anchor_top = 0.0
 	drag_handle.anchor_right = 1.0
 	drag_handle.anchor_bottom = 0.0
-	drag_handle.offset_left = 10.0
-	drag_handle.offset_top = 0.0
-	drag_handle.offset_right = -10.0
-	drag_handle.offset_bottom = 42.0
+	drag_handle.offset_left = 22.0
+	drag_handle.offset_top = 86.0
+	drag_handle.offset_right = -22.0
+	drag_handle.offset_bottom = 132.0
 	drag_handle.gui_input.connect(_on_window_drag_handle_gui_input)
 	_window_panel.add_child(drag_handle)
+	_window_panel.move_child(drag_handle, _window_panel.get_child_count() - 1)
 
 	_apply_inventory_ui_fonts()
 
@@ -242,7 +238,7 @@ func _build_ui() -> void:
 func _make_inventory_button(text_value: String, callback: Callable) -> Button:
 	var button := Button.new()
 	button.text = text_value
-	button.custom_minimum_size = Vector2(74, 40)
+	button.custom_minimum_size = Vector2(74, 38)
 	button.focus_mode = Control.FOCUS_NONE
 	button.pressed.connect(callback)
 	OathwakeUISkin.apply_button(button, "medium")
@@ -448,34 +444,22 @@ func _on_equipment_drag_dropped_to_inventory(from_slot_id: String, _to_slot_inde
 func _get_equip_details_text(item_id: String, quantity: int, slot_id: String, item_data: Dictionary, metadata: Dictionary) -> String:
 	var lines := [
 		str(item_data.get("display_name", item_id.capitalize())),
-		"ID: %s" % item_id,
 		"Slot: %s" % slot_id.capitalize(),
+		"Type: %s | Tier: %s" % [str(item_data.get("item_type", "N/A")), str(item_data.get("tier", "N/A"))],
 	]
 	if quantity > 0:
 		lines.append("Amount: %d" % quantity)
-	lines.append("Type: %s" % str(item_data.get("item_type", "N/A")))
-	lines.append("Tier: %s" % str(item_data.get("tier", "N/A")))
-	var description := str(item_data.get("description", ""))
-	if not description.is_empty():
-		lines.append(description)
 	if item_data.has("durability"):
 		var max_dura := float(item_data.get("durability", 0.0))
 		var current_dura := float(metadata.get("current_durability", max_dura))
 		lines.append("Durability: %.0f / %.0f" % [current_dura, max_dura])
 	if str(item_data.get("item_type", "")) == "tool":
-		lines.append("Tool: %s T%s" % [str(item_data.get("tool_type", "N/A")), str(item_data.get("tool_tier", "N/A"))])
-		lines.append("Damage: %s" % str(item_data.get("tool_damage", "N/A")))
+		lines.append("Tool: %s T%s | Damage: %s" % [str(item_data.get("tool_type", "N/A")), str(item_data.get("tool_tier", "N/A")), str(item_data.get("tool_damage", "N/A"))])
 	var combat_value: Variant = item_data.get("combat", {})
 	if combat_value is Dictionary:
 		var combat: Dictionary = combat_value
-		lines.append("Attack: %s" % str(combat.get("attack_power", "N/A")))
-		lines.append("Damage Type: %s" % str(combat.get("damage_type", "N/A")))
-		lines.append("Crit Bonus: %s" % str(combat.get("crit_chance_bonus", "N/A")))
-	var stats_bonus: Variant = item_data.get("stats_bonus", {})
-	if stats_bonus is Dictionary:
-		for stat in stats_bonus.keys():
-			lines.append("+%s %s" % [str(stats_bonus[stat]), stat.capitalize()])
-	return "\n".join(lines)
+		lines.append("Attack: %s | %s" % [str(combat.get("attack_power", "N/A")), str(combat.get("damage_type", "N/A"))])
+	return "\n".join(lines.slice(0, 6))
 
 
 func _on_sort_inventory_pressed() -> void:
@@ -558,7 +542,7 @@ func _make_trash_slot() -> ColorRect:
 	var trash := TrashSlotScript.new()
 	trash.name = "TrashSlot"
 	trash.color = Color(0.35, 0.06, 0.07, 0.65)
-	trash.custom_minimum_size = Vector2(54, 54)
+	trash.custom_minimum_size = Vector2(56, 56)
 	trash.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	trash.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var label := Label.new()
@@ -642,36 +626,25 @@ func _get_item_details_text(item_id: String, quantity: int, slot_index: int) -> 
 	var metadata: Dictionary = raw_metadata if raw_metadata is Dictionary else {}
 	var lines := [
 		str(item_data.get("display_name", item_id.capitalize())),
-		"ID: %s" % item_id,
-		"Slot: %d" % (slot_index + 1),
-		"Amount: %d" % quantity,
-		"Stack: %d" % int(item_data.get("stack_size", 99)),
-		"Tier: %s" % str(item_data.get("tier", "N/A")),
-		"Type: %s" % str(item_data.get("item_type", "N/A")),
-		"Family: %s" % str(item_data.get("material_family", "N/A")),
+		"Amount: %d | Stack: %d" % [quantity, int(item_data.get("stack_size", 99))],
+		"Tier: %s | Type: %s" % [str(item_data.get("tier", "N/A")), str(item_data.get("item_type", "N/A"))],
 	]
 
-	var description := str(item_data.get("description", ""))
-	if not description.is_empty():
-		lines.append(description)
+	var family := str(item_data.get("material_family", ""))
+	if not family.is_empty() and family != "N/A":
+		lines.append("Family: %s" % family.capitalize())
 
 	if str(item_data.get("item_type", "")) == "tool":
-		lines.append("Tool: %s T%s" % [str(item_data.get("tool_type", "N/A")), str(item_data.get("tool_tier", "N/A"))])
-		lines.append("Damage: %s" % str(item_data.get("tool_damage", "N/A")))
+		lines.append("Tool: %s T%s | Damage: %s" % [str(item_data.get("tool_type", "N/A")), str(item_data.get("tool_tier", "N/A")), str(item_data.get("tool_damage", "N/A"))])
 
 	var max_dura := int(item_data.get("durability", 0))
 	if max_dura > 0:
 		var current_dura := int(metadata.get("current_durability", max_dura))
-		if current_dura <= 0:
-			lines.append("Durability: BROKEN")
-		else:
-			lines.append("Durability: %d / %d" % [current_dura, max_dura])
+		lines.append("Durability: %s" % ("BROKEN" if current_dura <= 0 else "%d / %d" % [current_dura, max_dura]))
 
 	var combat_value: Variant = item_data.get("combat", {})
 	if combat_value is Dictionary:
 		var combat: Dictionary = combat_value
-		lines.append("Attack: %s" % str(combat.get("attack_power", "N/A")))
-		lines.append("Damage Type: %s" % str(combat.get("damage_type", "N/A")))
-		lines.append("Crit Bonus: %s" % str(combat.get("crit_chance_bonus", "N/A")))
+		lines.append("Attack: %s | %s" % [str(combat.get("attack_power", "N/A")), str(combat.get("damage_type", "N/A"))])
 
-	return "\n".join(lines)
+	return "\n".join(lines.slice(0, 6))
