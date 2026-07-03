@@ -3,6 +3,8 @@ extends Control
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 
+const WINDOW_SIZE := Vector2(1600, 900)
+
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -11,233 +13,109 @@ func _ready() -> void:
 
 func _build_ui() -> void:
 	var backdrop := ColorRect.new()
-	backdrop.color = Color(0.04, 0.05, 0.07, 1.0)
+	backdrop.color = Color(0.035, 0.045, 0.06, 1.0)
 	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(backdrop)
 
-	var scroll := ScrollContainer.new()
-	scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	add_child(scroll)
-
 	var outer_margin := MarginContainer.new()
-	outer_margin.add_theme_constant_override("margin_left", 44)
-	outer_margin.add_theme_constant_override("margin_top", 40)
-	outer_margin.add_theme_constant_override("margin_right", 44)
-	outer_margin.add_theme_constant_override("margin_bottom", 44)
-	scroll.add_child(outer_margin)
+	outer_margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	outer_margin.add_theme_constant_override("margin_left", 36)
+	outer_margin.add_theme_constant_override("margin_top", 24)
+	outer_margin.add_theme_constant_override("margin_right", 36)
+	outer_margin.add_theme_constant_override("margin_bottom", 28)
+	add_child(outer_margin)
 
 	var content := VBoxContainer.new()
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content.add_theme_constant_override("separation", 24)
+	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation", 10)
 	outer_margin.add_child(content)
 
-	var title := Label.new()
-	title.text = "Oathwake UI Playground"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var title := _make_label("Oathwake UI Playground", "ui_title", HORIZONTAL_ALIGNMENT_CENTER)
 	content.add_child(title)
-	OathwakeTextStyle.apply_profile_to_label(title, "ui_title")
 
-	var subtitle := Label.new()
-	subtitle.text = "Static showcase for UI skins, fallback styles, and texture validation."
-	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var subtitle := _make_label("One-screen showcase for skins, slots, bars and texture validation.", "base_ui", HORIZONTAL_ALIGNMENT_CENTER)
 	content.add_child(subtitle)
-	OathwakeTextStyle.apply_profile_to_label(subtitle, "base_ui")
 
 	var columns := HBoxContainer.new()
 	columns.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	columns.add_theme_constant_override("separation", 24)
+	columns.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	columns.add_theme_constant_override("separation", 18)
 	content.add_child(columns)
 
-	var left_column := VBoxContainer.new()
-	left_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left_column.add_theme_constant_override("separation", 24)
-	columns.add_child(left_column)
+	var col_a := _make_column()
+	var col_b := _make_column()
+	var col_c := _make_column()
+	columns.add_child(col_a)
+	columns.add_child(col_b)
+	columns.add_child(col_c)
 
-	var right_column := VBoxContainer.new()
-	right_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right_column.add_theme_constant_override("separation", 24)
-	columns.add_child(right_column)
+	_build_menu_section(col_a)
+	_build_save_slots_section(col_a)
 
-	_build_menu_section(left_column)
-	_build_save_slots_section(left_column)
-	_build_settings_section(left_column)
+	_build_hud_section(col_b)
+	_build_settings_section(col_b)
 
-	_build_hud_section(right_column)
-	_build_inventory_section(right_column)
-	_build_misc_section(right_column)
+	_build_inventory_section(col_c)
+	_build_misc_section(col_c)
+
+
+func _make_column() -> VBoxContainer:
+	var column := VBoxContainer.new()
+	column.custom_minimum_size = Vector2(490, 0)
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 14)
+	return column
 
 
 func _build_menu_section(parent: Container) -> void:
-	var body := _make_section(parent, "Menu Block", "panel_menu", Vector2(680, 400))
+	var body := _make_section(parent, "Menu", Vector2(0, 250))
 
-	var panel_preview := PanelContainer.new()
-	panel_preview.custom_minimum_size = Vector2(0, 210)
-	panel_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	OathwakeUISkin.apply_panel(panel_preview, "panel_menu")
-	body.add_child(panel_preview)
+	var buttons := GridContainer.new()
+	buttons.columns = 2
+	buttons.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	buttons.add_theme_constant_override("h_separation", 10)
+	buttons.add_theme_constant_override("v_separation", 8)
+	body.add_child(buttons)
 
-	var panel_margin := MarginContainer.new()
-	panel_margin.add_theme_constant_override("margin_left", 18)
-	panel_margin.add_theme_constant_override("margin_top", 18)
-	panel_margin.add_theme_constant_override("margin_right", 18)
-	panel_margin.add_theme_constant_override("margin_bottom", 18)
-	panel_preview.add_child(panel_margin)
+	buttons.add_child(_make_preview_button("Normal", "large"))
+	var pressed := _make_preview_button("Pressed", "large")
+	pressed.toggle_mode = true
+	pressed.button_pressed = true
+	buttons.add_child(pressed)
 
-	var button_row := GridContainer.new()
-	button_row.columns = 2
-	button_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button_row.add_theme_constant_override("h_separation", 12)
-	button_row.add_theme_constant_override("v_separation", 12)
-	panel_margin.add_child(button_row)
+	var disabled := _make_preview_button("Disabled", "large")
+	disabled.disabled = true
+	buttons.add_child(disabled)
+	buttons.add_child(_make_preview_button("Medium", "medium"))
 
-	button_row.add_child(_make_preview_button("Normal style", "large"))
-
-	var pressed_button := _make_preview_button("Pressed style test", "large")
-	pressed_button.toggle_mode = true
-	pressed_button.button_pressed = true
-	button_row.add_child(pressed_button)
-
-	var disabled_button := _make_preview_button("Disabled", "large")
-	disabled_button.disabled = true
-	button_row.add_child(disabled_button)
-
-	var medium_button := _make_preview_button("Medium", "medium")
-	button_row.add_child(medium_button)
-
-	var credits_preview := PanelContainer.new()
-	credits_preview.custom_minimum_size = Vector2(0, 92)
-	credits_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	OathwakeUISkin.apply_panel(credits_preview, "panel_credits")
-	body.add_child(credits_preview)
-
-	var credits_margin := MarginContainer.new()
-	credits_margin.add_theme_constant_override("margin_left", 18)
-	credits_margin.add_theme_constant_override("margin_top", 18)
-	credits_margin.add_theme_constant_override("margin_right", 18)
-	credits_margin.add_theme_constant_override("margin_bottom", 18)
-	credits_preview.add_child(credits_margin)
-
-	var credits_label := Label.new()
-	credits_label.text = "Credits panel preview"
-	credits_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	credits_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	credits_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	credits_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	credits_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	credits_margin.add_child(credits_label)
-	OathwakeTextStyle.apply_profile_to_label(credits_label, "base_ui")
+	var menu_options := _make_static_skin_card("Menu options texture", "res://assets/ui/menu/panel_menu_options.png", Vector2(210, 120))
+	body.add_child(menu_options)
 
 
 func _build_save_slots_section(parent: Container) -> void:
-	var body := _make_section(parent, "Save Slots", "panel", Vector2(680, 340))
-
+	var body := _make_section(parent, "Save Slots", Vector2(0, 250))
 	var row := VBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_theme_constant_override("separation", 14)
+	row.add_theme_constant_override("separation", 8)
 	body.add_child(row)
 
-	row.add_child(_make_save_slot_button("Slot 1\nEmpty", "save_empty"))
-	row.add_child(_make_save_slot_button("Slot 2\nLV 3 | Day 5", "save_filled"))
-	row.add_child(_make_save_slot_button("Slot 3\nSelected", "save_selected"))
-
-
-func _build_settings_section(parent: Container) -> void:
-	var body := _make_section(parent, "Settings", "panel", Vector2(680, 280))
-
-	var checkbox_row := HBoxContainer.new()
-	checkbox_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	checkbox_row.add_theme_constant_override("separation", 18)
-	body.add_child(checkbox_row)
-
-	checkbox_row.add_child(_make_icon_sample("Checkbox Off", "res://assets/ui/settings/checkbox_off.png"))
-	checkbox_row.add_child(_make_icon_sample("Checkbox On", "res://assets/ui/settings/checkbox_on.png"))
-
-	var slider_title := Label.new()
-	slider_title.text = "Slider track + knob"
-	body.add_child(slider_title)
-	OathwakeTextStyle.apply_profile_to_label(slider_title, "base_ui")
-
-	var slider_wrap := Control.new()
-	slider_wrap.custom_minimum_size = Vector2(0, 48)
-	slider_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	body.add_child(slider_wrap)
-
-	var slider_track := OathwakeUISkin.make_texture_rect("res://assets/ui/settings/slider_track.png", TextureRect.STRETCH_SCALE)
-	slider_track.anchor_left = 0.0
-	slider_track.anchor_top = 0.5
-	slider_track.anchor_right = 1.0
-	slider_track.anchor_bottom = 0.5
-	slider_track.offset_left = 0.0
-	slider_track.offset_top = -12.0
-	slider_track.offset_right = 0.0
-	slider_track.offset_bottom = 12.0
-	slider_wrap.add_child(slider_track)
-
-	var slider_knob := OathwakeUISkin.make_texture_rect("res://assets/ui/settings/slider_knob.png", TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
-	slider_knob.custom_minimum_size = Vector2(24, 24)
-	slider_knob.anchor_left = 0.5
-	slider_knob.anchor_top = 0.5
-	slider_knob.anchor_right = 0.5
-	slider_knob.anchor_bottom = 0.5
-	slider_knob.offset_left = -12.0
-	slider_knob.offset_top = -12.0
-	slider_knob.offset_right = 12.0
-	slider_knob.offset_bottom = 12.0
-	slider_wrap.add_child(slider_knob)
-
-	var medium_row := HBoxContainer.new()
-	medium_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	medium_row.add_theme_constant_override("separation", 12)
-	body.add_child(medium_row)
-
-	var apply_button := _make_preview_button("Apply", "medium")
-	medium_row.add_child(apply_button)
-
-	var reset_button := _make_preview_button("Reset", "medium")
-	reset_button.disabled = true
-	medium_row.add_child(reset_button)
+	row.add_child(_make_save_slot_button("Slot 1 | Empty", "save_empty"))
+	row.add_child(_make_save_slot_button("Slot 2 | LV 3 | Day 5", "save_filled"))
+	row.add_child(_make_save_slot_button("Slot 3 | Selected", "save_selected"))
 
 
 func _build_hud_section(parent: Container) -> void:
-	var body := _make_section(parent, "HUD", "panel", Vector2(680, 280))
-
-	var health_label := Label.new()
-	health_label.text = "Health bar example"
-	body.add_child(health_label)
-	OathwakeTextStyle.apply_profile_to_label(health_label, "base_ui")
-
-	var health_bar := TextureProgressBar.new()
-	health_bar.custom_minimum_size = Vector2(320, 28)
-	health_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	health_bar.max_value = 100.0
-	health_bar.value = 70.0
-	health_bar.texture_under = _skin_texture("health_bar_frame")
-	health_bar.texture_progress = _skin_texture("health_bar_fill")
-	body.add_child(health_bar)
-
-	var xp_label := Label.new()
-	xp_label.text = "XP bar example"
-	body.add_child(xp_label)
-	OathwakeTextStyle.apply_profile_to_label(xp_label, "base_ui")
-
-	var xp_bar := TextureProgressBar.new()
-	xp_bar.custom_minimum_size = Vector2(320, 24)
-	xp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	xp_bar.max_value = 100.0
-	xp_bar.value = 40.0
-	xp_bar.texture_under = _skin_texture("xp_bar_frame")
-	xp_bar.texture_progress = _skin_texture("xp_bar_fill")
-	body.add_child(xp_bar)
-
-	var hotbar_label := Label.new()
-	hotbar_label.text = "Hotbar frame + 8 slots"
-	body.add_child(hotbar_label)
-	OathwakeTextStyle.apply_profile_to_label(hotbar_label, "base_ui")
+	var body := _make_section(parent, "HUD", Vector2(0, 310))
+	body.add_child(_make_label("Health", "base_ui"))
+	body.add_child(_make_texture_bar("health_bar_frame", "health_bar_fill", 0.70, Vector2(320, 28)))
+	body.add_child(_make_label("XP", "base_ui"))
+	body.add_child(_make_texture_bar("xp_bar_frame", "xp_bar_fill", 0.40, Vector2(320, 24)))
+	body.add_child(_make_label("Hotbar", "base_ui"))
 
 	var hotbar_panel := PanelContainer.new()
-	hotbar_panel.custom_minimum_size = Vector2(0, 94)
+	hotbar_panel.custom_minimum_size = Vector2(0, 92)
 	hotbar_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	OathwakeUISkin.apply_hotbar_panel(hotbar_panel)
 	body.add_child(hotbar_panel)
@@ -251,188 +129,177 @@ func _build_hud_section(parent: Container) -> void:
 
 	var hotbar_row := HBoxContainer.new()
 	hotbar_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hotbar_row.add_theme_constant_override("separation", 6)
+	hotbar_row.add_theme_constant_override("separation", 4)
 	hotbar_margin.add_child(hotbar_row)
 
 	for index in range(8):
-		var variant := "selected" if index == 0 else "empty"
-		var slot := _make_hotbar_slot_button(str(index + 1), variant)
+		var slot := Button.new()
+		slot.text = str(index + 1)
+		slot.focus_mode = Control.FOCUS_NONE
+		slot.custom_minimum_size = Vector2(46, 48)
+		OathwakeUISkin.apply_hotbar_slot_button(slot, "selected" if index == 0 else "empty")
+		OathwakeTextStyle.apply_profile_to_control(slot, "base_ui")
 		hotbar_row.add_child(slot)
 
 
+func _build_settings_section(parent: Container) -> void:
+	var body := _make_section(parent, "Settings", Vector2(0, 250))
+	var checkbox_row := HBoxContainer.new()
+	checkbox_row.add_theme_constant_override("separation", 18)
+	body.add_child(checkbox_row)
+	checkbox_row.add_child(_make_icon_sample("Off", "res://assets/ui/settings/checkbox_off.png"))
+	checkbox_row.add_child(_make_icon_sample("On", "res://assets/ui/settings/checkbox_on.png"))
+
+	body.add_child(_make_label("Slider", "base_ui"))
+	var slider_wrap := Control.new()
+	slider_wrap.custom_minimum_size = Vector2(0, 44)
+	slider_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_child(slider_wrap)
+
+	var slider_track := OathwakeUISkin.make_texture_rect("res://assets/ui/settings/slider_track.png", TextureRect.STRETCH_SCALE)
+	slider_track.anchor_left = 0.0
+	slider_track.anchor_top = 0.5
+	slider_track.anchor_right = 1.0
+	slider_track.anchor_bottom = 0.5
+	slider_track.offset_top = -12.0
+	slider_track.offset_bottom = 12.0
+	slider_wrap.add_child(slider_track)
+
+	var slider_knob := OathwakeUISkin.make_texture_rect("res://assets/ui/settings/slider_knob.png", TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
+	slider_knob.custom_minimum_size = Vector2(24, 24)
+	slider_knob.anchor_left = 0.55
+	slider_knob.anchor_top = 0.5
+	slider_knob.anchor_right = 0.55
+	slider_knob.anchor_bottom = 0.5
+	slider_knob.offset_left = -12.0
+	slider_knob.offset_top = -12.0
+	slider_knob.offset_right = 12.0
+	slider_knob.offset_bottom = 12.0
+	slider_wrap.add_child(slider_knob)
+
+	var button_row := HBoxContainer.new()
+	button_row.add_theme_constant_override("separation", 10)
+	body.add_child(button_row)
+	button_row.add_child(_make_preview_button("Apply", "medium"))
+	var reset := _make_preview_button("Reset", "medium")
+	reset.disabled = true
+	button_row.add_child(reset)
+
+
 func _build_inventory_section(parent: Container) -> void:
-	var body := _make_section(parent, "Inventory", "inventory_window", Vector2(680, 390))
+	var body := _make_section(parent, "Inventory", Vector2(0, 500))
 
-	var inventory_preview := PanelContainer.new()
-	inventory_preview.custom_minimum_size = Vector2(0, 0)
-	inventory_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	OathwakeUISkin.apply_inventory_panel(inventory_preview)
-	body.add_child(inventory_preview)
+	var static_inventory := _make_static_skin_card("Static inventory window texture", "res://assets/ui/inventory/inventory_window.png", Vector2(320, 240))
+	body.add_child(static_inventory)
 
-	var inventory_margin := MarginContainer.new()
-	inventory_margin.add_theme_constant_override("margin_left", 18)
-	inventory_margin.add_theme_constant_override("margin_top", 18)
-	inventory_margin.add_theme_constant_override("margin_right", 18)
-	inventory_margin.add_theme_constant_override("margin_bottom", 18)
-	inventory_preview.add_child(inventory_margin)
+	var slot_grid := GridContainer.new()
+	slot_grid.columns = 5
+	slot_grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	slot_grid.add_theme_constant_override("h_separation", 6)
+	slot_grid.add_theme_constant_override("v_separation", 6)
+	body.add_child(slot_grid)
 
-	var inventory_layout := VBoxContainer.new()
-	inventory_layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	inventory_layout.add_theme_constant_override("separation", 14)
-	inventory_margin.add_child(inventory_layout)
-
-	var inventory_grid := GridContainer.new()
-	inventory_grid.columns = 5
-	inventory_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	inventory_grid.add_theme_constant_override("h_separation", 10)
-	inventory_grid.add_theme_constant_override("v_separation", 10)
-	inventory_layout.add_child(inventory_grid)
-
-	for index in range(20):
+	for index in range(10):
 		var variant := "empty"
 		if index == 2:
 			variant = "hover"
 		elif index == 7:
 			variant = "selected"
-		elif index == 19:
-			variant = "blocked"
-		var slot := _make_inventory_slot_button(str(index + 1), variant)
-		inventory_grid.add_child(slot)
+		var slot := Button.new()
+		slot.text = str(index + 1)
+		slot.focus_mode = Control.FOCUS_NONE
+		slot.custom_minimum_size = Vector2(46, 46)
+		OathwakeUISkin.apply_slot_button(slot, variant)
+		OathwakeTextStyle.apply_profile_to_control(slot, "base_ui")
+		slot_grid.add_child(slot)
 
-	var tooltip_preview := PanelContainer.new()
-	tooltip_preview.custom_minimum_size = Vector2(0, 104)
-	tooltip_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	OathwakeUISkin.apply_tooltip(tooltip_preview)
-	inventory_layout.add_child(tooltip_preview)
+	var tooltip := PanelContainer.new()
+	tooltip.custom_minimum_size = Vector2(0, 84)
+	tooltip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	OathwakeUISkin.apply_tooltip(tooltip)
+	body.add_child(tooltip)
 
 	var tooltip_margin := MarginContainer.new()
 	tooltip_margin.add_theme_constant_override("margin_left", 12)
-	tooltip_margin.add_theme_constant_override("margin_top", 12)
+	tooltip_margin.add_theme_constant_override("margin_top", 8)
 	tooltip_margin.add_theme_constant_override("margin_right", 12)
-	tooltip_margin.add_theme_constant_override("margin_bottom", 12)
-	tooltip_preview.add_child(tooltip_margin)
+	tooltip_margin.add_theme_constant_override("margin_bottom", 8)
+	tooltip.add_child(tooltip_margin)
 
-	var tooltip_box := VBoxContainer.new()
-	tooltip_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tooltip_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	tooltip_box.add_theme_constant_override("separation", 2)
-	tooltip_margin.add_child(tooltip_box)
-
-	var tooltip_title := Label.new()
-	tooltip_title.text = "Iron Pickaxe"
-	tooltip_box.add_child(tooltip_title)
-	OathwakeTextStyle.apply_profile_to_label(tooltip_title, "ui_title")
-
-	var tooltip_tier := Label.new()
-	tooltip_tier.text = "Tier 2 Tool"
-	tooltip_box.add_child(tooltip_tier)
-	OathwakeTextStyle.apply_profile_to_label(tooltip_tier, "base_ui")
-
-	var tooltip_bonus := Label.new()
-	tooltip_bonus.text = "+ Gathering Power"
-	tooltip_box.add_child(tooltip_bonus)
-	OathwakeTextStyle.apply_profile_to_label(tooltip_bonus, "base_ui")
+	var tooltip_text := _make_label("Iron Pickaxe\nTier 2 Tool\n+ Gathering Power", "base_ui")
+	tooltip_margin.add_child(tooltip_text)
 
 
 func _build_misc_section(parent: Container) -> void:
-	var body := _make_section(parent, "Misc", "panel", Vector2(680, 320))
+	var body := _make_section(parent, "Misc", Vector2(0, 195))
+	var row := GridContainer.new()
+	row.columns = 2
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("h_separation", 10)
+	row.add_theme_constant_override("v_separation", 10)
+	body.add_child(row)
 
-	var top_row := HBoxContainer.new()
-	top_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	top_row.add_theme_constant_override("separation", 12)
-	body.add_child(top_row)
+	row.add_child(_make_skin_preview_card("Toast", "toast", Vector2(190, 54), "Toast"))
+	row.add_child(_make_skin_preview_card("Tutorial", "tutorial_panel", Vector2(190, 74), "Tutorial"))
+	row.add_child(_make_skin_preview_card("Dialog", "dialog", Vector2(190, 74), "Dialog"))
+	row.add_child(_make_skin_preview_card("Credits", "panel_credits", Vector2(190, 74), "Credits"))
 
-	top_row.add_child(_make_skin_preview_card("Toast", "toast", Vector2(198, 72), "Toast background"))
-	top_row.add_child(_make_skin_preview_card("Tutorial", "tutorial_panel", Vector2(224, 112), "Tutorial panel"))
-
-	var middle_row := HBoxContainer.new()
-	middle_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	middle_row.add_theme_constant_override("separation", 12)
-	body.add_child(middle_row)
-
-	middle_row.add_child(_make_skin_preview_card("Dialog", "dialog", Vector2(320, 132), "Dialog box"))
-	middle_row.add_child(_make_skin_preview_card("Credits", "panel_credits", Vector2(320, 132), "Credits panel"))
-
-	var divider_row := VBoxContainer.new()
-	divider_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	divider_row.add_theme_constant_override("separation", 10)
-	body.add_child(divider_row)
-
-	var divider_label := Label.new()
-	divider_label.text = "Divider ornament"
-	divider_row.add_child(divider_label)
-	OathwakeTextStyle.apply_profile_to_label(divider_label, "base_ui")
-
-	var divider := OathwakeUISkin.make_texture_rect("res://assets/ui/misc/divider_ornament.png", TextureRect.STRETCH_SCALE)
-	divider.custom_minimum_size = Vector2(280, 18)
+	var divider := OathwakeUISkin.make_texture_rect("res://assets/ui/misc/divider_ornament.png", TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
+	divider.custom_minimum_size = Vector2(260, 18)
 	divider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	divider_row.add_child(divider)
+	body.add_child(divider)
 
 
-func _make_section(parent: Container, title_text: String, skin_key: String, min_size: Vector2) -> VBoxContainer:
+func _make_section(parent: Container, title_text: String, min_size: Vector2) -> VBoxContainer:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = min_size
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	OathwakeUISkin.apply_panel(panel, skin_key)
+	OathwakeUISkin.apply_panel(panel, "panel")
 	parent.add_child(panel)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 18)
-	margin.add_theme_constant_override("margin_top", 18)
+	margin.add_theme_constant_override("margin_top", 16)
 	margin.add_theme_constant_override("margin_right", 18)
-	margin.add_theme_constant_override("margin_bottom", 18)
+	margin.add_theme_constant_override("margin_bottom", 16)
 	panel.add_child(margin)
 
 	var body := VBoxContainer.new()
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override("separation", 12)
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_theme_constant_override("separation", 8)
 	margin.add_child(body)
 
-	var header := Label.new()
-	header.text = title_text
-	body.add_child(header)
-	OathwakeTextStyle.apply_profile_to_label(header, "ui_title")
+	body.add_child(_make_label(title_text, "ui_title"))
 	return body
 
 
-func _make_preview_button(text: String, size_key: String) -> Button:
+func _make_label(text_value: String, profile := "base_ui", alignment := HORIZONTAL_ALIGNMENT_LEFT) -> Label:
+	var label := Label.new()
+	label.text = text_value
+	label.horizontal_alignment = alignment
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	OathwakeTextStyle.apply_profile_to_label(label, profile)
+	return label
+
+
+func _make_preview_button(text_value: String, size_key: String) -> Button:
 	var button := Button.new()
-	button.text = text
+	button.text = text_value
 	button.focus_mode = Control.FOCUS_NONE
+	button.custom_minimum_size = Vector2(0, 44) if size_key == "medium" else Vector2(0, 52)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.custom_minimum_size = Vector2(0, 56) if size_key == "large" else Vector2(0, 44)
 	OathwakeUISkin.apply_button(button, size_key)
 	OathwakeTextStyle.apply_profile_to_control(button, "ui_button")
 	return button
 
 
-func _make_save_slot_button(text: String, variant: String) -> Button:
+func _make_save_slot_button(text_value: String, variant: String) -> Button:
 	var button := Button.new()
-	button.text = text
+	button.text = text_value
 	button.focus_mode = Control.FOCUS_NONE
+	button.custom_minimum_size = Vector2(0, 58)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.custom_minimum_size = Vector2(0, 84)
-	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	OathwakeUISkin.apply_slot_button(button, variant)
-	OathwakeTextStyle.apply_profile_to_control(button, "base_ui")
-	return button
-
-
-func _make_hotbar_slot_button(text: String, variant: String) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = Vector2(60, 56)
-	OathwakeUISkin.apply_slot_button(button, variant)
-	OathwakeTextStyle.apply_profile_to_control(button, "base_ui")
-	return button
-
-
-func _make_inventory_slot_button(text: String, variant: String) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = Vector2(64, 64)
 	OathwakeUISkin.apply_slot_button(button, variant)
 	OathwakeTextStyle.apply_profile_to_control(button, "base_ui")
 	return button
@@ -441,18 +308,53 @@ func _make_inventory_slot_button(text: String, variant: String) -> Button:
 func _make_icon_sample(label_text: String, texture_path: String) -> Control:
 	var wrapper := VBoxContainer.new()
 	wrapper.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	wrapper.add_theme_constant_override("separation", 6)
+	wrapper.add_theme_constant_override("separation", 4)
 
 	var icon := OathwakeUISkin.make_texture_rect(texture_path, TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
-	icon.custom_minimum_size = Vector2(32, 32)
+	icon.custom_minimum_size = Vector2(28, 28)
 	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	wrapper.add_child(icon)
 
-	var label := Label.new()
-	label.text = label_text
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	wrapper.add_child(label)
-	OathwakeTextStyle.apply_profile_to_label(label, "base_ui")
+	wrapper.add_child(_make_label(label_text, "base_ui", HORIZONTAL_ALIGNMENT_CENTER))
+	return wrapper
+
+
+func _make_texture_bar(frame_key: String, fill_key: String, ratio: float, min_size: Vector2) -> Control:
+	var wrapper := Control.new()
+	wrapper.custom_minimum_size = min_size
+	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var frame_path := _skin_path(frame_key)
+	var fill_path := _skin_path(fill_key)
+	var fill_width := maxf(8.0, min_size.x * clampf(ratio, 0.0, 1.0))
+
+	var fill := OathwakeUISkin.make_texture_rect(fill_path, TextureRect.STRETCH_SCALE)
+	fill.anchor_left = 0.0
+	fill.anchor_top = 0.5
+	fill.anchor_right = 0.0
+	fill.anchor_bottom = 0.5
+	fill.offset_left = 8.0
+	fill.offset_top = -5.0
+	fill.offset_right = fill_width
+	fill.offset_bottom = 5.0
+	wrapper.add_child(fill)
+
+	var frame := OathwakeUISkin.make_texture_rect(frame_path, TextureRect.STRETCH_SCALE)
+	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	wrapper.add_child(frame)
+	return wrapper
+
+
+func _make_static_skin_card(label_text: String, texture_path: String, min_size: Vector2) -> Control:
+	var wrapper := VBoxContainer.new()
+	wrapper.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	wrapper.add_theme_constant_override("separation", 4)
+
+	var texture := OathwakeUISkin.make_texture_rect(texture_path, TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
+	texture.custom_minimum_size = min_size
+	texture.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	wrapper.add_child(texture)
+	wrapper.add_child(_make_label(label_text, "base_ui", HORIZONTAL_ALIGNMENT_CENTER))
 	return wrapper
 
 
@@ -463,44 +365,23 @@ func _make_skin_preview_card(title_text: String, skin_key: String, min_size: Vec
 	OathwakeUISkin.apply_panel(panel, skin_key)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_bottom", 12)
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_bottom", 8)
 	panel.add_child(margin)
 
-	var body := VBoxContainer.new()
-	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override("separation", 8)
-	margin.add_child(body)
-
-	var title := Label.new()
-	title.text = title_text
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	body.add_child(title)
-	OathwakeTextStyle.apply_profile_to_label(title, "ui_title")
-
-	var description := Label.new()
-	description.text = body_text
-	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	description.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_child(description)
-	OathwakeTextStyle.apply_profile_to_label(description, "base_ui")
+	var label := _make_label("%s\n%s" % [title_text, body_text], "base_ui", HORIZONTAL_ALIGNMENT_CENTER)
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	margin.add_child(label)
 	return panel
 
 
-func _skin_texture(key: String) -> Texture2D:
+func _skin_path(key: String) -> String:
 	var skin_data := OathwakeUISkin.get_skin_data()
-	var entry: Variant = skin_data.get(key, {})
+	var entry: Variant = skin_data.get(key, "")
 	if entry is String:
-		var loaded := load(str(entry))
-		return loaded as Texture2D
+		return str(entry)
 	if entry is Dictionary:
-		var path := str(entry.get("path", ""))
-		if path.is_empty():
-			return null
-		var loaded_path := load(path)
-		return loaded_path as Texture2D
-	return null
+		return str(entry.get("path", ""))
+	return ""
