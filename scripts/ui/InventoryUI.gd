@@ -625,3 +625,53 @@ func _on_trash_confirmed() -> void:
 func _on_trash_canceled() -> void:
 	_pending_trash_data = {}
 	details_label.text = "Cancelled."
+
+
+func _get_item_data(item_id: String) -> Dictionary:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
+		return {}
+
+	return content_db.get_item(item_id)
+
+
+func _get_item_details_text(item_id: String, quantity: int, slot_index: int) -> String:
+	var item_data: Dictionary = _get_item_data(item_id)
+	var slot_data: Dictionary = inventory.get_slot(slot_index) if inventory != null else {}
+	var raw_metadata: Variant = slot_data.get("metadata", {})
+	var metadata: Dictionary = raw_metadata if raw_metadata is Dictionary else {}
+	var lines := [
+		str(item_data.get("display_name", item_id.capitalize())),
+		"ID: %s" % item_id,
+		"Slot: %d" % (slot_index + 1),
+		"Amount: %d" % quantity,
+		"Stack: %d" % int(item_data.get("stack_size", 99)),
+		"Tier: %s" % str(item_data.get("tier", "N/A")),
+		"Type: %s" % str(item_data.get("item_type", "N/A")),
+		"Family: %s" % str(item_data.get("material_family", "N/A")),
+	]
+
+	var description := str(item_data.get("description", ""))
+	if not description.is_empty():
+		lines.append(description)
+
+	if str(item_data.get("item_type", "")) == "tool":
+		lines.append("Tool: %s T%s" % [str(item_data.get("tool_type", "N/A")), str(item_data.get("tool_tier", "N/A"))])
+		lines.append("Damage: %s" % str(item_data.get("tool_damage", "N/A")))
+
+	var max_dura := int(item_data.get("durability", 0))
+	if max_dura > 0:
+		var current_dura := int(metadata.get("current_durability", max_dura))
+		if current_dura <= 0:
+			lines.append("Durability: BROKEN")
+		else:
+			lines.append("Durability: %d / %d" % [current_dura, max_dura])
+
+	var combat_value: Variant = item_data.get("combat", {})
+	if combat_value is Dictionary:
+		var combat: Dictionary = combat_value
+		lines.append("Attack: %s" % str(combat.get("attack_power", "N/A")))
+		lines.append("Damage Type: %s" % str(combat.get("damage_type", "N/A")))
+		lines.append("Crit Bonus: %s" % str(combat.get("crit_chance_bonus", "N/A")))
+
+	return "\n".join(lines)
