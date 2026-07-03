@@ -2,6 +2,7 @@ extends Button
 
 const ItemInstanceHelper = preload("res://scripts/systems/ItemInstanceHelper.gd")
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
+const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 
 signal slot_selected(slot_index: int, item_id: String, inventory_id: String)
 signal slot_right_clicked(slot_index: int, inventory_id: String, shift_pressed: bool, ctrl_pressed: bool)
@@ -87,6 +88,7 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	preview.expand_icon = true
 	preview.custom_minimum_size = Vector2(56, 48)
 	preview.disabled = true
+	OathwakeUISkin.apply_slot_button(preview, "selected")
 	OathwakeTextStyle.apply_profile_to_control(preview, "item_quantity")
 	set_drag_preview(preview)
 	return {
@@ -209,6 +211,4 @@ func _apply_slot_style() -> void:
 		add_theme_stylebox_override("pressed", broken_style)
 		return
 
-	remove_theme_stylebox_override("normal")
-	remove_theme_stylebox_override("hover")
-	remove_theme_stylebox_override("pressed")
+	OathwakeUISkin.apply_slot_button(self, "empty")
