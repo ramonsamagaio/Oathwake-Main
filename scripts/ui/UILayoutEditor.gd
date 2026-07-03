@@ -23,6 +23,7 @@ const DEFAULT_ASSET_PATHS := [
 const ELEMENT_COLORS := {
 	"hud": Color(0.22, 0.55, 0.95, 0.28),
 	"window": Color(0.85, 0.68, 0.2, 0.28),
+	"guide": Color(0.42, 0.58, 0.78, 0.18),
 	"interaction": Color(0.9, 0.18, 0.62, 0.32),
 	"hud_child": Color(0.24, 0.82, 0.42, 0.28),
 	"graphic": Color(0.65, 0.72, 0.95, 0.24),
@@ -774,7 +775,7 @@ func _draw_preview_canvas(canvas: Control) -> void:
 	canvas.draw_rect(preview_rect, Color(0.24, 0.24, 0.28, 1.0), false, 2.0)
 
 	var sorted_ids := _get_sorted_element_ids()
-	for draw_interactions in [false, true]:
+	for pass_name in ["visual", "guide", "interaction"]:
 		for element_id in sorted_ids:
 			var element := UILayoutConfig.get_element(layout, element_id)
 			if element.is_empty():
@@ -784,8 +785,16 @@ func _draw_preview_canvas(canvas: Control) -> void:
 			var visible := bool(element.get("visible", true))
 			var opacity := clampf(float(element.get("opacity", 1.0)), 0.0, 1.0)
 			var is_interaction := element_type == "interaction"
-			if is_interaction != draw_interactions:
+			var is_guide := element_type == "guide"
+			var is_visual := not is_interaction and not is_guide
+
+			if pass_name == "visual" and not is_visual:
 				continue
+			if pass_name == "guide" and not is_guide:
+				continue
+			if pass_name == "interaction" and not is_interaction:
+				continue
+
 			if is_interaction and not interaction_layer_enabled:
 				continue
 			if not is_interaction and not visual_layer_enabled:
@@ -800,18 +809,35 @@ func _draw_preview_canvas(canvas: Control) -> void:
 			if not visible:
 				alpha *= 0.18
 
-			var show_asset := show_assets and bool(element.get("show_asset", false)) and not is_interaction
+			var show_asset := show_assets and bool(element.get("show_asset", false)) and is_visual
 			var show_rect := show_rects and bool(element.get("show_rect", true))
-			var show_label := show_labels
 
 			if show_asset:
 				_draw_element_asset(canvas, screen_rect, element, alpha, element_id)
 
 			if show_rect:
-				_draw_element_rect(canvas, screen_rect, element, alpha, element_id, is_interaction)
+				_draw_element_rect(canvas, screen_rect, element, alpha, element_id, is_interaction, show_asset)
 
-			if show_label:
-				_draw_element_label(canvas, screen_rect, element, alpha)
+	if show_labels:
+		for element_id in sorted_ids:
+			var element := UILayoutConfig.get_element(layout, element_id)
+			if element.is_empty():
+				continue
+			var element_type := str(element.get("type", "hud"))
+			var is_interaction := element_type == "interaction"
+			if is_interaction and not interaction_layer_enabled:
+				continue
+			if not is_interaction and not visual_layer_enabled:
+				continue
+			var rect := _get_element_rect(element_id)
+			if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+				continue
+			var screen_rect := Rect2(origin + rect.position * scale, rect.size * scale)
+			var visible := bool(element.get("visible", true))
+			var alpha := clampf(float(element.get("opacity", 1.0)), 0.0, 1.0)
+			if not visible:
+				alpha *= 0.18
+			_draw_element_label(canvas, screen_rect, element, alpha)
 
 	if not selected_element_id.is_empty():
 		var selected_rect := _get_element_rect(selected_element_id)
@@ -848,13 +874,15 @@ func _draw_element_asset(canvas: Control, screen_rect: Rect2, element: Dictionar
 		canvas.draw_texture_rect(texture, texture_rect, false, modulate)
 
 
-func _draw_element_rect(canvas: Control, screen_rect: Rect2, element: Dictionary, alpha: float, element_id: String, is_interaction: bool) -> void:
+func _draw_element_rect(canvas: Control, screen_rect: Rect2, element: Dictionary, alpha: float, element_id: String, is_interaction: bool, asset_visible: bool) -> void:
 	var color := _get_element_color(str(element.get("type", "default")))
-	if is_interaction:
-		color.a = clampf(maxf(alpha * 0.35, 0.2), 0.2, 0.38)
-	else:
-		color.a = clampf(alpha * 0.16, 0.12, 0.24)
-	canvas.draw_rect(screen_rect, color, true)
+	var fill_enabled := is_interaction or str(element.get("type", "")) == "guide" or not asset_visible
+	if fill_enabled:
+		if is_interaction:
+			color.a = clampf(maxf(alpha * 0.35, 0.2), 0.2, 0.38)
+		else:
+			color.a = clampf(alpha * 0.16, 0.12, 0.24)
+		canvas.draw_rect(screen_rect, color, true)
 	var border := Color(0.0, 0.0, 0.0, 0.5)
 	if element_id == selected_element_id:
 		border = Color(1.0, 1.0, 1.0, 0.85)

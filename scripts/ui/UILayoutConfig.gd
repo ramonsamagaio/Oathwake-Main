@@ -11,6 +11,26 @@ const DEFAULT_ELEMENT_IDS := [
 	"inventory.split_button",
 	"inventory.drop_button",
 	"inventory.grid_area",
+	"inventory.slot_1",
+	"inventory.slot_2",
+	"inventory.slot_3",
+	"inventory.slot_4",
+	"inventory.slot_5",
+	"inventory.slot_6",
+	"inventory.slot_7",
+	"inventory.slot_8",
+	"inventory.slot_9",
+	"inventory.slot_10",
+	"inventory.slot_11",
+	"inventory.slot_12",
+	"inventory.slot_13",
+	"inventory.slot_14",
+	"inventory.slot_15",
+	"inventory.slot_16",
+	"inventory.slot_17",
+	"inventory.slot_18",
+	"inventory.slot_19",
+	"inventory.slot_20",
 	"inventory.trash_area",
 	"inventory.tooltip_area",
 	"inventory.equipment_panel",
@@ -18,6 +38,10 @@ const DEFAULT_ELEMENT_IDS := [
 	"inventory.tool_slot",
 	"inventory.armor_slot",
 	"inventory.accessory_slot",
+	"inventory.weapon_slot_hitbox",
+	"inventory.tool_slot_hitbox",
+	"inventory.armor_slot_hitbox",
+	"inventory.accessory_slot_hitbox",
 	"inventory.close_hitbox",
 	"hotbar.panel",
 	"hotbar.slot_1",
@@ -98,61 +122,64 @@ static func normalize_layout(layout: Dictionary) -> Dictionary:
 		var base := _make_element_defaults(type_name)
 		if default_elements.has(element_id) and default_elements[element_id] is Dictionary:
 			base = _merge_dictionary(base, default_elements[element_id])
-		elements[element_id] = _merge_dictionary(base, element_data)
+		var prescribed := _get_prescribed_element_overrides(element_id)
+		var merged := _merge_dictionary(base, element_data)
+		if not prescribed.is_empty():
+			for key in prescribed.keys():
+				merged[key] = prescribed[key]
+		elements[element_id] = merged
 
 	normalized["elements"] = elements
 	return normalized
 
 
 static func get_default_layout() -> Dictionary:
+	var elements: Dictionary = {
+		"inventory.window": _make_element("Inventory Window", "window", -340, -310, 680, 560, "center", "", "res://assets/ui/inventory/inventory_window.png", true, true, 1.0, 0, "stretch", true, false),
+		"inventory.drag_handle": _make_element("Inventory Drag Handle", "interaction", 34, 18, 612, 44, "top_left", "inventory.window", "", false, true, 0.35, 12, "stretch", true, false),
+		"inventory.sort_button": _make_element("Sort", "graphic", 34, 64, 132, 42, "top_left", "inventory.window", "res://assets/ui/buttons/button_medium_normal.png", true, true, 1.0, 8, "stretch", true, false),
+		"inventory.split_button": _make_element("Split", "graphic", 174, 64, 132, 42, "top_left", "inventory.window", "res://assets/ui/buttons/button_medium_normal.png", true, true, 1.0, 8, "stretch", true, false),
+		"inventory.drop_button": _make_element("Drop", "graphic", 314, 64, 132, 42, "top_left", "inventory.window", "res://assets/ui/buttons/button_medium_normal.png", true, true, 1.0, 8, "stretch", true, false),
+		"inventory.grid_area": _make_element("Inventory Grid Area", "guide", 34, 120, 430, 320, "top_left", "inventory.window", "", false, true, 0.15, 2, "stretch", true, false),
+		"inventory.trash_area": _make_element("Trash Area", "guide", 34, 458, 92, 92, "top_left", "inventory.window", "", false, true, 0.12, 2, "stretch", true, false),
+		"inventory.tooltip_area": _make_element("Tooltip Area", "guide", 138, 458, 276, 92, "top_left", "inventory.window", "", false, true, 0.12, 2, "stretch", true, false),
+		"inventory.equipment_panel": _make_element("Equipment Panel", "guide", 480, 64, 166, 410, "top_left", "inventory.window", "", false, true, 0.12, 2, "stretch", true, false),
+		"inventory.weapon_slot": _make_element("Weapon Slot", "graphic", 20, 44, 138, 52, "top_left", "inventory.equipment_panel", "res://assets/ui/inventory/item_slot_normal.png", true, false, 1.0, 6, "stretch", true, false),
+		"inventory.tool_slot": _make_element("Tool Slot", "graphic", 20, 102, 138, 52, "top_left", "inventory.equipment_panel", "res://assets/ui/inventory/item_slot_normal.png", true, false, 1.0, 6, "stretch", true, false),
+		"inventory.armor_slot": _make_element("Armor Slot", "graphic", 20, 160, 138, 52, "top_left", "inventory.equipment_panel", "res://assets/ui/inventory/item_slot_normal.png", true, false, 1.0, 6, "stretch", true, false),
+		"inventory.accessory_slot": _make_element("Accessory Slot", "graphic", 20, 218, 138, 52, "top_left", "inventory.equipment_panel", "res://assets/ui/inventory/item_slot_normal.png", true, false, 1.0, 6, "stretch", true, false),
+		"inventory.weapon_slot_hitbox": _make_element("Weapon Slot Hitbox", "interaction", 20, 44, 138, 52, "top_left", "inventory.equipment_panel", "", false, true, 0.35, 13, "stretch", true, false),
+		"inventory.tool_slot_hitbox": _make_element("Tool Slot Hitbox", "interaction", 20, 102, 138, 52, "top_left", "inventory.equipment_panel", "", false, true, 0.35, 13, "stretch", true, false),
+		"inventory.armor_slot_hitbox": _make_element("Armor Slot Hitbox", "interaction", 20, 160, 138, 52, "top_left", "inventory.equipment_panel", "", false, true, 0.35, 13, "stretch", true, false),
+		"inventory.accessory_slot_hitbox": _make_element("Accessory Slot Hitbox", "interaction", 20, 218, 138, 52, "top_left", "inventory.equipment_panel", "", false, true, 0.35, 13, "stretch", true, false),
+		"inventory.close_hitbox": _make_element("Close Hitbox", "interaction", 620, 20, 28, 28, "top_left", "inventory.window", "", false, true, 0.35, 20, "stretch", true, false),
+		"hotbar.panel": _make_element("Hotbar", "hud", -350, -120, 700, 68, "bottom_center", "", "res://assets/ui/hud/hotbar_frame.png", true, true, 1.0, 0, "stretch", true, false),
+		"hud.status_panel": _make_element("HUD Status Panel", "guide", 20, 20, 380, 170, "top_left", "", "", false, true, 0.12, 2, "stretch", true, false),
+		"hud.health_bar": _make_element("Health Bar", "hud_child", 18, 54, 240, 22, "top_left", "hud.status_panel", "res://assets/ui/hud/health_bar_frame.png", true, true, 1.0, 2, "stretch", true, false),
+		"hud.xp_bar": _make_element("XP Bar", "hud_child", 18, 86, 240, 18, "top_left", "hud.status_panel", "res://assets/ui/hud/xp_bar_frame.png", true, true, 1.0, 2, "stretch", true, false),
+		"hud.alignment_flame": _make_element("Alignment Flame", "hud_child", 300, 42, 48, 64, "top_left", "hud.status_panel", "", false, true, 1.0, 2, "stretch", true, false),
+		"hud.minimap": _make_element("Minimap Placeholder", "guide", -260, 20, 240, 180, "top_right", "", "", false, true, 0.12, 2, "stretch", true, false),
+	}
+
+	for i in range(1, 11):
+		var x := 14 + (i - 1) * 66
+		elements["hotbar.slot_%d" % i] = _make_element("Hotbar Slot %d" % i, "graphic", x, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/hud/hotbar_slot_empty.png", true, true, 1.0, 5, "stretch", true, false)
+		elements["hotbar.slot_%d_hitbox" % i] = _make_element("Hotbar Slot %d Hitbox" % i, "interaction", x, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false)
+
+	for row in range(4):
+		for col in range(5):
+			var index := row * 5 + col + 1
+			var slot_x := 86 + col * 68
+			var slot_y := 148 + row * 68
+			elements["inventory.slot_%d" % index] = _make_element("Inventory Slot %d" % index, "graphic", slot_x, slot_y, 60, 60, "top_left", "inventory.window", "res://assets/ui/inventory/item_slot_normal.png", true, false, 1.0, 6, "stretch", true, false)
+
 	return {
 		"version": 1,
 		"canvas": {
 			"width": DEFAULT_CANVAS_WIDTH,
 			"height": DEFAULT_CANVAS_HEIGHT,
 		},
-		"elements": {
-			"inventory.window": _make_element("Inventory Window", "window", -340, -310, 680, 560, "center", "", "res://assets/ui/inventory/inventory_window.png", true, true, 1.0, 0, "stretch", true, false),
-			"inventory.drag_handle": _make_element("Inventory Drag Handle", "interaction", 34, 18, 612, 44, "top_left", "inventory.window", "", false, true, 0.35, 12, "stretch", true, false),
-			"inventory.sort_button": _make_element("Sort", "graphic", 34, 64, 132, 42, "top_left", "inventory.window", "res://assets/ui/buttons/button_medium_normal.png", true, true, 1.0, 8, "stretch", true, false),
-			"inventory.split_button": _make_element("Split", "graphic", 174, 64, 132, 42, "top_left", "inventory.window", "res://assets/ui/buttons/button_medium_normal.png", true, true, 1.0, 8, "stretch", true, false),
-			"inventory.drop_button": _make_element("Drop", "graphic", 314, 64, 132, 42, "top_left", "inventory.window", "res://assets/ui/buttons/button_medium_normal.png", true, true, 1.0, 8, "stretch", true, false),
-			"inventory.grid_area": _make_element("Inventory Grid Area", "graphic", 34, 120, 430, 320, "top_left", "inventory.window", "res://assets/ui/inventory/item_slot_normal.png", true, true, 1.0, 3, "stretch", true, false),
-			"inventory.trash_area": _make_element("Trash Area", "graphic", 34, 458, 92, 92, "top_left", "inventory.window", "res://assets/ui/inventory/tooltip_bg.png", true, true, 0.9, 3, "stretch", true, false),
-			"inventory.tooltip_area": _make_element("Tooltip Area", "graphic", 138, 458, 276, 92, "top_left", "inventory.window", "res://assets/ui/inventory/tooltip_bg.png", true, true, 0.95, 3, "stretch", true, false),
-			"inventory.equipment_panel": _make_element("Equipment Panel", "graphic", 480, 64, 166, 410, "top_left", "inventory.window", "res://assets/ui/inventory/tooltip_bg.png", true, true, 0.9, 3, "stretch", true, false),
-			"inventory.weapon_slot": _make_element("Weapon Slot", "interaction", 20, 44, 138, 52, "top_left", "inventory.equipment_panel", "res://assets/ui/inventory/item_slot_normal.png", true, true, 0.42, 13, "stretch", true, false),
-			"inventory.tool_slot": _make_element("Tool Slot", "interaction", 20, 102, 138, 52, "top_left", "inventory.equipment_panel", "res://assets/ui/inventory/item_slot_normal.png", true, true, 0.42, 13, "stretch", true, false),
-			"inventory.armor_slot": _make_element("Armor Slot", "interaction", 20, 160, 138, 52, "top_left", "inventory.equipment_panel", "res://assets/ui/inventory/item_slot_normal.png", true, true, 0.42, 13, "stretch", true, false),
-			"inventory.accessory_slot": _make_element("Accessory Slot", "interaction", 20, 218, 138, 52, "top_left", "inventory.equipment_panel", "res://assets/ui/inventory/item_slot_normal.png", true, true, 0.42, 13, "stretch", true, false),
-			"inventory.close_hitbox": _make_element("Close Hitbox", "interaction", 620, 20, 28, 28, "top_left", "inventory.window", "", false, true, 0.35, 20, "stretch", true, false),
-			"hotbar.panel": _make_element("Hotbar", "hud", -350, -120, 700, 68, "bottom_center", "", "res://assets/ui/hud/hotbar_frame.png", true, true, 1.0, 0, "stretch", true, false),
-			"hotbar.slot_1": _make_element("Hotbar Slot 1", "graphic", 14, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/hud/hotbar_slot_empty.png", true, true, 1.0, 5, "stretch", true, false),
-			"hotbar.slot_2": _make_element("Hotbar Slot 2", "graphic", 80, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/hud/hotbar_slot_empty.png", true, true, 1.0, 5, "stretch", true, false),
-			"hotbar.slot_3": _make_element("Hotbar Slot 3", "graphic", 146, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/hud/hotbar_slot_empty.png", true, true, 1.0, 5, "stretch", true, false),
-			"hotbar.slot_4": _make_element("Hotbar Slot 4", "graphic", 212, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/hud/hotbar_slot_empty.png", true, true, 1.0, 5, "stretch", true, false),
-			"hotbar.slot_5": _make_element("Hotbar Slot 5", "graphic", 278, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/hud/hotbar_slot_empty.png", true, true, 1.0, 5, "stretch", true, false),
-			"hotbar.slot_6": _make_element("Hotbar Slot 6", "graphic", 344, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/hud/hotbar_slot_empty.png", true, true, 1.0, 5, "stretch", true, false),
-			"hotbar.slot_7": _make_element("Hotbar Slot 7", "graphic", 410, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/hud/hotbar_slot_empty.png", true, true, 1.0, 5, "stretch", true, false),
-			"hotbar.slot_8": _make_element("Hotbar Slot 8", "graphic", 476, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/hud/hotbar_slot_empty.png", true, true, 1.0, 5, "stretch", true, false),
-			"hotbar.slot_9": _make_element("Hotbar Slot 9", "graphic", 542, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/hud/hotbar_slot_empty.png", true, true, 1.0, 5, "stretch", true, false),
-			"hotbar.slot_10": _make_element("Hotbar Slot 10", "graphic", 608, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/hud/hotbar_slot_empty.png", true, true, 1.0, 5, "stretch", true, false),
-			"hotbar.slot_1_hitbox": _make_element("Hotbar Slot 1 Hitbox", "interaction", 14, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false),
-			"hotbar.slot_2_hitbox": _make_element("Hotbar Slot 2 Hitbox", "interaction", 80, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false),
-			"hotbar.slot_3_hitbox": _make_element("Hotbar Slot 3 Hitbox", "interaction", 146, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false),
-			"hotbar.slot_4_hitbox": _make_element("Hotbar Slot 4 Hitbox", "interaction", 212, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false),
-			"hotbar.slot_5_hitbox": _make_element("Hotbar Slot 5 Hitbox", "interaction", 278, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false),
-			"hotbar.slot_6_hitbox": _make_element("Hotbar Slot 6 Hitbox", "interaction", 344, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false),
-			"hotbar.slot_7_hitbox": _make_element("Hotbar Slot 7 Hitbox", "interaction", 410, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false),
-			"hotbar.slot_8_hitbox": _make_element("Hotbar Slot 8 Hitbox", "interaction", 476, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false),
-			"hotbar.slot_9_hitbox": _make_element("Hotbar Slot 9 Hitbox", "interaction", 542, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false),
-			"hotbar.slot_10_hitbox": _make_element("Hotbar Slot 10 Hitbox", "interaction", 608, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false),
-			"hud.status_panel": _make_element("HUD Status Panel", "hud", 20, 20, 380, 170, "top_left", "", "res://assets/ui/inventory/tooltip_bg.png", true, true, 0.95, 0, "stretch", true, false),
-			"hud.health_bar": _make_element("Health Bar", "hud_child", 18, 54, 240, 22, "top_left", "hud.status_panel", "res://assets/ui/hud/health_bar_frame.png", true, true, 1.0, 2, "stretch", true, false),
-			"hud.xp_bar": _make_element("XP Bar", "hud_child", 18, 86, 240, 18, "top_left", "hud.status_panel", "res://assets/ui/hud/xp_bar_frame.png", true, true, 1.0, 2, "stretch", true, false),
-			"hud.alignment_flame": _make_element("Alignment Flame", "hud_child", 300, 42, 48, 64, "top_left", "hud.status_panel", "", false, true, 1.0, 2, "stretch", true, false),
-			"hud.minimap": _make_element("Minimap Placeholder", "hud", -260, 20, 240, 180, "top_right", "", "", false, true, 0.9, 0, "stretch", true, false),
-		},
+		"elements": elements,
 	}
 
 
@@ -268,6 +295,10 @@ static func _make_element_defaults(type_name: String) -> Dictionary:
 			show_asset = false
 			show_rect = true
 			opacity = 0.35
+		"guide":
+			show_asset = false
+			show_rect = true
+			opacity = 0.15
 		"graphic":
 			show_asset = true
 			show_rect = true
@@ -340,6 +371,53 @@ static func _make_element(
 	"z_index": z_index,
 	"fit_mode": fit_mode,
 	}
+
+
+static func _get_prescribed_element_overrides(element_id: String) -> Dictionary:
+	match element_id:
+		"inventory.grid_area", "inventory.trash_area", "inventory.tooltip_area", "inventory.equipment_panel", "hud.status_panel", "hud.minimap":
+			return {
+				"type": "guide",
+				"asset_path": "",
+				"show_asset": false,
+				"show_rect": true,
+				"opacity": 0.15,
+				"z_index": 2,
+				"fit_mode": "stretch",
+			}
+		"inventory.weapon_slot", "inventory.tool_slot", "inventory.armor_slot", "inventory.accessory_slot":
+			return {
+				"type": "graphic",
+				"asset_path": "res://assets/ui/inventory/item_slot_normal.png",
+				"show_asset": true,
+				"show_rect": false,
+				"opacity": 1.0,
+				"z_index": 6,
+				"fit_mode": "stretch",
+			}
+		"inventory.weapon_slot_hitbox", "inventory.tool_slot_hitbox", "inventory.armor_slot_hitbox", "inventory.accessory_slot_hitbox":
+			return {
+				"type": "interaction",
+				"asset_path": "",
+				"show_asset": false,
+				"show_rect": true,
+				"opacity": 0.35,
+				"z_index": 13,
+				"fit_mode": "stretch",
+			}
+		"inventory.slot_1", "inventory.slot_2", "inventory.slot_3", "inventory.slot_4", "inventory.slot_5", "inventory.slot_6", "inventory.slot_7", "inventory.slot_8", "inventory.slot_9", "inventory.slot_10", "inventory.slot_11", "inventory.slot_12", "inventory.slot_13", "inventory.slot_14", "inventory.slot_15", "inventory.slot_16", "inventory.slot_17", "inventory.slot_18", "inventory.slot_19", "inventory.slot_20":
+			return {
+				"type": "graphic",
+				"parent": "inventory.window",
+				"asset_path": "res://assets/ui/inventory/item_slot_normal.png",
+				"show_asset": true,
+				"show_rect": false,
+				"opacity": 1.0,
+				"z_index": 6,
+				"fit_mode": "stretch",
+			}
+		_:
+			return {}
 
 
 static func _merge_dictionary(base_dict: Dictionary, incoming_dict: Dictionary) -> Dictionary:
