@@ -32,9 +32,13 @@ static func apply_element_to_local_control(control: Control, layout: Dictionary,
 
 
 static func get_element_rect(layout: Dictionary, element_id: String) -> Rect2:
-	var element := UILayoutConfig.get_element(layout, element_id)
-	if element.is_empty():
+	var elements_variant: Variant = layout.get("elements", {})
+	if not elements_variant is Dictionary:
 		return Rect2()
+	var elements: Dictionary = elements_variant
+	if not elements.has(element_id) or not (elements[element_id] is Dictionary):
+		return Rect2()
+	var element: Dictionary = (elements[element_id] as Dictionary).duplicate(true)
 
 	var width := float(element.get("width", 0.0))
 	var height := float(element.get("height", 0.0))

@@ -1,19 +1,18 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene format=3 uid="uid://b7kcikk5ry6yo"]
 
-[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player_scene"]
-[ext_resource type="Script" path="res://scripts/World.gd" id="2_world_script"]
+[ext_resource type="PackedScene" uid="uid://ocffh2angc1c" path="res://scenes/Player.tscn" id="1_player_scene"]
+[ext_resource type="Script" uid="uid://wbk0rraxx8bq" path="res://scripts/World.gd" id="2_world_script"]
 [ext_resource type="PackedScene" path="res://scenes/Tree.tscn" id="3_tree_scene"]
 [ext_resource type="PackedScene" path="res://scenes/Rock.tscn" id="4_rock_scene"]
-[ext_resource type="Script" path="res://scripts/Main.gd" id="5_main_script"]
-[ext_resource type="Script" path="res://scripts/BuildSystem.gd" id="6_build_system_script"]
+[ext_resource type="Script" uid="uid://fl5i3paapny3" path="res://scripts/Main.gd" id="5_main_script"]
+[ext_resource type="Script" uid="uid://jqom0c7djf0e" path="res://scripts/BuildSystem.gd" id="6_build_system_script"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/Slime.tscn" id="7_slime_scene"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/Skeleton.tscn" id="8_skeleton_scene"]
-[ext_resource type="Script" path="res://scripts/world/DayNightCycle.gd" id="9_day_night_script"]
-[ext_resource type="Script" path="res://scripts/enemies/NightEnemySpawner.gd" id="10_enemy_spawner_script"]
-[ext_resource type="Script" path="res://scripts/systems/CraftingSystem.gd" id="11_crafting_system_script"]
+[ext_resource type="Script" uid="uid://bi04wraoxj1fh" path="res://scripts/world/DayNightCycle.gd" id="9_day_night_script"]
+[ext_resource type="Script" uid="uid://bq6u7sqiptlbl" path="res://scripts/enemies/NightEnemySpawner.gd" id="10_enemy_spawner_script"]
+[ext_resource type="Script" uid="uid://bfye71qr66ki3" path="res://scripts/systems/CraftingSystem.gd" id="11_crafting_system_script"]
 [ext_resource type="PackedScene" path="res://scenes/npcs/NPC.tscn" id="12_npc_scene"]
-[ext_resource type="Script" path="res://scripts/systems/HousingSystem.gd" id="13_housing_system_script"]
-[ext_resource type="Script" path="res://scripts/systems/SettlementManager.gd" id="14_settlement_manager_script"]
+[ext_resource type="Script" uid="uid://b83p4dxpj350s" path="res://scripts/systems/HousingSystem.gd" id="13_housing_system_script"]
+[ext_resource type="Script" uid="uid://cqwakesixyo7t" path="res://scripts/systems/SettlementManager.gd" id="14_settlement_manager_script"]
 [ext_resource type="PackedScene" path="res://scenes/ui/InventoryUI.tscn" id="15_inventory_ui_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HotbarUI.tscn" id="16_hotbar_ui_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/CharacterStatusUI.tscn" id="17_character_status_ui_scene"]
@@ -22,142 +21,134 @@
 [ext_resource type="PackedScene" path="res://scenes/ResourceBush.tscn" id="20_resource_bush_scene"]
 [ext_resource type="PackedScene" path="res://scenes/systems/MonsterSpawnZone.tscn" id="21_monster_spawn_zone_scene"]
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" unique_id=1897114741]
 script = ExtResource("5_main_script")
 
-[node name="WorldTint" type="CanvasModulate" parent="."]
-color = Color(1, 1, 1, 1)
+[node name="WorldTint" type="CanvasModulate" parent="." unique_id=1501939868]
 
-[node name="World" type="Node2D" parent="."]
+[node name="World" type="Node2D" parent="." unique_id=170810274]
 y_sort_enabled = true
 script = ExtResource("2_world_script")
 
-[node name="GroundLayer" type="TileMapLayer" parent="World"]
+[node name="GroundLayer" type="TileMapLayer" parent="World" unique_id=1809937429]
 z_index = -10
 
-[node name="ObstacleLayer" type="TileMapLayer" parent="World"]
+[node name="ObstacleLayer" type="TileMapLayer" parent="World" unique_id=895014310]
 z_index = -5
 
-[node name="BuildLayer" type="TileMapLayer" parent="World"]
+[node name="BuildLayer" type="TileMapLayer" parent="World" unique_id=255595970]
 z_index = -1
 
-[node name="Resources" type="Node2D" parent="World"]
+[node name="Resources" type="Node2D" parent="World" unique_id=1157460260]
 y_sort_enabled = true
 
-[node name="Tree" parent="World/Resources" instance=ExtResource("3_tree_scene")]
+[node name="Tree" parent="World/Resources" unique_id=1638446400 instance=ExtResource("3_tree_scene")]
 position = Vector2(-96, -48)
 resource_id = "tree_01"
 
-[node name="Tree2" parent="World/Resources" instance=ExtResource("3_tree_scene")]
+[node name="Tree2" parent="World/Resources" unique_id=885608864 instance=ExtResource("3_tree_scene")]
 position = Vector2(-160, 96)
 resource_id = "tree_02"
 
-[node name="Tree3" parent="World/Resources" instance=ExtResource("3_tree_scene")]
+[node name="Tree3" parent="World/Resources" unique_id=1568076656 instance=ExtResource("3_tree_scene")]
 position = Vector2(96, -160)
 resource_id = "tree_03"
 
-[node name="Tree4" parent="World/Resources" instance=ExtResource("3_tree_scene")]
+[node name="Tree4" parent="World/Resources" unique_id=348653527 instance=ExtResource("3_tree_scene")]
 position = Vector2(-224, -96)
 resource_id = "tree_04"
 
-[node name="Rock" parent="World/Resources" instance=ExtResource("4_rock_scene")]
+[node name="Rock" parent="World/Resources" unique_id=1907755172 instance=ExtResource("4_rock_scene")]
 position = Vector2(112, 64)
 resource_id = "rock_01"
 
-[node name="Rock2" parent="World/Resources" instance=ExtResource("4_rock_scene")]
+[node name="Rock2" parent="World/Resources" unique_id=1434875895 instance=ExtResource("4_rock_scene")]
 position = Vector2(192, -96)
 resource_id = "rock_02"
 
-[node name="Rock3" parent="World/Resources" instance=ExtResource("4_rock_scene")]
+[node name="Rock3" parent="World/Resources" unique_id=1613178465 instance=ExtResource("4_rock_scene")]
 position = Vector2(-64, 192)
 resource_id = "rock_03"
 
-[node name="FiberBush" parent="World/Resources" instance=ExtResource("20_resource_bush_scene")]
+[node name="FiberBush" parent="World/Resources" unique_id=104627634 instance=ExtResource("20_resource_bush_scene")]
 position = Vector2(64, -80)
 resource_id = "fiber_bush_01"
-resource_type_id = "fiber_bush"
-resource_name = "Fiber Bush"
 
-[node name="FiberBush2" parent="World/Resources" instance=ExtResource("20_resource_bush_scene")]
+[node name="FiberBush2" parent="World/Resources" unique_id=779173089 instance=ExtResource("20_resource_bush_scene")]
 position = Vector2(-128, -144)
 resource_id = "fiber_bush_02"
-resource_type_id = "fiber_bush"
-resource_name = "Fiber Bush"
 
-[node name="HerbBush" parent="World/Resources" instance=ExtResource("20_resource_bush_scene")]
+[node name="HerbBush" parent="World/Resources" unique_id=1495397736 instance=ExtResource("20_resource_bush_scene")]
 position = Vector2(-64, 80)
 resource_id = "herb_bush_01"
 resource_type_id = "herb_bush"
 resource_name = "Herb Bush"
 
-[node name="OakTree" parent="World/Resources" instance=ExtResource("3_tree_scene")]
+[node name="OakTree" parent="World/Resources" unique_id=1754774807 instance=ExtResource("3_tree_scene")]
 position = Vector2(384, -96)
 resource_id = "oak_tree_01"
 resource_type_id = "oak_tree"
 resource_name = "Oak Tree"
 
-[node name="OakTree2" parent="World/Resources" instance=ExtResource("3_tree_scene")]
+[node name="OakTree2" parent="World/Resources" unique_id=254666193 instance=ExtResource("3_tree_scene")]
 position = Vector2(448, 128)
 resource_id = "oak_tree_02"
 resource_type_id = "oak_tree"
 resource_name = "Oak Tree"
 
-[node name="CoalNode" parent="World/Resources" instance=ExtResource("4_rock_scene")]
+[node name="CoalNode" parent="World/Resources" unique_id=1075576580 instance=ExtResource("4_rock_scene")]
 position = Vector2(352, 192)
 resource_id = "coal_node_01"
 resource_type_id = "coal_node"
 resource_name = "Coal Node"
 
-[node name="Enemies" type="Node2D" parent="World"]
+[node name="Enemies" type="Node2D" parent="World" unique_id=2013849893]
 y_sort_enabled = true
 
-[node name="SlimeSpawnZone" parent="World/Enemies" instance=ExtResource("21_monster_spawn_zone_scene")]
+[node name="SlimeSpawnZone" parent="World/Enemies" unique_id=62010744 instance=ExtResource("21_monster_spawn_zone_scene")]
 position = Vector2(384, 160)
-monster_id = "slime"
-max_alive = 1
 spawn_interval = 1.0
 spawn_radius = 32.0
 
-[node name="SkeletonSpawnZone" parent="World/Enemies" instance=ExtResource("21_monster_spawn_zone_scene")]
+[node name="SkeletonSpawnZone" parent="World/Enemies" unique_id=317433170 instance=ExtResource("21_monster_spawn_zone_scene")]
 position = Vector2(160, 64)
 monster_id = "skeleton"
-max_alive = 1
 spawn_interval = 1.0
 spawn_radius = 32.0
 
-[node name="NPCs" type="Node2D" parent="World"]
+[node name="NPCs" type="Node2D" parent="World" unique_id=1539860537]
 y_sort_enabled = true
 
-[node name="Villager" parent="World/NPCs" instance=ExtResource("12_npc_scene")]
+[node name="Villager" parent="World/NPCs" unique_id=52903884 instance=ExtResource("12_npc_scene")]
 position = Vector2(-64, 128)
 
-[node name="Player" parent="World" instance=ExtResource("1_player_scene")]
+[node name="Player" parent="World" unique_id=423538836 instance=ExtResource("1_player_scene")]
 position = Vector2(0, 0)
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=213906278]
 
-[node name="WoodLabel" type="Label" parent="UI"]
+[node name="WoodLabel" type="Label" parent="UI" unique_id=1524620416]
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 160.0
 offset_bottom = 39.0
 text = "Wood: 0"
 
-[node name="StoneLabel" type="Label" parent="UI"]
+[node name="StoneLabel" type="Label" parent="UI" unique_id=1623118257]
 offset_left = 16.0
 offset_top = 40.0
 offset_right = 160.0
 offset_bottom = 63.0
 text = "Stone: 0"
 
-[node name="GelLabel" type="Label" parent="UI"]
+[node name="GelLabel" type="Label" parent="UI" unique_id=560647489]
 offset_left = 16.0
 offset_top = 64.0
 offset_right = 160.0
 offset_bottom = 87.0
 text = "Gel: 0"
 
-[node name="BuildLabel" type="Label" parent="UI"]
+[node name="BuildLabel" type="Label" parent="UI" unique_id=432894864]
 offset_left = 16.0
 offset_top = 240.0
 offset_right = 420.0
@@ -171,56 +162,56 @@ Selected: Wall
 Cost: 1 Wood
 Tile: 0, 0"
 
-[node name="ToolLabel" type="Label" parent="UI"]
+[node name="ToolLabel" type="Label" parent="UI" unique_id=235504492]
 offset_left = 16.0
 offset_top = 88.0
 offset_right = 160.0
 offset_bottom = 111.0
 text = "Tool: Hands"
 
-[node name="HealthLabel" type="Label" parent="UI"]
+[node name="HealthLabel" type="Label" parent="UI" unique_id=145205358]
 offset_left = 16.0
 offset_top = 112.0
 offset_right = 160.0
 offset_bottom = 135.0
 text = "Health: 100/100"
 
-[node name="XpLabel" type="Label" parent="UI"]
+[node name="XpLabel" type="Label" parent="UI" unique_id=1537648106]
 offset_left = 16.0
 offset_top = 136.0
 offset_right = 200.0
 offset_bottom = 159.0
 text = "LV 1 | XP 0/30"
 
-[node name="DayNightLabel" type="Label" parent="UI"]
+[node name="DayNightLabel" type="Label" parent="UI" unique_id=2130325513]
 offset_left = 16.0
 offset_top = 232.0
 offset_right = 160.0
 offset_bottom = 255.0
 text = "Day"
 
-[node name="VillagersLabel" type="Label" parent="UI"]
+[node name="VillagersLabel" type="Label" parent="UI" unique_id=530436599]
 offset_left = 16.0
 offset_top = 160.0
 offset_right = 200.0
 offset_bottom = 183.0
 text = "Villagers: 0"
 
-[node name="HousesLabel" type="Label" parent="UI"]
+[node name="HousesLabel" type="Label" parent="UI" unique_id=732381382]
 offset_left = 16.0
 offset_top = 184.0
 offset_right = 200.0
 offset_bottom = 207.0
 text = "Houses: 0"
 
-[node name="HousedVillagersLabel" type="Label" parent="UI"]
+[node name="HousedVillagersLabel" type="Label" parent="UI" unique_id=593129296]
 offset_left = 16.0
 offset_top = 208.0
 offset_right = 240.0
 offset_bottom = 231.0
 text = "Housed Villagers: 0/0"
 
-[node name="CraftingLabel" type="Label" parent="UI"]
+[node name="CraftingLabel" type="Label" parent="UI" unique_id=1362515759]
 visible = false
 offset_left = 430.0
 offset_top = 16.0
@@ -231,7 +222,8 @@ C Close
 1 Axe - 3 Wood, 1 Stone
 2 Pickaxe - 2 Wood, 3 Stone"
 
-[node name="PlayerStatsButton" type="Button" parent="UI"]
+[node name="PlayerStatsButton" type="Button" parent="UI" unique_id=1060346784]
+anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
@@ -240,11 +232,14 @@ offset_left = -252.0
 offset_top = -132.0
 offset_right = -4.0
 offset_bottom = -100.0
+grow_horizontal = 0
+grow_vertical = 0
 focus_mode = 0
 text = "PLAYER STATS"
 
-[node name="PlayerStatsPanel" type="Panel" parent="UI"]
+[node name="PlayerStatsPanel" type="Panel" parent="UI" unique_id=1805584150]
 visible = false
+anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
@@ -254,14 +249,16 @@ offset_top = -420.0
 offset_right = -4.0
 offset_bottom = -140.0
 
-[node name="TitleLabel" type="Label" parent="UI/PlayerStatsPanel"]
+[node name="TitleLabel" type="Label" parent="UI/PlayerStatsPanel" unique_id=1513275858]
+layout_mode = 0
 offset_left = 12.0
 offset_top = 10.0
 offset_right = 178.0
 offset_bottom = 33.0
 text = "Player Stats"
 
-[node name="CloseButton" type="Button" parent="UI/PlayerStatsPanel"]
+[node name="CloseButton" type="Button" parent="UI/PlayerStatsPanel" unique_id=449935050]
+layout_mode = 0
 offset_left = 210.0
 offset_top = 8.0
 offset_right = 238.0
@@ -269,13 +266,15 @@ offset_bottom = 36.0
 focus_mode = 0
 text = "X"
 
-[node name="StatsList" type="VBoxContainer" parent="UI/PlayerStatsPanel"]
+[node name="StatsList" type="VBoxContainer" parent="UI/PlayerStatsPanel" unique_id=612948771]
+layout_mode = 0
 offset_left = 12.0
 offset_top = 44.0
 offset_right = 236.0
 offset_bottom = 232.0
 
-[node name="ApplyButton" type="Button" parent="UI/PlayerStatsPanel"]
+[node name="ApplyButton" type="Button" parent="UI/PlayerStatsPanel" unique_id=286022952]
+layout_mode = 0
 offset_left = 12.0
 offset_top = 240.0
 offset_right = 236.0
@@ -283,7 +282,8 @@ offset_bottom = 268.0
 focus_mode = 0
 text = "APPLY"
 
-[node name="SpawnMonsterButton" type="Button" parent="UI"]
+[node name="SpawnMonsterButton" type="Button" parent="UI" unique_id=1840396879]
+anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
@@ -295,8 +295,9 @@ offset_bottom = -60.0
 focus_mode = 0
 text = "SPAWN"
 
-[node name="MonsterSpawnPanel" type="Panel" parent="UI"]
+[node name="MonsterSpawnPanel" type="Panel" parent="UI" unique_id=1282062296]
 visible = false
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -306,14 +307,16 @@ offset_top = -240.0
 offset_right = 180.0
 offset_bottom = 240.0
 
-[node name="TitleLabel" type="Label" parent="UI/MonsterSpawnPanel"]
+[node name="TitleLabel" type="Label" parent="UI/MonsterSpawnPanel" unique_id=1066253554]
+layout_mode = 0
 offset_left = 12.0
 offset_top = 10.0
 offset_right = 178.0
 offset_bottom = 33.0
 text = "Spawn"
 
-[node name="CloseButton" type="Button" parent="UI/MonsterSpawnPanel"]
+[node name="CloseButton" type="Button" parent="UI/MonsterSpawnPanel" unique_id=259209053]
+layout_mode = 0
 offset_left = 318.0
 offset_top = 8.0
 offset_right = 346.0
@@ -321,18 +324,20 @@ offset_bottom = 36.0
 focus_mode = 0
 text = "X"
 
-[node name="SpawnScroll" type="ScrollContainer" parent="UI/MonsterSpawnPanel"]
+[node name="SpawnScroll" type="ScrollContainer" parent="UI/MonsterSpawnPanel" unique_id=1664262001]
+layout_mode = 0
 offset_left = 12.0
 offset_top = 44.0
 offset_right = 348.0
 offset_bottom = 468.0
 horizontal_scroll_mode = 0
 
-[node name="MonsterList" type="VBoxContainer" parent="UI/MonsterSpawnPanel/SpawnScroll"]
+[node name="MonsterList" type="VBoxContainer" parent="UI/MonsterSpawnPanel/SpawnScroll" unique_id=562894225]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SaveButton" type="Button" parent="UI"]
+[node name="SaveButton" type="Button" parent="UI" unique_id=303711376]
+anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
@@ -344,7 +349,8 @@ offset_bottom = -20.0
 focus_mode = 0
 text = "SAVE GAME"
 
-[node name="LoadButton" type="Button" parent="UI"]
+[node name="LoadButton" type="Button" parent="UI" unique_id=2105931082]
+anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
@@ -356,31 +362,31 @@ offset_bottom = -20.0
 focus_mode = 0
 text = "LOAD GAME"
 
-[node name="InventoryUI" parent="UI" instance=ExtResource("15_inventory_ui_scene")]
+[node name="InventoryUI" parent="UI" unique_id=1434911930 instance=ExtResource("15_inventory_ui_scene")]
 
-[node name="StorageUI" parent="UI" instance=ExtResource("18_storage_ui_scene")]
+[node name="StorageUI" parent="UI" unique_id=134800059 instance=ExtResource("18_storage_ui_scene")]
 
-[node name="WorkbenchUI" parent="UI" instance=ExtResource("19_workbench_ui_scene")]
+[node name="WorkbenchUI" parent="UI" unique_id=1686690212 instance=ExtResource("19_workbench_ui_scene")]
 
-[node name="HotbarUI" parent="UI" instance=ExtResource("16_hotbar_ui_scene")]
+[node name="HotbarUI" parent="UI" unique_id=1960256230 instance=ExtResource("16_hotbar_ui_scene")]
 
-[node name="CharacterStatusUI" parent="UI" instance=ExtResource("17_character_status_ui_scene")]
+[node name="CharacterStatusUI" parent="UI" unique_id=236796135 instance=ExtResource("17_character_status_ui_scene")]
 
-[node name="BuildSystem" type="Node" parent="."]
+[node name="BuildSystem" type="Node" parent="." unique_id=1670597789]
 script = ExtResource("6_build_system_script")
 
-[node name="CraftingSystem" type="Node" parent="."]
+[node name="CraftingSystem" type="Node" parent="." unique_id=1972187275]
 script = ExtResource("11_crafting_system_script")
 
-[node name="HousingSystem" type="Node" parent="."]
+[node name="HousingSystem" type="Node" parent="." unique_id=457478183]
 script = ExtResource("13_housing_system_script")
 
-[node name="SettlementManager" type="Node" parent="."]
+[node name="SettlementManager" type="Node" parent="." unique_id=907391043]
 script = ExtResource("14_settlement_manager_script")
 
-[node name="DayNightCycle" type="Node" parent="."]
+[node name="DayNightCycle" type="Node" parent="." unique_id=1028949119]
 script = ExtResource("9_day_night_script")
 
-[node name="NightEnemySpawner" type="Node" parent="."]
+[node name="NightEnemySpawner" type="Node" parent="." unique_id=1872741375]
 script = ExtResource("10_enemy_spawner_script")
 slime_scene = ExtResource("7_slime_scene")

@@ -6,6 +6,9 @@ const UILayoutApplier = preload("res://scripts/ui/UILayoutApplier.gd")
 const CANVAS_SIZE := Vector2(1600, 900)
 const SNAP_SIZE := 1
 const HISTORY_LIMIT := 50
+const PREVIEW_ZOOM_MIN := 0.25
+const PREVIEW_ZOOM_MAX := 4.0
+const PREVIEW_ZOOM_STEP := 1.12
 
 const DEFAULT_ASSET_PATHS := [
 	"res://assets/ui/buttons/button_medium_normal.png",
@@ -89,6 +92,197 @@ class AssetTile:
 				editor_ref._on_asset_tile_double_clicked(asset_path)
 
 
+class LabelBadge:
+	extends Control
+
+	var text := ""
+	var missing := false
+	var selected := false
+	var show_label := false
+	var preview_scale := 1.0
+
+	func _ready() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		clip_contents = false
+
+	func configure(new_text: String, is_missing: bool, is_selected: bool, is_visible: bool, scale: float) -> void:
+		text = new_text
+		missing = is_missing
+		selected = is_selected
+		show_label = is_visible and not text.is_empty()
+		preview_scale = maxf(scale, 0.001)
+		_update_geometry()
+		visible = show_label
+		queue_redraw()
+
+	func set_preview_scale(scale: float) -> void:
+		preview_scale = maxf(scale, 0.001)
+		_update_geometry()
+		queue_redraw()
+
+	func _update_geometry() -> void:
+		var screen_font_size := float(get_theme_default_font_size() + 2)
+		var screen_height := screen_font_size + 8.0
+		var text_width := float(text.length()) * (screen_font_size * 0.58) + 20.0
+		var screen_width := clampf(text_width, 96.0, 260.0)
+		size = Vector2(screen_width / preview_scale, screen_height / preview_scale)
+		position = Vector2(6.0 / preview_scale, -(screen_height + 4.0) / preview_scale)
+
+	func _draw() -> void:
+		if not show_label or text.is_empty():
+			return
+
+		var background := Color(0.03, 0.03, 0.04, 0.82)
+		var border := Color(1.0, 1.0, 1.0, 0.12)
+		var color := Color(1.0, 1.0, 1.0, 1.0)
+		if missing:
+			background = Color(0.22, 0.12, 0.12, 0.86)
+			border = Color(1.0, 0.62, 0.62, 0.3)
+			color = Color(1.0, 0.85, 0.85, 1.0)
+		if selected:
+			border = Color(1.0, 1.0, 1.0, 0.55)
+
+		draw_rect(Rect2(Vector2.ZERO, size), background, true, 4.0)
+		draw_rect(Rect2(Vector2.ZERO, size), border, false, 1.0)
+
+		var font: Font = get_theme_default_font()
+		if font == null:
+			return
+
+		var local_font_size: int = max(12, int(roundf((float(get_theme_default_font_size()) + 2.0) / preview_scale)))
+		var baseline := Vector2(8.0 / preview_scale, float(local_font_size) + (3.0 / preview_scale))
+		draw_string(font, baseline + Vector2(1.0 / preview_scale, 1.0 / preview_scale), text, HORIZONTAL_ALIGNMENT_LEFT, -1, local_font_size, Color(0.0, 0.0, 0.0, 0.9))
+		draw_string(font, baseline, text, HORIZONTAL_ALIGNMENT_LEFT, -1, local_font_size, color)
+
+
+class ElementView:
+	extends Control
+
+	var editor_ref: Node = null
+	var element_id := ""
+	var _asset_rect: TextureRect
+	var _fill_rect: ColorRect
+	var _label_badge: LabelBadge
+	var _selected := false
+	var _show_rect := true
+	var _asset_visible := false
+	var _fill_visible := false
+	var _label_visible := false
+	var _missing_asset := false
+	var _preview_scale := 1.0
+
+	func setup(new_element_id: String) -> void:
+		element_id = new_element_id
+
+	func _ready() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		clip_contents = false
+		if _asset_rect == null:
+			_asset_rect = TextureRect.new()
+			_asset_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_asset_rect.stretch_mode = TextureRect.STRETCH_SCALE
+			add_child(_asset_rect)
+		if _fill_rect == null:
+			_fill_rect = ColorRect.new()
+			_fill_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			add_child(_fill_rect)
+		if _label_badge == null:
+			_label_badge = LabelBadge.new()
+			_label_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			add_child(_label_badge)
+
+	func apply_state(rect: Rect2, element: Dictionary, texture: Texture2D, selected: bool, show_assets: bool, show_rects: bool, show_labels: bool, dragging: bool) -> void:
+		position = rect.position
+		size = rect.size
+		z_index = int(element.get("z_index", 0))
+		visible = bool(element.get("visible", true))
+
+		var element_type := str(element.get("type", ""))
+		var is_interaction := element_type == "interaction"
+		var is_guide := element_type == "guide"
+		var is_visual := not is_interaction and not is_guide
+		var asset_path := str(element.get("asset_path", ""))
+		var asset_exists := texture != null
+
+		_asset_visible = show_assets and is_visual and asset_exists
+		_missing_asset = show_assets and is_visual and not asset_exists and not asset_path.is_empty()
+		_fill_visible = (show_rects and bool(element.get("show_rect", true)) and (is_interaction or is_guide or not _asset_visible)) or _missing_asset
+		_show_rect = show_rects
+		_selected = selected
+
+		if _asset_rect != null:
+			_asset_rect.visible = _asset_visible
+			if _asset_visible:
+				_asset_rect.texture = texture
+				_asset_rect.position = Vector2.ZERO
+				_asset_rect.size = rect.size
+				_asset_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+				_asset_rect.stretch_mode = _get_texture_stretch_mode(str(element.get("fit_mode", "stretch")))
+		if _fill_rect != null:
+			_fill_rect.visible = _fill_visible
+			_fill_rect.position = Vector2.ZERO
+			_fill_rect.size = rect.size
+			_fill_rect.color = _get_fill_color(element_type, _asset_visible, bool(element.get("show_rect", true)), _missing_asset)
+		if _label_badge != null:
+			var label_text: String = str(element.get("label", ""))
+			if label_text.is_empty():
+				label_text = element_type
+			if _missing_asset:
+				label_text = "missing asset"
+			var suppress_label := false
+			if editor_ref != null and editor_ref.has_method("_should_suppress_label"):
+				suppress_label = editor_ref._should_suppress_label(element_id)
+			_label_badge.configure(label_text, _missing_asset, selected, (_missing_asset or show_labels) and not dragging and not suppress_label, _preview_scale)
+
+		queue_redraw()
+
+	func update_preview_scale(scale: float) -> void:
+		_preview_scale = maxf(scale, 0.001)
+		if _label_badge != null:
+			_label_badge.set_preview_scale(_preview_scale)
+			queue_redraw()
+
+	func _draw() -> void:
+		if not visible:
+			return
+		if _show_rect:
+			var border := Color(0.0, 0.0, 0.0, 0.35)
+			if _asset_visible:
+				border = Color(0.0, 0.0, 0.0, 0.28)
+			elif not _fill_visible:
+				border = Color(1.0, 1.0, 1.0, 0.18)
+			draw_rect(Rect2(Vector2.ZERO, size), border, false, 1.0)
+		if _selected:
+			var border_color := Color(1.0, 1.0, 1.0, 1.0)
+			var border_width := 2.0
+			if _asset_visible and not _show_rect:
+				border_width = 1.0
+			draw_rect(Rect2(Vector2.ZERO, size), border_color, false, border_width)
+
+	func _get_fill_color(element_type: String, asset_visible: bool, show_rect: bool, missing_asset: bool) -> Color:
+		if missing_asset:
+			return Color(0.22, 0.2, 0.2, 0.24)
+		var base := Color(0.4, 0.55, 0.75, 0.08)
+		if element_type == "interaction":
+			base = Color(0.9, 0.18, 0.62, 0.24)
+		elif element_type == "guide":
+			base = Color(0.42, 0.58, 0.78, 0.08)
+		elif not asset_visible and show_rect:
+			base = Color(0.55, 0.55, 0.55, 0.12)
+		return base
+
+	func _get_texture_stretch_mode(fit_mode: String) -> int:
+		match fit_mode:
+			"tile":
+				return TextureRect.STRETCH_TILE
+			"keep_aspect":
+				return TextureRect.STRETCH_KEEP_ASPECT
+			"keep_aspect_centered":
+				return TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			_:
+				return TextureRect.STRETCH_SCALE
+
+
 var layout: Dictionary = {}
 var selected_element_id := ""
 
@@ -108,9 +302,17 @@ var _drag_start_element: Dictionary = {}
 var _undo_stack: Array = []
 var _redo_stack: Array = []
 var _texture_cache: Dictionary = {}
+var _preview_zoom := 1.0
+var _preview_pan := Vector2.ZERO
+var _is_panning_preview := false
+var _preview_pan_start_mouse := Vector2.ZERO
+var _preview_pan_start_offset := Vector2.ZERO
 
 var _elements_list: ItemList
+var _preview_clipper: Control
 var _preview_canvas: PreviewCanvas
+var _preview_root: Control
+var _element_views: Dictionary = {}
 var _status_label: Label
 var _file_dialog: FileDialog
 var _asset_grid: GridContainer
@@ -139,10 +341,15 @@ var _show_labels_button: CheckButton
 var _visual_layer_button: CheckButton
 var _interaction_layer_button: CheckButton
 
+var _sorted_ids_cache: Array[String] = []
+var _element_rect_cache: Dictionary = {}
+var _layout_cache_dirty := true
+
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	layout = UILayoutConfig.load_layout()
+	_reset_preview_camera()
 	_build_ui()
 	_refresh_all(false)
 
@@ -211,6 +418,7 @@ func _build_view_bar(parent: Container) -> void:
 
 	_show_assets_button = _make_check_button("Show Assets", func(pressed: bool) -> void:
 		show_assets = pressed
+		_update_preview_view_selection()
 		_queue_redraw()
 	)
 	_show_assets_button.button_pressed = true
@@ -218,6 +426,7 @@ func _build_view_bar(parent: Container) -> void:
 
 	_show_rects_button = _make_check_button("Show Rects", func(pressed: bool) -> void:
 		show_rects = pressed
+		_update_preview_view_selection()
 		_queue_redraw()
 	)
 	_show_rects_button.button_pressed = true
@@ -225,13 +434,19 @@ func _build_view_bar(parent: Container) -> void:
 
 	_show_labels_button = _make_check_button("Show Labels", func(pressed: bool) -> void:
 		show_labels = pressed
+		_update_preview_view_selection()
 		_queue_redraw()
 	)
 	_show_labels_button.button_pressed = true
 	bar.add_child(_show_labels_button)
 
+	bar.add_child(_make_button("Zoom In", _on_zoom_in_pressed))
+	bar.add_child(_make_button("Zoom Out", _on_zoom_out_pressed))
+	bar.add_child(_make_button("Fit", _on_fit_pressed))
+
 	_visual_layer_button = _make_check_button("Visual Layer", func(pressed: bool) -> void:
 		visual_layer_enabled = pressed
+		_update_preview_view_selection()
 		_queue_redraw()
 	)
 	_visual_layer_button.button_pressed = true
@@ -239,10 +454,27 @@ func _build_view_bar(parent: Container) -> void:
 
 	_interaction_layer_button = _make_check_button("Interaction Layer", func(pressed: bool) -> void:
 		interaction_layer_enabled = pressed
+		_update_preview_view_selection()
 		_queue_redraw()
 	)
 	_interaction_layer_button.button_pressed = true
 	bar.add_child(_interaction_layer_button)
+
+
+func _on_zoom_in_pressed() -> void:
+	if _preview_canvas != null:
+		_zoom_preview_by_factor(PREVIEW_ZOOM_STEP, _preview_canvas.size * 0.5, true)
+
+
+func _on_zoom_out_pressed() -> void:
+	if _preview_canvas != null:
+		_zoom_preview_by_factor(1.0 / PREVIEW_ZOOM_STEP, _preview_canvas.size * 0.5, true)
+
+
+func _on_fit_pressed() -> void:
+	_reset_preview_camera()
+	_sync_preview_root_transform()
+	_queue_redraw()
 
 
 func _build_elements_panel(parent: Container) -> void:
@@ -305,12 +537,28 @@ func _build_preview_panel(parent: Container) -> void:
 	canvas_shell.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body.add_child(canvas_shell)
 
+	_preview_clipper = Control.new()
+	_preview_clipper.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_preview_clipper.clip_contents = true
+	_preview_clipper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_preview_clipper.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	canvas_shell.add_child(_preview_clipper)
+
 	_preview_canvas = PreviewCanvas.new()
 	_preview_canvas.editor_ref = self
 	_preview_canvas.mouse_filter = Control.MOUSE_FILTER_STOP
+	_preview_canvas.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_preview_canvas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_preview_canvas.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	canvas_shell.add_child(_preview_canvas)
+	_preview_clipper.add_child(_preview_canvas)
+
+	_preview_root = Control.new()
+	_preview_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_preview_root.custom_minimum_size = CANVAS_SIZE
+	_preview_root.size = CANVAS_SIZE
+	_preview_root.position = Vector2.ZERO
+	_preview_canvas.add_child(_preview_root)
+	_preview_canvas.resized.connect(_on_preview_canvas_resized)
 
 
 func _build_properties_panel(parent: Container) -> void:
@@ -454,9 +702,13 @@ func _build_file_dialog() -> void:
 
 
 func _refresh_all(keep_selection := false) -> void:
+	_layout_cache_dirty = true
+	_sync_layout_cache()
 	_refresh_elements_list()
 	_refresh_property_panel()
 	_refresh_asset_preview()
+	_rebuild_preview_views()
+	_sync_preview_root_transform()
 	_queue_redraw()
 	if not keep_selection:
 		_select_default_element()
@@ -597,6 +849,7 @@ func _select_element(element_id: String) -> void:
 		_elements_list.select(item_index)
 		_updating_ui = false
 	_refresh_property_panel()
+	_update_preview_view_selection()
 	_queue_redraw()
 
 
@@ -672,8 +925,11 @@ func _commit_property_float(property_name: String, value: float) -> void:
 
 func _set_element_and_refresh(element_id: String, element_data: Dictionary, refresh_asset_panel := false) -> void:
 	UILayoutConfig.set_element(layout, element_id, element_data)
+	_layout_cache_dirty = true
+	_sync_layout_cache()
 	_refresh_elements_list()
 	_refresh_property_panel()
+	_update_element_view(element_id)
 	if refresh_asset_panel:
 		_refresh_asset_preview()
 	_queue_redraw()
@@ -776,83 +1032,6 @@ func _draw_preview_canvas(canvas: Control) -> void:
 	canvas.draw_rect(preview_rect, Color(0.12, 0.12, 0.14, 1.0), true)
 	canvas.draw_rect(preview_rect, Color(0.24, 0.24, 0.28, 1.0), false, 2.0)
 
-	var sorted_ids := _get_sorted_element_ids()
-	for pass_name in ["visual", "guide", "interaction"]:
-		for element_id in sorted_ids:
-			var element := UILayoutConfig.get_element(layout, element_id)
-			if element.is_empty():
-				continue
-
-			var element_type := str(element.get("type", "hud"))
-			var visible := bool(element.get("visible", true))
-			var opacity := clampf(float(element.get("opacity", 1.0)), 0.0, 1.0)
-			var is_interaction := element_type == "interaction"
-			var is_guide := element_type == "guide"
-			var is_visual := not is_interaction and not is_guide
-
-			if pass_name == "visual" and not is_visual:
-				continue
-			if pass_name == "guide" and not is_guide:
-				continue
-			if pass_name == "interaction" and not is_interaction:
-				continue
-
-			if is_interaction and not interaction_layer_enabled:
-				continue
-			if not is_interaction and not visual_layer_enabled:
-				continue
-
-			var rect := _get_element_rect(element_id)
-			if rect.size.x <= 0.0 or rect.size.y <= 0.0:
-				continue
-
-			var screen_rect := Rect2(origin + rect.position * scale, rect.size * scale)
-			var alpha := opacity
-			if not visible:
-				alpha *= 0.18
-
-			var show_asset := show_assets and bool(element.get("show_asset", false)) and is_visual
-			var show_rect := show_rects and bool(element.get("show_rect", true))
-
-			if show_asset:
-				_draw_element_asset(canvas, screen_rect, element, alpha, element_id)
-
-			if show_rect:
-				_draw_element_rect(canvas, screen_rect, element, alpha, element_id, is_interaction, show_asset)
-
-	if show_labels and not _is_dragging_preview:
-		for element_id in sorted_ids:
-			var element := UILayoutConfig.get_element(layout, element_id)
-			if element.is_empty():
-				continue
-			var element_type := str(element.get("type", "hud"))
-			var is_interaction := element_type == "interaction"
-			if is_interaction and not interaction_layer_enabled:
-				continue
-			if not is_interaction and not visual_layer_enabled:
-				continue
-			var rect := _get_element_rect(element_id)
-			if rect.size.x <= 0.0 or rect.size.y <= 0.0:
-				continue
-			var screen_rect := Rect2(origin + rect.position * scale, rect.size * scale)
-			var visible := bool(element.get("visible", true))
-			var alpha := clampf(float(element.get("opacity", 1.0)), 0.0, 1.0)
-			if not visible:
-				alpha *= 0.18
-			_draw_element_label(canvas, screen_rect, element, alpha, element_id)
-
-	if not selected_element_id.is_empty():
-		var selected_rect := _get_element_rect(selected_element_id)
-		if selected_rect.size.x > 0.0 and selected_rect.size.y > 0.0:
-			var selected_screen_rect := Rect2(origin + selected_rect.position * scale, selected_rect.size * scale)
-			var selected_data := UILayoutConfig.get_element(layout, selected_element_id)
-			var selected_border := 3.0
-			var selected_asset_visible := show_assets and bool(selected_data.get("show_asset", false)) and str(selected_data.get("type", "")) not in ["interaction", "guide"]
-			if selected_asset_visible and not show_rects:
-				selected_border = 1.0
-			canvas.draw_rect(selected_screen_rect, Color(1.0, 1.0, 1.0, 1.0), false, selected_border)
-			_draw_resize_handle(canvas, selected_screen_rect)
-
 
 func _draw_element_asset(canvas: Control, screen_rect: Rect2, element: Dictionary, alpha: float, element_id: String) -> void:
 	var asset_path := UILayoutConfig.normalize_asset_path(str(element.get("asset_path", "")))
@@ -929,6 +1108,58 @@ func _draw_resize_handle(canvas: Control, rect: Rect2) -> void:
 	canvas.draw_rect(handle_rect, Color(0.0, 0.0, 0.0, 0.85), false, 1.0)
 
 
+func _reset_preview_camera() -> void:
+	_preview_zoom = 1.0
+	_preview_pan = Vector2.ZERO
+	_is_panning_preview = false
+
+
+func _get_preview_scale() -> float:
+	if _preview_canvas == null:
+		return 1.0
+	var view := _get_canvas_view(_preview_canvas)
+	return float(view.get("scale", 1.0))
+
+
+func _zoom_preview_by_factor(factor: float, focus_position: Vector2 = Vector2.ZERO, use_focus: bool = false) -> void:
+	if _preview_canvas == null:
+		return
+	var current_view := _get_canvas_view(_preview_canvas)
+	var current_origin: Vector2 = current_view.get("origin", Vector2.ZERO)
+	var current_scale := float(current_view.get("scale", 1.0))
+	var canvas_point := Vector2.ZERO
+	if use_focus:
+		canvas_point = (focus_position - current_origin) / current_scale
+	var new_zoom := clampf(_preview_zoom * factor, PREVIEW_ZOOM_MIN, PREVIEW_ZOOM_MAX)
+	if is_equal_approx(new_zoom, _preview_zoom):
+		return
+	_preview_zoom = new_zoom
+	if use_focus:
+		var new_view := _get_canvas_view(_preview_canvas)
+		var base_origin: Vector2 = new_view.get("base_origin", Vector2.ZERO)
+		var new_scale := float(new_view.get("scale", 1.0))
+		var new_origin := focus_position - canvas_point * new_scale
+		_preview_pan = new_origin - base_origin
+	_sync_preview_root_transform()
+	_queue_redraw()
+
+
+func _begin_preview_pan(mouse_position: Vector2) -> void:
+	_is_panning_preview = true
+	_preview_pan_start_mouse = mouse_position
+	_preview_pan_start_offset = _preview_pan
+
+
+func _update_preview_pan(mouse_position: Vector2) -> void:
+	_preview_pan = _preview_pan_start_offset + (mouse_position - _preview_pan_start_mouse)
+	_sync_preview_root_transform()
+	_queue_redraw()
+
+
+func _end_preview_pan() -> void:
+	_is_panning_preview = false
+
+
 func _handle_preview_gui_input(canvas: Control, event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		var mouse_event := event as InputEventMouseButton
@@ -946,6 +1177,31 @@ func _handle_preview_gui_input(canvas: Control, event: InputEvent) -> void:
 					_begin_drag("move", hit_id, canvas_pos)
 		else:
 			_end_drag()
+		return
+
+	if event is InputEventMouseButton and (event.button_index == MOUSE_BUTTON_WHEEL_UP or event.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+		var wheel_event := event as InputEventMouseButton
+		if wheel_event.pressed:
+			var wheel_factor := PREVIEW_ZOOM_STEP if wheel_event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / PREVIEW_ZOOM_STEP
+			_zoom_preview_by_factor(wheel_factor, wheel_event.position, true)
+			get_viewport().set_input_as_handled()
+		return
+
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_MIDDLE:
+		var middle_event := event as InputEventMouseButton
+		if middle_event.pressed:
+			_begin_preview_pan(middle_event.position)
+			get_viewport().set_input_as_handled()
+		else:
+			if _is_panning_preview:
+				_end_preview_pan()
+				get_viewport().set_input_as_handled()
+		return
+
+	if event is InputEventMouseMotion and _is_panning_preview:
+		var motion := event as InputEventMouseMotion
+		_update_preview_pan(motion.position)
+		get_viewport().set_input_as_handled()
 		return
 
 	if event is InputEventMouseMotion and _drag_mode != "":
@@ -1005,7 +1261,8 @@ func _update_drag(current_mouse_canvas_pos: Vector2) -> void:
 	if _height_spin != null:
 		_height_spin.value = float(updated.get("height", 0))
 	_updating_ui = false
-	_queue_redraw()
+	_element_rect_cache[_drag_element_id] = UILayoutApplier.get_element_rect(layout, _drag_element_id)
+	_update_element_view(_drag_element_id)
 
 
 func _snap_value(value: float) -> int:
@@ -1021,19 +1278,24 @@ func _screen_to_canvas_pos(canvas: Control, screen_pos: Vector2) -> Vector2:
 
 func _get_canvas_view(canvas: Control) -> Dictionary:
 	var available := canvas.size
-	var scale := minf(available.x / CANVAS_SIZE.x, available.y / CANVAS_SIZE.y)
-	if scale <= 0.0:
-		scale = 1.0
-	var preview_size := CANVAS_SIZE * scale
-	var origin := (available - preview_size) * 0.5
+	var base_scale := minf(available.x / CANVAS_SIZE.x, available.y / CANVAS_SIZE.y)
+	if base_scale <= 0.0:
+		base_scale = 1.0
+	var base_origin := (available - (CANVAS_SIZE * base_scale)) * 0.5
+	var origin := base_origin + _preview_pan
 	return {
 		"origin": origin,
-		"scale": scale,
+		"scale": base_scale * _preview_zoom,
+		"base_scale": base_scale,
+		"base_origin": base_origin,
+		"zoom": _preview_zoom,
+		"pan": _preview_pan,
 	}
 
 
 func _pick_element_at_canvas_position(canvas_pos: Vector2) -> String:
-	var ids := _get_sorted_element_ids()
+	_sync_layout_cache()
+	var ids := _sorted_ids_cache
 	for index in range(ids.size() - 1, -1, -1):
 		var element_id := ids[index]
 		var element := UILayoutConfig.get_element(layout, element_id)
@@ -1069,7 +1331,11 @@ func _get_element_screen_rect(element_id: String) -> Rect2:
 
 
 func _get_element_rect(element_id: String) -> Rect2:
-	return UILayoutApplier.get_element_rect(layout, element_id)
+	if _element_rect_cache.has(element_id):
+		return _element_rect_cache[element_id]
+	var rect := UILayoutApplier.get_element_rect(layout, element_id)
+	_element_rect_cache[element_id] = rect
+	return rect
 
 
 func _get_element_color(element_type: String) -> Color:
@@ -1079,9 +1345,8 @@ func _get_element_color(element_type: String) -> Color:
 
 
 func _get_sorted_element_ids() -> Array[String]:
-	var ids := UILayoutConfig.get_element_ids(layout)
-	ids.sort_custom(Callable(self, "_compare_element_ids"))
-	return ids
+	_sync_layout_cache()
+	return _sorted_ids_cache.duplicate(true)
 
 
 func _compare_element_ids(a: String, b: String) -> bool:
@@ -1448,8 +1713,9 @@ func _handle_nudge(event: InputEventKey) -> void:
 				element["width"] = max(1, int(element.get("width", 0)) + step)
 
 	UILayoutConfig.set_element(layout, selected_element_id, element)
+	_element_rect_cache[selected_element_id] = UILayoutApplier.get_element_rect(layout, selected_element_id)
+	_update_element_view(selected_element_id)
 	_refresh_property_panel()
-	_queue_redraw()
 
 
 func _is_text_input_focused() -> bool:
@@ -1460,6 +1726,92 @@ func _is_text_input_focused() -> bool:
 func _queue_redraw() -> void:
 	if _preview_canvas != null:
 		_preview_canvas.queue_redraw()
+
+
+func _sync_layout_cache() -> void:
+	if not _layout_cache_dirty and not _sorted_ids_cache.is_empty():
+		return
+
+	_sorted_ids_cache = UILayoutConfig.get_element_ids(layout)
+	_sorted_ids_cache.sort_custom(Callable(self, "_compare_element_ids"))
+	_element_rect_cache.clear()
+	for element_id in _sorted_ids_cache:
+		_element_rect_cache[element_id] = UILayoutApplier.get_element_rect(layout, element_id)
+	_layout_cache_dirty = false
+
+
+func _rebuild_preview_views() -> void:
+	if _preview_root == null:
+		return
+
+	for child in _preview_root.get_children():
+		_preview_root.remove_child(child)
+		child.queue_free()
+
+	_element_views.clear()
+	_sync_layout_cache()
+	for element_id in _sorted_ids_cache:
+		_create_or_update_element_view(element_id)
+	_update_preview_view_selection()
+	_sync_preview_root_transform()
+
+
+func _create_or_update_element_view(element_id: String) -> void:
+	if _preview_root == null:
+		return
+
+	var element := UILayoutConfig.get_element(layout, element_id)
+	if element.is_empty():
+		return
+
+	var view: ElementView = _element_views.get(element_id, null) as ElementView
+	if view == null:
+		view = ElementView.new()
+		view.editor_ref = self
+		view.setup(element_id)
+		_preview_root.add_child(view)
+		_element_views[element_id] = view
+
+	var rect := _get_element_rect(element_id)
+	var texture := _get_cached_texture(str(element.get("asset_path", "")))
+	view.apply_state(rect, element, texture, element_id == selected_element_id, show_assets, show_rects, show_labels, _is_dragging_preview)
+	view.z_index = int(element.get("z_index", 0))
+	view.update_preview_scale(_get_preview_scale())
+
+
+func _update_element_view(element_id: String) -> void:
+	if not _element_views.has(element_id):
+		_create_or_update_element_view(element_id)
+		return
+	_create_or_update_element_view(element_id)
+
+
+func _update_preview_view_selection() -> void:
+	if _element_views.is_empty():
+		return
+	for element_id in _element_views.keys():
+		_create_or_update_element_view(str(element_id))
+
+
+func _sync_preview_root_transform() -> void:
+	if _preview_root == null or _preview_canvas == null or _preview_clipper == null:
+		return
+
+	var view := _get_canvas_view(_preview_clipper)
+	var origin: Vector2 = view.get("origin", Vector2.ZERO)
+	var scale := float(view.get("scale", 1.0))
+	_preview_root.position = origin
+	_preview_root.scale = Vector2.ONE * scale
+	_preview_root.size = CANVAS_SIZE
+	for element_view in _element_views.values():
+		var typed_view: ElementView = element_view as ElementView
+		if typed_view != null:
+			typed_view.update_preview_scale(scale)
+
+
+func _on_preview_canvas_resized() -> void:
+	_sync_preview_root_transform()
+	_queue_redraw()
 
 
 func _normalize_project_path(path: String) -> String:

@@ -191,19 +191,12 @@ static func get_default_element_ids() -> Array[String]:
 
 
 static func get_element(layout: Dictionary, element_id: String) -> Dictionary:
-	var result := _make_element_defaults("hud")
-	var default_layout := get_default_layout()
-	var default_elements: Dictionary = default_layout.get("elements", {})
-	if default_elements.has(element_id) and default_elements[element_id] is Dictionary:
-		result = _merge_dictionary(result, default_elements[element_id])
-
 	var elements_variant: Variant = layout.get("elements", {})
 	if elements_variant is Dictionary:
 		var elements: Dictionary = elements_variant
 		if elements.has(element_id) and elements[element_id] is Dictionary:
-			result = _merge_dictionary(result, elements[element_id])
-
-	return result.duplicate(true)
+			return (elements[element_id] as Dictionary).duplicate(true)
+	return {}
 
 
 static func set_element(layout: Dictionary, element_id: String, element_data: Dictionary) -> void:

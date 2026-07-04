@@ -99,24 +99,24 @@ func _build_ui() -> void:
 	margin.offset_bottom = -34.0
 	_window_panel.add_child(margin)
 
-	var layout := VBoxContainer.new()
-	layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	layout.add_theme_constant_override("separation", 7)
-	margin.add_child(layout)
+	var content := VBoxContainer.new()
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation", 7)
+	margin.add_child(content)
 
 	var title := Label.new()
 	title.text = "Inventory"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layout.add_child(title)
+	content.add_child(title)
 	OathwakeTextStyle.apply_profile_to_label(title, "ui_title")
 
 	var main_area := HBoxContainer.new()
 	main_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	main_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	main_area.add_theme_constant_override("separation", 22)
-	layout.add_child(main_area)
+	content.add_child(main_area)
 
 	var left_side := VBoxContainer.new()
 	left_side.custom_minimum_size = Vector2(370, 0)
