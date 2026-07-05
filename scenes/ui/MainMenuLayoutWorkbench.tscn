@@ -1,0 +1,205 @@
+[gd_scene format=3 uid="uid://dka162bwv8um2"]
+
+[ext_resource type="Script" uid="uid://6mkhbsidth0q" path="res://scripts/ui/MainMenuLayoutBaker.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://bk1hphd8213a3" path="res://assets/ui/MM_UI/BASE _MENU.png" id="3_hks38"]
+[ext_resource type="Texture2D" uid="uid://3r7ia88vo1h0" path="res://assets/ui/MM_UI/BUTTON_OFF.png" id="4_5admy"]
+[ext_resource type="Texture2D" uid="uid://cvwwc6n2yn1f5" path="res://assets/ui/MM_UI/BUTTON_PEQUENO.png" id="4_5hkxi"]
+
+[node name="MainMenuLayoutWorkbench" type="Control" unique_id=614140839]
+visible = false
+custom_minimum_size = Vector2(1600, 900)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1600.0
+offset_bottom = 900.0
+mouse_filter = 2
+script = ExtResource("1")
+
+[node name="MainMenuState" type="Node" parent="." unique_id=505901606]
+
+[node name="menu.options_panel" type="TextureRect" parent="MainMenuState" unique_id=1820999768]
+offset_left = 612.0
+offset_top = 238.0
+offset_right = 987.0
+offset_bottom = 710.0
+texture = ExtResource("3_hks38")
+stretch_mode = 2
+
+[node name="menu.new_game_button" type="TextureRect" parent="MainMenuState" unique_id=61994770]
+visible = false
+offset_left = 644.0
+offset_top = 294.0
+offset_right = 956.7647
+offset_bottom = 398.0
+texture = ExtResource("4_5admy")
+expand_mode = 1
+
+[node name="menu_load_game_button" type="TextureRect" parent="MainMenuState" unique_id=1600475651]
+visible = false
+offset_left = 643.0
+offset_top = 374.0
+offset_right = 955.7647
+offset_bottom = 478.0
+texture = ExtResource("4_5admy")
+expand_mode = 1
+
+[node name="menu_settings_button" type="TextureRect" parent="MainMenuState" unique_id=1918272540]
+visible = false
+offset_left = 643.0
+offset_top = 453.0
+offset_right = 955.7647
+offset_bottom = 557.0
+texture = ExtResource("4_5admy")
+expand_mode = 1
+
+[node name="menu_quit_game_button" type="TextureRect" parent="MainMenuState" unique_id=1753987745]
+visible = false
+offset_left = 642.0
+offset_top = 532.0
+offset_right = 954.7647
+offset_bottom = 636.0
+texture = ExtResource("4_5admy")
+expand_mode = 1
+
+[node name="SaveSelectState" type="Node" parent="." unique_id=1761660979]
+
+[node name="menu_options_panel" type="TextureRect" parent="SaveSelectState" unique_id=1709354177]
+offset_left = 612.0
+offset_top = 238.0
+offset_right = 987.0
+offset_bottom = 710.0
+texture = ExtResource("3_hks38")
+stretch_mode = 2
+
+[node name="save_slot_1_button" type="TextureRect" parent="SaveSelectState" unique_id=1239253273]
+offset_left = 643.0
+offset_top = 277.0
+offset_right = 955.76465
+offset_bottom = 381.0
+texture = ExtResource("4_5admy")
+expand_mode = 1
+
+[node name="save_slot_2_button" type="TextureRect" parent="SaveSelectState" unique_id=1567707235]
+offset_left = 643.0
+offset_top = 358.0
+offset_right = 955.76465
+offset_bottom = 462.0
+texture = ExtResource("4_5admy")
+expand_mode = 1
+
+[node name="save_slot_3_button" type="TextureRect" parent="SaveSelectState" unique_id=879838005]
+offset_left = 643.0
+offset_top = 439.0
+offset_right = 955.76465
+offset_bottom = 543.0
+texture = ExtResource("4_5admy")
+expand_mode = 1
+
+[node name="save_load_button" type="TextureRect" parent="SaveSelectState" unique_id=1608407936]
+offset_left = 648.0
+offset_top = 540.0
+offset_right = 747.0
+offset_bottom = 596.0
+texture = ExtResource("4_5hkxi")
+expand_mode = 2
+stretch_mode = 4
+
+[node name="save_delete_button" type="TextureRect" parent="SaveSelectState" unique_id=285632249]
+offset_left = 751.0
+offset_top = 540.0
+offset_right = 850.0
+offset_bottom = 596.0
+texture = ExtResource("4_5hkxi")
+expand_mode = 2
+stretch_mode = 4
+
+[node name="save_back_button" type="TextureRect" parent="SaveSelectState" unique_id=123690166]
+offset_left = 854.0
+offset_top = 540.0
+offset_right = 953.0
+offset_bottom = 596.0
+texture = ExtResource("4_5hkxi")
+expand_mode = 2
+stretch_mode = 4
+
+[node name="InteractionZones" type="Node" parent="." unique_id=1806072275]
+
+[node name="menu.new_game_clickbox" type="ColorRect" parent="InteractionZones" unique_id=1015737582]
+visible = false
+offset_left = 664.0
+offset_top = 316.0
+offset_right = 937.0
+offset_bottom = 369.0
+mouse_default_cursor_shape = 2
+color = Color(1, 0.2, 0.6, 0.18)
+
+[node name="menu.load_game_clickbox" type="ColorRect" parent="InteractionZones" unique_id=306025057]
+visible = false
+offset_left = 667.0
+offset_top = 396.0
+offset_right = 931.0
+offset_bottom = 449.0
+mouse_default_cursor_shape = 2
+color = Color(1, 0.2, 0.6, 0.18)
+
+[node name="menu.settings_clickbox" type="ColorRect" parent="InteractionZones" unique_id=119039745]
+visible = false
+offset_left = 666.0
+offset_top = 477.0
+offset_right = 933.0
+offset_bottom = 528.0
+mouse_default_cursor_shape = 2
+color = Color(1, 0.2, 0.6, 0.18)
+
+[node name="menu.quit_clickbox" type="ColorRect" parent="InteractionZones" unique_id=1704211919]
+visible = false
+offset_left = 665.0
+offset_top = 554.0
+offset_right = 931.0
+offset_bottom = 606.0
+mouse_default_cursor_shape = 2
+color = Color(1, 0.2, 0.6, 0.18)
+
+[node name="save.slot_1_clickbox" type="ColorRect" parent="InteractionZones" unique_id=1279872180]
+offset_left = 666.0
+offset_top = 299.0
+offset_right = 932.0
+offset_bottom = 352.0
+color = Color(1, 0.2, 0.6, 0.18)
+
+[node name="save.slot_2_clickbox" type="ColorRect" parent="InteractionZones" unique_id=601103246]
+offset_left = 666.0
+offset_top = 380.0
+offset_right = 933.0
+offset_bottom = 432.0
+color = Color(1, 0.2, 0.6, 0.18)
+
+[node name="save.slot_3_clickbox" type="ColorRect" parent="InteractionZones" unique_id=681612468]
+offset_left = 665.0
+offset_top = 462.0
+offset_right = 933.0
+offset_bottom = 514.0
+color = Color(1, 0.2, 0.6, 0.18)
+
+[node name="save.back_clickbox" type="ColorRect" parent="InteractionZones" unique_id=1629498578]
+offset_left = 657.0
+offset_top = 550.0
+offset_right = 738.0
+offset_bottom = 583.0
+color = Color(1, 0.2, 0.6, 0.18)
+
+[node name="save.load_clickbox" type="ColorRect" parent="InteractionZones" unique_id=2134221338]
+offset_left = 761.0
+offset_top = 550.0
+offset_right = 839.0
+offset_bottom = 584.0
+color = Color(1, 0.2, 0.6, 0.18)
+
+[node name="save.delete_clickbox" type="ColorRect" parent="InteractionZones" unique_id=212538469]
+offset_left = 863.0
+offset_top = 550.0
+offset_right = 942.0
+offset_bottom = 583.0
+color = Color(1, 0.2, 0.6, 0.18)
+
+[node name="SharedGraphics" type="Node" parent="." unique_id=720320000]
