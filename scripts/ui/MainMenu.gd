@@ -1,14 +1,17 @@
 extends Control
 
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
-const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 const SaveSlotSelectScene := preload("res://scenes/ui/SaveSlotSelect.tscn")
+
+const BASE_MENU_TEXTURE := preload("res://assets/ui/MM_UI/BASE _MENU.png")
+const BUTTON_OFF_TEXTURE := preload("res://assets/ui/MM_UI/BUTTON_OFF.png")
+const BUTTON_ON_TEXTURE := preload("res://assets/ui/MM_UI/BUTTON_ON.png")
 
 @export var show_background := true
 
-var _menu_panel: Panel
-var _credits_panel: Panel
+var _menu_root: Control
 var _save_slot_select: Control
+var _notice_label: Label
 
 
 func _ready() -> void:
@@ -20,146 +23,110 @@ func _build_ui() -> void:
 
 	if show_background:
 		var background := ColorRect.new()
-		background.color = Color(0.08, 0.10, 0.14, 1.0)
+		background.color = Color(0.03, 0.04, 0.07, 0.78)
 		background.set_anchors_preset(Control.PRESET_FULL_RECT)
 		add_child(background)
 
-	_menu_panel = Panel.new()
-	_menu_panel.custom_minimum_size = Vector2(480, 500)
-	_menu_panel.anchor_left = 0.5
-	_menu_panel.anchor_top = 0.5
-	_menu_panel.anchor_right = 0.5
-	_menu_panel.anchor_bottom = 0.5
-	_menu_panel.offset_left = -240.0
-	_menu_panel.offset_top = -240.0
-	_menu_panel.offset_right = 240.0
-	_menu_panel.offset_bottom = 260.0
-	add_child(_menu_panel)
-	OathwakeUISkin.apply_panel(_menu_panel, "panel_menu")
+	_menu_root = Control.new()
+	_menu_root.name = "MainMenuVisual"
+	_menu_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_menu_root)
 
-	var layout := VBoxContainer.new()
-	layout.set_anchors_preset(Control.PRESET_FULL_RECT)
-	layout.offset_left = 42.0
-	layout.offset_top = 36.0
-	layout.offset_right = -42.0
-	layout.offset_bottom = -34.0
-	layout.add_theme_constant_override("separation", 13)
-	_menu_panel.add_child(layout)
+	var panel := TextureRect.new()
+	panel.name = "menu.options_panel"
+	_set_control_rect(panel, Rect2(612, 238, 375, 472))
+	panel.texture = BASE_MENU_TEXTURE
+	panel.stretch_mode = TextureRect.STRETCH_SCALE
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_menu_root.add_child(panel)
 
-	var title := Label.new()
-	title.text = "Oathwake"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	layout.add_child(title)
-	OathwakeTextStyle.apply_profile_to_label(title, "ui_title")
+	_menu_root.add_child(_make_mm_button("New Game", Rect2(644, 294, 313, 104), _on_new_game_pressed, true))
+	_menu_root.add_child(_make_mm_button("Load Game", Rect2(643, 374, 313, 104), _on_load_game_pressed, true))
+	_menu_root.add_child(_make_mm_button("Settings", Rect2(643, 453, 313, 104), _on_settings_pressed, true))
+	_menu_root.add_child(_make_mm_button("Quit", Rect2(642, 532, 313, 104), _on_quit_pressed, true))
 
-	var subtitle := Label.new()
-	subtitle.text = "Survival RPG Prototype"
-	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	layout.add_child(subtitle)
-	OathwakeTextStyle.apply_profile_to_label(subtitle, "base_ui")
-
-	layout.add_child(_make_menu_button("New Game", _on_new_game_pressed))
-	layout.add_child(_make_menu_button("Load Game", _on_load_game_pressed))
-
-	var multiplayer_button := _make_menu_button("Multiplayer", Callable())
-	multiplayer_button.disabled = true
-	layout.add_child(multiplayer_button)
-
-	var settings_button := _make_menu_button("Settings", Callable())
-	settings_button.disabled = true
-	layout.add_child(settings_button)
-
-	layout.add_child(_make_menu_button("Credits", _on_credits_pressed))
-	layout.add_child(_make_menu_button("Quit", _on_quit_pressed))
-
-	_credits_panel = _build_credits_panel()
-	add_child(_credits_panel)
-	_credits_panel.hide()
+	_notice_label = Label.new()
+	_notice_label.name = "NoticeLabel"
+	_set_control_rect(_notice_label, Rect2(620, 672, 360, 30))
+	_notice_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_notice_label.text = ""
+	_notice_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_menu_root.add_child(_notice_label)
+	OathwakeTextStyle.apply_profile_to_label(_notice_label, "base_ui")
 
 	_save_slot_select = SaveSlotSelectScene.instantiate()
 	_save_slot_select.back_requested.connect(_on_slot_select_back_requested)
 	add_child(_save_slot_select)
 
 
-func _make_menu_button(text_value: String, callback: Callable) -> Button:
-	var button := Button.new()
-	button.text = text_value
-	button.custom_minimum_size = Vector2(0, 48)
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+func _make_mm_button(text_value: String, rect: Rect2, callback: Callable, enabled := true) -> TextureButton:
+	var button := TextureButton.new()
+	button.name = text_value.to_lower().replace(" ", "_")
+	_set_control_rect(button, rect)
+	button.texture_normal = BUTTON_OFF_TEXTURE
+	button.texture_hover = BUTTON_ON_TEXTURE if enabled else BUTTON_OFF_TEXTURE
+	button.texture_pressed = BUTTON_ON_TEXTURE if enabled else BUTTON_OFF_TEXTURE
+	button.texture_disabled = BUTTON_OFF_TEXTURE
+	button.ignore_texture_size = true
+	button.stretch_mode = TextureButton.STRETCH_SCALE
 	button.focus_mode = Control.FOCUS_NONE
-	if callback.is_valid():
+	button.disabled = not enabled
+	if enabled and callback.is_valid():
 		button.pressed.connect(callback)
-	OathwakeTextStyle.apply_profile_to_control(button, "ui_button")
-	OathwakeUISkin.apply_button(button, "large")
+
+	var label := Label.new()
+	label.text = text_value
+	label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(label)
+	OathwakeTextStyle.apply_profile_to_label(label, "ui_button")
+
 	return button
 
 
-func _build_credits_panel() -> Panel:
-	var panel := Panel.new()
-	panel.custom_minimum_size = Vector2(500, 300)
-	panel.anchor_left = 0.5
-	panel.anchor_top = 0.5
-	panel.anchor_right = 0.5
-	panel.anchor_bottom = 0.5
-	panel.offset_left = -250.0
-	panel.offset_top = -150.0
-	panel.offset_right = 250.0
-	panel.offset_bottom = 150.0
-	OathwakeUISkin.apply_panel(panel, "panel_credits")
+func _set_control_rect(control: Control, rect: Rect2) -> void:
+	control.anchor_left = 0.0
+	control.anchor_top = 0.0
+	control.anchor_right = 0.0
+	control.anchor_bottom = 0.0
+	control.offset_left = rect.position.x
+	control.offset_top = rect.position.y
+	control.offset_right = rect.position.x + rect.size.x
+	control.offset_bottom = rect.position.y + rect.size.y
 
-	var layout := VBoxContainer.new()
-	layout.set_anchors_preset(Control.PRESET_FULL_RECT)
-	layout.offset_left = 36.0
-	layout.offset_top = 30.0
-	layout.offset_right = -36.0
-	layout.offset_bottom = -30.0
-	layout.add_theme_constant_override("separation", 13)
-	panel.add_child(layout)
 
-	var title := Label.new()
-	title.text = "Credits"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	layout.add_child(title)
-	OathwakeTextStyle.apply_profile_to_label(title, "ui_title")
-
-	var body := Label.new()
-	body.text = "Oathwake prototype\nBuilt in Godot 4.6\nMenu and slot flow placeholder"
-	body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	body.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	layout.add_child(body)
-	OathwakeTextStyle.apply_profile_to_label(body, "base_ui")
-
-	var back_button := _make_menu_button("Back", _on_credits_back_pressed)
-	layout.add_child(back_button)
-
-	return panel
+func _show_notice(text_value: String) -> void:
+	if _notice_label == null:
+		return
+	_notice_label.text = text_value
+	var tween := create_tween()
+	_notice_label.modulate.a = 1.0
+	tween.tween_interval(1.4)
+	tween.tween_property(_notice_label, "modulate:a", 0.0, 0.35)
+	tween.finished.connect(func() -> void:
+		_notice_label.text = ""
+		_notice_label.modulate.a = 1.0
+	)
 
 
 func _on_new_game_pressed() -> void:
-	_menu_panel.hide()
-	_credits_panel.hide()
+	_menu_root.hide()
 	_save_slot_select.open_for("new")
 
 
 func _on_load_game_pressed() -> void:
-	_menu_panel.hide()
-	_credits_panel.hide()
+	_menu_root.hide()
 	_save_slot_select.open_for("load")
 
 
-func _on_credits_pressed() -> void:
-	_menu_panel.hide()
-	_credits_panel.show()
-
-
-func _on_credits_back_pressed() -> void:
-	_credits_panel.hide()
-	_menu_panel.show()
+func _on_settings_pressed() -> void:
+	_show_notice("Settings coming soon.")
 
 
 func _on_slot_select_back_requested() -> void:
-	_menu_panel.show()
+	_menu_root.show()
 
 
 func _on_quit_pressed() -> void:
