@@ -64,7 +64,7 @@ func _build_ui() -> void:
 	OathwakeTextStyle.apply_profile_to_label(_title_label, "ui_title")
 
 	for index in range(SLOT_IDS.size()):
-		var slot_id := SLOT_IDS[index]
+		var slot_id: String = str(SLOT_IDS[index])
 		var y := 277.0 + float(index) * 81.0
 		var button := _make_large_button("", Rect2(643, y, 313, 104), _on_slot_pressed.bind(slot_id), true)
 		button.name = "save_%s_button" % slot_id

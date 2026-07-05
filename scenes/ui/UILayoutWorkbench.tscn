@@ -1,12 +1,17 @@
 [gd_scene format=3 uid="uid://gxu1vyfdco3o"]
 
 [ext_resource type="Script" uid="uid://sqi3hrb6xsus" path="res://scripts/ui/UILayoutBaker.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://c1wa603by45op" path="res://assets/ui/inventory/inventory_window.png" id="2"]
-[ext_resource type="Texture2D" uid="uid://cyervowc4h4ro" path="res://assets/ui/buttons/button_medium_normal.png" id="3"]
-[ext_resource type="Texture2D" uid="uid://dpuaedhnuhr87" path="res://assets/ui/inventory/item_slot_normal.png" id="4"]
-[ext_resource type="Texture2D" uid="uid://oyve4kn8wkwm" path="res://assets/ui/hud/hotbar_frame.png" id="5"]
-[ext_resource type="Texture2D" uid="uid://cyuenr5jlew2" path="res://assets/ui/hud/hotbar_slot_empty.png" id="6"]
-[ext_resource type="Texture2D" uid="uid://c82fhfqn6bfua" path="res://assets/ui/hud/health_bar_frame.png" id="7"]
+[ext_resource type="Texture2D" uid="uid://bptvxxaf5ire2" path="res://assets/ui/HUDUI/INVENTORY.png" id="2_svbvw"]
+[ext_resource type="Texture2D" uid="uid://bshtwjcgkgn3v" path="res://assets/ui/HUDUI/INVENTORY_HOVER.png" id="3_bndjq"]
+[ext_resource type="Texture2D" uid="uid://bfclgvw24eol1" path="res://assets/ui/HUDUI/HOTBAR.png" id="3_mxc0d"]
+[ext_resource type="Texture2D" uid="uid://bfhos43p8w0v7" path="res://assets/ui/HUDUI/EXP_BAR.png" id="4_1s0c4"]
+[ext_resource type="Texture2D" uid="uid://bfx2xmir286cr" path="res://assets/ui/HUDUI/BAR_LIFE.png" id="4_6j0ip"]
+[ext_resource type="Texture2D" uid="uid://dq6df8ogolr" path="res://assets/ui/HUDUI/INVENTORY_SELECT.png" id="4_pju05"]
+[ext_resource type="Texture2D" uid="uid://c3yt32ae1wuma" path="res://assets/ui/HUDUI/EXP_BORDER.png" id="5_pf6ba"]
+[ext_resource type="Texture2D" uid="uid://c1np2c4fxu7pl" path="res://assets/ui/HUDUI/BAR_MANA.png" id="7_pf6ba"]
+[ext_resource type="Texture2D" uid="uid://c7tyg6qdc2iep" path="res://assets/ui/HUDUI/BAR_STAMINA.png" id="8_1s0c4"]
+[ext_resource type="Texture2D" uid="uid://b400o47ll5nvw" path="res://assets/ui/HUDUI/FLAME_FRAME.png" id="9_1s0c4"]
+[ext_resource type="Texture2D" uid="uid://dqnvawaloxefb" path="res://assets/ui/HUDUI/PORTRAIT.png" id="9_bndjq"]
 
 [node name="UILayoutWorkbench" type="Control" unique_id=73905039]
 custom_minimum_size = Vector2(1600, 900)
@@ -20,164 +25,149 @@ metadata/_edit_lock_ = true
 metadata/_edit_lock_ = true
 
 [node name="inventory.window" type="TextureRect" parent="Inventory" unique_id=448042240]
-offset_left = 460.0
-offset_top = 140.0
-offset_right = 1140.0
-offset_bottom = 700.0
-texture = ExtResource("2")
-
-[node name="inventory.sort_button" type="TextureRect" parent="Inventory/inventory.window" unique_id=673450191]
-layout_mode = 0
-offset_left = 34.0
-offset_top = 64.0
-offset_right = 166.0
-offset_bottom = 106.0
-texture = ExtResource("3")
-
-[node name="inventory.split_button" type="TextureRect" parent="Inventory/inventory.window" unique_id=1548909370]
-layout_mode = 0
-offset_left = 174.0
-offset_top = 64.0
-offset_right = 306.0
-offset_bottom = 106.0
-texture = ExtResource("3")
-
-[node name="inventory.drop_button" type="TextureRect" parent="Inventory/inventory.window" unique_id=926680745]
-layout_mode = 0
-offset_left = 314.0
-offset_top = 64.0
-offset_right = 446.0
-offset_bottom = 106.0
-texture = ExtResource("3")
+offset_left = 315.0
+offset_top = 196.0
+offset_right = 1262.0
+offset_bottom = 756.0
+texture = ExtResource("2_svbvw")
 
 [node name="inventory.grid_area" type="ColorRect" parent="Inventory/inventory.window" unique_id=1895777849]
+visible = false
 layout_mode = 0
-offset_left = 34.0
-offset_top = 120.0
-offset_right = 464.0
-offset_bottom = 440.0
-color = Color(0.42, 0.58, 0.78, 0.14)
-
-[node name="inventory.slot_1" type="TextureRect" parent="Inventory/inventory.window" unique_id=1432042353]
-layout_mode = 0
-offset_left = 86.0
-offset_top = 148.0
-offset_right = 146.0
-offset_bottom = 208.0
-texture = ExtResource("4")
-
-[node name="inventory.slot_2" type="TextureRect" parent="Inventory/inventory.window" unique_id=791714374]
-layout_mode = 0
-offset_left = 154.0
-offset_top = 148.0
-offset_right = 214.0
-offset_bottom = 208.0
-texture = ExtResource("4")
-
-[node name="inventory.slot_3" type="TextureRect" parent="Inventory/inventory.window" unique_id=2044353843]
-layout_mode = 0
-offset_left = 222.0
-offset_top = 148.0
-offset_right = 282.0
-offset_bottom = 208.0
-texture = ExtResource("4")
-
-[node name="inventory.slot_4" type="TextureRect" parent="Inventory/inventory.window" unique_id=1375272027]
-layout_mode = 0
-offset_left = 290.0
-offset_top = 148.0
-offset_right = 350.0
-offset_bottom = 208.0
-texture = ExtResource("4")
-
-[node name="inventory.trash_area" type="ColorRect" parent="Inventory/inventory.window" unique_id=645062486]
-layout_mode = 0
-offset_left = 34.0
-offset_top = 458.0
-offset_right = 126.0
-offset_bottom = 550.0
-color = Color(0.6, 0.18, 0.18, 0.14)
-
-[node name="inventory.tooltip_area" type="ColorRect" parent="Inventory/inventory.window" unique_id=1795603194]
-layout_mode = 0
-offset_left = 138.0
-offset_top = 458.0
-offset_right = 414.0
-offset_bottom = 550.0
+offset_left = 245.0
+offset_top = 62.0
+offset_right = 734.0
+offset_bottom = 481.0
 color = Color(0.42, 0.58, 0.78, 0.14)
 
 [node name="inventory.equipment_panel" type="ColorRect" parent="Inventory/inventory.window" unique_id=999781477]
 layout_mode = 0
-offset_left = 480.0
-offset_top = 64.0
-offset_right = 646.0
-offset_bottom = 474.0
+offset_left = 29.0
+offset_top = 63.0
+offset_right = 230.0
+offset_bottom = 447.0
 color = Color(0.42, 0.58, 0.78, 0.1)
 
-[node name="inventory.weapon_slot" type="TextureRect" parent="Inventory/inventory.window/inventory.equipment_panel" unique_id=302900468]
+[node name="inventory.trash_area" type="ColorRect" parent="Inventory/inventory.window" unique_id=645062486]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 44.0
-offset_right = 158.0
-offset_bottom = 96.0
-texture = ExtResource("4")
+offset_left = 32.0
+offset_top = 452.0
+offset_right = 90.0
+offset_bottom = 513.0
+color = Color(0.6, 0.18, 0.18, 0.14)
 
-[node name="inventory.tool_slot" type="TextureRect" parent="Inventory/inventory.window/inventory.equipment_panel" unique_id=1188873352]
+[node name="inventory.tooltip_area" type="ColorRect" parent="Inventory/inventory.window" unique_id=1795603194]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 102.0
-offset_right = 158.0
-offset_bottom = 154.0
-texture = ExtResource("4")
+offset_left = 751.0
+offset_top = 62.0
+offset_right = 914.0
+offset_bottom = 331.0
+color = Color(0.42, 0.58, 0.78, 0.14)
 
-[node name="inventory.armor_slot" type="TextureRect" parent="Inventory/inventory.window/inventory.equipment_panel" unique_id=530837728]
+[node name="Inventory_Hover" type="TextureRect" parent="Inventory/inventory.window" unique_id=1393343081]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 160.0
-offset_right = 158.0
-offset_bottom = 212.0
-texture = ExtResource("4")
+offset_left = 245.0
+offset_top = 374.0
+offset_right = 298.0
+offset_bottom = 425.0
+texture = ExtResource("3_bndjq")
 
-[node name="inventory.accessory_slot" type="TextureRect" parent="Inventory/inventory.window/inventory.equipment_panel" unique_id=677352604]
+[node name="Inventory_Select" type="TextureRect" parent="Inventory/inventory.window" unique_id=1343720773]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 218.0
-offset_right = 158.0
-offset_bottom = 270.0
-texture = ExtResource("4")
+offset_left = 236.0
+offset_top = 57.0
+offset_right = 307.0
+offset_bottom = 128.0
+texture = ExtResource("4_pju05")
 
 [node name="Hotbar" type="Node" parent="." unique_id=792577424]
 
 [node name="hotbar.panel" type="TextureRect" parent="Hotbar" unique_id=2120277551]
-offset_left = 450.0
-offset_top = 780.0
-offset_right = 1150.0
-offset_bottom = 848.0
-texture = ExtResource("5")
+offset_left = 386.0
+offset_top = 820.0
+offset_right = 1210.0
+offset_bottom = 898.0
+texture = ExtResource("3_mxc0d")
 
-[node name="hotbar.slot_1" type="TextureRect" parent="Hotbar/hotbar.panel" unique_id=565959005]
+[node name="hotbar_1" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=341422740]
 layout_mode = 0
-offset_left = 14.0
-offset_top = 8.0
-offset_right = 72.0
-offset_bottom = 60.0
-texture = ExtResource("6")
+offset_left = 13.0
+offset_top = 9.0
+offset_right = 79.0
+offset_bottom = 69.0
+color = Color(1, 0.5294118, 0, 0.15294118)
 
-[node name="hotbar.slot_2" type="TextureRect" parent="Hotbar/hotbar.panel" unique_id=71608797]
+[node name="hotbar_2" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=889546019]
 layout_mode = 0
-offset_left = 80.0
-offset_top = 8.0
-offset_right = 138.0
-offset_bottom = 60.0
-texture = ExtResource("6")
+offset_left = 95.0
+offset_top = 9.0
+offset_right = 161.0
+offset_bottom = 69.0
+color = Color(1, 0.5294118, 0, 0.15294118)
 
-[node name="hotbar.slot_3" type="TextureRect" parent="Hotbar/hotbar.panel" unique_id=955895311]
+[node name="hotbar_3" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=911822078]
 layout_mode = 0
-offset_left = 146.0
-offset_top = 8.0
-offset_right = 204.0
-offset_bottom = 60.0
-texture = ExtResource("6")
+offset_left = 177.0
+offset_top = 9.0
+offset_right = 243.0
+offset_bottom = 69.0
+color = Color(1, 0.5294118, 0, 0.15294118)
+
+[node name="hotbar_5" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1775691999]
+layout_mode = 0
+offset_left = 341.0
+offset_top = 9.0
+offset_right = 407.0
+offset_bottom = 69.0
+color = Color(1, 0.5294118, 0, 0.15294118)
+
+[node name="hotbar_4" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1023261665]
+layout_mode = 0
+offset_left = 259.0
+offset_top = 10.0
+offset_right = 325.0
+offset_bottom = 70.0
+color = Color(1, 0.5294118, 0, 0.15294118)
+
+[node name="hotbar_6" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=446365499]
+layout_mode = 0
+offset_left = 422.0
+offset_top = 9.0
+offset_right = 488.0
+offset_bottom = 69.0
+color = Color(1, 0.5294118, 0, 0.15294118)
+
+[node name="hotbar_7" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1178670484]
+layout_mode = 0
+offset_left = 504.0
+offset_top = 9.0
+offset_right = 570.0
+offset_bottom = 69.0
+color = Color(1, 0.5294118, 0, 0.15294118)
+
+[node name="hotbar_8" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1774864382]
+layout_mode = 0
+offset_left = 586.0
+offset_top = 9.0
+offset_right = 652.0
+offset_bottom = 69.0
+color = Color(1, 0.5294118, 0, 0.15294118)
+
+[node name="hotbar_9" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=885814636]
+layout_mode = 0
+offset_left = 669.0
+offset_top = 9.0
+offset_right = 735.0
+offset_bottom = 69.0
+color = Color(1, 0.5294118, 0, 0.15294118)
+
+[node name="hotbar_0" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1046689324]
+layout_mode = 0
+offset_left = 751.0
+offset_top = 9.0
+offset_right = 817.0
+offset_bottom = 69.0
+color = Color(1, 0.5294118, 0, 0.15294118)
 
 [node name="HUD" type="Node" parent="." unique_id=615827251]
 
@@ -188,29 +178,74 @@ offset_right = 400.0
 offset_bottom = 190.0
 color = Color(0.16, 0.2, 0.26, 0.16)
 
-[node name="hud.health_bar" type="TextureRect" parent="HUD/hud.status_panel" unique_id=1450889469]
+[node name="EXP_BAR" type="TextureRect" parent="HUD/hud.status_panel" unique_id=127984915]
 layout_mode = 0
-offset_left = 18.0
-offset_top = 54.0
-offset_right = 258.0
-offset_bottom = 76.0
-texture = ExtResource("7")
+offset_left = 575.0
+offset_top = 9.0
+offset_right = 992.0
+offset_bottom = 70.0
+texture = ExtResource("4_1s0c4")
+stretch_mode = 4
 
-[node name="hud.xp_bar" type="TextureRect" parent="HUD/hud.status_panel" unique_id=256752243]
+[node name="BAR_LIFE" type="TextureRect" parent="HUD/hud.status_panel" unique_id=1450889469]
 layout_mode = 0
-offset_left = 18.0
-offset_top = 86.0
-offset_right = 258.0
-offset_bottom = 104.0
-texture = ExtResource("7")
+offset_left = 174.0
+offset_top = 1.0
+offset_right = 443.0
+offset_bottom = 54.0
+texture = ExtResource("4_6j0ip")
+stretch_mode = 2
 
-[node name="hud.alignment_flame" type="TextureRect" parent="HUD/hud.status_panel" unique_id=173935302]
+[node name="BAR_STAMINA" type="TextureRect" parent="HUD/hud.status_panel" unique_id=1912742816]
 layout_mode = 0
-offset_left = 300.0
-offset_top = 42.0
-offset_right = 348.0
-offset_bottom = 106.0
-texture = ExtResource("3")
+offset_left = 176.0
+offset_top = 6.0
+offset_right = 446.0
+offset_bottom = 69.0
+texture = ExtResource("8_1s0c4")
+expand_mode = 1
+
+[node name="BAR_MANA" type="TextureRect" parent="HUD/hud.status_panel" unique_id=2054255587]
+layout_mode = 0
+offset_left = 174.0
+offset_top = 21.0
+offset_right = 444.0
+offset_bottom = 51.0
+texture = ExtResource("7_pf6ba")
+expand_mode = 1
+
+[node name="EXP_BORDER" type="TextureRect" parent="HUD/hud.status_panel" unique_id=256752243]
+layout_mode = 0
+offset_left = 529.0
+offset_top = -19.0
+offset_right = 1005.0
+offset_bottom = 42.0
+texture = ExtResource("5_pf6ba")
+
+[node name="ALIG_FLAME" type="TextureRect" parent="HUD/hud.status_panel" unique_id=173935302]
+layout_mode = 0
+offset_left = 1395.0
+offset_top = 703.0
+offset_right = 1562.0
+offset_bottom = 862.0
+texture = ExtResource("9_1s0c4")
+stretch_mode = 2
+
+[node name="PURPLE_FLAME PLACEHOLDER" type="ColorRect" parent="HUD/hud.status_panel/ALIG_FLAME" unique_id=2066004525]
+layout_mode = 0
+offset_left = 75.0
+offset_top = 72.0
+offset_right = 115.0
+offset_bottom = 112.0
+
+[node name="PORTRAIT" type="TextureRect" parent="HUD/hud.status_panel" unique_id=1364538053]
+layout_mode = 0
+offset_left = -2.0
+offset_top = -5.0
+offset_right = 182.0
+offset_bottom = 186.0
+texture = ExtResource("9_bndjq")
+stretch_mode = 2
 
 [node name="hud.minimap" type="ColorRect" parent="HUD" unique_id=1209322008]
 offset_left = 1340.0
@@ -223,46 +258,676 @@ color = Color(0.2, 0.28, 0.38, 0.16)
 
 [node name="inventory_drag_handle" type="ColorRect" parent="InteractionZones" unique_id=948722259]
 visible = false
-offset_left = 495.0
-offset_top = 189.0
-offset_right = 1107.0
-offset_bottom = 691.0
+offset_left = 326.0
+offset_top = 206.0
+offset_right = 1246.0
+offset_bottom = 744.0
 color = Color(0.9, 0.18, 0.62, 0.24)
 
 [node name="inventory_close_hitbox" type="ColorRect" parent="InteractionZones" unique_id=1097476894]
-offset_left = 1075.0
-offset_top = 194.0
-offset_right = 1103.0
-offset_bottom = 222.0
+offset_left = 1202.0
+offset_top = 216.0
+offset_right = 1228.0
+offset_bottom = 243.0
 color = Color(0.9, 0.18, 0.62, 0.24)
 
 [node name="inventory_split_button_clickbox" type="ColorRect" parent="InteractionZones" unique_id=192511496]
-visible = false
-offset_left = 684.0
-offset_top = 212.0
-offset_right = 766.0
-offset_bottom = 238.0
+offset_left = 1098.0
+offset_top = 605.0
+offset_right = 1201.0
+offset_bottom = 648.0
 color = Color(1, 0, 1, 0.16078432)
 
-[node name="inventory_sort_button_clickbox" type="ColorRect" parent="InteractionZones" unique_id=567543990]
-offset_left = 543.0
-offset_top = 211.0
-offset_right = 625.0
-offset_bottom = 237.0
+[node name="inventory_use_button_clickbox" type="ColorRect" parent="InteractionZones" unique_id=567543990]
+offset_left = 1098.0
+offset_top = 543.0
+offset_right = 1202.0
+offset_bottom = 584.0
 color = Color(1, 0, 1, 0.16078432)
 
 [node name="inventory_drop_button_clickbox" type="ColorRect" parent="InteractionZones" unique_id=1017422688]
-offset_left = 823.0
-offset_top = 210.0
-offset_right = 905.0
-offset_bottom = 236.0
+offset_left = 1096.0
+offset_top = 668.0
+offset_right = 1202.0
+offset_bottom = 711.0
 color = Color(1, 0, 1, 0.16078432)
 
-[node name="CustomGraphics" type="Node" parent="." unique_id=1601241503]
+[node name="I1" type="ColorRect" parent="InteractionZones" unique_id=1764306215]
+offset_left = 563.0
+offset_top = 262.0
+offset_right = 609.0
+offset_bottom = 311.0
+color = Color(1, 0.16078432, 0, 0.11372549)
 
-[node name="custom.graphic_001" type="TextureRect" parent="CustomGraphics" unique_id=1401286090]
-offset_left = 1210.0
-offset_top = 260.0
-offset_right = 1342.0
-offset_bottom = 302.0
-texture = ExtResource("3")
+[node name="i2" type="ColorRect" parent="InteractionZones/I1" unique_id=1900678127]
+layout_mode = 0
+offset_left = 49.0
+offset_right = 95.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i3" type="ColorRect" parent="InteractionZones/I1" unique_id=486127603]
+layout_mode = 0
+offset_left = 97.0
+offset_right = 143.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i4" type="ColorRect" parent="InteractionZones/I1" unique_id=1058242471]
+layout_mode = 0
+offset_left = 146.0
+offset_right = 192.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i5" type="ColorRect" parent="InteractionZones/I1" unique_id=752030308]
+layout_mode = 0
+offset_left = 194.0
+offset_right = 240.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i6" type="ColorRect" parent="InteractionZones/I1" unique_id=28666566]
+layout_mode = 0
+offset_left = 242.0
+offset_right = 288.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i7" type="ColorRect" parent="InteractionZones/I1" unique_id=98378344]
+layout_mode = 0
+offset_left = 291.0
+offset_right = 337.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i8" type="ColorRect" parent="InteractionZones/I1" unique_id=844558752]
+layout_mode = 0
+offset_left = 339.0
+offset_right = 385.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i9" type="ColorRect" parent="InteractionZones/I1" unique_id=611236184]
+layout_mode = 0
+offset_left = 387.0
+offset_right = 433.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i10" type="ColorRect" parent="InteractionZones/I1" unique_id=1886488968]
+layout_mode = 0
+offset_left = 436.0
+offset_right = 482.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i11" type="ColorRect" parent="InteractionZones" unique_id=1673946758]
+offset_left = 563.0
+offset_top = 314.0
+offset_right = 609.0
+offset_bottom = 363.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i12" type="ColorRect" parent="InteractionZones/i11" unique_id=1403347234]
+layout_mode = 0
+offset_left = 49.0
+offset_right = 95.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i13" type="ColorRect" parent="InteractionZones/i11" unique_id=696559422]
+layout_mode = 0
+offset_left = 97.0
+offset_right = 143.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i14" type="ColorRect" parent="InteractionZones/i11" unique_id=1250164739]
+layout_mode = 0
+offset_left = 146.0
+offset_right = 192.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i15" type="ColorRect" parent="InteractionZones/i11" unique_id=993069680]
+layout_mode = 0
+offset_left = 194.0
+offset_right = 240.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i16" type="ColorRect" parent="InteractionZones/i11" unique_id=1434681828]
+layout_mode = 0
+offset_left = 242.0
+offset_right = 288.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i17" type="ColorRect" parent="InteractionZones/i11" unique_id=976305135]
+layout_mode = 0
+offset_left = 291.0
+offset_right = 337.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i18" type="ColorRect" parent="InteractionZones/i11" unique_id=1901311859]
+layout_mode = 0
+offset_left = 339.0
+offset_right = 385.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i19" type="ColorRect" parent="InteractionZones/i11" unique_id=1980507897]
+layout_mode = 0
+offset_left = 387.0
+offset_right = 433.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i20" type="ColorRect" parent="InteractionZones/i11" unique_id=1637947990]
+layout_mode = 0
+offset_left = 436.0
+offset_right = 482.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i21" type="ColorRect" parent="InteractionZones" unique_id=1671332363]
+offset_left = 563.0
+offset_top = 366.0
+offset_right = 609.0
+offset_bottom = 415.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i22" type="ColorRect" parent="InteractionZones/i21" unique_id=1885420421]
+layout_mode = 0
+offset_left = 49.0
+offset_right = 95.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i23" type="ColorRect" parent="InteractionZones/i21" unique_id=452138375]
+layout_mode = 0
+offset_left = 97.0
+offset_right = 143.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i24" type="ColorRect" parent="InteractionZones/i21" unique_id=480507560]
+layout_mode = 0
+offset_left = 146.0
+offset_right = 192.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i25" type="ColorRect" parent="InteractionZones/i21" unique_id=1167843888]
+layout_mode = 0
+offset_left = 194.0
+offset_right = 240.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i26" type="ColorRect" parent="InteractionZones/i21" unique_id=1147144081]
+layout_mode = 0
+offset_left = 242.0
+offset_right = 288.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i27" type="ColorRect" parent="InteractionZones/i21" unique_id=944185125]
+layout_mode = 0
+offset_left = 291.0
+offset_right = 337.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="i28" type="ColorRect" parent="InteractionZones/i21" unique_id=1706827360]
+layout_mode = 0
+offset_left = 339.0
+offset_right = 385.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect7" type="ColorRect" parent="InteractionZones/i21" unique_id=1972407146]
+layout_mode = 0
+offset_left = 387.0
+offset_right = 433.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect9" type="ColorRect" parent="InteractionZones/i21" unique_id=596829433]
+layout_mode = 0
+offset_left = 436.0
+offset_right = 482.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect4" type="ColorRect" parent="InteractionZones" unique_id=405880748]
+offset_left = 563.0
+offset_top = 418.0
+offset_right = 609.0
+offset_bottom = 467.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect" type="ColorRect" parent="InteractionZones/ColorRect4" unique_id=1027234384]
+layout_mode = 0
+offset_left = 49.0
+offset_right = 95.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect2" type="ColorRect" parent="InteractionZones/ColorRect4" unique_id=1544674923]
+layout_mode = 0
+offset_left = 97.0
+offset_right = 143.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect3" type="ColorRect" parent="InteractionZones/ColorRect4" unique_id=2074175405]
+layout_mode = 0
+offset_left = 146.0
+offset_right = 192.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect4" type="ColorRect" parent="InteractionZones/ColorRect4" unique_id=2122474854]
+layout_mode = 0
+offset_left = 194.0
+offset_right = 240.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect5" type="ColorRect" parent="InteractionZones/ColorRect4" unique_id=72452881]
+layout_mode = 0
+offset_left = 242.0
+offset_right = 288.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect8" type="ColorRect" parent="InteractionZones/ColorRect4" unique_id=461971178]
+layout_mode = 0
+offset_left = 291.0
+offset_right = 337.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect6" type="ColorRect" parent="InteractionZones/ColorRect4" unique_id=1680435037]
+layout_mode = 0
+offset_left = 339.0
+offset_right = 385.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect7" type="ColorRect" parent="InteractionZones/ColorRect4" unique_id=1582071992]
+layout_mode = 0
+offset_left = 387.0
+offset_right = 433.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect9" type="ColorRect" parent="InteractionZones/ColorRect4" unique_id=513638494]
+layout_mode = 0
+offset_left = 436.0
+offset_right = 482.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect5" type="ColorRect" parent="InteractionZones" unique_id=2034651199]
+offset_left = 563.0
+offset_top = 469.0
+offset_right = 609.0
+offset_bottom = 518.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect" type="ColorRect" parent="InteractionZones/ColorRect5" unique_id=1946833993]
+layout_mode = 0
+offset_left = 49.0
+offset_right = 95.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect2" type="ColorRect" parent="InteractionZones/ColorRect5" unique_id=1041325590]
+layout_mode = 0
+offset_left = 97.0
+offset_right = 143.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect3" type="ColorRect" parent="InteractionZones/ColorRect5" unique_id=794759642]
+layout_mode = 0
+offset_left = 146.0
+offset_right = 192.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect4" type="ColorRect" parent="InteractionZones/ColorRect5" unique_id=1296387101]
+layout_mode = 0
+offset_left = 194.0
+offset_right = 240.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect5" type="ColorRect" parent="InteractionZones/ColorRect5" unique_id=1790045532]
+layout_mode = 0
+offset_left = 242.0
+offset_right = 288.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect8" type="ColorRect" parent="InteractionZones/ColorRect5" unique_id=225592754]
+layout_mode = 0
+offset_left = 291.0
+offset_right = 337.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect6" type="ColorRect" parent="InteractionZones/ColorRect5" unique_id=234050466]
+layout_mode = 0
+offset_left = 339.0
+offset_right = 385.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect7" type="ColorRect" parent="InteractionZones/ColorRect5" unique_id=520022457]
+layout_mode = 0
+offset_left = 387.0
+offset_right = 433.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect9" type="ColorRect" parent="InteractionZones/ColorRect5" unique_id=2073985320]
+layout_mode = 0
+offset_left = 436.0
+offset_right = 482.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect6" type="ColorRect" parent="InteractionZones" unique_id=13640750]
+offset_left = 561.0
+offset_top = 518.0
+offset_right = 607.0
+offset_bottom = 567.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect" type="ColorRect" parent="InteractionZones/ColorRect6" unique_id=776947257]
+layout_mode = 0
+offset_left = 49.0
+offset_right = 95.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect2" type="ColorRect" parent="InteractionZones/ColorRect6" unique_id=150181214]
+layout_mode = 0
+offset_left = 97.0
+offset_right = 143.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect3" type="ColorRect" parent="InteractionZones/ColorRect6" unique_id=1922504482]
+layout_mode = 0
+offset_left = 146.0
+offset_right = 192.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect4" type="ColorRect" parent="InteractionZones/ColorRect6" unique_id=480725478]
+layout_mode = 0
+offset_left = 194.0
+offset_right = 240.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect5" type="ColorRect" parent="InteractionZones/ColorRect6" unique_id=2060756024]
+layout_mode = 0
+offset_left = 242.0
+offset_right = 288.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect8" type="ColorRect" parent="InteractionZones/ColorRect6" unique_id=1440197895]
+layout_mode = 0
+offset_left = 291.0
+offset_right = 337.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect6" type="ColorRect" parent="InteractionZones/ColorRect6" unique_id=1842522077]
+layout_mode = 0
+offset_left = 339.0
+offset_right = 385.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect7" type="ColorRect" parent="InteractionZones/ColorRect6" unique_id=1566292391]
+layout_mode = 0
+offset_left = 387.0
+offset_right = 433.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect9" type="ColorRect" parent="InteractionZones/ColorRect6" unique_id=64083678]
+layout_mode = 0
+offset_left = 436.0
+offset_right = 482.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect10" type="ColorRect" parent="InteractionZones" unique_id=314881069]
+offset_left = 562.0
+offset_top = 571.0
+offset_right = 608.0
+offset_bottom = 620.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect" type="ColorRect" parent="InteractionZones/ColorRect10" unique_id=1883582913]
+layout_mode = 0
+offset_left = 49.0
+offset_right = 95.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect2" type="ColorRect" parent="InteractionZones/ColorRect10" unique_id=2059411986]
+layout_mode = 0
+offset_left = 97.0
+offset_right = 143.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect3" type="ColorRect" parent="InteractionZones/ColorRect10" unique_id=1322405206]
+layout_mode = 0
+offset_left = 146.0
+offset_right = 192.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect4" type="ColorRect" parent="InteractionZones/ColorRect10" unique_id=1234555746]
+layout_mode = 0
+offset_left = 194.0
+offset_right = 240.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect5" type="ColorRect" parent="InteractionZones/ColorRect10" unique_id=1550900416]
+layout_mode = 0
+offset_left = 242.0
+offset_right = 288.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect8" type="ColorRect" parent="InteractionZones/ColorRect10" unique_id=322747339]
+layout_mode = 0
+offset_left = 291.0
+offset_right = 337.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect6" type="ColorRect" parent="InteractionZones/ColorRect10" unique_id=967468446]
+layout_mode = 0
+offset_left = 339.0
+offset_right = 385.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect7" type="ColorRect" parent="InteractionZones/ColorRect10" unique_id=967572579]
+layout_mode = 0
+offset_left = 387.0
+offset_right = 433.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect9" type="ColorRect" parent="InteractionZones/ColorRect10" unique_id=1153025271]
+layout_mode = 0
+offset_left = 436.0
+offset_right = 482.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect11" type="ColorRect" parent="InteractionZones" unique_id=1932292295]
+offset_left = 562.0
+offset_top = 623.0
+offset_right = 608.0
+offset_bottom = 672.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect" type="ColorRect" parent="InteractionZones/ColorRect11" unique_id=1602084429]
+layout_mode = 0
+offset_left = 49.0
+offset_right = 95.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect2" type="ColorRect" parent="InteractionZones/ColorRect11" unique_id=1574651537]
+layout_mode = 0
+offset_left = 97.0
+offset_right = 143.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect3" type="ColorRect" parent="InteractionZones/ColorRect11" unique_id=2068794240]
+layout_mode = 0
+offset_left = 146.0
+offset_right = 192.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect4" type="ColorRect" parent="InteractionZones/ColorRect11" unique_id=926113669]
+layout_mode = 0
+offset_left = 194.0
+offset_right = 240.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect5" type="ColorRect" parent="InteractionZones/ColorRect11" unique_id=99905047]
+layout_mode = 0
+offset_left = 242.0
+offset_right = 288.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect8" type="ColorRect" parent="InteractionZones/ColorRect11" unique_id=455851340]
+layout_mode = 0
+offset_left = 291.0
+offset_right = 337.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect6" type="ColorRect" parent="InteractionZones/ColorRect11" unique_id=373454080]
+layout_mode = 0
+offset_left = 339.0
+offset_right = 385.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect7" type="ColorRect" parent="InteractionZones/ColorRect11" unique_id=1251763758]
+layout_mode = 0
+offset_left = 387.0
+offset_right = 433.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="ColorRect9" type="ColorRect" parent="InteractionZones/ColorRect11" unique_id=1101762103]
+layout_mode = 0
+offset_left = 436.0
+offset_right = 482.0
+offset_bottom = 49.0
+color = Color(1, 0.16078432, 0, 0.11372549)
+
+[node name="HELM" type="ColorRect" parent="InteractionZones" unique_id=1042723881]
+offset_left = 423.0
+offset_top = 267.0
+offset_right = 464.0
+offset_bottom = 309.0
+color = Color(0, 1, 1, 0.1764706)
+
+[node name="NECK" type="ColorRect" parent="InteractionZones/HELM" unique_id=2019520792]
+layout_mode = 0
+offset_top = 58.0
+offset_right = 41.0
+offset_bottom = 101.0
+color = Color(0, 1, 1, 0.1764706)
+
+[node name="HAND_RIGHT" type="ColorRect" parent="InteractionZones/HELM" unique_id=2130674740]
+layout_mode = 0
+offset_left = -73.0
+offset_top = 115.0
+offset_right = -32.0
+offset_bottom = 174.0
+color = Color(0, 1, 1, 0.1764706)
+
+[node name="ARMOR" type="ColorRect" parent="InteractionZones/HELM" unique_id=1358344496]
+layout_mode = 0
+offset_left = -1.0
+offset_top = 119.0
+offset_right = 41.0
+offset_bottom = 165.0
+color = Color(0, 1, 1, 0.1764706)
+
+[node name="LEGS" type="ColorRect" parent="InteractionZones/HELM" unique_id=1688697032]
+layout_mode = 0
+offset_left = -1.0
+offset_top = 190.0
+offset_right = 40.0
+offset_bottom = 235.0
+color = Color(0, 1, 1, 0.1764706)
+
+[node name="BOOTS" type="ColorRect" parent="InteractionZones/HELM" unique_id=838396784]
+layout_mode = 0
+offset_left = -2.0
+offset_top = 255.0
+offset_right = 40.0
+offset_bottom = 300.0
+color = Color(0, 1, 1, 0.1764706)
+
+[node name="RING1" type="ColorRect" parent="InteractionZones/HELM" unique_id=1832433881]
+layout_mode = 0
+offset_left = -72.0
+offset_top = 255.0
+offset_right = -30.0
+offset_bottom = 300.0
+color = Color(0, 1, 1, 0.1764706)
+
+[node name="RING2" type="ColorRect" parent="InteractionZones/HELM" unique_id=2001161090]
+layout_mode = 0
+offset_left = 67.0
+offset_top = 255.0
+offset_right = 109.0
+offset_bottom = 300.0
+color = Color(0, 1, 1, 0.1764706)
+
+[node name="HAND_LEFT" type="ColorRect" parent="InteractionZones/HELM" unique_id=155887806]
+layout_mode = 0
+offset_left = 72.0
+offset_top = 115.0
+offset_right = 111.0
+offset_bottom = 174.0
+color = Color(0, 1, 1, 0.1764706)
+
+[node name="BACK" type="ColorRect" parent="InteractionZones/HELM" unique_id=1431148698]
+layout_mode = 0
+offset_left = -2.0
+offset_top = 320.0
+offset_right = 40.0
+offset_bottom = 365.0
+color = Color(0, 1, 1, 0.1764706)
+
+[node name="CustomGraphics" type="Node" parent="." unique_id=1601241503]

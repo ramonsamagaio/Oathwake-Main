@@ -26,7 +26,6 @@ texture = ExtResource("3_hks38")
 stretch_mode = 2
 
 [node name="menu.new_game_button" type="TextureRect" parent="MainMenuState" unique_id=61994770]
-visible = false
 offset_left = 644.0
 offset_top = 294.0
 offset_right = 956.7647
@@ -35,7 +34,6 @@ texture = ExtResource("4_5admy")
 expand_mode = 1
 
 [node name="menu_load_game_button" type="TextureRect" parent="MainMenuState" unique_id=1600475651]
-visible = false
 offset_left = 643.0
 offset_top = 374.0
 offset_right = 955.7647
@@ -44,7 +42,6 @@ texture = ExtResource("4_5admy")
 expand_mode = 1
 
 [node name="menu_settings_button" type="TextureRect" parent="MainMenuState" unique_id=1918272540]
-visible = false
 offset_left = 643.0
 offset_top = 453.0
 offset_right = 955.7647
@@ -53,7 +50,6 @@ texture = ExtResource("4_5admy")
 expand_mode = 1
 
 [node name="menu_quit_game_button" type="TextureRect" parent="MainMenuState" unique_id=1753987745]
-visible = false
 offset_left = 642.0
 offset_top = 532.0
 offset_right = 954.7647
@@ -125,7 +121,6 @@ stretch_mode = 4
 [node name="InteractionZones" type="Node" parent="." unique_id=1806072275]
 
 [node name="menu.new_game_clickbox" type="ColorRect" parent="InteractionZones" unique_id=1015737582]
-visible = false
 offset_left = 664.0
 offset_top = 316.0
 offset_right = 937.0
@@ -134,7 +129,6 @@ mouse_default_cursor_shape = 2
 color = Color(1, 0.2, 0.6, 0.18)
 
 [node name="menu.load_game_clickbox" type="ColorRect" parent="InteractionZones" unique_id=306025057]
-visible = false
 offset_left = 667.0
 offset_top = 396.0
 offset_right = 931.0
@@ -143,7 +137,6 @@ mouse_default_cursor_shape = 2
 color = Color(1, 0.2, 0.6, 0.18)
 
 [node name="menu.settings_clickbox" type="ColorRect" parent="InteractionZones" unique_id=119039745]
-visible = false
 offset_left = 666.0
 offset_top = 477.0
 offset_right = 933.0
@@ -152,7 +145,6 @@ mouse_default_cursor_shape = 2
 color = Color(1, 0.2, 0.6, 0.18)
 
 [node name="menu.quit_clickbox" type="ColorRect" parent="InteractionZones" unique_id=1704211919]
-visible = false
 offset_left = 665.0
 offset_top = 554.0
 offset_right = 931.0
