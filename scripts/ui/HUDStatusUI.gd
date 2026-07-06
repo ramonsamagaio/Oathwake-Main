@@ -55,11 +55,15 @@ func set_health(current_health: int, max_health: int) -> void:
 func set_mana(current_mana: int, max_mana: int) -> void:
 	var safe_max := maxi(max_mana, 1)
 	_set_clip_ratio(_mana_clip, _mana_width, float(current_mana) / float(safe_max))
+	if _mana_label != null:
+		_mana_label.text = "%d/%d" % [current_mana, safe_max]
 
 
 func set_stamina(current_stamina: int, max_stamina: int) -> void:
 	var safe_max := maxi(max_stamina, 1)
 	_set_clip_ratio(_stamina_clip, _stamina_width, float(current_stamina) / float(safe_max))
+	if _stamina_label != null:
+		_stamina_label.text = "%d/%d" % [current_stamina, safe_max]
 
 
 func set_xp(current_xp: int, xp_to_next_level: int, level: int) -> void:
@@ -78,27 +82,32 @@ func _build_ui() -> void:
 	_add_texture(PORTRAIT_PATH, "hud.portrait", Rect2(18, 15, 184, 191))
 
 	var life_rect := _get_rect("hud.life_bar", Rect2(194, 21, 269, 53))
+	var mana_rect := _get_rect("hud.mana_bar", Rect2(194, 41, 270, 30))
+	var stamina_rect := _get_rect("hud.stamina_bar", Rect2(196, 26, 270, 63))
+	var status_rects := _adjust_status_bar_rects(life_rect, mana_rect, stamina_rect)
+	life_rect = status_rects[0]
+	mana_rect = status_rects[1]
+	stamina_rect = status_rects[2]
 	_life_width = life_rect.size.x
 	_life_clip = _add_fill_bar(LIFE_BAR_PATH, life_rect)
 	_life_label = _add_bar_label(life_rect, 11)
 
-	var mana_rect := _get_rect("hud.mana_bar", Rect2(194, 41, 270, 30))
 	_mana_width = mana_rect.size.x
 	_mana_clip = _add_fill_bar(MANA_BAR_PATH, mana_rect)
 	_mana_label = _add_bar_label(mana_rect, 10)
-	_mana_label.visible = false
 
-	var stamina_rect := _get_rect("hud.stamina_bar", Rect2(196, 26, 270, 63))
 	_stamina_width = stamina_rect.size.x
 	_stamina_clip = _add_fill_bar(STAMINA_BAR_PATH, stamina_rect)
 	_stamina_label = _add_bar_label(stamina_rect, 10)
-	_stamina_label.visible = false
 
+	var xp_frame_rect := _get_rect("hud.xp_bar_frame", Rect2(549, 1, 476, 61))
 	var xp_fill_rect := _get_rect("hud.xp_bar_fill", Rect2(595, 29, 417, 61))
+	xp_fill_rect.position.y = maxf(xp_fill_rect.position.y, xp_frame_rect.position.y + 3.0)
+	xp_fill_rect.size.y = minf(xp_fill_rect.size.y, maxf(1.0, xp_frame_rect.size.y - 6.0))
 	_xp_width = xp_fill_rect.size.x
 	_xp_clip = _add_fill_bar(EXP_BAR_PATH, xp_fill_rect)
-	_add_texture(EXP_BORDER_PATH, "hud.xp_bar_frame", Rect2(549, 1, 476, 61))
-	_xp_label = _add_bar_label(_get_rect("hud.xp_bar_frame", Rect2(549, 1, 476, 61)), 11)
+	_add_texture(EXP_BORDER_PATH, "hud.xp_bar_frame", xp_frame_rect)
+	_xp_label = _add_bar_label(xp_frame_rect, 11)
 
 	_add_texture(FLAME_FRAME_PATH, "hud.alignment_flame_frame", Rect2(1415, 723, 167, 159))
 	_add_alignment_flame()
@@ -142,6 +151,32 @@ func _add_fill_bar(path: String, rect: Rect2) -> Control:
 	texture_rect.size = rect.size
 	clip.add_child(texture_rect)
 	return clip
+
+
+func _adjust_status_bar_rects(life_rect: Rect2, mana_rect: Rect2, stamina_rect: Rect2) -> Array:
+	var needs_fix := false
+	if life_rect.intersects(mana_rect, true) or mana_rect.intersects(stamina_rect, true) or life_rect.intersects(stamina_rect, true):
+		needs_fix = true
+	if not needs_fix:
+		return [life_rect, mana_rect, stamina_rect]
+
+	var x_pos := life_rect.position.x
+	var top_y := minf(life_rect.position.y, minf(mana_rect.position.y, stamina_rect.position.y))
+	var life_height := minf(life_rect.size.y, 20.0)
+	var mana_height := minf(mana_rect.size.y, 18.0)
+	var stamina_height := minf(stamina_rect.size.y, 20.0)
+	var gap := 2.0
+
+	life_rect.position = Vector2(x_pos, top_y)
+	life_rect.size = Vector2(life_rect.size.x, life_height)
+
+	mana_rect.position = Vector2(mana_rect.position.x, life_rect.position.y + life_rect.size.y + gap)
+	mana_rect.size = Vector2(mana_rect.size.x, mana_height)
+
+	stamina_rect.position = Vector2(stamina_rect.position.x, mana_rect.position.y + mana_rect.size.y + gap)
+	stamina_rect.size = Vector2(stamina_rect.size.x, stamina_height)
+
+	return [life_rect, mana_rect, stamina_rect]
 
 
 func _add_bar_label(rect: Rect2, font_size := 11) -> Label:

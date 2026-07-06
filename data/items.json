@@ -3,7 +3,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.76,
-			"attack_power": 68,
+			"attack_power": 68.0,
 			"attack_variance": 0.16,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -11,8 +11,8 @@
 			"crit_damage_bonus": 0.25,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 24,
-				"tree": 68
+				"rock": 24.0,
+				"tree": 68.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -27,15 +27,15 @@
 		"crit_chance": 0.066,
 		"crit_power": 1.75,
 		"display_name": "Adamantite Axe",
-		"durability": 700,
+		"durability": 700.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.9,
-		"stack_size": 1,
-		"tier": 7,
-		"tool_damage": 68,
+		"stack_size": 1.0,
+		"tier": 7.0,
+		"tool_damage": 68.0,
 		"tool_speed": 0.76,
-		"tool_tier": 7,
+		"tool_tier": 7.0,
 		"tool_type": "axe"
 	},
 	"adamantite_ingot": {
@@ -68,7 +68,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.76,
-			"attack_power": 68,
+			"attack_power": 68.0,
 			"attack_variance": 0.16,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -76,8 +76,8 @@
 			"crit_damage_bonus": 0.25,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 68,
-				"tree": 24
+				"rock": 68.0,
+				"tree": 24.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -92,15 +92,15 @@
 		"crit_chance": 0.066,
 		"crit_power": 1.75,
 		"display_name": "Adamantite Pickaxe",
-		"durability": 700,
+		"durability": 700.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.9,
-		"stack_size": 1,
-		"tier": 7,
-		"tool_damage": 68,
+		"stack_size": 1.0,
+		"tier": 7.0,
+		"tool_damage": 68.0,
 		"tool_speed": 0.76,
-		"tool_tier": 7,
+		"tool_tier": 7.0,
 		"tool_type": "pickaxe"
 	},
 	"angelic_catalyst": {
@@ -135,7 +135,7 @@
 		"display_name": "Ash Chest",
 		"item_type": "building",
 		"stack_size": 99.0,
-		"storage_slots": 28,
+		"storage_slots": 28.0,
 		"tags": [
 			"building",
 			"storage",
@@ -161,7 +161,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 1.0,
-			"attack_power": 8,
+			"attack_power": 8.0,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -169,8 +169,8 @@
 			"crit_damage_bonus": 0.02,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 3,
-				"tree": 8
+				"rock": 3.0,
+				"tree": 8.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -186,15 +186,15 @@
 		"crit_power": 1.52,
 		"description": "A simple axe for chopping trees and fighting weak monsters.",
 		"display_name": "Axe",
-		"durability": 90,
+		"durability": 90.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.45,
-		"stack_size": 1,
-		"tier": 1,
-		"tool_damage": 8,
+		"stack_size": 1.0,
+		"tier": 1.0,
+		"tool_damage": 8.0,
 		"tool_speed": 1.0,
-		"tool_tier": 1,
+		"tool_tier": 1.0,
 		"tool_type": "axe"
 	},
 	"basic_gem": {
@@ -215,13 +215,14 @@
 		"display_name": "Basic Herb",
 		"item_type": "material",
 		"material_family": "herb",
-		"stack_size": 99.0,
+		"sprite_id": "herb",
+		"stack_size": 99,
 		"tags": [
 			"herb",
 			"alchemy",
 			"tier_1"
 		],
-		"tier": 1.0
+		"tier": 1
 	},
 	"berry": {
 		"description": "A tier 1 food used for crafting and progression.",
@@ -240,7 +241,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.92,
-			"attack_power": 17,
+			"attack_power": 17.0,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -248,8 +249,8 @@
 			"crit_damage_bonus": 0.08,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 6,
-				"tree": 17
+				"rock": 6.0,
+				"tree": 17.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -264,15 +265,15 @@
 		"crit_chance": 0.026,
 		"crit_power": 1.58,
 		"display_name": "Bronze Axe",
-		"durability": 190,
+		"durability": 190.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.55,
-		"stack_size": 1,
-		"tier": 3,
-		"tool_damage": 17,
+		"stack_size": 1.0,
+		"tier": 3.0,
+		"tool_damage": 17.0,
 		"tool_speed": 0.92,
-		"tool_tier": 3,
+		"tool_tier": 3.0,
 		"tool_type": "axe"
 	},
 	"bronze_ingot": {
@@ -292,7 +293,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.92,
-			"attack_power": 17,
+			"attack_power": 17.0,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -300,8 +301,8 @@
 			"crit_damage_bonus": 0.08,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 17,
-				"tree": 6
+				"rock": 17.0,
+				"tree": 6.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -316,22 +317,22 @@
 		"crit_chance": 0.026,
 		"crit_power": 1.58,
 		"display_name": "Bronze Pickaxe",
-		"durability": 190,
+		"durability": 190.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.55,
-		"stack_size": 1,
-		"tier": 3,
-		"tool_damage": 17,
+		"stack_size": 1.0,
+		"tier": 3.0,
+		"tool_damage": 17.0,
 		"tool_speed": 0.92,
-		"tool_tier": 3,
+		"tool_tier": 3.0,
 		"tool_type": "pickaxe"
 	},
 	"bronze_sword": {
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.88,
-			"attack_power": 22,
+			"attack_power": 22.0,
 			"attack_variance": 0.14,
 			"can_hit_monsters": true,
 			"can_hit_resources": false,
@@ -349,12 +350,12 @@
 			}
 		},
 		"display_name": "Bronze Sword",
-		"durability": 200,
+		"durability": 200.0,
 		"equipment_slot": "weapon",
 		"item_type": "weapon",
 		"repair_cost_multiplier": 0.55,
-		"stack_size": 1,
-		"tier": 3
+		"stack_size": 1.0,
+		"tier": 3.0
 	},
 	"chest": {
 		"building_type": "storage",
@@ -362,7 +363,7 @@
 		"display_name": "Chest",
 		"item_type": "building",
 		"stack_size": 99.0,
-		"storage_slots": 20,
+		"storage_slots": 20.0,
 		"tags": [
 			"building",
 			"storage"
@@ -384,16 +385,16 @@
 	},
 	"cloth_armor": {
 		"can_repair": true,
-		"defense": 3,
+		"defense": 3.0,
 		"display_name": "Cloth Armor",
-		"durability": 80,
+		"durability": 80.0,
 		"equipment_slot": "armor",
 		"item_type": "armor",
-		"magic_defense": 1,
-		"max_hp_bonus": 5,
+		"magic_defense": 1.0,
+		"max_hp_bonus": 5.0,
 		"repair_cost_multiplier": 0.45,
-		"stack_size": 1,
-		"tier": 1
+		"stack_size": 1.0,
+		"tier": 1.0
 	},
 	"coal": {
 		"description": "A tier 2 ore used for crafting and progression.",
@@ -493,7 +494,7 @@
 		"display_name": "Ebony Chest",
 		"item_type": "building",
 		"stack_size": 99.0,
-		"storage_slots": 42,
+		"storage_slots": 42.0,
 		"tags": [
 			"building",
 			"storage",
@@ -520,13 +521,13 @@
 		"item_type": "material",
 		"material_family": "fiber",
 		"sprite_id": "fiber",
-		"stack_size": 99,
+		"stack_size": 99.0,
 		"tags": [
 			"fiber",
 			"cloth",
 			"tier_1"
 		],
-		"tier": 1
+		"tier": 1.0
 	},
 	"fiber_cloth": {
 		"description": "A tier 1 cloth used for crafting and progression.",
@@ -560,12 +561,12 @@
 		"item_type": "material",
 		"material_family": "monster_part",
 		"sprite_id": "green_gel",
-		"stack_size": 99,
+		"stack_size": 99.0,
 		"tags": [
 			"monster_part",
 			"tier_1"
 		],
-		"tier": 1
+		"tier": 1.0
 	},
 	"gold_ore": {
 		"description": "A tier 4 ore used for crafting and progression.",
@@ -605,12 +606,30 @@
 				"wis": 0.0
 			}
 		},
+		"crit_chance": 0.0,
+		"crit_power": 1.5,
 		"description": "Bare hands. Useful in a pinch.",
 		"display_name": "Hands",
+		"durability": 0,
+		"equipment_slot": "tool",
 		"item_type": "tool",
-		"stack_size": 1.0,
+		"material_family": "misc",
+		"repair_cost_multiplier": 0.5,
+		"sprite_id": "hand",
+		"stack_size": 1,
+		"stats_bonus": {
+			"agi": 0,
+			"dex": 0,
+			"int": 0,
+			"luk": 0,
+			"str": 0,
+			"vit": 0,
+			"wis": 0
+		},
+		"tags": [],
 		"tier": 1,
 		"tool_damage": 2,
+		"tool_speed": 1.0,
 		"tool_tier": 1,
 		"tool_type": "hands"
 	},
@@ -618,7 +637,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.88,
-			"attack_power": 24,
+			"attack_power": 24.0,
 			"attack_variance": 0.16,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -626,8 +645,8 @@
 			"crit_damage_bonus": 0.12,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 8,
-				"tree": 24
+				"rock": 8.0,
+				"tree": 24.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -642,15 +661,15 @@
 		"crit_chance": 0.036,
 		"crit_power": 1.62,
 		"display_name": "Iron Axe",
-		"durability": 265,
+		"durability": 265.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.6,
-		"stack_size": 1,
-		"tier": 4,
-		"tool_damage": 24,
+		"stack_size": 1.0,
+		"tier": 4.0,
+		"tool_damage": 24.0,
 		"tool_speed": 0.88,
-		"tool_tier": 4,
+		"tool_tier": 4.0,
 		"tool_type": "axe"
 	},
 	"iron_ingot": {
@@ -683,7 +702,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.88,
-			"attack_power": 24,
+			"attack_power": 24.0,
 			"attack_variance": 0.16,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -691,8 +710,8 @@
 			"crit_damage_bonus": 0.12,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 24,
-				"tree": 8
+				"rock": 24.0,
+				"tree": 8.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -707,22 +726,22 @@
 		"crit_chance": 0.036,
 		"crit_power": 1.62,
 		"display_name": "Iron Pickaxe",
-		"durability": 265,
+		"durability": 265.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.6,
-		"stack_size": 1,
-		"tier": 4,
-		"tool_damage": 24,
+		"stack_size": 1.0,
+		"tier": 4.0,
+		"tool_damage": 24.0,
 		"tool_speed": 0.88,
-		"tool_tier": 4,
+		"tool_tier": 4.0,
 		"tool_type": "pickaxe"
 	},
 	"iron_sword": {
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.84,
-			"attack_power": 31,
+			"attack_power": 31.0,
 			"attack_variance": 0.14,
 			"can_hit_monsters": true,
 			"can_hit_resources": false,
@@ -740,12 +759,12 @@
 			}
 		},
 		"display_name": "Iron Sword",
-		"durability": 278,
+		"durability": 278.0,
 		"equipment_slot": "weapon",
 		"item_type": "weapon",
 		"repair_cost_multiplier": 0.6,
-		"stack_size": 1,
-		"tier": 4
+		"stack_size": 1.0,
+		"tier": 4.0
 	},
 	"ironwood": {
 		"description": "A tier 7 wood used for crafting and progression.",
@@ -766,7 +785,7 @@
 		"display_name": "Ironwood Chest",
 		"item_type": "building",
 		"stack_size": 99.0,
-		"storage_slots": 48,
+		"storage_slots": 48.0,
 		"tags": [
 			"building",
 			"storage",
@@ -776,16 +795,16 @@
 	},
 	"leather_armor": {
 		"can_repair": true,
-		"defense": 6,
+		"defense": 6.0,
 		"display_name": "Leather Armor",
-		"durability": 150,
+		"durability": 150.0,
 		"equipment_slot": "armor",
 		"item_type": "armor",
-		"magic_defense": 2,
-		"max_hp_bonus": 12,
+		"magic_defense": 2.0,
+		"max_hp_bonus": 12.0,
 		"repair_cost_multiplier": 0.5,
-		"stack_size": 1,
-		"tier": 2
+		"stack_size": 1.0,
+		"tier": 2.0
 	},
 	"linen": {
 		"description": "A tier 2 cloth used for crafting and progression.",
@@ -801,30 +820,30 @@
 	},
 	"linen_armor": {
 		"can_repair": true,
-		"defense": 5,
+		"defense": 5.0,
 		"display_name": "Linen Armor",
-		"durability": 120,
+		"durability": 120.0,
 		"equipment_slot": "armor",
 		"item_type": "armor",
-		"magic_defense": 2,
-		"max_hp_bonus": 10,
+		"magic_defense": 2.0,
+		"max_hp_bonus": 10.0,
 		"repair_cost_multiplier": 0.5,
-		"stack_size": 1,
-		"tier": 2
+		"stack_size": 1.0,
+		"tier": 2.0
 	},
 	"lucky_charm": {
 		"can_repair": true,
 		"crit_chance_bonus": 0.025,
 		"crit_damage_bonus": 0.1,
 		"display_name": "Lucky Charm",
-		"durability": 70,
+		"durability": 70.0,
 		"equipment_slot": "accessory",
-		"flee_bonus": 1,
-		"hit_bonus": 2,
+		"flee_bonus": 1.0,
+		"hit_bonus": 2.0,
 		"item_type": "accessory",
 		"repair_cost_multiplier": 0.45,
-		"stack_size": 1,
-		"tier": 1
+		"stack_size": 1.0,
+		"tier": 1.0
 	},
 	"maple_chest": {
 		"building_type": "storage",
@@ -832,7 +851,7 @@
 		"display_name": "Maple Chest",
 		"item_type": "building",
 		"stack_size": 99.0,
-		"storage_slots": 32,
+		"storage_slots": 32.0,
 		"tags": [
 			"building",
 			"storage",
@@ -884,7 +903,7 @@
 		"display_name": "Oak Chest",
 		"item_type": "building",
 		"stack_size": 99.0,
-		"storage_slots": 24,
+		"storage_slots": 24.0,
 		"tags": [
 			"building",
 			"storage",
@@ -923,7 +942,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 1.0,
-			"attack_power": 8,
+			"attack_power": 8.0,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -931,8 +950,8 @@
 			"crit_damage_bonus": 0.02,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 8,
-				"tree": 3
+				"rock": 8.0,
+				"tree": 3.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -948,15 +967,15 @@
 		"crit_power": 1.52,
 		"description": "A simple pickaxe for breaking rocks and fighting weak monsters.",
 		"display_name": "Pickaxe",
-		"durability": 90,
+		"durability": 90.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.45,
-		"stack_size": 1,
-		"tier": 1,
-		"tool_damage": 8,
+		"stack_size": 1.0,
+		"tier": 1.0,
+		"tool_damage": 8.0,
 		"tool_speed": 1.0,
-		"tool_tier": 1,
+		"tool_tier": 1.0,
 		"tool_type": "pickaxe"
 	},
 	"profaned_crystal": {
@@ -1090,7 +1109,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.84,
-			"attack_power": 34,
+			"attack_power": 34.0,
 			"attack_variance": 0.16,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -1098,8 +1117,8 @@
 			"crit_damage_bonus": 0.16,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 12,
-				"tree": 34
+				"rock": 12.0,
+				"tree": 34.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -1114,15 +1133,15 @@
 		"crit_chance": 0.046,
 		"crit_power": 1.66,
 		"display_name": "Steel Axe",
-		"durability": 370,
+		"durability": 370.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.68,
-		"stack_size": 1,
-		"tier": 5,
-		"tool_damage": 34,
+		"stack_size": 1.0,
+		"tier": 5.0,
+		"tool_damage": 34.0,
 		"tool_speed": 0.84,
-		"tool_tier": 5,
+		"tool_tier": 5.0,
 		"tool_type": "axe"
 	},
 	"steel_ingot": {
@@ -1142,7 +1161,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.84,
-			"attack_power": 34,
+			"attack_power": 34.0,
 			"attack_variance": 0.16,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -1150,8 +1169,8 @@
 			"crit_damage_bonus": 0.16,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 34,
-				"tree": 12
+				"rock": 34.0,
+				"tree": 12.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -1166,15 +1185,15 @@
 		"crit_chance": 0.046,
 		"crit_power": 1.66,
 		"display_name": "Steel Pickaxe",
-		"durability": 370,
+		"durability": 370.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.68,
-		"stack_size": 1,
-		"tier": 5,
-		"tool_damage": 34,
+		"stack_size": 1.0,
+		"tier": 5.0,
+		"tool_damage": 34.0,
 		"tool_speed": 0.84,
-		"tool_tier": 5,
+		"tool_tier": 5.0,
 		"tool_type": "pickaxe"
 	},
 	"stone": {
@@ -1195,7 +1214,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.96,
-			"attack_power": 12,
+			"attack_power": 12.0,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -1203,8 +1222,8 @@
 			"crit_damage_bonus": 0.05,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 4,
-				"tree": 12
+				"rock": 4.0,
+				"tree": 12.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -1219,15 +1238,15 @@
 		"crit_chance": 0.018,
 		"crit_power": 1.55,
 		"display_name": "Stone Axe",
-		"durability": 135,
+		"durability": 135.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.5,
-		"stack_size": 1,
-		"tier": 2,
-		"tool_damage": 12,
+		"stack_size": 1.0,
+		"tier": 2.0,
+		"tool_damage": 12.0,
 		"tool_speed": 0.96,
-		"tool_tier": 2,
+		"tool_tier": 2.0,
 		"tool_type": "axe"
 	},
 	"stone_loose": {
@@ -1247,7 +1266,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.96,
-			"attack_power": 12,
+			"attack_power": 12.0,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -1255,8 +1274,8 @@
 			"crit_damage_bonus": 0.05,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 12,
-				"tree": 4
+				"rock": 12.0,
+				"tree": 4.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -1271,22 +1290,22 @@
 		"crit_chance": 0.018,
 		"crit_power": 1.55,
 		"display_name": "Stone Pickaxe",
-		"durability": 135,
+		"durability": 135.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.5,
-		"stack_size": 1,
-		"tier": 2,
-		"tool_damage": 12,
+		"stack_size": 1.0,
+		"tier": 2.0,
+		"tool_damage": 12.0,
 		"tool_speed": 0.96,
-		"tool_tier": 2,
+		"tool_tier": 2.0,
 		"tool_type": "pickaxe"
 	},
 	"stone_sword": {
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.92,
-			"attack_power": 16,
+			"attack_power": 16.0,
 			"attack_variance": 0.16,
 			"can_hit_monsters": true,
 			"can_hit_resources": false,
@@ -1304,12 +1323,12 @@
 			}
 		},
 		"display_name": "Stone Sword",
-		"durability": 140,
+		"durability": 140.0,
 		"equipment_slot": "weapon",
 		"item_type": "weapon",
 		"repair_cost_multiplier": 0.5,
-		"stack_size": 1,
-		"tier": 2
+		"stack_size": 1.0,
+		"tier": 2.0
 	},
 	"tin_ore": {
 		"description": "A tier 3 ore used for crafting and progression.",
@@ -1328,7 +1347,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.8,
-			"attack_power": 48,
+			"attack_power": 48.0,
 			"attack_variance": 0.16,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -1336,8 +1355,8 @@
 			"crit_damage_bonus": 0.2,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 17,
-				"tree": 48
+				"rock": 17.0,
+				"tree": 48.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -1352,15 +1371,15 @@
 		"crit_chance": 0.056,
 		"crit_power": 1.7,
 		"display_name": "Titanium Axe",
-		"durability": 510,
+		"durability": 510.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.78,
-		"stack_size": 1,
-		"tier": 6,
-		"tool_damage": 48,
+		"stack_size": 1.0,
+		"tier": 6.0,
+		"tool_damage": 48.0,
 		"tool_speed": 0.8,
-		"tool_tier": 6,
+		"tool_tier": 6.0,
 		"tool_type": "axe"
 	},
 	"titanium_ingot": {
@@ -1393,7 +1412,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.8,
-			"attack_power": 48,
+			"attack_power": 48.0,
 			"attack_variance": 0.16,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -1401,8 +1420,8 @@
 			"crit_damage_bonus": 0.2,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 48,
-				"tree": 17
+				"rock": 48.0,
+				"tree": 17.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -1417,15 +1436,15 @@
 		"crit_chance": 0.056,
 		"crit_power": 1.7,
 		"display_name": "Titanium Pickaxe",
-		"durability": 510,
+		"durability": 510.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.78,
-		"stack_size": 1,
-		"tier": 6,
-		"tool_damage": 48,
+		"stack_size": 1.0,
+		"tier": 6.0,
+		"tool_damage": 48.0,
 		"tool_speed": 0.8,
-		"tool_tier": 6,
+		"tool_tier": 6.0,
 		"tool_type": "pickaxe"
 	},
 	"tungsten_ingot": {
@@ -1460,7 +1479,7 @@
 		"display_name": "Walnut Chest",
 		"item_type": "building",
 		"stack_size": 99.0,
-		"storage_slots": 36,
+		"storage_slots": 36.0,
 		"tags": [
 			"building",
 			"storage",
@@ -1512,7 +1531,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 1.0,
-			"attack_power": 8,
+			"attack_power": 8.0,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -1520,8 +1539,8 @@
 			"crit_damage_bonus": 0.02,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 3,
-				"tree": 8
+				"rock": 3.0,
+				"tree": 8.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -1536,22 +1555,22 @@
 		"crit_chance": 0.01,
 		"crit_power": 1.52,
 		"display_name": "Wood Axe",
-		"durability": 90,
+		"durability": 90.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.45,
-		"stack_size": 1,
-		"tier": 1,
-		"tool_damage": 8,
+		"stack_size": 1.0,
+		"tier": 1.0,
+		"tool_damage": 8.0,
 		"tool_speed": 1.0,
-		"tool_tier": 1,
+		"tool_tier": 1.0,
 		"tool_type": "axe"
 	},
 	"wood_pickaxe": {
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 1.0,
-			"attack_power": 8,
+			"attack_power": 8.0,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -1559,8 +1578,8 @@
 			"crit_damage_bonus": 0.02,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 8,
-				"tree": 3
+				"rock": 8.0,
+				"tree": 3.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -1575,22 +1594,22 @@
 		"crit_chance": 0.01,
 		"crit_power": 1.52,
 		"display_name": "Wood Pickaxe",
-		"durability": 90,
+		"durability": 90.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"repair_cost_multiplier": 0.45,
-		"stack_size": 1,
-		"tier": 1,
-		"tool_damage": 8,
+		"stack_size": 1.0,
+		"tier": 1.0,
+		"tool_damage": 8.0,
 		"tool_speed": 1.0,
-		"tool_tier": 1,
+		"tool_tier": 1.0,
 		"tool_type": "pickaxe"
 	},
 	"wooden_sword": {
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 1.0,
-			"attack_power": 10,
+			"attack_power": 10.0,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": false,
@@ -1608,11 +1627,11 @@
 			}
 		},
 		"display_name": "Wooden Sword",
-		"durability": 90,
+		"durability": 90.0,
 		"equipment_slot": "weapon",
 		"item_type": "weapon",
 		"repair_cost_multiplier": 0.45,
-		"stack_size": 1,
-		"tier": 1
+		"stack_size": 1.0,
+		"tier": 1.0
 	}
 }

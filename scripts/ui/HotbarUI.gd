@@ -276,15 +276,16 @@ func _add_slot_overlay_children(slot: Button) -> void:
 func _layout_slot_overlay(slot: Button) -> void:
 	var icon := slot.get_node_or_null("ItemIcon") as TextureRect
 	if icon != null:
-		var margin := Vector2(slot.size.x * 0.2, slot.size.y * 0.2)
-		icon.position = margin
-		icon.size = Vector2(maxf(0.0, slot.size.x - margin.x * 2.0), maxf(0.0, slot.size.y - margin.y * 2.0))
+		var icon_edge := minf(slot.size.x, slot.size.y) * 0.55
+		var icon_size := Vector2(icon_edge, icon_edge)
+		icon.size = icon_size
+		icon.position = (slot.size - icon_size) * 0.5
 
 	var quantity_label := slot.get_node_or_null("QuantityLabel") as Label
 	if quantity_label != null:
-		var label_width := minf(maxf(18.0, slot.size.x * 0.46), maxf(18.0, slot.size.x - 4.0))
+		var label_width := minf(maxf(28.0, slot.size.x * 0.52), maxf(28.0, slot.size.x - 6.0))
 		quantity_label.size = Vector2(label_width, 16.0)
-		quantity_label.position = Vector2(maxf(2.0, slot.size.x - label_width - 4.0), maxf(2.0, slot.size.y - 18.0))
+		quantity_label.position = Vector2(maxf(3.0, slot.size.x - label_width - 3.0), maxf(2.0, slot.size.y - 18.0))
 
 
 func _set_slot_icon(slot: Button, texture: Texture2D) -> void:

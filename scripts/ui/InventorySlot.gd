@@ -159,7 +159,7 @@ func _ensure_overlay_controls() -> void:
 		_quantity_label.clip_text = false
 		_quantity_label.z_index = 6
 		add_child(_quantity_label)
-		OathwakeTextStyle.apply_profile_to_label(_quantity_label, "item_quantity", null, 13, 1)
+		OathwakeTextStyle.apply_profile_to_label(_quantity_label, "item_quantity", null, 14, 1)
 		_quantity_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
 		_quantity_label.add_theme_constant_override("shadow_offset_x", 1)
 		_quantity_label.add_theme_constant_override("shadow_offset_y", 1)
@@ -169,17 +169,18 @@ func _layout_overlay_controls() -> void:
 	if _item_icon == null or _quantity_label == null:
 		return
 
-	var icon_margin := Vector2(size.x * 0.2, size.y * 0.2)
-	_item_icon.position = icon_margin
-	_item_icon.size = Vector2(maxf(0.0, size.x - icon_margin.x * 2.0), maxf(0.0, size.y - icon_margin.y * 2.0))
+	var icon_edge := minf(size.x, size.y) * 0.55
+	var icon_size := Vector2(icon_edge, icon_edge)
+	_item_icon.size = icon_size
+	_item_icon.position = (size - icon_size) * 0.5
 
 	var quantity_visible := amount > 1
 	_quantity_label.visible = quantity_visible
 	if quantity_visible:
 		_quantity_label.text = str(amount)
-		var label_width := minf(maxf(18.0, size.x * 0.46), maxf(18.0, size.x - 4.0))
+		var label_width := minf(maxf(28.0, size.x * 0.52), maxf(28.0, size.x - 6.0))
 		_quantity_label.size = Vector2(label_width, 16.0)
-		_quantity_label.position = Vector2(maxf(2.0, size.x - label_width - 4.0), maxf(2.0, size.y - 18.0))
+		_quantity_label.position = Vector2(maxf(3.0, size.x - label_width - 3.0), maxf(2.0, size.y - 18.0))
 		_quantity_label.clip_text = false
 	else:
 		_quantity_label.text = ""
