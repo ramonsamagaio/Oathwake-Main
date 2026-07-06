@@ -11,6 +11,7 @@ signal equipment_drag_dropped(from_slot_id: String, to_slot_index: int, to_inven
 signal drag_started(slot_index: int, inventory_id: String)
 
 const ITEM_ICON_SCALE := 0.58
+const ITEM_ICON_OFFSET := Vector2(-4.0, -4.0)
 const QUANTITY_FONT_SIZE := 14
 const SLOT_VISUAL_INSET_LEFT := 0.0
 const SLOT_VISUAL_INSET_TOP := 0.0
@@ -18,8 +19,8 @@ const SLOT_VISUAL_INSET_RIGHT := 0.0
 const SLOT_VISUAL_INSET_BOTTOM := 0.0
 const QUANTITY_INSET_LEFT := 2.0
 const QUANTITY_INSET_TOP := 1.0
-const QUANTITY_INSET_RIGHT := 16.0
-const QUANTITY_INSET_BOTTOM := 17.0
+const QUANTITY_INSET_RIGHT := 24.0
+const QUANTITY_INSET_BOTTOM := 18.0
 
 var slot_index := -1
 var inventory_id := "player"
@@ -189,7 +190,7 @@ func _layout_overlay_controls() -> void:
 	var icon_edge := minf(visual_rect.size.x, visual_rect.size.y) * ITEM_ICON_SCALE
 	var icon_size := Vector2(icon_edge, icon_edge)
 	_item_icon.size = icon_size
-	_item_icon.position = visual_rect.position + (visual_rect.size - icon_size) * 0.5
+	_item_icon.position = visual_rect.position + (visual_rect.size - icon_size) * 0.5 + ITEM_ICON_OFFSET
 
 	var quantity_visible := amount > 1
 	_quantity_label.visible = quantity_visible
