@@ -1,6 +1,5 @@
 extends Button
 
-const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 
 signal equip_selected(slot_id: String)
@@ -13,9 +12,11 @@ var amount: int = 0
 var display_name: String = ""
 var durability: float = 0.0
 var is_broken := false
+var _item_icon: TextureRect
 
 
 func setup(new_slot_id: String, equip_data: Dictionary) -> void:
+	_ensure_overlay_controls()
 	slot_id = new_slot_id
 	item_id = str(equip_data.get("item_id", ""))
 	amount = int(equip_data.get("amount", 0))
@@ -25,34 +26,31 @@ func setup(new_slot_id: String, equip_data: Dictionary) -> void:
 func _update_display() -> void:
 	custom_minimum_size = Vector2(150, 52)
 	focus_mode = Control.FOCUS_NONE
-	OathwakeTextStyle.apply_profile_to_control(self, "base_ui")
 	if item_id.is_empty() or amount <= 0:
-		text = "[ %s ]" % slot_id.capitalize()
-		icon = null
+		text = ""
 		tooltip_text = "Empty %s Slot" % slot_id.capitalize()
 		display_name = ""
 		durability = 0.0
 		is_broken = false
+		_set_item_texture(null)
 		_apply_slot_style()
+		_layout_overlay_controls()
 		return
 
 	var item_data := _get_item_data(item_id)
 	display_name = str(item_data.get("display_name", item_id.capitalize()))
-	var initials := _get_initials(display_name)
-	var dura_text := ""
 	is_broken = false
 	if item_data.has("durability"):
 		durability = float(item_data.get("durability", 0.0))
 		var meta = _get_metadata_durability()
-		if meta > 0.0:
-			dura_text = "\n%.0f/%.0f" % [meta, durability]
-		else:
+		if meta <= 0.0:
 			is_broken = true
-	text = "%s%s" % [initials, dura_text]
+	text = ""
 	tooltip_text = _make_tooltip(item_data)
-	icon = _get_texture(item_id)
-	expand_icon = true
+	expand_icon = false
+	_set_item_texture(_get_texture(item_id))
 	_apply_slot_style()
+	_layout_overlay_controls()
 
 
 func _get_item_data(requested_item_id: String) -> Dictionary:
@@ -103,13 +101,12 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 		return null
 
 	var preview := Button.new()
-	preview.text = text
-	preview.icon = icon
+	preview.text = ""
+	preview.icon = _item_icon.texture if _item_icon != null else null
 	preview.expand_icon = true
 	preview.custom_minimum_size = Vector2(56, 48)
 	preview.disabled = true
 	OathwakeUISkin.apply_slot_button(preview, "selected")
-	OathwakeTextStyle.apply_profile_to_control(preview, "base_ui")
 	set_drag_preview(preview)
 	return {
 		"type": "equipment_slot",
@@ -152,15 +149,35 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	)
 
 
-func _get_initials(name_text: String) -> String:
-	var initials := ""
-	for part in name_text.split(" ", false):
-		if initials.length() >= 2:
-			break
-		initials += part.substr(0, 1).to_upper()
-	if initials.is_empty():
-		return "?"
-	return initials
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_layout_overlay_controls()
+
+
+func _ensure_overlay_controls() -> void:
+	if _item_icon == null:
+		_item_icon = TextureRect.new()
+		_item_icon.name = "ItemIcon"
+		_item_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_item_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_item_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		_item_icon.z_index = 5
+		add_child(_item_icon)
+
+
+func _layout_overlay_controls() -> void:
+	if _item_icon == null:
+		return
+	var margin := Vector2(size.x * 0.14, size.y * 0.14)
+	_item_icon.position = margin
+	_item_icon.size = Vector2(maxf(0.0, size.x - margin.x * 2.0), maxf(0.0, size.y - margin.y * 2.0))
+
+
+func _set_item_texture(texture: Texture2D) -> void:
+	if _item_icon == null:
+		return
+	_item_icon.texture = texture
+	_item_icon.visible = texture != null
 
 
 func _make_tooltip(item_data: Dictionary) -> String:

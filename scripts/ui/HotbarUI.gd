@@ -3,7 +3,7 @@ extends Control
 const SpriteResolver = preload("res://scripts/systems/SpriteResolver.gd")
 const UILayoutConfig = preload("res://scripts/ui/UILayoutConfig.gd")
 const UILayoutApplier = preload("res://scripts/ui/UILayoutApplier.gd")
-const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
+const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 
 @export var slot_count: int = 10
 
@@ -68,10 +68,10 @@ func refresh() -> void:
 	for index in range(slots.size()):
 		var slot: Button = slots[index]
 		if index >= entries.size():
-			_setup_empty_slot(slot, index)
+			_setup_empty_slot(slot)
 			continue
 
-		_setup_slot(slot, index, entries[index])
+		_setup_slot(slot, entries[index])
 
 	_update_selection()
 
@@ -100,7 +100,10 @@ func _build_ui() -> void:
 		var button := Button.new()
 		button.name = "Slot%02d" % (index + 1)
 		button.focus_mode = Control.FOCUS_NONE
-		button.expand_icon = true
+		button.clip_contents = true
+		button.text = ""
+		button.icon = null
+		button.expand_icon = false
 		button.pressed.connect(select_slot.bind(index))
 		var fallback_rect := Rect2(13 + index * 82, 9, 66, 60)
 		var slot_rect := _get_layout_rect("hotbar.slot_%02d" % (index + 1), fallback_rect)
@@ -109,46 +112,50 @@ func _build_ui() -> void:
 		button.position = slot_rect.position - panel_rect.position
 		button.size = slot_rect.size
 		_hotbar_panel.add_child(button)
+		_add_slot_overlay_children(button)
 		slots.append(button)
 		_apply_transparent_button_style(button)
 
 	_selected_overlay = ColorRect.new()
 	_selected_overlay.name = "SelectedSlotOverlay"
 	_selected_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_selected_overlay.color = Color(1.0, 0.92, 0.45, 0.22)
+	_selected_overlay.color = Color(1.0, 0.92, 0.45, 0.11)
 	_hotbar_panel.add_child(_selected_overlay)
 
 
-func _setup_empty_slot(slot: Button, index: int) -> void:
-	slot.text = "%s\n-" % _get_slot_key_text(index)
-	slot.icon = null
+func _setup_empty_slot(slot: Button) -> void:
+	slot.text = ""
 	slot.tooltip_text = "Empty"
+	_set_slot_icon(slot, null)
+	_set_slot_quantity_text(slot, "")
 
 
-func _setup_slot(slot: Button, index: int, entry: Dictionary) -> void:
+func _setup_slot(slot: Button, entry: Dictionary) -> void:
 	var entry_type := str(entry.get("type", "item"))
 	var entry_id := str(entry.get("id", ""))
 	var label := str(entry.get("label", entry_id.capitalize()))
 	var amount := int(entry.get("amount", 0))
-	slot.text = "%s\n%s" % [_get_slot_key_text(index), amount if entry_type == "item" else label.substr(0, 2).to_upper()]
+	slot.text = ""
 	slot.tooltip_text = label
+
 	if entry_type == "item":
-		slot.icon = sprite_resolver.get_texture_for_item(entry_id)
+		_set_slot_icon(slot, sprite_resolver.get_texture_for_item(entry_id))
+		_set_slot_quantity_text(slot, str(amount) if amount > 1 else "")
 	else:
-		slot.icon = sprite_resolver.get_placeholder_texture()
+		_set_slot_icon(slot, sprite_resolver.get_placeholder_texture())
+		_set_slot_quantity_text(slot, "")
 
 
 func _update_selection() -> void:
+	if _selected_overlay != null:
+		_selected_overlay.visible = false
 	for index in range(slots.size()):
 		var slot: Button = slots[index]
 		if index == selected_slot:
-			slot.add_theme_color_override("font_color", Color(1.0, 0.92, 0.45, 1.0))
 			if _selected_overlay != null:
 				_selected_overlay.position = slot.position
 				_selected_overlay.size = slot.size
 				_selected_overlay.visible = true
-		else:
-			slot.remove_theme_color_override("font_color")
 
 
 func _get_hotbar_entries() -> Array:
@@ -198,10 +205,6 @@ func _get_slot_index_for_key(keycode: Key) -> int:
 	return -1
 
 
-func _get_slot_key_text(index: int) -> String:
-	return "0" if index == 9 else str(index + 1)
-
-
 func _on_player_tool_changed(_tool_name: String) -> void:
 	refresh()
 
@@ -243,3 +246,58 @@ func _apply_transparent_button_style(button: Button) -> void:
 	button.add_theme_stylebox_override("focus", empty_style)
 	button.add_theme_stylebox_override("disabled", empty_style)
 	button.add_theme_color_override("font_color", Color(1.0, 0.96, 0.82, 1.0))
+
+
+func _add_slot_overlay_children(slot: Button) -> void:
+	var icon := TextureRect.new()
+	icon.name = "ItemIcon"
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.z_index = 5
+	slot.add_child(icon)
+
+	var quantity_label := Label.new()
+	quantity_label.name = "QuantityLabel"
+	quantity_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	quantity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	quantity_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	quantity_label.clip_text = true
+	quantity_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	quantity_label.z_index = 6
+	slot.add_child(quantity_label)
+	OathwakeTextStyle.apply_profile_to_label(quantity_label, "item_quantity", null, 13, 1)
+	quantity_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
+	quantity_label.add_theme_constant_override("shadow_offset_x", 1)
+	quantity_label.add_theme_constant_override("shadow_offset_y", 1)
+	_layout_slot_overlay(slot)
+
+
+func _layout_slot_overlay(slot: Button) -> void:
+	var icon := slot.get_node_or_null("ItemIcon") as TextureRect
+	if icon != null:
+		var margin := Vector2(slot.size.x * 0.15, slot.size.y * 0.15)
+		icon.position = margin
+		icon.size = Vector2(maxf(0.0, slot.size.x - margin.x * 2.0), maxf(0.0, slot.size.y - margin.y * 2.0))
+
+	var quantity_label := slot.get_node_or_null("QuantityLabel") as Label
+	if quantity_label != null:
+		var label_width := minf(maxf(18.0, slot.size.x * 0.46), maxf(18.0, slot.size.x - 4.0))
+		quantity_label.size = Vector2(label_width, 16.0)
+		quantity_label.position = Vector2(maxf(2.0, slot.size.x - label_width - 4.0), maxf(2.0, slot.size.y - 18.0))
+
+
+func _set_slot_icon(slot: Button, texture: Texture2D) -> void:
+	var icon := slot.get_node_or_null("ItemIcon") as TextureRect
+	if icon == null:
+		return
+	icon.texture = texture
+	icon.visible = texture != null
+
+
+func _set_slot_quantity_text(slot: Button, value: String) -> void:
+	var quantity_label := slot.get_node_or_null("QuantityLabel") as Label
+	if quantity_label == null:
+		return
+	quantity_label.text = value
+	quantity_label.visible = not value.is_empty()

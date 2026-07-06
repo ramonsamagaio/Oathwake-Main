@@ -12,6 +12,7 @@ const EXP_BORDER_PATH := "res://assets/ui/HUDUI/EXP_BORDER.png"
 const EXP_BAR_PATH := "res://assets/ui/HUDUI/EXP_BAR.png"
 const FLAME_FRAME_PATH := "res://assets/ui/HUDUI/FLAME_FRAME.png"
 const PURPLE_FIRE_PATH := "res://assets/ui/HUDUI/PURPLE_FIRE.gif"
+const PURPLE_FIRE_FRAMES_DIR := "res://assets/ui/HUDUI/purple_fire_frames"
 
 var _layout: Dictionary = {}
 var _life_clip: Control
@@ -27,6 +28,10 @@ var _mana_label: Label
 var _stamina_label: Label
 var _xp_label: Label
 var _tool_label: Label
+var _purple_fire: TextureRect
+var _purple_fire_frames: Array[Texture2D] = []
+var _purple_fire_frame_index := 0
+var _purple_fire_timer: Timer
 
 
 func _ready() -> void:
@@ -74,30 +79,30 @@ func set_current_tool(tool_text: String) -> void:
 
 
 func _build_ui() -> void:
-	_add_texture(PORTRAIT_PATH, "hud.portrait", Rect2(20, 20, 184, 184))
+	_add_texture(PORTRAIT_PATH, "hud.portrait", Rect2(18, 15, 184, 191))
 
-	var life_rect := _get_rect("hud.life_bar", Rect2(194, 44, 270, 52))
+	var life_rect := _get_rect("hud.life_bar", Rect2(194, 21, 269, 53))
 	_life_width = life_rect.size.x
 	_life_clip = _add_fill_bar(LIFE_BAR_PATH, life_rect)
-	_life_label = _add_bar_label(life_rect)
+	_life_label = _add_bar_label(life_rect, 11)
 
-	var mana_rect := _get_rect("hud.mana_bar", Rect2(194, 102, 270, 30))
+	var mana_rect := _get_rect("hud.mana_bar", Rect2(194, 41, 270, 30))
 	_mana_width = mana_rect.size.x
 	_mana_clip = _add_fill_bar(MANA_BAR_PATH, mana_rect)
-	_mana_label = _add_bar_label(mana_rect)
+	_mana_label = _add_bar_label(mana_rect, 10)
 
-	var stamina_rect := _get_rect("hud.stamina_bar", Rect2(194, 136, 270, 42))
+	var stamina_rect := _get_rect("hud.stamina_bar", Rect2(196, 26, 270, 63))
 	_stamina_width = stamina_rect.size.x
 	_stamina_clip = _add_fill_bar(STAMINA_BAR_PATH, stamina_rect)
-	_stamina_label = _add_bar_label(stamina_rect)
+	_stamina_label = _add_bar_label(stamina_rect, 10)
 
-	var xp_rect := _get_rect("hud.xp_bar_fill", Rect2(550, 28, 420, 46))
-	_xp_width = xp_rect.size.x
-	_xp_clip = _add_fill_bar(EXP_BAR_PATH, xp_rect)
-	_add_texture(EXP_BORDER_PATH, "hud.xp_bar_frame", Rect2(530, 0, 476, 62))
-	_xp_label = _add_bar_label(_get_rect("hud.xp_bar_frame", Rect2(530, 0, 476, 62)))
+	var xp_fill_rect := _get_rect("hud.xp_bar_fill", Rect2(595, 29, 417, 61))
+	_xp_width = xp_fill_rect.size.x
+	_xp_clip = _add_fill_bar(EXP_BAR_PATH, xp_fill_rect)
+	_add_texture(EXP_BORDER_PATH, "hud.xp_bar_frame", Rect2(549, 1, 476, 61))
+	_xp_label = _add_bar_label(_get_rect("hud.xp_bar_frame", Rect2(549, 1, 476, 61)), 11)
 
-	_add_texture(FLAME_FRAME_PATH, "hud.alignment_flame_frame", Rect2(1395, 703, 167, 159))
+	_add_texture(FLAME_FRAME_PATH, "hud.alignment_flame_frame", Rect2(1415, 723, 167, 159))
 	_add_alignment_flame()
 
 	_tool_label = Label.new()
@@ -106,7 +111,7 @@ func _build_ui() -> void:
 	_tool_label.position = Vector2(20, 202)
 	_tool_label.size = Vector2(280, 28)
 	add_child(_tool_label)
-	OathwakeTextStyle.apply_profile_to_label(_tool_label, "base_ui")
+	OathwakeTextStyle.apply_profile_to_label(_tool_label, "base_ui", null, 12, 0)
 
 
 func _add_texture(path: String, element_id: String, fallback_rect: Rect2) -> TextureRect:
@@ -141,7 +146,7 @@ func _add_fill_bar(path: String, rect: Rect2) -> Control:
 	return clip
 
 
-func _add_bar_label(rect: Rect2) -> Label:
+func _add_bar_label(rect: Rect2, font_size := 11) -> Label:
 	var label := Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -149,33 +154,83 @@ func _add_bar_label(rect: Rect2) -> Label:
 	label.position = rect.position
 	label.size = rect.size
 	add_child(label)
-	OathwakeTextStyle.apply_profile_to_label(label, "base_ui")
-	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+	OathwakeTextStyle.apply_profile_to_label(label, "base_ui", null, font_size, 1)
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	label.add_theme_constant_override("shadow_offset_x", 1)
 	label.add_theme_constant_override("shadow_offset_y", 1)
 	return label
 
 
 func _add_alignment_flame() -> void:
-	var rect := _get_rect("hud.alignment_flame", Rect2(1470, 775, 40, 40))
-	var fire_resource: Resource = ResourceLoader.load(PURPLE_FIRE_PATH) if ResourceLoader.exists(PURPLE_FIRE_PATH) else null
-	if fire_resource is Texture2D:
-		var fire_texture := TextureRect.new()
-		fire_texture.name = "PurpleFire"
-		fire_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		fire_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		fire_texture.stretch_mode = TextureRect.STRETCH_SCALE
-		fire_texture.texture = fire_resource as Texture2D
-		_apply_rect(fire_texture, rect)
-		add_child(fire_texture)
+	var rect := _get_rect("hud.alignment_flame", Rect2(1490, 795, 40, 40))
+	_purple_fire = TextureRect.new()
+	_purple_fire.name = "PurpleFire"
+	_purple_fire.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_purple_fire.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_purple_fire.stretch_mode = TextureRect.STRETCH_SCALE
+	_apply_rect(_purple_fire, rect)
+	add_child(_purple_fire)
+
+	_purple_fire_frames = _load_purple_fire_frames()
+	if not _purple_fire_frames.is_empty():
+		_purple_fire.texture = _purple_fire_frames[0]
+		_start_purple_fire_animation()
 		return
 
-	var fallback := ColorRect.new()
-	fallback.name = "PurpleFireFallback"
-	fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	fallback.color = Color(0.62, 0.18, 1.0, 0.8)
-	_apply_rect(fallback, rect)
-	add_child(fallback)
+	var fire_resource: Resource = ResourceLoader.load(PURPLE_FIRE_PATH) if ResourceLoader.exists(PURPLE_FIRE_PATH) else null
+	if fire_resource is Texture2D:
+		_purple_fire.texture = fire_resource as Texture2D
+		return
+
+	var image := Image.new()
+	if image.load(PURPLE_FIRE_PATH) == OK:
+		_purple_fire.texture = ImageTexture.create_from_image(image)
+		return
+
+	_purple_fire.texture = _load_texture(FLAME_FRAME_PATH)
+
+
+func _start_purple_fire_animation() -> void:
+	if _purple_fire_timer != null:
+		_purple_fire_timer.queue_free()
+		_purple_fire_timer = null
+
+	_purple_fire_timer = Timer.new()
+	_purple_fire_timer.wait_time = 0.09
+	_purple_fire_timer.one_shot = false
+	_purple_fire_timer.autostart = true
+	_purple_fire_timer.timeout.connect(_advance_purple_fire_frame)
+	add_child(_purple_fire_timer)
+
+
+func _advance_purple_fire_frame() -> void:
+	if _purple_fire == null or _purple_fire_frames.is_empty():
+		return
+	_purple_fire_frame_index = (_purple_fire_frame_index + 1) % _purple_fire_frames.size()
+	_purple_fire.texture = _purple_fire_frames[_purple_fire_frame_index]
+
+
+func _load_purple_fire_frames() -> Array[Texture2D]:
+	var frames: Array[Texture2D] = []
+	var dir := DirAccess.open(PURPLE_FIRE_FRAMES_DIR)
+	if dir == null:
+		return frames
+
+	var file_names: Array[String] = []
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while not file_name.is_empty():
+		if not dir.current_is_dir() and file_name.get_extension().to_lower() == "png":
+			file_names.append(file_name)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	file_names.sort()
+
+	for name in file_names:
+		var texture := _load_texture("%s/%s" % [PURPLE_FIRE_FRAMES_DIR, name])
+		if texture != null:
+			frames.append(texture)
+	return frames
 
 
 func _set_clip_ratio(clip: Control, full_width: float, ratio: float) -> void:

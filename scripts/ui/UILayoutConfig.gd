@@ -153,18 +153,22 @@ static func get_default_layout() -> Dictionary:
 		"inventory.armor_slot_hitbox": _make_element("Armor Slot Hitbox", "interaction", 20, 160, 138, 52, "top_left", "inventory.equipment_panel", "", false, true, 0.35, 13, "stretch", true, false),
 		"inventory.accessory_slot_hitbox": _make_element("Accessory Slot Hitbox", "interaction", 20, 218, 138, 52, "top_left", "inventory.equipment_panel", "", false, true, 0.35, 13, "stretch", true, false),
 		"inventory.close_hitbox": _make_element("Close Hitbox", "interaction", 620, 20, 28, 28, "top_left", "inventory.window", "", false, true, 0.35, 20, "stretch", true, false),
-		"hotbar.panel": _make_element("Hotbar", "hud", -350, -120, 700, 68, "bottom_center", "", "res://assets/ui/hud/hotbar_frame.png", true, true, 1.0, 0, "stretch", true, false),
+		"hotbar.panel": _make_element("Hotbar", "hud", -350, -120, 700, 68, "bottom_center", "", "res://assets/ui/HUDUI/HOTBAR.png", true, true, 1.0, 0, "stretch", true, false),
 		"hud.status_panel": _make_element("HUD Status Panel", "guide", 20, 20, 380, 170, "top_left", "", "", false, true, 0.12, 2, "stretch", true, false),
-		"hud.health_bar": _make_element("Health Bar", "hud_child", 18, 54, 240, 22, "top_left", "hud.status_panel", "res://assets/ui/hud/health_bar_frame.png", true, true, 1.0, 2, "stretch", true, false),
-		"hud.xp_bar": _make_element("XP Bar", "hud_child", 18, 86, 240, 18, "top_left", "hud.status_panel", "res://assets/ui/hud/xp_bar_frame.png", true, true, 1.0, 2, "stretch", true, false),
-		"hud.alignment_flame": _make_element("Alignment Flame", "hud_child", 300, 42, 48, 64, "top_left", "hud.status_panel", "", false, true, 1.0, 2, "stretch", true, false),
+		"hud.life_bar": _make_element("Life Bar", "hud_child", 194, 21, 269, 53, "top_left", "hud.status_panel", "res://assets/ui/HUDUI/BAR_LIFE.png", true, true, 1.0, 2, "stretch", true, false),
+		"hud.mana_bar": _make_element("Mana Bar", "hud_child", 194, 41, 270, 30, "top_left", "hud.status_panel", "res://assets/ui/HUDUI/BAR_MANA.png", true, true, 1.0, 2, "stretch", true, false),
+		"hud.stamina_bar": _make_element("Stamina Bar", "hud_child", 196, 26, 270, 63, "top_left", "hud.status_panel", "res://assets/ui/HUDUI/BAR_STAMINA.png", true, true, 1.0, 2, "stretch", true, false),
+		"hud.xp_bar_fill": _make_element("XP Bar Fill", "hud_child", 595, 29, 417, 61, "top_left", "hud.status_panel", "res://assets/ui/HUDUI/EXP_BAR.png", true, true, 1.0, 2, "stretch", true, false),
+		"hud.xp_bar_frame": _make_element("XP Bar Frame", "hud_child", 549, 1, 476, 61, "top_left", "hud.status_panel", "res://assets/ui/HUDUI/EXP_BORDER.png", true, true, 1.0, 2, "stretch", true, false),
+		"hud.alignment_flame_frame": _make_element("Alignment Flame Frame", "hud_child", 1415, 723, 167, 159, "top_left", "hud.status_panel", "res://assets/ui/HUDUI/FLAME_FRAME.png", true, true, 1.0, 2, "stretch", true, false),
+		"hud.alignment_flame": _make_element("Alignment Flame", "hud_child", 1490, 795, 40, 40, "top_left", "hud.alignment_flame_frame", "", false, true, 1.0, 2, "stretch", true, false),
 		"hud.minimap": _make_element("Minimap Placeholder", "guide", -260, 20, 240, 180, "top_right", "", "", false, true, 0.12, 2, "stretch", true, false),
 	}
 
 	for i in range(1, 11):
 		var x := 14 + (i - 1) * 66
-		elements["hotbar.slot_%d" % i] = _make_element("Hotbar Slot %d" % i, "graphic", x, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/hud/hotbar_slot_empty.png", true, true, 1.0, 5, "stretch", true, false)
-		elements["hotbar.slot_%d_hitbox" % i] = _make_element("Hotbar Slot %d Hitbox" % i, "interaction", x, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false)
+		elements["hotbar.slot_%02d" % i] = _make_element("Hotbar Slot %d" % i, "graphic", x, 8, 58, 52, "top_left", "hotbar.panel", "res://assets/ui/HUDUI/HOTBAR.png", true, true, 1.0, 5, "stretch", true, false)
+		elements["hotbar.slot_%02d_hitbox" % i] = _make_element("Hotbar Slot %d Hitbox" % i, "interaction", x, 8, 58, 52, "top_left", "hotbar.panel", "", false, true, 0.35, 15, "stretch", true, false)
 
 	for row in range(4):
 		for col in range(5):

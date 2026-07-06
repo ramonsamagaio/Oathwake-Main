@@ -189,11 +189,19 @@ func _get_normalized_element_id(control: Control) -> String:
 			return "hud.xp_bar_frame"
 		"BAR_LIFE":
 			return "hud.life_bar"
+		"LIFE_BAR":
+			return "hud.life_bar"
 		"BAR_MANA":
+			return "hud.mana_bar"
+		"MANA_BAR":
 			return "hud.mana_bar"
 		"BAR_STAMINA":
 			return "hud.stamina_bar"
+		"STAMINA_BAR":
+			return "hud.stamina_bar"
 		"ALIG_FLAME":
+			return "hud.alignment_flame_frame"
+		"FLAME_FRAME":
 			return "hud.alignment_flame_frame"
 		"PURPLE_FLAME PLACEHOLDER":
 			return "hud.alignment_flame"
@@ -207,6 +215,14 @@ func _get_normalized_element_id(control: Control) -> String:
 			return "hotbar.slot_%02d" % slot_number
 
 	match raw_upper:
+		"XP_BAR_FILL":
+			return "hud.xp_bar_fill"
+		"XP_BAR_FRAME":
+			return "hud.xp_bar_frame"
+		"ALIGNMENT_FLAME_FRAME":
+			return "hud.alignment_flame_frame"
+		"ALIGNMENT_FLAME":
+			return "hud.alignment_flame"
 		"HELM":
 			return "equipment.helm"
 		"ARMOR":

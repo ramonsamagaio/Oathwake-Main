@@ -17,9 +17,12 @@ var amount := 0
 var display_name := ""
 var metadata := {}
 var is_broken := false
+var _item_icon: TextureRect
+var _quantity_label: Label
 
 
 func setup(index: int, new_item_id: String, new_amount: int, item_data: Dictionary, texture: Texture2D, new_inventory_id := "player", new_metadata := {}) -> void:
+	_ensure_overlay_controls()
 	slot_index = index
 	inventory_id = new_inventory_id
 	item_id = new_item_id
@@ -33,18 +36,20 @@ func setup(index: int, new_item_id: String, new_amount: int, item_data: Dictiona
 			var current_dura := ItemInstanceHelper.get_current_durability({"item_id": item_id, "metadata": metadata})
 			if current_dura <= 0:
 				is_broken = true
-	var initials := _get_initials(display_name)
-	text = "%s\n%d" % [initials, amount]
+	text = ""
+	icon = null
+	expand_icon = false
 	tooltip_text = _make_tooltip(item_data)
-	icon = texture
-	expand_icon = true
 	custom_minimum_size = Vector2(64, 64)
 	focus_mode = Control.FOCUS_NONE
 	_apply_slot_style()
-	OathwakeTextStyle.apply_profile_to_control(self, "item_quantity")
+	_set_item_texture(texture)
+	_set_quantity_label(amount)
+	_layout_overlay_controls()
 
 
 func clear_slot(index := -1) -> void:
+	_ensure_overlay_controls()
 	if index >= 0:
 		slot_index = index
 	item_id = ""
@@ -54,10 +59,13 @@ func clear_slot(index := -1) -> void:
 	text = ""
 	tooltip_text = "Empty"
 	icon = null
+	expand_icon = false
 	custom_minimum_size = Vector2(64, 64)
 	focus_mode = Control.FOCUS_NONE
 	_apply_slot_style()
-	OathwakeTextStyle.apply_profile_to_control(self, "item_quantity")
+	_set_item_texture(null)
+	_set_quantity_label(0)
+	_layout_overlay_controls()
 
 
 func _pressed() -> void:
@@ -83,13 +91,12 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	drag_started.emit(slot_index, inventory_id)
 
 	var preview := Button.new()
-	preview.text = "x%d" % amount
-	preview.icon = icon
+	preview.text = ""
+	preview.icon = _item_icon.texture if _item_icon != null else null
 	preview.expand_icon = true
 	preview.custom_minimum_size = Vector2(56, 48)
 	preview.disabled = true
 	OathwakeUISkin.apply_slot_button(preview, "selected")
-	OathwakeTextStyle.apply_profile_to_control(preview, "item_quantity")
 	set_drag_preview(preview)
 	return {
 		"type": "inventory_slot",
@@ -126,17 +133,68 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	)
 
 
-func _get_initials(name_text: String) -> String:
-	var initials := ""
-	for part in name_text.split(" ", false):
-		if initials.length() >= 2:
-			break
-		initials += part.substr(0, 1).to_upper()
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_layout_overlay_controls()
 
-	if initials.is_empty():
-		return "?"
 
-	return initials
+func _ensure_overlay_controls() -> void:
+	if _item_icon == null:
+		_item_icon = TextureRect.new()
+		_item_icon.name = "ItemIcon"
+		_item_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_item_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_item_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		_item_icon.z_index = 5
+		add_child(_item_icon)
+
+	if _quantity_label == null:
+		_quantity_label = Label.new()
+		_quantity_label.name = "QuantityLabel"
+		_quantity_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_quantity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		_quantity_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		_quantity_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		_quantity_label.clip_text = true
+		_quantity_label.z_index = 6
+		add_child(_quantity_label)
+		OathwakeTextStyle.apply_profile_to_label(_quantity_label, "item_quantity", null, 13, 1)
+		_quantity_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
+		_quantity_label.add_theme_constant_override("shadow_offset_x", 1)
+		_quantity_label.add_theme_constant_override("shadow_offset_y", 1)
+
+
+func _layout_overlay_controls() -> void:
+	if _item_icon == null or _quantity_label == null:
+		return
+
+	var icon_margin := Vector2(size.x * 0.15, size.y * 0.15)
+	_item_icon.position = icon_margin
+	_item_icon.size = Vector2(maxf(0.0, size.x - icon_margin.x * 2.0), maxf(0.0, size.y - icon_margin.y * 2.0))
+
+	var quantity_visible := amount > 1
+	_quantity_label.visible = quantity_visible
+	if quantity_visible:
+		_quantity_label.text = str(amount)
+		var label_width := minf(maxf(18.0, size.x * 0.46), maxf(18.0, size.x - 4.0))
+		_quantity_label.size = Vector2(label_width, 16.0)
+		_quantity_label.position = Vector2(maxf(2.0, size.x - label_width - 4.0), maxf(2.0, size.y - 18.0))
+	else:
+		_quantity_label.text = ""
+
+
+func _set_item_texture(texture: Texture2D) -> void:
+	if _item_icon == null:
+		return
+	_item_icon.texture = texture
+	_item_icon.visible = texture != null
+
+
+func _set_quantity_label(value: int) -> void:
+	if _quantity_label == null:
+		return
+	_quantity_label.text = str(value) if value > 1 else ""
+	_quantity_label.visible = value > 1
 
 
 func _make_tooltip(item_data: Dictionary) -> String:

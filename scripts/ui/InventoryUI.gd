@@ -15,6 +15,7 @@ const INVENTORY_SELECT_TEXTURE_PATH := "res://assets/ui/HUDUI/INVENTORY_SELECT.p
 const USE_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/USE_ON.png"
 const SPLIT_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/SPLIT_ON.png"
 const DROP_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/DROP_ON.png"
+const CLOSE_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/Xzinho ON.png"
 const EQUIPMENT_SLOT_IDS := [
 	"helm",
 	"armor",
@@ -47,6 +48,7 @@ var _drag_last_mouse_position := Vector2.ZERO
 var _layout: Dictionary = {}
 var _hover_frame: TextureRect
 var _select_frame: TextureRect
+var _drag_handle: Control
 
 
 func set_equipment_system(new_equipment_system) -> void:
@@ -65,6 +67,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		visible = not visible
 		if visible:
 			refresh()
+		elif _hover_frame != null:
+			_hover_frame.visible = false
 		get_viewport().set_input_as_handled()
 
 
@@ -117,6 +121,17 @@ func _build_ui() -> void:
 	background.size = window_rect.size
 	_window_panel.add_child(background)
 
+	_drag_handle = Control.new()
+	_drag_handle.name = "WindowDragHandle"
+	_drag_handle.mouse_filter = Control.MOUSE_FILTER_STOP
+	_drag_handle.mouse_default_cursor_shape = Control.CURSOR_MOVE
+	_drag_handle.gui_input.connect(_on_window_drag_handle_gui_input)
+	_window_panel.add_child(_drag_handle)
+	var drag_fallback_rect := Rect2(window_rect.position + Vector2(11, 10), Vector2(window_rect.size.x - 32, 42))
+	var drag_rect := _get_layout_rect("inventory.drag_handle", drag_fallback_rect)
+	_drag_handle.position = drag_rect.position - window_rect.position
+	_drag_handle.size = drag_rect.size
+
 	for _index in range(slot_count):
 		var slot = InventorySlotScene.instantiate()
 		var slot_rect := _get_inventory_slot_rect(_index, window_rect)
@@ -163,39 +178,22 @@ func _build_ui() -> void:
 		equipment_slot_nodes.append(eq_slot)
 		_apply_transparent_button_style(eq_slot)
 
-	_add_clickbox_button("UseButton", "inventory.use_button_clickbox", USE_BUTTON_TEXTURE_PATH, _on_use_selected_pressed, Rect2(window_rect.position + Vector2(783, 347), Vector2(104, 42)), window_rect)
-	_add_clickbox_button("SplitButton", "inventory.split_button_clickbox", SPLIT_BUTTON_TEXTURE_PATH, _on_split_half_pressed, Rect2(window_rect.position + Vector2(783, 409), Vector2(104, 42)), window_rect)
-	_add_clickbox_button("DropButton", "inventory.drop_button_clickbox", DROP_BUTTON_TEXTURE_PATH, _on_drop_stack_pressed, Rect2(window_rect.position + Vector2(783, 472), Vector2(104, 42)), window_rect)
+	_add_texture_action_button("inventory.use_button_clickbox", USE_BUTTON_TEXTURE_PATH, _on_use_selected_pressed, Rect2(window_rect.position + Vector2(783, 347), Vector2(104, 42)), window_rect)
+	_add_texture_action_button("inventory.split_button_clickbox", SPLIT_BUTTON_TEXTURE_PATH, _on_split_half_pressed, Rect2(window_rect.position + Vector2(783, 409), Vector2(104, 42)), window_rect)
+	_add_texture_action_button("inventory.drop_button_clickbox", DROP_BUTTON_TEXTURE_PATH, _on_drop_stack_pressed, Rect2(window_rect.position + Vector2(783, 472), Vector2(104, 42)), window_rect)
+	_add_texture_action_button("inventory.close_hitbox", CLOSE_BUTTON_TEXTURE_PATH, _on_close_inventory_pressed, Rect2(window_rect.position + Vector2(1202, 216), Vector2(26, 27)), window_rect)
 
 	_hover_frame = _make_frame_texture(INVENTORY_HOVER_TEXTURE_PATH, "inventory.hover_frame")
 	_hover_frame.visible = false
+	var hover_rect := _get_layout_rect("inventory.hover_frame", Rect2(window_rect.position + Vector2(245, 374), Vector2(53, 51)))
+	_hover_frame.size = hover_rect.size
 	_window_panel.add_child(_hover_frame)
 
 	_select_frame = _make_frame_texture(INVENTORY_SELECT_TEXTURE_PATH, "inventory.select_frame")
 	_select_frame.visible = false
+	var select_rect := _get_layout_rect("inventory.select_frame", Rect2(window_rect.position + Vector2(236, 57), Vector2(71, 71)))
+	_select_frame.size = select_rect.size
 	_window_panel.add_child(_select_frame)
-
-	var drag_handle := Control.new()
-	drag_handle.name = "WindowDragHandle"
-	drag_handle.mouse_filter = Control.MOUSE_FILTER_STOP
-	drag_handle.mouse_default_cursor_shape = Control.CURSOR_MOVE
-	drag_handle.anchor_left = 0.0
-	drag_handle.anchor_top = 0.0
-	drag_handle.anchor_right = 1.0
-	drag_handle.anchor_bottom = 0.0
-	drag_handle.offset_left = 34.0
-	drag_handle.offset_top = 18.0
-	drag_handle.offset_right = -34.0
-	drag_handle.offset_bottom = 62.0
-	drag_handle.gui_input.connect(_on_window_drag_handle_gui_input)
-	_window_panel.add_child(drag_handle)
-	_window_panel.move_child(drag_handle, _window_panel.get_child_count() - 1)
-	var drag_fallback_rect := Rect2(window_rect.position + Vector2(11, 10), Vector2(window_rect.size.x - 32, 42))
-	var drag_rect := _get_layout_rect("inventory.drag_handle", drag_fallback_rect)
-	if drag_rect.size.y > 80.0:
-		drag_rect = drag_fallback_rect
-	drag_handle.position = drag_rect.position - window_rect.position
-	drag_handle.size = drag_rect.size
 
 	_apply_inventory_ui_fonts()
 
@@ -211,18 +209,22 @@ func _make_inventory_button(text_value: String, callback: Callable) -> Button:
 	return button
 
 
-func _add_clickbox_button(name_value: String, element_id: String, texture_path: String, callback: Callable, fallback_rect: Rect2, window_rect: Rect2) -> Button:
-	var button := Button.new()
-	button.name = name_value
+func _add_texture_action_button(element_id: String, texture_path: String, callback: Callable, fallback_rect: Rect2, window_rect: Rect2) -> TextureButton:
+	var button := TextureButton.new()
+	button.name = element_id
 	button.focus_mode = Control.FOCUS_NONE
-	button.expand_icon = true
-	button.icon = _load_texture(texture_path)
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.texture_normal = null
+	button.texture_hover = _load_texture(texture_path)
+	button.texture_pressed = _load_texture(texture_path)
+	button.texture_focused = _load_texture(texture_path)
+	button.ignore_texture_size = true
+	button.stretch_mode = TextureButton.STRETCH_SCALE
 	button.pressed.connect(callback)
 	var rect := _get_layout_rect(element_id, fallback_rect)
 	button.position = rect.position - window_rect.position
 	button.size = rect.size
 	_window_panel.add_child(button)
-	_apply_transparent_button_style(button)
 	return button
 
 
@@ -248,9 +250,11 @@ func _get_inventory_slot_rect(index: int, window_rect: Rect2) -> Rect2:
 func _on_inventory_slot_hovered(slot_index: int) -> void:
 	if _hover_frame == null or slot_index < 0 or slot_index >= slots.size():
 		return
+	if slot_index == selected_slot_index:
+		_hover_frame.visible = false
+		return
 	var slot: Control = slots[slot_index]
-	_hover_frame.position = slot.position
-	_hover_frame.size = slot.size
+	_place_frame_on_slot(_hover_frame, slot)
 	_hover_frame.visible = true
 
 
@@ -266,9 +270,16 @@ func _update_selected_slot_frame() -> void:
 		_select_frame.visible = false
 		return
 	var slot: Control = slots[selected_slot_index]
-	_select_frame.position = slot.position
-	_select_frame.size = slot.size
+	_place_frame_on_slot(_select_frame, slot)
 	_select_frame.visible = true
+
+
+func _place_frame_on_slot(frame: TextureRect, slot: Control) -> void:
+	if frame == null or slot == null:
+		return
+	var frame_size := frame.size
+	var centered_position := slot.position + (slot.size * 0.5) - (frame_size * 0.5)
+	frame.position = centered_position
 
 
 func _on_use_selected_pressed() -> void:
@@ -395,6 +406,8 @@ func _on_slot_selected(slot_index: int, item_id: String, _inventory_id := "playe
 	selected_slot_index = slot_index
 	selected_equip_slot_id = ""
 	_update_selected_slot_frame()
+	if _hover_frame != null and selected_slot_index == slot_index:
+		_hover_frame.visible = false
 	if item_id.is_empty():
 		details_label.text = "Empty slot %d." % (slot_index + 1)
 		return
@@ -577,6 +590,12 @@ func _on_drop_stack_pressed() -> void:
 	_drop_removed_item(item_id, removed_amount, drop_metadata if drop_metadata is Dictionary else {})
 	details_label.text = "Dropped %d %s." % [removed_amount, str(_get_item_data(item_id).get("display_name", item_id.capitalize()))]
 	refresh()
+
+
+func _on_close_inventory_pressed() -> void:
+	if _hover_frame != null:
+		_hover_frame.visible = false
+	visible = false
 
 
 func _drop_removed_item(item_id: String, amount: int, item_metadata: Dictionary = {}) -> void:
