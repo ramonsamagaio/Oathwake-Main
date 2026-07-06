@@ -12,6 +12,10 @@ const EXP_BORDER_PATH := "res://assets/ui/HUDUI/EXP_BORDER.png"
 const EXP_BAR_PATH := "res://assets/ui/HUDUI/EXP_BAR.png"
 const FLAME_FRAME_PATH := "res://assets/ui/HUDUI/FLAME_FRAME.png"
 const PURPLE_FIRE_FRAMES_DIR := "res://assets/ui/HUDUI/purple_fire_frames"
+const LIFE_LABEL_OFFSET := Vector2(0, -4)
+const MANA_LABEL_OFFSET := Vector2(0, -3)
+const STAMINA_LABEL_OFFSET := Vector2(0, -3)
+const XP_LABEL_OFFSET := Vector2(0, -2)
 
 var _layout: Dictionary = {}
 var _life_clip: Control
@@ -70,7 +74,7 @@ func set_xp(current_xp: int, xp_to_next_level: int, level: int) -> void:
 	var safe_next := maxi(xp_to_next_level, 1)
 	_set_clip_ratio(_xp_clip, _xp_width, float(current_xp) / float(safe_next))
 	if _xp_label != null:
-		_xp_label.text = "LV %d  %d/%d" % [level, current_xp, safe_next]
+		_xp_label.text = "%d/%d" % [current_xp, safe_next]
 
 
 func set_current_tool(tool_text: String) -> void:
@@ -86,22 +90,22 @@ func _build_ui() -> void:
 	var stamina_rect := _get_rect("hud.stamina_bar", Rect2(196, 26, 270, 63))
 	_life_width = life_rect.size.x
 	_life_clip = _add_fill_bar("hud.life_bar", LIFE_BAR_PATH, life_rect)
-	_life_label = _add_bar_label(_get_visible_content_rect_on_screen("hud.life_bar", life_rect, LIFE_BAR_PATH), 11)
+	_life_label = _add_bar_label(_get_visible_content_rect_on_screen("hud.life_bar", life_rect, LIFE_BAR_PATH), "hud_life_text", 11, LIFE_LABEL_OFFSET)
 
 	_mana_width = mana_rect.size.x
 	_mana_clip = _add_fill_bar("hud.mana_bar", MANA_BAR_PATH, mana_rect)
-	_mana_label = _add_bar_label(_get_visible_content_rect_on_screen("hud.mana_bar", mana_rect, MANA_BAR_PATH), 10)
+	_mana_label = _add_bar_label(_get_visible_content_rect_on_screen("hud.mana_bar", mana_rect, MANA_BAR_PATH), "hud_mana_text", 10, MANA_LABEL_OFFSET)
 
 	_stamina_width = stamina_rect.size.x
 	_stamina_clip = _add_fill_bar("hud.stamina_bar", STAMINA_BAR_PATH, stamina_rect)
-	_stamina_label = _add_bar_label(_get_visible_content_rect_on_screen("hud.stamina_bar", stamina_rect, STAMINA_BAR_PATH), 10)
+	_stamina_label = _add_bar_label(_get_visible_content_rect_on_screen("hud.stamina_bar", stamina_rect, STAMINA_BAR_PATH), "hud_stamina_text", 10, STAMINA_LABEL_OFFSET)
 
 	var xp_frame_rect := _get_rect("hud.xp_bar_frame", Rect2(549, 1, 476, 61))
 	var xp_fill_rect := _get_rect("hud.xp_bar_fill", Rect2(595, 29, 417, 61))
 	_xp_width = xp_fill_rect.size.x
 	_xp_clip = _add_fill_bar("hud.xp_bar_fill", EXP_BAR_PATH, xp_fill_rect)
 	_add_layout_texture_rect(EXP_BORDER_PATH, "hud.xp_bar_frame", xp_frame_rect)
-	_xp_label = _add_bar_label(_get_visible_content_rect_on_screen("hud.xp_bar_frame", xp_frame_rect, EXP_BORDER_PATH), 11)
+	_xp_label = _add_bar_label(_get_visible_content_rect_on_screen("hud.xp_bar_frame", xp_frame_rect, EXP_BORDER_PATH), "hud_xp_text", 11, XP_LABEL_OFFSET)
 
 	_add_layout_texture_rect(FLAME_FRAME_PATH, "hud.alignment_flame_frame", Rect2(1415, 723, 167, 159))
 	_add_alignment_flame()
@@ -144,7 +148,7 @@ func _add_fill_bar(element_id: String, path: String, rect: Rect2) -> Control:
 	return clip
 
 
-func _add_bar_label(rect: Rect2, font_size := 11, vertical_bias := -1.0) -> Label:
+func _add_bar_label(rect: Rect2, profile_id: String, font_size := 11, offset := Vector2.ZERO) -> Label:
 	var label := Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.clip_contents = false
@@ -152,13 +156,10 @@ func _add_bar_label(rect: Rect2, font_size := 11, vertical_bias := -1.0) -> Labe
 	label.show_behind_parent = false
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.position = rect.position + Vector2(0, vertical_bias)
+	label.position = rect.position + offset
 	label.size = rect.size
 	add_child(label)
-	OathwakeTextStyle.apply_profile_to_label(label, "base_ui", null, font_size, 1)
-	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
-	label.add_theme_constant_override("shadow_offset_x", 1)
-	label.add_theme_constant_override("shadow_offset_y", 1)
+	OathwakeTextStyle.apply_profile_to_label(label, profile_id, null, font_size, 1)
 	label.z_index = 999
 	label.move_to_front()
 	return label

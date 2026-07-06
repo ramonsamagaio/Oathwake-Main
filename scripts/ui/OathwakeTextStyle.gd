@@ -59,6 +59,12 @@ static func make_label_settings_for_profile(
 	settings.font_color = parse_color(override_color, parse_color(profile.get("font_color", ""), Color.WHITE))
 	settings.outline_size = override_outline_size if override_outline_size >= 0 else int(profile.get("outline_size", 0))
 	settings.outline_color = parse_color(profile.get("outline_color", ""), Color.BLACK)
+	if profile.has("shadow_size"):
+		settings.shadow_size = int(profile.get("shadow_size", 0))
+		settings.shadow_color = parse_color(profile.get("shadow_color", ""), Color(0, 0, 0, 0))
+		var shadow_offset_x := int(profile.get("shadow_offset_x", 0))
+		var shadow_offset_y := int(profile.get("shadow_offset_y", 0))
+		settings.shadow_offset = Vector2i(shadow_offset_x, shadow_offset_y)
 	return settings
 
 

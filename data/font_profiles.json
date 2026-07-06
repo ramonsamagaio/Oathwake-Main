@@ -7,6 +7,54 @@
 		"outline_color": "#000000",
 		"outline_size": 0
 	},
+	"hud_life_text": {
+		"display_name": "HUD Life Text",
+		"font_color": "#FFFFFF",
+		"font_path": "res://assets/fonts/PixeloidSans-Bold.ttf",
+		"font_size": 11,
+		"outline_color": "#000000",
+		"outline_size": 1,
+		"shadow_color": "#000000",
+		"shadow_offset_x": 1,
+		"shadow_offset_y": 1,
+		"shadow_size": 1
+	},
+	"hud_mana_text": {
+		"display_name": "HUD Mana Text",
+		"font_color": "#FFFFFF",
+		"font_path": "res://assets/fonts/PixeloidSans-Bold.ttf",
+		"font_size": 10,
+		"outline_color": "#000000",
+		"outline_size": 1,
+		"shadow_color": "#000000",
+		"shadow_offset_x": 1,
+		"shadow_offset_y": 1,
+		"shadow_size": 1
+	},
+	"hud_stamina_text": {
+		"display_name": "HUD Stamina Text",
+		"font_color": "#FFFFFF",
+		"font_path": "res://assets/fonts/PixeloidSans-Bold.ttf",
+		"font_size": 10,
+		"outline_color": "#000000",
+		"outline_size": 1,
+		"shadow_color": "#000000",
+		"shadow_offset_x": 1,
+		"shadow_offset_y": 1,
+		"shadow_size": 1
+	},
+	"hud_xp_text": {
+		"display_name": "HUD XP Text",
+		"font_color": "#FFFFFF",
+		"font_path": "res://assets/fonts/PixeloidSans-Bold.ttf",
+		"font_size": 11,
+		"outline_color": "#000000",
+		"outline_size": 1,
+		"shadow_color": "#000000",
+		"shadow_offset_x": 1,
+		"shadow_offset_y": 1,
+		"shadow_size": 1
+	},
 	"console": {
 		"display_name": "Console / Debug Text",
 		"font_color": "#D8D8D8",
@@ -54,6 +102,18 @@
 		"font_size": 12,
 		"outline_color": "#000000",
 		"outline_size": 1
+	},
+	"inventory_quantity_text": {
+		"display_name": "Inventory Quantity",
+		"font_color": "#FFF7D1",
+		"font_path": "res://assets/fonts/m5x7.ttf",
+		"font_size": 13,
+		"outline_color": "#000000",
+		"outline_size": 1,
+		"shadow_color": "#000000",
+		"shadow_offset_x": 1,
+		"shadow_offset_y": 1,
+		"shadow_size": 1
 	},
 	"item_tooltip": {
 		"display_name": "Item Tooltip",

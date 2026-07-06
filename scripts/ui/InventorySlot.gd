@@ -157,12 +157,10 @@ func _ensure_overlay_controls() -> void:
 		_quantity_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		_quantity_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		_quantity_label.clip_text = false
-		_quantity_label.z_index = 6
+		_quantity_label.z_index = 999
+		_quantity_label.clip_contents = false
 		add_child(_quantity_label)
-		OathwakeTextStyle.apply_profile_to_label(_quantity_label, "item_quantity", null, 14, 1)
-		_quantity_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
-		_quantity_label.add_theme_constant_override("shadow_offset_x", 1)
-		_quantity_label.add_theme_constant_override("shadow_offset_y", 1)
+		OathwakeTextStyle.apply_profile_to_label(_quantity_label, "inventory_quantity_text")
 
 
 func _layout_overlay_controls() -> void:
@@ -178,8 +176,8 @@ func _layout_overlay_controls() -> void:
 	_quantity_label.visible = quantity_visible
 	if quantity_visible:
 		_quantity_label.text = str(amount)
-		_quantity_label.position = Vector2.ZERO
-		_quantity_label.size = Vector2(maxf(0.0, size.x - 4.0), maxf(0.0, size.y - 3.0))
+		_quantity_label.position = Vector2(3.0, 2.0)
+		_quantity_label.size = Vector2(maxf(1.0, size.x - 7.0), maxf(1.0, size.y - 6.0))
 		_quantity_label.clip_text = false
 	else:
 		_quantity_label.text = ""
