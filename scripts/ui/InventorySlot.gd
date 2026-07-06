@@ -178,9 +178,8 @@ func _layout_overlay_controls() -> void:
 	_quantity_label.visible = quantity_visible
 	if quantity_visible:
 		_quantity_label.text = str(amount)
-		var label_width := minf(maxf(34.0, size.x * 0.56), maxf(34.0, size.x - 6.0))
-		_quantity_label.size = Vector2(label_width, 16.0)
-		_quantity_label.position = Vector2(maxf(3.0, size.x - label_width - 3.0), maxf(2.0, size.y - 18.0))
+		_quantity_label.position = Vector2.ZERO
+		_quantity_label.size = Vector2(maxf(0.0, size.x - 4.0), maxf(0.0, size.y - 3.0))
 		_quantity_label.clip_text = false
 	else:
 		_quantity_label.text = ""

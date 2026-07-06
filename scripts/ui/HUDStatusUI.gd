@@ -31,6 +31,7 @@ var _purple_fire: TextureRect
 var _purple_fire_frames: Array[Texture2D] = []
 var _purple_fire_frame_index := 0
 var _purple_fire_timer: Timer
+var _alpha_bounds_cache: Dictionary = {}
 
 
 func _ready() -> void:
@@ -85,22 +86,22 @@ func _build_ui() -> void:
 	var stamina_rect := _get_rect("hud.stamina_bar", Rect2(196, 26, 270, 63))
 	_life_width = life_rect.size.x
 	_life_clip = _add_fill_bar("hud.life_bar", LIFE_BAR_PATH, life_rect)
-	_life_label = _add_bar_label(life_rect, 11, -1.0)
+	_life_label = _add_bar_label(_get_visible_content_rect_on_screen("hud.life_bar", life_rect, LIFE_BAR_PATH), 11)
 
 	_mana_width = mana_rect.size.x
 	_mana_clip = _add_fill_bar("hud.mana_bar", MANA_BAR_PATH, mana_rect)
-	_mana_label = _add_bar_label(mana_rect, 10, -1.0)
+	_mana_label = _add_bar_label(_get_visible_content_rect_on_screen("hud.mana_bar", mana_rect, MANA_BAR_PATH), 10)
 
 	_stamina_width = stamina_rect.size.x
 	_stamina_clip = _add_fill_bar("hud.stamina_bar", STAMINA_BAR_PATH, stamina_rect)
-	_stamina_label = _add_bar_label(stamina_rect, 10, -1.0)
+	_stamina_label = _add_bar_label(_get_visible_content_rect_on_screen("hud.stamina_bar", stamina_rect, STAMINA_BAR_PATH), 10)
 
 	var xp_frame_rect := _get_rect("hud.xp_bar_frame", Rect2(549, 1, 476, 61))
 	var xp_fill_rect := _get_rect("hud.xp_bar_fill", Rect2(595, 29, 417, 61))
 	_xp_width = xp_fill_rect.size.x
 	_xp_clip = _add_fill_bar("hud.xp_bar_fill", EXP_BAR_PATH, xp_fill_rect)
 	_add_layout_texture_rect(EXP_BORDER_PATH, "hud.xp_bar_frame", xp_frame_rect)
-	_xp_label = _add_bar_label(xp_frame_rect, 11, -1.0)
+	_xp_label = _add_bar_label(_get_visible_content_rect_on_screen("hud.xp_bar_frame", xp_frame_rect, EXP_BORDER_PATH), 11)
 
 	_add_layout_texture_rect(FLAME_FRAME_PATH, "hud.alignment_flame_frame", Rect2(1415, 723, 167, 159))
 	_add_alignment_flame()
@@ -168,6 +169,8 @@ func _add_alignment_flame() -> void:
 	_purple_fire = TextureRect.new()
 	_purple_fire.name = "Purple_fire"
 	_purple_fire.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_purple_fire.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_purple_fire.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	add_child(_purple_fire)
 	UILayoutApplier.apply_texture_rect_from_layout(_purple_fire, _layout, "hud.alignment_flame", rect)
 	_scale_purple_fire(3.0)
@@ -206,8 +209,70 @@ func _scale_purple_fire(multiplier: float) -> void:
 	if base_size.x <= 0.0 or base_size.y <= 0.0:
 		return
 	var scaled_size := base_size * multiplier
-	_purple_fire.position = _purple_fire.position + (base_size - scaled_size) * 0.5
+	var center := _purple_fire.position + base_size * 0.5
+	_purple_fire.position = center - scaled_size * 0.5
 	_purple_fire.size = scaled_size
+
+
+func _get_visible_content_rect_on_screen(element_id: String, fallback_rect: Rect2, texture_path: String) -> Rect2:
+	var layout_rect := _get_rect(element_id, fallback_rect)
+	var texture := _load_texture(texture_path)
+	if texture == null:
+		return layout_rect
+
+	var alpha_bounds := _get_visible_alpha_bounds(texture)
+	if alpha_bounds.size.x <= 0.0 or alpha_bounds.size.y <= 0.0:
+		return layout_rect
+
+	var image := texture.get_image()
+	if image == null:
+		return layout_rect
+
+	var scale_x := layout_rect.size.x / float(maxi(image.get_width(), 1))
+	var scale_y := layout_rect.size.y / float(maxi(image.get_height(), 1))
+	return Rect2(
+		layout_rect.position + Vector2(alpha_bounds.position.x * scale_x, alpha_bounds.position.y * scale_y),
+		Vector2(alpha_bounds.size.x * scale_x, alpha_bounds.size.y * scale_y)
+	)
+
+
+func _get_visible_alpha_bounds(texture: Texture2D) -> Rect2:
+	if texture == null:
+		return Rect2()
+
+	var cache_key := texture.resource_path
+	if not cache_key.is_empty() and _alpha_bounds_cache.has(cache_key):
+		return _alpha_bounds_cache[cache_key]
+
+	var image := texture.get_image()
+	if image == null or image.is_empty():
+		return Rect2()
+
+	var width := image.get_width()
+	var height := image.get_height()
+	var min_x := width
+	var min_y := height
+	var max_x := -1
+	var max_y := -1
+	for y in range(height):
+		for x in range(width):
+			if image.get_pixel(x, y).a > 0.05:
+				if x < min_x:
+					min_x = x
+				if y < min_y:
+					min_y = y
+				if x > max_x:
+					max_x = x
+				if y > max_y:
+					max_y = y
+
+	if max_x < min_x or max_y < min_y:
+		return Rect2()
+
+	var bounds := Rect2(Vector2(min_x, min_y), Vector2((max_x - min_x) + 1, (max_y - min_y) + 1))
+	if not cache_key.is_empty():
+		_alpha_bounds_cache[cache_key] = bounds
+	return bounds
 
 
 func _load_purple_fire_frames() -> Array[Texture2D]:
