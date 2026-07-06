@@ -10,12 +10,16 @@ signal slot_drag_dropped(from_index: int, to_index: int, from_inventory_id: Stri
 signal equipment_drag_dropped(from_slot_id: String, to_slot_index: int, to_inventory_id: String)
 signal drag_started(slot_index: int, inventory_id: String)
 
-const ITEM_ICON_SCALE := 0.55
+const ITEM_ICON_SCALE := 0.58
 const QUANTITY_FONT_SIZE := 14
+const SLOT_VISUAL_INSET_LEFT := 0.0
+const SLOT_VISUAL_INSET_TOP := 0.0
+const SLOT_VISUAL_INSET_RIGHT := 0.0
+const SLOT_VISUAL_INSET_BOTTOM := 0.0
 const QUANTITY_INSET_LEFT := 2.0
 const QUANTITY_INSET_TOP := 1.0
-const QUANTITY_INSET_RIGHT := 8.0
-const QUANTITY_INSET_BOTTOM := 16.0
+const QUANTITY_INSET_RIGHT := 16.0
+const QUANTITY_INSET_BOTTOM := 17.0
 
 var slot_index := -1
 var inventory_id := "player"
@@ -169,6 +173,7 @@ func _ensure_overlay_controls() -> void:
 		_quantity_label.clip_contents = false
 		add_child(_quantity_label)
 		OathwakeTextStyle.apply_profile_to_label(_quantity_label, "inventory_quantity_text", null, QUANTITY_FONT_SIZE, 1)
+		_quantity_label.add_theme_font_size_override("font_size", QUANTITY_FONT_SIZE)
 		_quantity_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
 
 
@@ -180,24 +185,36 @@ func _layout_overlay_controls() -> void:
 	if slot_size.x <= 0.0 or slot_size.y <= 0.0:
 		return
 
-	var icon_edge := minf(slot_size.x, slot_size.y) * ITEM_ICON_SCALE
+	var visual_rect := _get_visual_rect(slot_size)
+	var icon_edge := minf(visual_rect.size.x, visual_rect.size.y) * ITEM_ICON_SCALE
 	var icon_size := Vector2(icon_edge, icon_edge)
 	_item_icon.size = icon_size
-	_item_icon.position = (slot_size - icon_size) * 0.5
+	_item_icon.position = visual_rect.position + (visual_rect.size - icon_size) * 0.5
 
 	var quantity_visible := amount > 1
 	_quantity_label.visible = quantity_visible
 	if quantity_visible:
 		_quantity_label.text = str(amount)
-		_quantity_label.position = Vector2(QUANTITY_INSET_LEFT, QUANTITY_INSET_TOP)
+		_quantity_label.add_theme_font_size_override("font_size", QUANTITY_FONT_SIZE)
+		_quantity_label.position = visual_rect.position + Vector2(QUANTITY_INSET_LEFT, QUANTITY_INSET_TOP)
 		_quantity_label.size = Vector2(
-			maxf(1.0, slot_size.x - QUANTITY_INSET_LEFT - QUANTITY_INSET_RIGHT),
-			maxf(1.0, slot_size.y - QUANTITY_INSET_TOP - QUANTITY_INSET_BOTTOM)
+			maxf(1.0, visual_rect.size.x - QUANTITY_INSET_LEFT - QUANTITY_INSET_RIGHT),
+			maxf(1.0, visual_rect.size.y - QUANTITY_INSET_TOP - QUANTITY_INSET_BOTTOM)
 		)
 		_quantity_label.clip_text = true
 		_quantity_label.move_to_front()
 	else:
 		_quantity_label.text = ""
+
+
+func _get_visual_rect(slot_size: Vector2) -> Rect2:
+	return Rect2(
+		Vector2(SLOT_VISUAL_INSET_LEFT, SLOT_VISUAL_INSET_TOP),
+		Vector2(
+			maxf(1.0, slot_size.x - SLOT_VISUAL_INSET_LEFT - SLOT_VISUAL_INSET_RIGHT),
+			maxf(1.0, slot_size.y - SLOT_VISUAL_INSET_TOP - SLOT_VISUAL_INSET_BOTTOM)
+		)
+	)
 
 
 func _set_item_texture(texture: Texture2D) -> void:
