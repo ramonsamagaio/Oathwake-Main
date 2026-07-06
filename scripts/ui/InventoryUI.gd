@@ -49,6 +49,8 @@ var _layout: Dictionary = {}
 var _hover_frame: TextureRect
 var _select_frame: TextureRect
 var _drag_handle: Control
+var _hover_offset := Vector2.ZERO
+var _select_offset := Vector2.ZERO
 
 
 func set_equipment_system(new_equipment_system) -> void:
@@ -186,12 +188,15 @@ func _build_ui() -> void:
 	_hover_frame = _make_frame_texture(INVENTORY_HOVER_TEXTURE_PATH, "inventory.hover_frame")
 	_hover_frame.visible = false
 	var hover_rect := _get_layout_rect("inventory.hover_frame", Rect2(window_rect.position + Vector2(245, 374), Vector2(53, 51)))
+	var reference_slot_rect := _get_layout_rect("inventory.slot_01_clickbox", _get_inventory_slot_rect(0, window_rect))
+	_hover_offset = hover_rect.position - reference_slot_rect.position
 	_hover_frame.size = hover_rect.size
 	_window_panel.add_child(_hover_frame)
 
 	_select_frame = _make_frame_texture(INVENTORY_SELECT_TEXTURE_PATH, "inventory.select_frame")
 	_select_frame.visible = false
 	var select_rect := _get_layout_rect("inventory.select_frame", Rect2(window_rect.position + Vector2(236, 57), Vector2(71, 71)))
+	_select_offset = select_rect.position - reference_slot_rect.position
 	_select_frame.size = select_rect.size
 	_window_panel.add_child(_select_frame)
 
@@ -277,9 +282,8 @@ func _update_selected_slot_frame() -> void:
 func _place_frame_on_slot(frame: TextureRect, slot: Control) -> void:
 	if frame == null or slot == null:
 		return
-	var frame_size := frame.size
-	var centered_position := slot.position + (slot.size * 0.5) - (frame_size * 0.5)
-	frame.position = centered_position
+	var offset := _hover_offset if frame == _hover_frame else _select_offset
+	frame.position = slot.position + offset
 
 
 func _on_use_selected_pressed() -> void:

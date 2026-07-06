@@ -55,15 +55,11 @@ func set_health(current_health: int, max_health: int) -> void:
 func set_mana(current_mana: int, max_mana: int) -> void:
 	var safe_max := maxi(max_mana, 1)
 	_set_clip_ratio(_mana_clip, _mana_width, float(current_mana) / float(safe_max))
-	if _mana_label != null:
-		_mana_label.text = "%d/%d" % [current_mana, safe_max]
 
 
 func set_stamina(current_stamina: int, max_stamina: int) -> void:
 	var safe_max := maxi(max_stamina, 1)
 	_set_clip_ratio(_stamina_clip, _stamina_width, float(current_stamina) / float(safe_max))
-	if _stamina_label != null:
-		_stamina_label.text = "%d/%d" % [current_stamina, safe_max]
 
 
 func set_xp(current_xp: int, xp_to_next_level: int, level: int) -> void:
@@ -90,11 +86,13 @@ func _build_ui() -> void:
 	_mana_width = mana_rect.size.x
 	_mana_clip = _add_fill_bar(MANA_BAR_PATH, mana_rect)
 	_mana_label = _add_bar_label(mana_rect, 10)
+	_mana_label.visible = false
 
 	var stamina_rect := _get_rect("hud.stamina_bar", Rect2(196, 26, 270, 63))
 	_stamina_width = stamina_rect.size.x
 	_stamina_clip = _add_fill_bar(STAMINA_BAR_PATH, stamina_rect)
 	_stamina_label = _add_bar_label(stamina_rect, 10)
+	_stamina_label.visible = false
 
 	var xp_fill_rect := _get_rect("hud.xp_bar_fill", Rect2(595, 29, 417, 61))
 	_xp_width = xp_fill_rect.size.x

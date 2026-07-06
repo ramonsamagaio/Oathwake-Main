@@ -262,11 +262,11 @@ func _add_slot_overlay_children(slot: Button) -> void:
 	quantity_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	quantity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	quantity_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-	quantity_label.clip_text = true
+	quantity_label.clip_text = false
 	quantity_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	quantity_label.z_index = 6
 	slot.add_child(quantity_label)
-	OathwakeTextStyle.apply_profile_to_label(quantity_label, "item_quantity", null, 13, 1)
+	OathwakeTextStyle.apply_profile_to_label(quantity_label, "item_quantity", null, 14, 1)
 	quantity_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
 	quantity_label.add_theme_constant_override("shadow_offset_x", 1)
 	quantity_label.add_theme_constant_override("shadow_offset_y", 1)
@@ -276,7 +276,7 @@ func _add_slot_overlay_children(slot: Button) -> void:
 func _layout_slot_overlay(slot: Button) -> void:
 	var icon := slot.get_node_or_null("ItemIcon") as TextureRect
 	if icon != null:
-		var margin := Vector2(slot.size.x * 0.15, slot.size.y * 0.15)
+		var margin := Vector2(slot.size.x * 0.2, slot.size.y * 0.2)
 		icon.position = margin
 		icon.size = Vector2(maxf(0.0, slot.size.x - margin.x * 2.0), maxf(0.0, slot.size.y - margin.y * 2.0))
 

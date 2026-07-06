@@ -90,13 +90,14 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 
 	drag_started.emit(slot_index, inventory_id)
 
-	var preview := Button.new()
-	preview.text = ""
-	preview.icon = _item_icon.texture if _item_icon != null else null
-	preview.expand_icon = true
-	preview.custom_minimum_size = Vector2(56, 48)
-	preview.disabled = true
-	OathwakeUISkin.apply_slot_button(preview, "selected")
+	var preview_texture := _item_icon.texture if _item_icon != null else null
+	var preview := TextureRect.new()
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	preview.texture = preview_texture
+	preview.custom_minimum_size = Vector2(48, 48)
+	preview.size = Vector2(48, 48)
 	set_drag_preview(preview)
 	return {
 		"type": "inventory_slot",
@@ -155,7 +156,7 @@ func _ensure_overlay_controls() -> void:
 		_quantity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		_quantity_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		_quantity_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-		_quantity_label.clip_text = true
+		_quantity_label.clip_text = false
 		_quantity_label.z_index = 6
 		add_child(_quantity_label)
 		OathwakeTextStyle.apply_profile_to_label(_quantity_label, "item_quantity", null, 13, 1)
@@ -168,7 +169,7 @@ func _layout_overlay_controls() -> void:
 	if _item_icon == null or _quantity_label == null:
 		return
 
-	var icon_margin := Vector2(size.x * 0.15, size.y * 0.15)
+	var icon_margin := Vector2(size.x * 0.2, size.y * 0.2)
 	_item_icon.position = icon_margin
 	_item_icon.size = Vector2(maxf(0.0, size.x - icon_margin.x * 2.0), maxf(0.0, size.y - icon_margin.y * 2.0))
 
@@ -179,6 +180,7 @@ func _layout_overlay_controls() -> void:
 		var label_width := minf(maxf(18.0, size.x * 0.46), maxf(18.0, size.x - 4.0))
 		_quantity_label.size = Vector2(label_width, 16.0)
 		_quantity_label.position = Vector2(maxf(2.0, size.x - label_width - 4.0), maxf(2.0, size.y - 18.0))
+		_quantity_label.clip_text = false
 	else:
 		_quantity_label.text = ""
 
