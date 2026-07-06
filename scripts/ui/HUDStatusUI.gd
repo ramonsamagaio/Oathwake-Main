@@ -36,6 +36,7 @@ var _purple_fire_frames: Array[Texture2D] = []
 var _purple_fire_frame_index := 0
 var _purple_fire_timer: Timer
 var _alpha_bounds_cache: Dictionary = {}
+var _previous_health := -1
 
 
 func _ready() -> void:
@@ -52,6 +53,9 @@ func _ready() -> void:
 func set_health(current_health: int, max_health: int) -> void:
 	var safe_max := maxi(max_health, 1)
 	_set_clip_ratio(_life_clip, _life_width, float(current_health) / float(safe_max))
+	if _previous_health >= 0 and current_health < _previous_health:
+		_spawn_life_damage_pixels()
+	_previous_health = current_health
 	if _life_label != null:
 		_life_label.text = "%d/%d" % [current_health, safe_max]
 
@@ -213,6 +217,16 @@ func _scale_purple_fire(multiplier: float) -> void:
 	var center := _purple_fire.position + base_size * 0.5
 	_purple_fire.position = center - scaled_size * 0.5
 	_purple_fire.size = scaled_size
+
+
+func _spawn_life_damage_pixels() -> void:
+	if _life_clip == null:
+		return
+	var pixel_vfx := get_node_or_null("/root/PixelVFX")
+	if pixel_vfx == null or not pixel_vfx.has_method("spawn_ui_bar_pixels"):
+		return
+	var edge_position := _life_clip.position + Vector2(_life_clip.size.x, _life_clip.size.y * 0.52)
+	pixel_vfx.call("spawn_ui_bar_pixels", self, edge_position, "hud_life_damage")
 
 
 func _get_visible_content_rect_on_screen(element_id: String, fallback_rect: Rect2, texture_path: String) -> Rect2:
