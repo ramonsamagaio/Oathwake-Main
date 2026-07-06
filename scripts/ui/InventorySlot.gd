@@ -11,11 +11,11 @@ signal equipment_drag_dropped(from_slot_id: String, to_slot_index: int, to_inven
 signal drag_started(slot_index: int, inventory_id: String)
 
 const ITEM_ICON_SCALE := 0.55
-const QUANTITY_FONT_SIZE := 11
+const QUANTITY_FONT_SIZE := 14
 const QUANTITY_INSET_LEFT := 2.0
 const QUANTITY_INSET_TOP := 1.0
-const QUANTITY_INSET_RIGHT := 3.0
-const QUANTITY_INSET_BOTTOM := 9.0
+const QUANTITY_INSET_RIGHT := 8.0
+const QUANTITY_INSET_BOTTOM := 16.0
 
 var slot_index := -1
 var inventory_id := "player"
