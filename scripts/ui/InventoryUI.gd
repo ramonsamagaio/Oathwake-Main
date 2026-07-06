@@ -9,6 +9,25 @@ const UILayoutApplier = preload("res://scripts/ui/UILayoutApplier.gd")
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 
+const INVENTORY_TEXTURE_PATH := "res://assets/ui/HUDUI/INVENTORY.png"
+const INVENTORY_HOVER_TEXTURE_PATH := "res://assets/ui/HUDUI/INVENTORY_HOVER.png"
+const INVENTORY_SELECT_TEXTURE_PATH := "res://assets/ui/HUDUI/INVENTORY_SELECT.png"
+const USE_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/USE_ON.png"
+const SPLIT_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/SPLIT_ON.png"
+const DROP_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/DROP_ON.png"
+const EQUIPMENT_SLOT_IDS := [
+	"helm",
+	"armor",
+	"legs",
+	"boots",
+	"neck",
+	"hand_left",
+	"hand_right",
+	"ring_left",
+	"ring_right",
+	"back",
+]
+
 @export var slot_count: int = 20
 @export var columns: int = 5
 
@@ -22,9 +41,12 @@ var selected_slot_index := -1
 var selected_equip_slot_id := ""
 var sprite_resolver := SpriteResolver.new()
 var _drag_source_slot := -1
-var _window_panel: Panel
+var _window_panel: Control
 var _dragging_window := false
 var _drag_last_mouse_position := Vector2.ZERO
+var _layout: Dictionary = {}
+var _hover_frame: TextureRect
+var _select_frame: TextureRect
 
 
 func set_equipment_system(new_equipment_system) -> void:
@@ -54,7 +76,7 @@ func set_inventory(new_inventory) -> void:
 
 
 func refresh() -> void:
-	if grid == null or inventory == null:
+	if slots.is_empty() or inventory == null:
 		return
 
 	for index in range(slots.size()):
@@ -64,162 +86,94 @@ func refresh() -> void:
 		var amount := int(item_entry.get("amount", 0))
 		if item_id.is_empty() or amount <= 0:
 			slot.clear_slot(index)
+			_apply_transparent_button_style(slot)
 			continue
 
 		var item_data: Dictionary = _get_item_data(item_id)
 		var metadata = item_entry.get("metadata", {})
 		slot.setup(index, item_id, amount, item_data, sprite_resolver.get_texture_for_item(item_id), "player", metadata)
+		_apply_transparent_button_style(slot)
 
 	_refresh_equipment_slots()
 
 
 func _build_ui() -> void:
-	var layout := UILayoutConfig.load_layout()
+	_layout = UILayoutConfig.load_layout()
+	var window_rect := _get_layout_rect("inventory.window", Rect2(315, 196, 947, 560))
 
-	_window_panel = Panel.new()
-	_window_panel.name = "Panel"
-	_window_panel.anchor_left = 0.5
-	_window_panel.anchor_top = 0.5
-	_window_panel.anchor_right = 0.5
-	_window_panel.anchor_bottom = 0.5
-	_window_panel.offset_left = -340.0
-	_window_panel.offset_top = -310.0
-	_window_panel.offset_right = 340.0
-	_window_panel.offset_bottom = 250.0
+	_window_panel = Control.new()
+	_window_panel.name = "InventoryWindow"
 	_window_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_apply_rect(_window_panel, window_rect)
 	add_child(_window_panel)
-	OathwakeUISkin.apply_panel(_window_panel, "panel")
-	UILayoutApplier.apply_element_to_control(_window_panel, layout, "inventory.window")
 
-	var margin := MarginContainer.new()
-	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin.offset_left = 34.0
-	margin.offset_top = 64.0
-	margin.offset_right = -34.0
-	margin.offset_bottom = -34.0
-	_window_panel.add_child(margin)
-
-	var content := VBoxContainer.new()
-	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content.add_theme_constant_override("separation", 7)
-	margin.add_child(content)
-
-	var title := Label.new()
-	title.text = "Inventory"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content.add_child(title)
-	OathwakeTextStyle.apply_profile_to_label(title, "ui_title")
-
-	var main_area := HBoxContainer.new()
-	main_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	main_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main_area.add_theme_constant_override("separation", 22)
-	content.add_child(main_area)
-
-	var left_side := VBoxContainer.new()
-	left_side.custom_minimum_size = Vector2(370, 0)
-	left_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left_side.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left_side.add_theme_constant_override("separation", 7)
-	main_area.add_child(left_side)
-
-	var controls := HBoxContainer.new()
-	controls.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	controls.add_theme_constant_override("separation", 14)
-	left_side.add_child(controls)
-
-	controls.add_child(_make_inventory_button("Sort", _on_sort_inventory_pressed))
-	controls.add_child(_make_inventory_button("Split", _on_split_half_pressed))
-	controls.add_child(_make_inventory_button("Drop", _on_drop_stack_pressed))
-
-	grid = GridContainer.new()
-	grid.columns = columns
-	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	grid.add_theme_constant_override("h_separation", 6)
-	grid.add_theme_constant_override("v_separation", 6)
-	left_side.add_child(grid)
+	var background := TextureRect.new()
+	background.name = "InventoryBackground"
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	background.stretch_mode = TextureRect.STRETCH_SCALE
+	background.texture = _load_texture(INVENTORY_TEXTURE_PATH)
+	background.position = Vector2.ZERO
+	background.size = window_rect.size
+	_window_panel.add_child(background)
 
 	for _index in range(slot_count):
 		var slot = InventorySlotScene.instantiate()
-		slot.custom_minimum_size = Vector2(58, 58)
+		var slot_rect := _get_inventory_slot_rect(_index, window_rect)
+		slot.position = slot_rect.position - window_rect.position
+		slot.size = slot_rect.size
 		slot.slot_selected.connect(_on_slot_selected)
 		slot.slot_right_clicked.connect(_on_slot_right_clicked)
 		slot.slot_drag_dropped.connect(_on_slot_drag_dropped)
 		slot.equipment_drag_dropped.connect(_on_equipment_drag_dropped_to_inventory)
 		slot.drag_started.connect(_on_slot_drag_started)
-		grid.add_child(slot)
+		slot.mouse_entered.connect(_on_inventory_slot_hovered.bind(_index))
+		slot.mouse_exited.connect(_on_inventory_slot_unhovered.bind(_index))
+		_window_panel.add_child(slot)
 		slots.append(slot)
-		OathwakeUISkin.apply_slot_button(slot, "empty")
-
-	var bottom_row := HBoxContainer.new()
-	bottom_row.custom_minimum_size = Vector2(0, 96)
-	bottom_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bottom_row.add_theme_constant_override("separation", 10)
-	left_side.add_child(bottom_row)
+		_apply_transparent_button_style(slot)
 
 	var trash := _make_trash_slot()
 	trash.trash_dropped.connect(_on_trash_dropped)
-	bottom_row.add_child(trash)
-
-	var details_panel := PanelContainer.new()
-	details_panel.custom_minimum_size = Vector2(0, 96)
-	details_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	OathwakeUISkin.apply_tooltip(details_panel)
-	bottom_row.add_child(details_panel)
-
-	var details_margin := MarginContainer.new()
-	details_margin.add_theme_constant_override("margin_left", 12)
-	details_margin.add_theme_constant_override("margin_top", 8)
-	details_margin.add_theme_constant_override("margin_right", 12)
-	details_margin.add_theme_constant_override("margin_bottom", 8)
-	details_panel.add_child(details_margin)
+	var trash_rect := _get_layout_rect("inventory.trash_area", Rect2(window_rect.position + Vector2(32, 452), Vector2(58, 61)))
+	trash.position = trash_rect.position - window_rect.position
+	trash.size = trash_rect.size
+	_window_panel.add_child(trash)
 
 	details_label = Label.new()
+	details_label.name = "TooltipText"
 	details_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	details_label.clip_text = true
-	details_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	details_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	details_label.text = "Select an item."
-	details_margin.add_child(details_label)
+	var tooltip_rect := _get_layout_rect("inventory.tooltip_area", Rect2(window_rect.position + Vector2(751, 62), Vector2(163, 269)))
+	details_label.position = tooltip_rect.position - window_rect.position
+	details_label.size = tooltip_rect.size
+	_window_panel.add_child(details_label)
 
-	var eq_panel := VBoxContainer.new()
-	eq_panel.custom_minimum_size = Vector2(160, 0)
-	eq_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	eq_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	eq_panel.add_theme_constant_override("separation", 5)
-	main_area.add_child(eq_panel)
-
-	var eq_title := Label.new()
-	eq_title.text = "Equipment"
-	eq_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	eq_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	eq_panel.add_child(eq_title)
-	OathwakeTextStyle.apply_profile_to_label(eq_title, "ui_title")
-
-	var eq_slots_vbox := VBoxContainer.new()
-	eq_slots_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	eq_slots_vbox.add_theme_constant_override("separation", 5)
-	eq_panel.add_child(eq_slots_vbox)
-
-	for slot_id in ["weapon", "tool", "armor", "accessory"]:
-		var slot_label := Label.new()
-		slot_label.text = slot_id.capitalize()
-		slot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		slot_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		eq_slots_vbox.add_child(slot_label)
-		OathwakeTextStyle.apply_profile_to_label(slot_label, "base_ui")
-
+	for slot_id in EQUIPMENT_SLOT_IDS:
 		var eq_slot = EquipmentSlotScene.instantiate()
 		eq_slot.slot_id = slot_id
-		eq_slot.custom_minimum_size = Vector2(150, 52)
+		var eq_rect := _get_layout_rect("equipment.%s" % slot_id, Rect2(window_rect.position + Vector2(40, 80 + equipment_slot_nodes.size() * 46), Vector2(42, 42)))
+		eq_slot.position = eq_rect.position - window_rect.position
+		eq_slot.size = eq_rect.size
 		eq_slot.equip_selected.connect(_on_equip_slot_selected)
 		eq_slot.equip_right_clicked.connect(_on_equip_right_clicked)
 		eq_slot.equip_drag_dropped.connect(_on_equip_drag_dropped)
-		eq_slots_vbox.add_child(eq_slot)
+		_window_panel.add_child(eq_slot)
 		equipment_slot_nodes.append(eq_slot)
-		OathwakeUISkin.apply_slot_button(eq_slot, "empty")
+		_apply_transparent_button_style(eq_slot)
+
+	_add_clickbox_button("UseButton", "inventory.use_button_clickbox", USE_BUTTON_TEXTURE_PATH, _on_use_selected_pressed, Rect2(window_rect.position + Vector2(783, 347), Vector2(104, 42)), window_rect)
+	_add_clickbox_button("SplitButton", "inventory.split_button_clickbox", SPLIT_BUTTON_TEXTURE_PATH, _on_split_half_pressed, Rect2(window_rect.position + Vector2(783, 409), Vector2(104, 42)), window_rect)
+	_add_clickbox_button("DropButton", "inventory.drop_button_clickbox", DROP_BUTTON_TEXTURE_PATH, _on_drop_stack_pressed, Rect2(window_rect.position + Vector2(783, 472), Vector2(104, 42)), window_rect)
+
+	_hover_frame = _make_frame_texture(INVENTORY_HOVER_TEXTURE_PATH, "inventory.hover_frame")
+	_hover_frame.visible = false
+	_window_panel.add_child(_hover_frame)
+
+	_select_frame = _make_frame_texture(INVENTORY_SELECT_TEXTURE_PATH, "inventory.select_frame")
+	_select_frame.visible = false
+	_window_panel.add_child(_select_frame)
 
 	var drag_handle := Control.new()
 	drag_handle.name = "WindowDragHandle"
@@ -236,7 +190,12 @@ func _build_ui() -> void:
 	drag_handle.gui_input.connect(_on_window_drag_handle_gui_input)
 	_window_panel.add_child(drag_handle)
 	_window_panel.move_child(drag_handle, _window_panel.get_child_count() - 1)
-	UILayoutApplier.apply_element_to_local_control(drag_handle, layout, "inventory.drag_handle")
+	var drag_fallback_rect := Rect2(window_rect.position + Vector2(11, 10), Vector2(window_rect.size.x - 32, 42))
+	var drag_rect := _get_layout_rect("inventory.drag_handle", drag_fallback_rect)
+	if drag_rect.size.y > 80.0:
+		drag_rect = drag_fallback_rect
+	drag_handle.position = drag_rect.position - window_rect.position
+	drag_handle.size = drag_rect.size
 
 	_apply_inventory_ui_fonts()
 
@@ -250,6 +209,114 @@ func _make_inventory_button(text_value: String, callback: Callable) -> Button:
 	OathwakeUISkin.apply_button(button, "medium")
 	OathwakeTextStyle.apply_profile_to_control(button, "ui_button")
 	return button
+
+
+func _add_clickbox_button(name_value: String, element_id: String, texture_path: String, callback: Callable, fallback_rect: Rect2, window_rect: Rect2) -> Button:
+	var button := Button.new()
+	button.name = name_value
+	button.focus_mode = Control.FOCUS_NONE
+	button.expand_icon = true
+	button.icon = _load_texture(texture_path)
+	button.pressed.connect(callback)
+	var rect := _get_layout_rect(element_id, fallback_rect)
+	button.position = rect.position - window_rect.position
+	button.size = rect.size
+	_window_panel.add_child(button)
+	_apply_transparent_button_style(button)
+	return button
+
+
+func _make_frame_texture(texture_path: String, name_value: String) -> TextureRect:
+	var frame := TextureRect.new()
+	frame.name = name_value
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame.stretch_mode = TextureRect.STRETCH_SCALE
+	frame.texture = _load_texture(texture_path)
+	return frame
+
+
+func _get_inventory_slot_rect(index: int, window_rect: Rect2) -> Rect2:
+	var slot_id := "inventory.slot_%02d_clickbox" % (index + 1)
+	var fallback_col := index % 10
+	var fallback_row := int(index / 10)
+	var fallback_position := window_rect.position + Vector2(248 + fallback_col * 49, 66 + fallback_row * 52)
+	var fallback_rect := Rect2(fallback_position, Vector2(46, 49))
+	return _get_layout_rect(slot_id, fallback_rect)
+
+
+func _on_inventory_slot_hovered(slot_index: int) -> void:
+	if _hover_frame == null or slot_index < 0 or slot_index >= slots.size():
+		return
+	var slot: Control = slots[slot_index]
+	_hover_frame.position = slot.position
+	_hover_frame.size = slot.size
+	_hover_frame.visible = true
+
+
+func _on_inventory_slot_unhovered(_slot_index: int) -> void:
+	if _hover_frame != null:
+		_hover_frame.visible = false
+
+
+func _update_selected_slot_frame() -> void:
+	if _select_frame == null:
+		return
+	if selected_slot_index < 0 or selected_slot_index >= slots.size():
+		_select_frame.visible = false
+		return
+	var slot: Control = slots[selected_slot_index]
+	_select_frame.position = slot.position
+	_select_frame.size = slot.size
+	_select_frame.visible = true
+
+
+func _on_use_selected_pressed() -> void:
+	if selected_equip_slot_id != "":
+		_on_equip_right_clicked(selected_equip_slot_id)
+		return
+	if selected_slot_index < 0:
+		return
+	var slot_data: Dictionary = inventory.get_slot(selected_slot_index) if inventory != null else {}
+	var item_id := str(slot_data.get("item_id", ""))
+	var amount := int(slot_data.get("amount", 0))
+	if item_id.is_empty() or amount <= 0:
+		return
+	var equip_sys = _get_equipment_system()
+	if equip_sys != null and equip_sys.has_method("equip_from_inventory") and equip_sys.equip_from_inventory(inventory, selected_slot_index):
+		details_label.text = "Equipped %s." % str(_get_item_data(item_id).get("display_name", item_id.capitalize()))
+		refresh()
+	else:
+		details_label.text = "No use action for %s." % str(_get_item_data(item_id).get("display_name", item_id.capitalize()))
+
+
+func _get_layout_rect(element_id: String, fallback: Rect2) -> Rect2:
+	var rect := UILayoutApplier.get_element_rect(_layout, element_id)
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return fallback
+	return rect
+
+
+func _apply_rect(control: Control, rect: Rect2) -> void:
+	control.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	control.position = rect.position
+	control.size = rect.size
+
+
+func _load_texture(path: String) -> Texture2D:
+	if not ResourceLoader.exists(path):
+		return null
+	return ResourceLoader.load(path) as Texture2D
+
+
+func _apply_transparent_button_style(button: Button) -> void:
+	var empty_style := StyleBoxEmpty.new()
+	button.add_theme_stylebox_override("normal", empty_style)
+	button.add_theme_stylebox_override("hover", empty_style)
+	button.add_theme_stylebox_override("pressed", empty_style)
+	button.add_theme_stylebox_override("focus", empty_style)
+	button.add_theme_stylebox_override("disabled", empty_style)
+	button.add_theme_color_override("font_color", Color(1.0, 0.96, 0.82, 1.0))
 
 
 func _on_window_drag_handle_gui_input(event: InputEvent) -> void:
@@ -327,6 +394,7 @@ func _apply_inventory_ui_fonts_recursive(node: Node) -> void:
 func _on_slot_selected(slot_index: int, item_id: String, _inventory_id := "player") -> void:
 	selected_slot_index = slot_index
 	selected_equip_slot_id = ""
+	_update_selected_slot_frame()
 	if item_id.is_empty():
 		details_label.text = "Empty slot %d." % (slot_index + 1)
 		return
@@ -392,6 +460,7 @@ func _refresh_equipment_slots() -> void:
 	for eq_slot in equipment_slot_nodes:
 		var slot_data: Dictionary = equip_slots.get(eq_slot.slot_id, {})
 		eq_slot.setup(eq_slot.slot_id, slot_data)
+		_apply_transparent_button_style(eq_slot)
 
 
 func _get_equipment_system():
@@ -401,6 +470,7 @@ func _get_equipment_system():
 func _on_equip_slot_selected(slot_id: String) -> void:
 	selected_equip_slot_id = slot_id
 	selected_slot_index = -1
+	_update_selected_slot_frame()
 	if equipment_system == null:
 		details_label.text = "Equipment system not available."
 		return

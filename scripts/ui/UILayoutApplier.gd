@@ -43,6 +43,9 @@ static func get_element_rect(layout: Dictionary, element_id: String) -> Rect2:
 	var width := float(element.get("width", 0.0))
 	var height := float(element.get("height", 0.0))
 	var local_position := Vector2(float(element.get("x", 0.0)), float(element.get("y", 0.0)))
+	if str(element.get("coordinate_space", layout.get("coordinate_space", ""))) == "global":
+		return Rect2(local_position, Vector2(width, height))
+
 	var parent_id := str(element.get("parent", ""))
 	if not parent_id.is_empty():
 		var parent_rect := get_element_rect(layout, parent_id)

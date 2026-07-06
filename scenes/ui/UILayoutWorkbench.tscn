@@ -64,7 +64,7 @@ offset_right = 914.0
 offset_bottom = 331.0
 color = Color(0.42, 0.58, 0.78, 0.14)
 
-[node name="Inventory_Hover" type="TextureRect" parent="Inventory/inventory.window" unique_id=1393343081]
+[node name="inventory.hover_frame" type="TextureRect" parent="Inventory/inventory.window" unique_id=1393343081]
 layout_mode = 0
 offset_left = 245.0
 offset_top = 374.0
@@ -72,7 +72,7 @@ offset_right = 298.0
 offset_bottom = 425.0
 texture = ExtResource("3_bndjq")
 
-[node name="Inventory_Select" type="TextureRect" parent="Inventory/inventory.window" unique_id=1343720773]
+[node name="inventory.select_frame" type="TextureRect" parent="Inventory/inventory.window" unique_id=1343720773]
 layout_mode = 0
 offset_left = 236.0
 offset_top = 57.0
@@ -89,7 +89,7 @@ offset_right = 1210.0
 offset_bottom = 898.0
 texture = ExtResource("3_mxc0d")
 
-[node name="hotbar_1" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=341422740]
+[node name="hotbar.slot_01" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=341422740]
 layout_mode = 0
 offset_left = 13.0
 offset_top = 9.0
@@ -97,7 +97,7 @@ offset_right = 79.0
 offset_bottom = 69.0
 color = Color(1, 0.5294118, 0, 0.15294118)
 
-[node name="hotbar_2" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=889546019]
+[node name="hotbar.slot_02" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=889546019]
 layout_mode = 0
 offset_left = 95.0
 offset_top = 9.0
@@ -105,7 +105,7 @@ offset_right = 161.0
 offset_bottom = 69.0
 color = Color(1, 0.5294118, 0, 0.15294118)
 
-[node name="hotbar_3" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=911822078]
+[node name="hotbar.slot_03" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=911822078]
 layout_mode = 0
 offset_left = 177.0
 offset_top = 9.0
@@ -113,7 +113,7 @@ offset_right = 243.0
 offset_bottom = 69.0
 color = Color(1, 0.5294118, 0, 0.15294118)
 
-[node name="hotbar_5" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1775691999]
+[node name="hotbar.slot_05" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1775691999]
 layout_mode = 0
 offset_left = 341.0
 offset_top = 9.0
@@ -121,7 +121,7 @@ offset_right = 407.0
 offset_bottom = 69.0
 color = Color(1, 0.5294118, 0, 0.15294118)
 
-[node name="hotbar_4" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1023261665]
+[node name="hotbar.slot_04" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1023261665]
 layout_mode = 0
 offset_left = 259.0
 offset_top = 10.0
@@ -129,7 +129,7 @@ offset_right = 325.0
 offset_bottom = 70.0
 color = Color(1, 0.5294118, 0, 0.15294118)
 
-[node name="hotbar_6" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=446365499]
+[node name="hotbar.slot_06" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=446365499]
 layout_mode = 0
 offset_left = 422.0
 offset_top = 9.0
@@ -137,7 +137,7 @@ offset_right = 488.0
 offset_bottom = 69.0
 color = Color(1, 0.5294118, 0, 0.15294118)
 
-[node name="hotbar_7" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1178670484]
+[node name="hotbar.slot_07" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1178670484]
 layout_mode = 0
 offset_left = 504.0
 offset_top = 9.0
@@ -145,7 +145,7 @@ offset_right = 570.0
 offset_bottom = 69.0
 color = Color(1, 0.5294118, 0, 0.15294118)
 
-[node name="hotbar_8" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1774864382]
+[node name="hotbar.slot_08" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1774864382]
 layout_mode = 0
 offset_left = 586.0
 offset_top = 9.0
@@ -153,7 +153,7 @@ offset_right = 652.0
 offset_bottom = 69.0
 color = Color(1, 0.5294118, 0, 0.15294118)
 
-[node name="hotbar_9" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=885814636]
+[node name="hotbar.slot_09" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=885814636]
 layout_mode = 0
 offset_left = 669.0
 offset_top = 9.0
@@ -161,7 +161,7 @@ offset_right = 735.0
 offset_bottom = 69.0
 color = Color(1, 0.5294118, 0, 0.15294118)
 
-[node name="hotbar_0" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1046689324]
+[node name="hotbar.slot_10" type="ColorRect" parent="Hotbar/hotbar.panel" unique_id=1046689324]
 layout_mode = 0
 offset_left = 751.0
 offset_top = 9.0
@@ -178,7 +178,7 @@ offset_right = 400.0
 offset_bottom = 190.0
 color = Color(0.16, 0.2, 0.26, 0.16)
 
-[node name="EXP_BAR" type="TextureRect" parent="HUD/hud.status_panel" unique_id=127984915]
+[node name="hud.xp_bar_fill" type="TextureRect" parent="HUD/hud.status_panel" unique_id=127984915]
 layout_mode = 0
 offset_left = 575.0
 offset_top = 9.0
@@ -187,7 +187,15 @@ offset_bottom = 70.0
 texture = ExtResource("4_1s0c4")
 stretch_mode = 4
 
-[node name="BAR_LIFE" type="TextureRect" parent="HUD/hud.status_panel" unique_id=1450889469]
+[node name="hud.xp_bar_frame" type="TextureRect" parent="HUD/hud.status_panel" unique_id=256752243]
+layout_mode = 0
+offset_left = 529.0
+offset_top = -19.0
+offset_right = 1005.0
+offset_bottom = 42.0
+texture = ExtResource("5_pf6ba")
+
+[node name="hud.life_bar" type="TextureRect" parent="HUD/hud.status_panel" unique_id=1450889469]
 layout_mode = 0
 offset_left = 174.0
 offset_top = 1.0
@@ -196,7 +204,7 @@ offset_bottom = 54.0
 texture = ExtResource("4_6j0ip")
 stretch_mode = 2
 
-[node name="BAR_STAMINA" type="TextureRect" parent="HUD/hud.status_panel" unique_id=1912742816]
+[node name="hud.stamina_bar" type="TextureRect" parent="HUD/hud.status_panel" unique_id=1912742816]
 layout_mode = 0
 offset_left = 176.0
 offset_top = 6.0
@@ -205,7 +213,7 @@ offset_bottom = 69.0
 texture = ExtResource("8_1s0c4")
 expand_mode = 1
 
-[node name="BAR_MANA" type="TextureRect" parent="HUD/hud.status_panel" unique_id=2054255587]
+[node name="hud.mana_bar" type="TextureRect" parent="HUD/hud.status_panel" unique_id=2054255587]
 layout_mode = 0
 offset_left = 174.0
 offset_top = 21.0
@@ -214,15 +222,7 @@ offset_bottom = 51.0
 texture = ExtResource("7_pf6ba")
 expand_mode = 1
 
-[node name="EXP_BORDER" type="TextureRect" parent="HUD/hud.status_panel" unique_id=256752243]
-layout_mode = 0
-offset_left = 529.0
-offset_top = -19.0
-offset_right = 1005.0
-offset_bottom = 42.0
-texture = ExtResource("5_pf6ba")
-
-[node name="ALIG_FLAME" type="TextureRect" parent="HUD/hud.status_panel" unique_id=173935302]
+[node name="hud.alignment_flame_frame" type="TextureRect" parent="HUD/hud.status_panel" unique_id=173935302]
 layout_mode = 0
 offset_left = 1395.0
 offset_top = 703.0
@@ -231,14 +231,14 @@ offset_bottom = 862.0
 texture = ExtResource("9_1s0c4")
 stretch_mode = 2
 
-[node name="PURPLE_FLAME PLACEHOLDER" type="ColorRect" parent="HUD/hud.status_panel/ALIG_FLAME" unique_id=2066004525]
+[node name="hud.alignment_flame" type="ColorRect" parent="HUD/hud.status_panel/hud.alignment_flame_frame" unique_id=2066004525]
 layout_mode = 0
 offset_left = 75.0
 offset_top = 72.0
 offset_right = 115.0
 offset_bottom = 112.0
 
-[node name="PORTRAIT" type="TextureRect" parent="HUD/hud.status_panel" unique_id=1364538053]
+[node name="hud.portrait" type="TextureRect" parent="HUD/hud.status_panel" unique_id=1364538053]
 layout_mode = 0
 offset_left = -2.0
 offset_top = -5.0
@@ -256,8 +256,7 @@ color = Color(0.2, 0.28, 0.38, 0.16)
 
 [node name="InteractionZones" type="Node" parent="." unique_id=2089862294]
 
-[node name="inventory_drag_handle" type="ColorRect" parent="InteractionZones" unique_id=948722259]
-visible = false
+[node name="inventory.drag_handle" type="ColorRect" parent="InteractionZones" unique_id=948722259]
 offset_left = 326.0
 offset_top = 206.0
 offset_right = 1246.0
@@ -271,21 +270,21 @@ offset_right = 1228.0
 offset_bottom = 243.0
 color = Color(0.9, 0.18, 0.62, 0.24)
 
-[node name="inventory_split_button_clickbox" type="ColorRect" parent="InteractionZones" unique_id=192511496]
+[node name="inventory.split_button_clickbox" type="ColorRect" parent="InteractionZones" unique_id=192511496]
 offset_left = 1098.0
 offset_top = 605.0
 offset_right = 1201.0
 offset_bottom = 648.0
 color = Color(1, 0, 1, 0.16078432)
 
-[node name="inventory_use_button_clickbox" type="ColorRect" parent="InteractionZones" unique_id=567543990]
+[node name="inventory.use_button_clickbox" type="ColorRect" parent="InteractionZones" unique_id=567543990]
 offset_left = 1098.0
 offset_top = 543.0
 offset_right = 1202.0
 offset_bottom = 584.0
 color = Color(1, 0, 1, 0.16078432)
 
-[node name="inventory_drop_button_clickbox" type="ColorRect" parent="InteractionZones" unique_id=1017422688]
+[node name="inventory.drop_button_clickbox" type="ColorRect" parent="InteractionZones" unique_id=1017422688]
 offset_left = 1096.0
 offset_top = 668.0
 offset_right = 1202.0
@@ -713,6 +712,7 @@ offset_bottom = 49.0
 color = Color(1, 0.16078432, 0, 0.11372549)
 
 [node name="ColorRect10" type="ColorRect" parent="InteractionZones" unique_id=314881069]
+visible = false
 offset_left = 562.0
 offset_top = 571.0
 offset_right = 608.0
@@ -852,21 +852,21 @@ offset_right = 482.0
 offset_bottom = 49.0
 color = Color(1, 0.16078432, 0, 0.11372549)
 
-[node name="HELM" type="ColorRect" parent="InteractionZones" unique_id=1042723881]
+[node name="equipment.helm" type="ColorRect" parent="InteractionZones" unique_id=1042723881]
 offset_left = 423.0
 offset_top = 267.0
 offset_right = 464.0
 offset_bottom = 309.0
 color = Color(0, 1, 1, 0.1764706)
 
-[node name="NECK" type="ColorRect" parent="InteractionZones/HELM" unique_id=2019520792]
+[node name="equipment.neck" type="ColorRect" parent="InteractionZones/equipment.helm" unique_id=2019520792]
 layout_mode = 0
 offset_top = 58.0
 offset_right = 41.0
 offset_bottom = 101.0
 color = Color(0, 1, 1, 0.1764706)
 
-[node name="HAND_RIGHT" type="ColorRect" parent="InteractionZones/HELM" unique_id=2130674740]
+[node name="equipment.hand_right" type="ColorRect" parent="InteractionZones/equipment.helm" unique_id=2130674740]
 layout_mode = 0
 offset_left = -73.0
 offset_top = 115.0
@@ -874,7 +874,7 @@ offset_right = -32.0
 offset_bottom = 174.0
 color = Color(0, 1, 1, 0.1764706)
 
-[node name="ARMOR" type="ColorRect" parent="InteractionZones/HELM" unique_id=1358344496]
+[node name="equipment.armor" type="ColorRect" parent="InteractionZones/equipment.helm" unique_id=1358344496]
 layout_mode = 0
 offset_left = -1.0
 offset_top = 119.0
@@ -882,7 +882,7 @@ offset_right = 41.0
 offset_bottom = 165.0
 color = Color(0, 1, 1, 0.1764706)
 
-[node name="LEGS" type="ColorRect" parent="InteractionZones/HELM" unique_id=1688697032]
+[node name="equipment.legs" type="ColorRect" parent="InteractionZones/equipment.helm" unique_id=1688697032]
 layout_mode = 0
 offset_left = -1.0
 offset_top = 190.0
@@ -890,7 +890,7 @@ offset_right = 40.0
 offset_bottom = 235.0
 color = Color(0, 1, 1, 0.1764706)
 
-[node name="BOOTS" type="ColorRect" parent="InteractionZones/HELM" unique_id=838396784]
+[node name="equipment.boots" type="ColorRect" parent="InteractionZones/equipment.helm" unique_id=838396784]
 layout_mode = 0
 offset_left = -2.0
 offset_top = 255.0
@@ -898,7 +898,7 @@ offset_right = 40.0
 offset_bottom = 300.0
 color = Color(0, 1, 1, 0.1764706)
 
-[node name="RING1" type="ColorRect" parent="InteractionZones/HELM" unique_id=1832433881]
+[node name="equipment.ring_left" type="ColorRect" parent="InteractionZones/equipment.helm" unique_id=1832433881]
 layout_mode = 0
 offset_left = -72.0
 offset_top = 255.0
@@ -906,7 +906,7 @@ offset_right = -30.0
 offset_bottom = 300.0
 color = Color(0, 1, 1, 0.1764706)
 
-[node name="RING2" type="ColorRect" parent="InteractionZones/HELM" unique_id=2001161090]
+[node name="equipment.ring_right" type="ColorRect" parent="InteractionZones/equipment.helm" unique_id=2001161090]
 layout_mode = 0
 offset_left = 67.0
 offset_top = 255.0
@@ -914,7 +914,7 @@ offset_right = 109.0
 offset_bottom = 300.0
 color = Color(0, 1, 1, 0.1764706)
 
-[node name="HAND_LEFT" type="ColorRect" parent="InteractionZones/HELM" unique_id=155887806]
+[node name="equipment.hand_left" type="ColorRect" parent="InteractionZones/equipment.helm" unique_id=155887806]
 layout_mode = 0
 offset_left = 72.0
 offset_top = 115.0
@@ -922,7 +922,7 @@ offset_right = 111.0
 offset_bottom = 174.0
 color = Color(0, 1, 1, 0.1764706)
 
-[node name="BACK" type="ColorRect" parent="InteractionZones/HELM" unique_id=1431148698]
+[node name="equipment.back" type="ColorRect" parent="InteractionZones/equipment.helm" unique_id=1431148698]
 layout_mode = 0
 offset_left = -2.0
 offset_top = 320.0

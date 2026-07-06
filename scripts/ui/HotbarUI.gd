@@ -7,11 +7,16 @@ const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 
 @export var slot_count: int = 10
 
+const HOTBAR_TEXTURE_PATH := "res://assets/ui/HUDUI/HOTBAR.png"
+
 var inventory
 var player
 var selected_slot := 0
 var slots := []
 var sprite_resolver := SpriteResolver.new()
+var _layout: Dictionary = {}
+var _hotbar_panel: Control
+var _selected_overlay: ColorRect
 
 
 func _ready() -> void:
@@ -72,42 +77,46 @@ func refresh() -> void:
 
 
 func _build_ui() -> void:
-	var layout := UILayoutConfig.load_layout()
+	_layout = UILayoutConfig.load_layout()
+	var panel_rect := _get_layout_rect("hotbar.panel", Rect2(386, 820, 824, 78))
 
-	var panel := PanelContainer.new()
-	panel.name = "HotbarPanel"
-	panel.anchor_left = 0.5
-	panel.anchor_top = 1.0
-	panel.anchor_right = 0.5
-	panel.anchor_bottom = 1.0
-	panel.offset_left = -350.0
-	panel.offset_top = -144.0
-	panel.offset_right = 350.0
-	panel.offset_bottom = -76.0
-	add_child(panel)
-	OathwakeUISkin.apply_hotbar_panel(panel)
-	UILayoutApplier.apply_element_to_control(panel, layout, "hotbar.panel")
+	_hotbar_panel = Control.new()
+	_hotbar_panel.name = "HotbarPanel"
+	_hotbar_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_rect(_hotbar_panel, panel_rect)
+	add_child(_hotbar_panel)
 
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
-	panel.add_child(margin)
-
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	margin.add_child(row)
+	var background := TextureRect.new()
+	background.name = "HotbarBackground"
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	background.stretch_mode = TextureRect.STRETCH_SCALE
+	background.texture = _load_texture(HOTBAR_TEXTURE_PATH)
+	background.position = Vector2.ZERO
+	background.size = panel_rect.size
+	_hotbar_panel.add_child(background)
 
 	for index in range(slot_count):
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(58, 52)
+		button.name = "Slot%02d" % (index + 1)
 		button.focus_mode = Control.FOCUS_NONE
 		button.expand_icon = true
 		button.pressed.connect(select_slot.bind(index))
-		row.add_child(button)
+		var fallback_rect := Rect2(13 + index * 82, 9, 66, 60)
+		var slot_rect := _get_layout_rect("hotbar.slot_%02d" % (index + 1), fallback_rect)
+		if slot_rect == fallback_rect:
+			slot_rect = _get_layout_rect("hotbar.slot_%d" % (index + 1), fallback_rect)
+		button.position = slot_rect.position - panel_rect.position
+		button.size = slot_rect.size
+		_hotbar_panel.add_child(button)
 		slots.append(button)
-		OathwakeUISkin.apply_hotbar_slot_button(button, "empty")
+		_apply_transparent_button_style(button)
+
+	_selected_overlay = ColorRect.new()
+	_selected_overlay.name = "SelectedSlotOverlay"
+	_selected_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_selected_overlay.color = Color(1.0, 0.92, 0.45, 0.22)
+	_hotbar_panel.add_child(_selected_overlay)
 
 
 func _setup_empty_slot(slot: Button, index: int) -> void:
@@ -133,10 +142,12 @@ func _update_selection() -> void:
 	for index in range(slots.size()):
 		var slot: Button = slots[index]
 		if index == selected_slot:
-			OathwakeUISkin.apply_hotbar_slot_button(slot, "selected")
 			slot.add_theme_color_override("font_color", Color(1.0, 0.92, 0.45, 1.0))
+			if _selected_overlay != null:
+				_selected_overlay.position = slot.position
+				_selected_overlay.size = slot.size
+				_selected_overlay.visible = true
 		else:
-			OathwakeUISkin.apply_hotbar_slot_button(slot, "empty")
 			slot.remove_theme_color_override("font_color")
 
 
@@ -203,3 +214,32 @@ func _is_build_mode_enabled() -> bool:
 func _is_crafting_open() -> bool:
 	var crafting_system = get_tree().get_first_node_in_group("crafting_system")
 	return crafting_system != null and crafting_system.has_method("is_crafting_open") and crafting_system.is_crafting_open()
+
+
+func _get_layout_rect(element_id: String, fallback: Rect2) -> Rect2:
+	var rect := UILayoutApplier.get_element_rect(_layout, element_id)
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return fallback
+	return rect
+
+
+func _apply_rect(control: Control, rect: Rect2) -> void:
+	control.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	control.position = rect.position
+	control.size = rect.size
+
+
+func _load_texture(path: String) -> Texture2D:
+	if not ResourceLoader.exists(path):
+		return null
+	return ResourceLoader.load(path) as Texture2D
+
+
+func _apply_transparent_button_style(button: Button) -> void:
+	var empty_style := StyleBoxEmpty.new()
+	button.add_theme_stylebox_override("normal", empty_style)
+	button.add_theme_stylebox_override("hover", empty_style)
+	button.add_theme_stylebox_override("pressed", empty_style)
+	button.add_theme_stylebox_override("focus", empty_style)
+	button.add_theme_stylebox_override("disabled", empty_style)
+	button.add_theme_color_override("font_color", Color(1.0, 0.96, 0.82, 1.0))

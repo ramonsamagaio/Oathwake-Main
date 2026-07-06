@@ -8,6 +8,7 @@ const WorldItemSpawner = preload("res://scripts/systems/WorldItemSpawner.gd")
 const InventoryDebug = preload("res://scripts/systems/InventoryDebug.gd")
 const EquipmentSystem = preload("res://scripts/systems/EquipmentSystem.gd")
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
+const HUDStatusUIScene := preload("res://scenes/ui/HUDStatusUI.tscn")
 const DebugTreeScene = preload("res://scenes/Tree.tscn")
 const DebugRockScene = preload("res://scenes/Rock.tscn")
 const MonsterSpawner = preload("res://scripts/systems/MonsterSpawner.gd")
@@ -32,6 +33,8 @@ var _forest_ambience_player: AudioStreamPlayer
 var _ambience_volume_tween: Tween
 var _ambience_check_timer := 0.0
 var _ambience_active := false
+var hud_status_ui: Control
+var _debug_ui_visible := false
 
 @export var bed_respawn_range: float = 72.0
 
@@ -86,6 +89,8 @@ func _ready() -> void:
 	_configure_player_stats_debug_ui()
 	_configure_monster_spawn_debug_ui()
 	_apply_oathwake_ui_font()
+	_ensure_hud_status_ui()
+	_set_debug_ui_visible(false)
 	inventory.changed.connect(_update_resource_labels)
 	player.health_changed.connect(_update_health_label)
 	player.tool_changed.connect(_update_tool_label)
@@ -225,7 +230,51 @@ func _apply_oathwake_ui_font_recursive(node: Node) -> void:
 		_apply_oathwake_ui_font_recursive(child)
 
 
+func _ensure_hud_status_ui() -> void:
+	var ui := get_node_or_null("UI")
+	if ui == null:
+		return
+	var existing := ui.get_node_or_null("HUDStatusUI") as Control
+	if existing != null:
+		hud_status_ui = existing
+		return
+	hud_status_ui = HUDStatusUIScene.instantiate() as Control
+	hud_status_ui.name = "HUDStatusUI"
+	ui.add_child(hud_status_ui)
+	ui.move_child(hud_status_ui, 0)
+
+
+func _set_debug_ui_visible(is_visible: bool) -> void:
+	_debug_ui_visible = is_visible
+	var debug_nodes: Array[CanvasItem] = [
+		wood_label,
+		stone_label,
+		gel_label,
+		tool_label,
+		health_label,
+		xp_label,
+		villagers_label,
+		houses_label,
+		housed_villagers_label,
+		save_button,
+		load_button,
+		player_stats_button,
+		spawn_monster_button,
+	]
+	for node in debug_nodes:
+		if node != null:
+			node.visible = is_visible
+	if not is_visible:
+		player_stats_panel.visible = false
+		monster_spawn_panel.visible = false
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F3:
+		_set_debug_ui_visible(not _debug_ui_visible)
+		get_viewport().set_input_as_handled()
+		return
+
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_R:
 		if _try_recruit_nearby_npc():
 			get_viewport().set_input_as_handled()
@@ -393,6 +442,9 @@ func load_game() -> void:
 	housing_system.validate_houses(false)
 	settlement_manager.load_save_data(save_data.get("settlement", {}))
 	_update_settlement_labels()
+	_update_health_label(player.health, player.max_health)
+	_update_xp_label_from_player()
+	_update_tool_label(player.get_current_tool())
 	print("Game loaded from %s" % save_path)
 
 
@@ -404,6 +456,8 @@ func _update_resource_labels() -> void:
 
 func _update_health_label(current_health: int, max_health: int) -> void:
 	health_label.text = "Health: %d/%d" % [current_health, max_health]
+	if hud_status_ui != null and hud_status_ui.has_method("set_health"):
+		hud_status_ui.set_health(current_health, max_health)
 
 
 func _update_xp_label(current_xp: Variant = null, xp_to_next_level: Variant = null, level: Variant = null) -> void:
@@ -414,6 +468,8 @@ func _update_xp_label(current_xp: Variant = null, xp_to_next_level: Variant = nu
 	var xp_next := int(xp_to_next_level if xp_to_next_level != null else player.xp_to_next_level)
 	var level_value := int(level if level != null else player.level)
 	xp_label.text = "LV %d | XP %d/%d" % [level_value, xp_value, xp_next]
+	if hud_status_ui != null and hud_status_ui.has_method("set_xp"):
+		hud_status_ui.set_xp(xp_value, xp_next, level_value)
 
 
 func _update_xp_label_from_player(_level = null) -> void:
@@ -421,16 +477,18 @@ func _update_xp_label_from_player(_level = null) -> void:
 
 
 func _update_tool_label(current_tool := "") -> void:
+	var display_tool := str(current_tool)
 	if equipment_system != null:
-		var tool_slot: Dictionary = equipment_system.get_equipped_slot("tool")
+		var tool_slot: Dictionary = equipment_system.get_equipped_slot("hand_right")
 		var item_id := str(tool_slot.get("item_id", ""))
 		if not item_id.is_empty():
 			var content_db := get_node_or_null("/root/ContentDB")
 			if content_db != null and content_db.has_method("has_item") and content_db.has_item(item_id):
 				var item_data: Dictionary = content_db.get_item(item_id)
-				tool_label.text = "Tool: %s" % str(item_data.get("display_name", item_id.capitalize()))
-				return
-	tool_label.text = "Tool: %s" % current_tool
+				display_tool = str(item_data.get("display_name", item_id.capitalize()))
+	tool_label.text = "Tool: %s" % display_tool
+	if hud_status_ui != null and hud_status_ui.has_method("set_current_tool"):
+		hud_status_ui.set_current_tool(display_tool)
 
 
 func _update_settlement_labels() -> void:
