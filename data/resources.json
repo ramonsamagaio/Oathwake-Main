@@ -261,7 +261,7 @@
 		"xp_reward": 20
 	},
 	"rock": {
-		"allow_hands": false,
+		"allow_hands": true,
 		"base_drops": [
 			{
 				"chance": 1.0,
