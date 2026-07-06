@@ -2,6 +2,10 @@ extends Area2D
 
 const SpriteResolverScript := preload("res://scripts/systems/SpriteResolver.gd")
 
+const WORLD_ITEM_TARGET_SIZE := 22.0
+const WORLD_ITEM_MAX_SCALE := 0.55
+const WORLD_ITEM_MIN_SCALE := 0.12
+
 @export var item_id: String = ""
 @export var amount: int = 1
 @export var pickup_radius: float = 48.0
@@ -28,6 +32,9 @@ func _ready() -> void:
 	monitoring = true
 	monitorable = true
 	magnet_delay_left = spawn_magnet_delay
+	if amount_label != null:
+		amount_label.visible = false
+		amount_label.text = ""
 	_apply_visual()
 	if spawn_jump_enabled:
 		_play_spawn_jump()
@@ -117,8 +124,25 @@ func _apply_visual() -> void:
 		return
 
 	sprite.texture = sprite_resolver.get_texture_for_item(item_id)
-	sprite.scale = Vector2(0.5, 0.5)
-	amount_label.text = str(amount) if amount > 1 else ""
+	sprite.centered = true
+	sprite.scale = _get_normalized_world_item_scale(sprite.texture)
+	if amount_label != null:
+		amount_label.visible = false
+		amount_label.text = ""
+
+
+func _get_normalized_world_item_scale(texture: Texture2D) -> Vector2:
+	if texture == null:
+		return Vector2.ONE * WORLD_ITEM_MAX_SCALE
+
+	var texture_size := texture.get_size()
+	var biggest_axis := maxf(texture_size.x, texture_size.y)
+	if biggest_axis <= 0.0:
+		return Vector2.ONE * WORLD_ITEM_MAX_SCALE
+
+	var scale_value := WORLD_ITEM_TARGET_SIZE / biggest_axis
+	scale_value = clampf(scale_value, WORLD_ITEM_MIN_SCALE, WORLD_ITEM_MAX_SCALE)
+	return Vector2.ONE * scale_value
 
 
 func _play_spawn_jump() -> void:
