@@ -89,12 +89,9 @@ func _build_ui() -> void:
 	var background := TextureRect.new()
 	background.name = "HotbarBackground"
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	background.stretch_mode = TextureRect.STRETCH_SCALE
 	background.texture = _load_texture(HOTBAR_TEXTURE_PATH)
-	background.position = Vector2.ZERO
-	background.size = panel_rect.size
 	_hotbar_panel.add_child(background)
+	UILayoutApplier.apply_texture_rect_from_layout(background, _layout, "hotbar.panel", panel_rect)
 
 	for index in range(slot_count):
 		var button := Button.new()
@@ -283,7 +280,7 @@ func _layout_slot_overlay(slot: Button) -> void:
 
 	var quantity_label := slot.get_node_or_null("QuantityLabel") as Label
 	if quantity_label != null:
-		var label_width := minf(maxf(28.0, slot.size.x * 0.52), maxf(28.0, slot.size.x - 6.0))
+		var label_width := minf(maxf(34.0, slot.size.x * 0.56), maxf(34.0, slot.size.x - 6.0))
 		quantity_label.size = Vector2(label_width, 16.0)
 		quantity_label.position = Vector2(maxf(3.0, slot.size.x - label_width - 3.0), maxf(2.0, slot.size.y - 18.0))
 

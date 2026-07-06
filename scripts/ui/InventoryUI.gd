@@ -49,6 +49,10 @@ var _layout: Dictionary = {}
 var _hover_frame: TextureRect
 var _select_frame: TextureRect
 var _drag_handle: Control
+var _window_rect: Rect2
+var _hover_offset := Vector2.ZERO
+var _select_offset := Vector2.ZERO
+var _debug_logged := false
 
 
 func set_equipment_system(new_equipment_system) -> void:
@@ -60,6 +64,7 @@ func _ready() -> void:
 	visible = false
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_build_ui()
+	call_deferred("_debug_dump_layout_state")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -103,23 +108,20 @@ func refresh() -> void:
 
 func _build_ui() -> void:
 	_layout = UILayoutConfig.load_layout()
-	var window_rect := _get_layout_rect("inventory.window", Rect2(315, 196, 947, 560))
+	_window_rect = _get_layout_rect("inventory.window", Rect2(315, 196, 947, 560))
 
 	_window_panel = Control.new()
 	_window_panel.name = "InventoryWindow"
 	_window_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	_apply_rect(_window_panel, window_rect)
+	_apply_rect(_window_panel, _window_rect)
 	add_child(_window_panel)
 
 	var background := TextureRect.new()
 	background.name = "InventoryBackground"
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	background.stretch_mode = TextureRect.STRETCH_SCALE
 	background.texture = _load_texture(INVENTORY_TEXTURE_PATH)
-	background.position = Vector2.ZERO
-	background.size = window_rect.size
 	_window_panel.add_child(background)
+	UILayoutApplier.apply_texture_rect_from_layout(background, _layout, "inventory.window", _window_rect)
 
 	_drag_handle = Control.new()
 	_drag_handle.name = "WindowDragHandle"
@@ -127,15 +129,15 @@ func _build_ui() -> void:
 	_drag_handle.mouse_default_cursor_shape = Control.CURSOR_MOVE
 	_drag_handle.gui_input.connect(_on_window_drag_handle_gui_input)
 	_window_panel.add_child(_drag_handle)
-	var drag_fallback_rect := Rect2(window_rect.position + Vector2(11, 10), Vector2(window_rect.size.x - 32, 42))
+	var drag_fallback_rect := Rect2(_window_rect.position + Vector2(11, 10), Vector2(_window_rect.size.x - 32, 42))
 	var drag_rect := _get_layout_rect("inventory.drag_handle", drag_fallback_rect)
-	_drag_handle.position = drag_rect.position - window_rect.position
+	_drag_handle.position = drag_rect.position - _window_rect.position
 	_drag_handle.size = drag_rect.size
 
 	for _index in range(slot_count):
 		var slot = InventorySlotScene.instantiate()
-		var slot_rect := _get_inventory_slot_rect(_index, window_rect)
-		slot.position = slot_rect.position - window_rect.position
+		var slot_rect := _get_inventory_slot_rect(_index, _window_rect)
+		slot.position = slot_rect.position - _window_rect.position
 		slot.size = slot_rect.size
 		slot.slot_selected.connect(_on_slot_selected)
 		slot.slot_right_clicked.connect(_on_slot_right_clicked)
@@ -150,8 +152,8 @@ func _build_ui() -> void:
 
 	var trash := _make_trash_slot()
 	trash.trash_dropped.connect(_on_trash_dropped)
-	var trash_rect := _get_layout_rect("inventory.trash_area", Rect2(window_rect.position + Vector2(32, 452), Vector2(58, 61)))
-	trash.position = trash_rect.position - window_rect.position
+	var trash_rect := _get_layout_rect("inventory.trash_area", Rect2(_window_rect.position + Vector2(32, 452), Vector2(58, 61)))
+	trash.position = trash_rect.position - _window_rect.position
 	trash.size = trash_rect.size
 	_window_panel.add_child(trash)
 
@@ -160,16 +162,16 @@ func _build_ui() -> void:
 	details_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	details_label.clip_text = true
 	details_label.text = "Select an item."
-	var tooltip_rect := _get_layout_rect("inventory.tooltip_area", Rect2(window_rect.position + Vector2(751, 62), Vector2(163, 269)))
-	details_label.position = tooltip_rect.position - window_rect.position
+	var tooltip_rect := _get_layout_rect("inventory.tooltip_area", Rect2(_window_rect.position + Vector2(751, 62), Vector2(163, 269)))
+	details_label.position = tooltip_rect.position - _window_rect.position
 	details_label.size = tooltip_rect.size
 	_window_panel.add_child(details_label)
 
 	for slot_id in EQUIPMENT_SLOT_IDS:
 		var eq_slot = EquipmentSlotScene.instantiate()
 		eq_slot.slot_id = slot_id
-		var eq_rect := _get_layout_rect("equipment.%s" % slot_id, Rect2(window_rect.position + Vector2(40, 80 + equipment_slot_nodes.size() * 46), Vector2(42, 42)))
-		eq_slot.position = eq_rect.position - window_rect.position
+		var eq_rect := _get_layout_rect("equipment.%s" % slot_id, Rect2(_window_rect.position + Vector2(40, 80 + equipment_slot_nodes.size() * 46), Vector2(42, 42)))
+		eq_slot.position = eq_rect.position - _window_rect.position
 		eq_slot.size = eq_rect.size
 		eq_slot.equip_selected.connect(_on_equip_slot_selected)
 		eq_slot.equip_right_clicked.connect(_on_equip_right_clicked)
@@ -178,22 +180,29 @@ func _build_ui() -> void:
 		equipment_slot_nodes.append(eq_slot)
 		_apply_transparent_button_style(eq_slot)
 
-	_add_texture_action_button("inventory.use_button_clickbox", USE_BUTTON_TEXTURE_PATH, _on_use_selected_pressed, Rect2(window_rect.position + Vector2(783, 347), Vector2(104, 42)), window_rect)
-	_add_texture_action_button("inventory.split_button_clickbox", SPLIT_BUTTON_TEXTURE_PATH, _on_split_half_pressed, Rect2(window_rect.position + Vector2(783, 409), Vector2(104, 42)), window_rect)
-	_add_texture_action_button("inventory.drop_button_clickbox", DROP_BUTTON_TEXTURE_PATH, _on_drop_stack_pressed, Rect2(window_rect.position + Vector2(783, 472), Vector2(104, 42)), window_rect)
-	_add_texture_action_button("inventory.close_hitbox", CLOSE_BUTTON_TEXTURE_PATH, _on_close_inventory_pressed, Rect2(window_rect.position + Vector2(1202, 216), Vector2(26, 27)), window_rect)
+	_add_texture_action_button("inventory.use_button_clickbox", USE_BUTTON_TEXTURE_PATH, _on_use_selected_pressed, Rect2(_window_rect.position + Vector2(783, 347), Vector2(104, 42)), _window_rect)
+	_add_texture_action_button("inventory.split_button_clickbox", SPLIT_BUTTON_TEXTURE_PATH, _on_split_half_pressed, Rect2(_window_rect.position + Vector2(783, 409), Vector2(104, 42)), _window_rect)
+	_add_texture_action_button("inventory.drop_button_clickbox", DROP_BUTTON_TEXTURE_PATH, _on_drop_stack_pressed, Rect2(_window_rect.position + Vector2(783, 472), Vector2(104, 42)), _window_rect)
+	_add_texture_action_button("inventory.close_hitbox", CLOSE_BUTTON_TEXTURE_PATH, _on_close_inventory_pressed, Rect2(_window_rect.position + Vector2(1202, 216), Vector2(26, 27)), _window_rect)
 
-	_hover_frame = _make_frame_texture(INVENTORY_HOVER_TEXTURE_PATH, "inventory.hover_frame")
-	_hover_frame.visible = false
-	var hover_rect := _get_layout_rect("inventory.hover_frame", Rect2(window_rect.position + Vector2(245, 374), Vector2(53, 51)))
-	_hover_frame.size = hover_rect.size
+	var hover_rect := _get_layout_rect("inventory.hover_frame", Rect2(_window_rect.position + Vector2(245, 374), Vector2(53, 51)))
+	_hover_frame = TextureRect.new()
+	_hover_frame.name = "inventory.hover_frame"
+	_hover_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hover_frame.texture = _load_texture(INVENTORY_HOVER_TEXTURE_PATH)
 	_window_panel.add_child(_hover_frame)
+	UILayoutApplier.apply_texture_rect_from_layout(_hover_frame, _layout, "inventory.hover_frame", hover_rect)
+	_hover_frame.visible = false
 
-	_select_frame = _make_frame_texture(INVENTORY_SELECT_TEXTURE_PATH, "inventory.select_frame")
-	_select_frame.visible = false
-	var select_rect := _get_layout_rect("inventory.select_frame", Rect2(window_rect.position + Vector2(236, 57), Vector2(71, 71)))
-	_select_frame.size = select_rect.size
+	var select_rect := _get_layout_rect("inventory.select_frame", Rect2(_window_rect.position + Vector2(236, 57), Vector2(71, 71)))
+	_select_frame = TextureRect.new()
+	_select_frame.name = "inventory.select_frame"
+	_select_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_select_frame.texture = _load_texture(INVENTORY_SELECT_TEXTURE_PATH)
 	_window_panel.add_child(_select_frame)
+	UILayoutApplier.apply_texture_rect_from_layout(_select_frame, _layout, "inventory.select_frame", select_rect)
+	_select_frame.visible = false
+	_calculate_hover_select_offsets()
 
 	_apply_inventory_ui_fonts()
 
@@ -228,16 +237,6 @@ func _add_texture_action_button(element_id: String, texture_path: String, callba
 	return button
 
 
-func _make_frame_texture(texture_path: String, name_value: String) -> TextureRect:
-	var frame := TextureRect.new()
-	frame.name = name_value
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	frame.stretch_mode = TextureRect.STRETCH_SCALE
-	frame.texture = _load_texture(texture_path)
-	return frame
-
-
 func _get_inventory_slot_rect(index: int, window_rect: Rect2) -> Rect2:
 	var slot_id := "inventory.slot_%02d_clickbox" % (index + 1)
 	var fallback_col := index % 10
@@ -247,14 +246,39 @@ func _get_inventory_slot_rect(index: int, window_rect: Rect2) -> Rect2:
 	return _get_layout_rect(slot_id, fallback_rect)
 
 
+func _calculate_hover_select_offsets() -> void:
+	_hover_offset = _calculate_frame_offset("inventory.hover_frame")
+	_select_offset = _calculate_frame_offset("inventory.select_frame")
+
+
+func _calculate_frame_offset(frame_element_id: String) -> Vector2:
+	var frame_rect := UILayoutApplier.get_element_rect(_layout, frame_element_id)
+	if frame_rect.size.x <= 0.0 or frame_rect.size.y <= 0.0:
+		return Vector2.ZERO
+
+	var frame_center := frame_rect.position + frame_rect.size * 0.5
+	var nearest_slot_rect := Rect2()
+	var nearest_distance := INF
+	for index in range(slot_count):
+		var slot_rect := _get_inventory_slot_rect(index, _window_rect)
+		var distance := frame_center.distance_to(slot_rect.position + slot_rect.size * 0.5)
+		if distance < nearest_distance:
+			nearest_distance = distance
+			nearest_slot_rect = slot_rect
+
+	if nearest_slot_rect.size.x <= 0.0 or nearest_slot_rect.size.y <= 0.0:
+		return Vector2.ZERO
+
+	return frame_rect.position - nearest_slot_rect.position
+
+
 func _on_inventory_slot_hovered(slot_index: int) -> void:
 	if _hover_frame == null or slot_index < 0 or slot_index >= slots.size():
 		return
 	if slot_index == selected_slot_index:
 		_hover_frame.visible = false
 		return
-	var slot: Control = slots[slot_index]
-	_place_frame_on_slot(_hover_frame, slot)
+	_place_frame_on_slot(_hover_frame, slot_index, _hover_offset)
 	_hover_frame.visible = true
 
 
@@ -269,15 +293,22 @@ func _update_selected_slot_frame() -> void:
 	if selected_slot_index < 0 or selected_slot_index >= slots.size():
 		_select_frame.visible = false
 		return
-	var slot: Control = slots[selected_slot_index]
-	_place_frame_on_slot(_select_frame, slot)
+	_place_frame_on_slot(_select_frame, selected_slot_index, _select_offset)
 	_select_frame.visible = true
 
 
-func _place_frame_on_slot(frame: TextureRect, slot: Control) -> void:
-	if frame == null or slot == null:
+func _place_frame_on_slot(frame: TextureRect, slot_index: int, offset: Vector2) -> void:
+	if frame == null or slot_index < 0 or slot_index >= slot_count:
 		return
-	frame.position = slot.position + (slot.size - frame.size) * 0.5
+	var slot_rect := _get_inventory_slot_rect(slot_index, _window_rect)
+	frame.position = slot_rect.position - _window_rect.position + offset
+
+
+func _debug_dump_layout_state() -> void:
+	if _debug_logged:
+		return
+	_debug_logged = true
+	print("inventory.hover_offset=%s inventory.select_offset=%s" % [_hover_offset, _select_offset])
 
 
 func _on_use_selected_pressed() -> void:

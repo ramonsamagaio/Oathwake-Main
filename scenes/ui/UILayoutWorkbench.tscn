@@ -64,14 +64,6 @@ offset_right = 914.0
 offset_bottom = 331.0
 color = Color(0.42, 0.58, 0.78, 0.14)
 
-[node name="inventory.hover_frame" type="TextureRect" parent="Inventory/inventory.window" unique_id=1393343081]
-layout_mode = 0
-offset_left = 245.0
-offset_top = 374.0
-offset_right = 298.0
-offset_bottom = 425.0
-texture = ExtResource("3_bndjq")
-
 [node name="inventory.select_frame" type="TextureRect" parent="Inventory/inventory.window" unique_id=1343720773]
 layout_mode = 0
 offset_left = 236.0
@@ -79,6 +71,14 @@ offset_top = 57.0
 offset_right = 307.0
 offset_bottom = 128.0
 texture = ExtResource("4_pju05")
+
+[node name="inventory.hover_frame" type="TextureRect" parent="Inventory/inventory.window/inventory.select_frame" unique_id=1393343081]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 11.0
+offset_right = 62.0
+offset_bottom = 62.0
+texture = ExtResource("3_bndjq")
 
 [node name="Hotbar" type="Node" parent="." unique_id=792577424]
 
@@ -257,6 +257,7 @@ color = Color(0.2, 0.28, 0.38, 0.16)
 [node name="InteractionZones" type="Node" parent="." unique_id=2089862294]
 
 [node name="inventory.drag_handle" type="ColorRect" parent="InteractionZones" unique_id=948722259]
+visible = false
 offset_left = 326.0
 offset_top = 206.0
 offset_right = 1246.0
@@ -432,6 +433,7 @@ offset_bottom = 49.0
 color = Color(1, 0.16078432, 0, 0.11372549)
 
 [node name="i21" type="ColorRect" parent="InteractionZones" unique_id=1671332363]
+visible = false
 offset_left = 563.0
 offset_top = 366.0
 offset_right = 609.0

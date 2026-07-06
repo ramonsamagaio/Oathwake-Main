@@ -32,6 +32,7 @@ var _purple_fire: TextureRect
 var _purple_fire_frames: Array[Texture2D] = []
 var _purple_fire_frame_index := 0
 var _purple_fire_timer: Timer
+var _debug_logged := false
 
 
 func _ready() -> void:
@@ -39,6 +40,7 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_layout = UILayoutConfig.load_layout()
 	_build_ui()
+	call_deferred("_debug_dump_layout_state")
 	set_health(100, 100)
 	set_mana(100, 100)
 	set_stamina(100, 100)
@@ -79,31 +81,31 @@ func set_current_tool(tool_text: String) -> void:
 
 
 func _build_ui() -> void:
-	_add_texture(PORTRAIT_PATH, "hud.portrait", Rect2(18, 15, 184, 191))
+	_add_layout_texture_rect(PORTRAIT_PATH, "hud.portrait", Rect2(18, 15, 184, 191))
 
 	var life_rect := _get_rect("hud.life_bar", Rect2(194, 21, 269, 53))
 	var mana_rect := _get_rect("hud.mana_bar", Rect2(194, 41, 270, 30))
 	var stamina_rect := _get_rect("hud.stamina_bar", Rect2(196, 26, 270, 63))
 	_life_width = life_rect.size.x
-	_life_clip = _add_fill_bar(LIFE_BAR_PATH, life_rect)
+	_life_clip = _add_fill_bar("hud.life_bar", LIFE_BAR_PATH, life_rect)
 	_life_label = _add_bar_label(life_rect, 11)
 
 	_mana_width = mana_rect.size.x
-	_mana_clip = _add_fill_bar(MANA_BAR_PATH, mana_rect)
+	_mana_clip = _add_fill_bar("hud.mana_bar", MANA_BAR_PATH, mana_rect)
 	_mana_label = _add_bar_label(mana_rect, 10)
 
 	_stamina_width = stamina_rect.size.x
-	_stamina_clip = _add_fill_bar(STAMINA_BAR_PATH, stamina_rect)
+	_stamina_clip = _add_fill_bar("hud.stamina_bar", STAMINA_BAR_PATH, stamina_rect)
 	_stamina_label = _add_bar_label(stamina_rect, 10)
 
 	var xp_frame_rect := _get_rect("hud.xp_bar_frame", Rect2(549, 1, 476, 61))
 	var xp_fill_rect := _get_rect("hud.xp_bar_fill", Rect2(595, 29, 417, 61))
 	_xp_width = xp_fill_rect.size.x
-	_xp_clip = _add_fill_bar(EXP_BAR_PATH, xp_fill_rect)
-	_add_texture(EXP_BORDER_PATH, "hud.xp_bar_frame", xp_frame_rect)
+	_xp_clip = _add_fill_bar("hud.xp_bar_fill", EXP_BAR_PATH, xp_fill_rect)
+	_add_layout_texture_rect(EXP_BORDER_PATH, "hud.xp_bar_frame", xp_frame_rect)
 	_xp_label = _add_bar_label(xp_frame_rect, 11)
 
-	_add_texture(FLAME_FRAME_PATH, "hud.alignment_flame_frame", Rect2(1415, 723, 167, 159))
+	_add_layout_texture_rect(FLAME_FRAME_PATH, "hud.alignment_flame_frame", Rect2(1415, 723, 167, 159))
 	_add_alignment_flame()
 
 	_tool_label = Label.new()
@@ -115,19 +117,17 @@ func _build_ui() -> void:
 	OathwakeTextStyle.apply_profile_to_label(_tool_label, "base_ui", null, 12, 0)
 
 
-func _add_texture(path: String, element_id: String, fallback_rect: Rect2) -> TextureRect:
+func _add_layout_texture_rect(path: String, element_id: String, fallback_rect: Rect2) -> TextureRect:
 	var texture_rect := TextureRect.new()
 	texture_rect.name = element_id
 	texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	texture_rect.stretch_mode = TextureRect.STRETCH_SCALE
 	texture_rect.texture = _load_texture(path)
-	_apply_rect(texture_rect, _get_rect(element_id, fallback_rect))
 	add_child(texture_rect)
+	UILayoutApplier.apply_texture_rect_from_layout(texture_rect, _layout, element_id, fallback_rect)
 	return texture_rect
 
 
-func _add_fill_bar(path: String, rect: Rect2) -> Control:
+func _add_fill_bar(element_id: String, path: String, rect: Rect2) -> Control:
 	var clip := Control.new()
 	clip.name = "FillClip"
 	clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -138,12 +138,11 @@ func _add_fill_bar(path: String, rect: Rect2) -> Control:
 	var texture_rect := TextureRect.new()
 	texture_rect.name = "Fill"
 	texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	texture_rect.stretch_mode = TextureRect.STRETCH_SCALE
 	texture_rect.texture = _load_texture(path)
+	clip.add_child(texture_rect)
+	UILayoutApplier.apply_texture_rect_from_layout(texture_rect, _layout, element_id, rect)
 	texture_rect.position = Vector2.ZERO
 	texture_rect.size = rect.size
-	clip.add_child(texture_rect)
 	return clip
 
 
@@ -239,6 +238,29 @@ func _set_clip_ratio(clip: Control, full_width: float, ratio: float) -> void:
 		return
 	var clamped_ratio := clampf(ratio, 0.0, 1.0)
 	clip.size.x = maxf(0.0, full_width * clamped_ratio)
+
+
+func _debug_dump_layout_state() -> void:
+	if _debug_logged:
+		return
+	_debug_logged = true
+	_print_texture_rect_debug("hud.life_bar")
+	_print_texture_rect_debug("hud.mana_bar")
+	_print_texture_rect_debug("hud.stamina_bar")
+	_print_texture_rect_debug("hud.xp_bar_fill")
+	_print_texture_rect_debug("hud.xp_bar_frame")
+
+
+func _print_texture_rect_debug(element_id: String) -> void:
+	var element := UILayoutApplier.get_element_data(_layout, element_id)
+	if element.is_empty():
+		print("%s missing from layout" % element_id)
+		return
+	print("%s rect=%s stretch_mode=%s" % [
+		element_id,
+		UILayoutApplier.get_element_rect(_layout, element_id),
+		str(int(element.get("texture_rect_stretch_mode", -1))),
+	])
 
 
 func _get_rect(element_id: String, fallback: Rect2) -> Rect2:

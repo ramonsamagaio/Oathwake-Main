@@ -104,13 +104,14 @@ func _build_element_data(control: Control, element_id: String, parent_id: String
 	var locked := false
 
 	if control is TextureRect:
-		var texture := (control as TextureRect).texture
+		var texture_rect := control as TextureRect
+		var texture := texture_rect.texture
 		if texture != null and texture.resource_path != "":
 			asset_path = texture.resource_path
 		show_asset = true
 		show_rect = false
 		opacity = 1.0
-		fit_mode = _get_fit_mode_name(control as TextureRect)
+		fit_mode = _get_fit_mode_name(texture_rect)
 	elif type_name == "clickbox":
 		show_asset = false
 		show_rect = true
@@ -144,6 +145,10 @@ func _build_element_data(control: Control, element_id: String, parent_id: String
 		"opacity": opacity,
 		"z_index": _export_z_index,
 		"fit_mode": fit_mode,
+		"texture_rect_stretch_mode": int((control as TextureRect).stretch_mode) if control is TextureRect else 0,
+		"texture_rect_expand_mode": int((control as TextureRect).expand_mode) if control is TextureRect else 0,
+		"texture_rect_flip_h": bool((control as TextureRect).flip_h) if control is TextureRect else false,
+		"texture_rect_flip_v": bool((control as TextureRect).flip_v) if control is TextureRect else false,
 		"source_group": _get_source_group(control),
 	}
 
