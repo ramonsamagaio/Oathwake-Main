@@ -8,6 +8,11 @@ const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 @export var slot_count: int = 10
 
 const HOTBAR_TEXTURE_PATH := "res://assets/ui/HUDUI/HOTBAR.png"
+const TOOL_ITEM_IDS := {
+	"axe": "Axe",
+	"pickaxe": "Pickaxe",
+	"hands": "Hands",
+}
 
 var inventory
 var player
@@ -22,17 +27,31 @@ var _selected_overlay: ColorRect
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	set_process_input(true)
+	set_process_unhandled_input(true)
 	_build_ui()
 
 
 func _input(event: InputEvent) -> void:
+	_handle_hotbar_key_event(event)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	_handle_hotbar_key_event(event)
+
+
+func _handle_hotbar_key_event(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
 
 	if _is_build_mode_enabled() or _is_crafting_open():
 		return
 
-	var slot_index := _get_slot_index_for_key(event.keycode)
+	var key_event := event as InputEventKey
+	var slot_index := _get_slot_index_for_key(key_event.keycode)
+	if slot_index == -1 and key_event.physical_keycode != key_event.keycode:
+		slot_index = _get_slot_index_for_key(key_event.physical_keycode)
 	if slot_index == -1:
 		return
 
@@ -43,20 +62,16 @@ func _input(event: InputEvent) -> void:
 func setup(new_inventory, new_player) -> void:
 	inventory = new_inventory
 	player = new_player
-	if inventory != null and inventory.has_signal("changed"):
+	if inventory != null and inventory.has_signal("changed") and not inventory.changed.is_connected(refresh):
 		inventory.changed.connect(refresh)
-	if player != null and player.has_signal("tool_changed"):
+	if player != null and player.has_signal("tool_changed") and not player.tool_changed.is_connected(_on_player_tool_changed):
 		player.tool_changed.connect(_on_player_tool_changed)
 	refresh()
 
 
 func select_slot(slot_index: int) -> void:
 	selected_slot = clampi(slot_index, 0, slot_count - 1)
-	var entries := _get_hotbar_entries()
-	if selected_slot < entries.size():
-		var entry: Dictionary = entries[selected_slot]
-		if str(entry.get("type", "")) == "tool" and player != null and player.has_method("set_current_tool"):
-			player.set_current_tool(str(entry.get("id", "")))
+	_apply_selected_hotbar_item_to_player()
 	_update_selection()
 
 
@@ -117,6 +132,7 @@ func _build_ui() -> void:
 	_selected_overlay.name = "SelectedSlotOverlay"
 	_selected_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_selected_overlay.color = Color(1.0, 0.92, 0.45, 0.11)
+	_selected_overlay.z_index = 10
 	_hotbar_panel.add_child(_selected_overlay)
 
 
@@ -128,19 +144,13 @@ func _setup_empty_slot(slot: Button) -> void:
 
 
 func _setup_slot(slot: Button, entry: Dictionary) -> void:
-	var entry_type := str(entry.get("type", "item"))
 	var entry_id := str(entry.get("id", ""))
 	var label := str(entry.get("label", entry_id.capitalize()))
 	var amount := int(entry.get("amount", 0))
 	slot.text = ""
 	slot.tooltip_text = label
-
-	if entry_type == "item":
-		_set_slot_icon(slot, sprite_resolver.get_texture_for_item(entry_id))
-		_set_slot_quantity_text(slot, str(amount) if amount > 1 else "")
-	else:
-		_set_slot_icon(slot, sprite_resolver.get_placeholder_texture())
-		_set_slot_quantity_text(slot, "")
+	_set_slot_icon(slot, sprite_resolver.get_texture_for_item(entry_id))
+	_set_slot_quantity_text(slot, str(amount) if amount > 1 else "")
 
 
 func _update_selection() -> void:
@@ -157,32 +167,41 @@ func _update_selection() -> void:
 
 func _get_hotbar_entries() -> Array:
 	var entries := []
+	if inventory == null:
+		return entries
 
-	if player != null and player.has_method("get_unlocked_tools"):
-		for tool_name in player.get_unlocked_tools():
-			entries.append({
-				"type": "tool",
-				"id": str(tool_name),
-				"label": str(tool_name),
-			})
+	var inventory_slots: Array = inventory.get_hotbar_slots(slot_count)
+	for slot in inventory_slots:
+		if not slot is Dictionary:
+			entries.append({})
+			continue
+		var item_id := str(slot.get("item_id", ""))
+		var amount := int(slot.get("amount", 0))
+		if item_id.is_empty() or amount <= 0:
+			entries.append({})
+			continue
+		entries.append({
+			"type": "item",
+			"id": item_id,
+			"amount": amount,
+			"label": _get_item_display_name(item_id),
+		})
 
-	if inventory != null:
-		var inventory_slots: Array = inventory.get_hotbar_slots(slot_count)
-		for slot in inventory_slots:
-			if not slot is Dictionary:
-				continue
-			var item_id := str(slot.get("item_id", ""))
-			var amount := int(slot.get("amount", 0))
-			if amount <= 0:
-				continue
-			entries.append({
-				"type": "item",
-				"id": item_id,
-				"amount": amount,
-				"label": _get_item_display_name(item_id),
-			})
-
+	while entries.size() < slot_count:
+		entries.append({})
 	return entries.slice(0, slot_count)
+
+
+func _apply_selected_hotbar_item_to_player() -> void:
+	if player == null or not player.has_method("set_current_tool"):
+		return
+	var entries := _get_hotbar_entries()
+	if selected_slot < 0 or selected_slot >= entries.size():
+		return
+	var entry: Dictionary = entries[selected_slot]
+	var item_id := str(entry.get("id", "")).to_lower()
+	if TOOL_ITEM_IDS.has(item_id):
+		player.set_current_tool(str(TOOL_ITEM_IDS[item_id]))
 
 
 func _get_item_display_name(item_id: String) -> String:
@@ -194,7 +213,7 @@ func _get_item_display_name(item_id: String) -> String:
 	return str(item_data.get("display_name", item_id.capitalize()))
 
 
-func _get_slot_index_for_key(keycode: Key) -> int:
+func _get_slot_index_for_key(keycode: int) -> int:
 	if keycode >= KEY_1 and keycode <= KEY_9:
 		return int(keycode - KEY_1)
 	if keycode == KEY_0:
@@ -263,14 +282,11 @@ func _add_slot_overlay_children(slot: Button) -> void:
 	quantity_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	quantity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	quantity_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-	quantity_label.clip_text = false
+	quantity_label.clip_text = true
 	quantity_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	quantity_label.z_index = 6
 	slot.add_child(quantity_label)
-	OathwakeTextStyle.apply_profile_to_label(quantity_label, "item_quantity", null, 14, 1)
-	quantity_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
-	quantity_label.add_theme_constant_override("shadow_offset_x", 1)
-	quantity_label.add_theme_constant_override("shadow_offset_y", 1)
+	OathwakeTextStyle.apply_profile_to_label(quantity_label, "inventory_quantity_text", null, 11, 1)
 	_layout_slot_overlay(slot)
 
 
@@ -284,9 +300,8 @@ func _layout_slot_overlay(slot: Button) -> void:
 
 	var quantity_label := slot.get_node_or_null("QuantityLabel") as Label
 	if quantity_label != null:
-		var label_width := minf(maxf(34.0, slot.size.x * 0.56), maxf(34.0, slot.size.x - 6.0))
-		quantity_label.size = Vector2(label_width, 16.0)
-		quantity_label.position = Vector2(maxf(3.0, slot.size.x - label_width - 3.0), maxf(2.0, slot.size.y - 18.0))
+		quantity_label.position = Vector2(2.0, 1.0)
+		quantity_label.size = Vector2(maxf(1.0, slot.size.x - 5.0), maxf(1.0, slot.size.y - 9.0))
 
 
 func _set_slot_icon(slot: Button, texture: Texture2D) -> void:
@@ -303,3 +318,4 @@ func _set_slot_quantity_text(slot: Button, value: String) -> void:
 		return
 	quantity_label.text = value
 	quantity_label.visible = not value.is_empty()
+	_layout_slot_overlay(slot)
