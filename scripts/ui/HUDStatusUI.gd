@@ -85,22 +85,22 @@ func _build_ui() -> void:
 	var stamina_rect := _get_rect("hud.stamina_bar", Rect2(196, 26, 270, 63))
 	_life_width = life_rect.size.x
 	_life_clip = _add_fill_bar("hud.life_bar", LIFE_BAR_PATH, life_rect)
-	_life_label = _add_bar_label(life_rect, 11)
+	_life_label = _add_bar_label(life_rect, 11, -1.0)
 
 	_mana_width = mana_rect.size.x
 	_mana_clip = _add_fill_bar("hud.mana_bar", MANA_BAR_PATH, mana_rect)
-	_mana_label = _add_bar_label(mana_rect, 10)
+	_mana_label = _add_bar_label(mana_rect, 10, -1.0)
 
 	_stamina_width = stamina_rect.size.x
 	_stamina_clip = _add_fill_bar("hud.stamina_bar", STAMINA_BAR_PATH, stamina_rect)
-	_stamina_label = _add_bar_label(stamina_rect, 10)
+	_stamina_label = _add_bar_label(stamina_rect, 10, -1.0)
 
 	var xp_frame_rect := _get_rect("hud.xp_bar_frame", Rect2(549, 1, 476, 61))
 	var xp_fill_rect := _get_rect("hud.xp_bar_fill", Rect2(595, 29, 417, 61))
 	_xp_width = xp_fill_rect.size.x
 	_xp_clip = _add_fill_bar("hud.xp_bar_fill", EXP_BAR_PATH, xp_fill_rect)
 	_add_layout_texture_rect(EXP_BORDER_PATH, "hud.xp_bar_frame", xp_frame_rect)
-	_xp_label = _add_bar_label(xp_frame_rect, 11)
+	_xp_label = _add_bar_label(xp_frame_rect, 11, -1.0)
 
 	_add_layout_texture_rect(FLAME_FRAME_PATH, "hud.alignment_flame_frame", Rect2(1415, 723, 167, 159))
 	_add_alignment_flame()
@@ -143,13 +143,15 @@ func _add_fill_bar(element_id: String, path: String, rect: Rect2) -> Control:
 	return clip
 
 
-func _add_bar_label(rect: Rect2, font_size := 11) -> Label:
+func _add_bar_label(rect: Rect2, font_size := 11, vertical_bias := -1.0) -> Label:
 	var label := Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.clip_contents = false
+	label.visible = true
 	label.show_behind_parent = false
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.position = rect.position
+	label.position = rect.position + Vector2(0, vertical_bias)
 	label.size = rect.size
 	add_child(label)
 	OathwakeTextStyle.apply_profile_to_label(label, "base_ui", null, font_size, 1)
@@ -168,6 +170,7 @@ func _add_alignment_flame() -> void:
 	_purple_fire.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_purple_fire)
 	UILayoutApplier.apply_texture_rect_from_layout(_purple_fire, _layout, "hud.alignment_flame", rect)
+	_scale_purple_fire(3.0)
 
 	_purple_fire_frames = _load_purple_fire_frames()
 	if not _purple_fire_frames.is_empty():
@@ -194,6 +197,17 @@ func _advance_purple_fire_frame() -> void:
 		return
 	_purple_fire_frame_index = (_purple_fire_frame_index + 1) % _purple_fire_frames.size()
 	_purple_fire.texture = _purple_fire_frames[_purple_fire_frame_index]
+
+
+func _scale_purple_fire(multiplier: float) -> void:
+	if _purple_fire == null:
+		return
+	var base_size := _purple_fire.size
+	if base_size.x <= 0.0 or base_size.y <= 0.0:
+		return
+	var scaled_size := base_size * multiplier
+	_purple_fire.position = _purple_fire.position + (base_size - scaled_size) * 0.5
+	_purple_fire.size = scaled_size
 
 
 func _load_purple_fire_frames() -> Array[Texture2D]:
