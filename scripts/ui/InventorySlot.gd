@@ -161,6 +161,7 @@ func _ensure_overlay_controls() -> void:
 		_quantity_label.clip_contents = false
 		add_child(_quantity_label)
 		OathwakeTextStyle.apply_profile_to_label(_quantity_label, "inventory_quantity_text")
+		_quantity_label.set_anchors_preset(Control.PRESET_FULL_RECT)
 
 
 func _layout_overlay_controls() -> void:
@@ -176,8 +177,10 @@ func _layout_overlay_controls() -> void:
 	_quantity_label.visible = quantity_visible
 	if quantity_visible:
 		_quantity_label.text = str(amount)
-		_quantity_label.position = Vector2(3.0, 2.0)
-		_quantity_label.size = Vector2(maxf(1.0, size.x - 7.0), maxf(1.0, size.y - 6.0))
+		_quantity_label.offset_left = 2.0
+		_quantity_label.offset_top = 2.0
+		_quantity_label.offset_right = -3.0
+		_quantity_label.offset_bottom = -2.0
 		_quantity_label.clip_text = false
 	else:
 		_quantity_label.text = ""

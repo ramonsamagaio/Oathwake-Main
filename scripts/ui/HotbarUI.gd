@@ -25,7 +25,7 @@ func _ready() -> void:
 	_build_ui()
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo:
 		return
 
@@ -198,6 +198,10 @@ func _get_slot_index_for_key(keycode: Key) -> int:
 	if keycode >= KEY_1 and keycode <= KEY_9:
 		return int(keycode - KEY_1)
 	if keycode == KEY_0:
+		return 9
+	if keycode >= KEY_KP_1 and keycode <= KEY_KP_9:
+		return int(keycode - KEY_KP_1)
+	if keycode == KEY_KP_0:
 		return 9
 	return -1
 

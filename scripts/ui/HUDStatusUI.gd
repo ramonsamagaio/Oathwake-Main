@@ -12,10 +12,10 @@ const EXP_BORDER_PATH := "res://assets/ui/HUDUI/EXP_BORDER.png"
 const EXP_BAR_PATH := "res://assets/ui/HUDUI/EXP_BAR.png"
 const FLAME_FRAME_PATH := "res://assets/ui/HUDUI/FLAME_FRAME.png"
 const PURPLE_FIRE_FRAMES_DIR := "res://assets/ui/HUDUI/purple_fire_frames"
-const LIFE_LABEL_OFFSET := Vector2(0, -4)
-const MANA_LABEL_OFFSET := Vector2(0, -3)
-const STAMINA_LABEL_OFFSET := Vector2(0, -3)
-const XP_LABEL_OFFSET := Vector2(0, -2)
+const LIFE_LABEL_OFFSET := Vector2(0, -5)
+const MANA_LABEL_OFFSET := Vector2(0, -4)
+const STAMINA_LABEL_OFFSET := Vector2(0, -4)
+const XP_LABEL_OFFSET := Vector2(0, -3)
 
 var _layout: Dictionary = {}
 var _life_clip: Control
