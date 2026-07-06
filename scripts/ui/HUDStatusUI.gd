@@ -84,10 +84,6 @@ func _build_ui() -> void:
 	var life_rect := _get_rect("hud.life_bar", Rect2(194, 21, 269, 53))
 	var mana_rect := _get_rect("hud.mana_bar", Rect2(194, 41, 270, 30))
 	var stamina_rect := _get_rect("hud.stamina_bar", Rect2(196, 26, 270, 63))
-	var status_rects := _adjust_status_bar_rects(life_rect, mana_rect, stamina_rect)
-	life_rect = status_rects[0]
-	mana_rect = status_rects[1]
-	stamina_rect = status_rects[2]
 	_life_width = life_rect.size.x
 	_life_clip = _add_fill_bar(LIFE_BAR_PATH, life_rect)
 	_life_label = _add_bar_label(life_rect, 11)
@@ -102,8 +98,6 @@ func _build_ui() -> void:
 
 	var xp_frame_rect := _get_rect("hud.xp_bar_frame", Rect2(549, 1, 476, 61))
 	var xp_fill_rect := _get_rect("hud.xp_bar_fill", Rect2(595, 29, 417, 61))
-	xp_fill_rect.position.y = maxf(xp_fill_rect.position.y, xp_frame_rect.position.y + 3.0)
-	xp_fill_rect.size.y = minf(xp_fill_rect.size.y, maxf(1.0, xp_frame_rect.size.y - 6.0))
 	_xp_width = xp_fill_rect.size.x
 	_xp_clip = _add_fill_bar(EXP_BAR_PATH, xp_fill_rect)
 	_add_texture(EXP_BORDER_PATH, "hud.xp_bar_frame", xp_frame_rect)
@@ -151,32 +145,6 @@ func _add_fill_bar(path: String, rect: Rect2) -> Control:
 	texture_rect.size = rect.size
 	clip.add_child(texture_rect)
 	return clip
-
-
-func _adjust_status_bar_rects(life_rect: Rect2, mana_rect: Rect2, stamina_rect: Rect2) -> Array:
-	var needs_fix := false
-	if life_rect.intersects(mana_rect, true) or mana_rect.intersects(stamina_rect, true) or life_rect.intersects(stamina_rect, true):
-		needs_fix = true
-	if not needs_fix:
-		return [life_rect, mana_rect, stamina_rect]
-
-	var x_pos := life_rect.position.x
-	var top_y := minf(life_rect.position.y, minf(mana_rect.position.y, stamina_rect.position.y))
-	var life_height := minf(life_rect.size.y, 20.0)
-	var mana_height := minf(mana_rect.size.y, 18.0)
-	var stamina_height := minf(stamina_rect.size.y, 20.0)
-	var gap := 2.0
-
-	life_rect.position = Vector2(x_pos, top_y)
-	life_rect.size = Vector2(life_rect.size.x, life_height)
-
-	mana_rect.position = Vector2(mana_rect.position.x, life_rect.position.y + life_rect.size.y + gap)
-	mana_rect.size = Vector2(mana_rect.size.x, mana_height)
-
-	stamina_rect.position = Vector2(stamina_rect.position.x, mana_rect.position.y + mana_rect.size.y + gap)
-	stamina_rect.size = Vector2(stamina_rect.size.x, stamina_height)
-
-	return [life_rect, mana_rect, stamina_rect]
 
 
 func _add_bar_label(rect: Rect2, font_size := 11) -> Label:
