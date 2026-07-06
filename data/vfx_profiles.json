@@ -16,41 +16,47 @@
 	"hit_sparks": {
 		"display_name": "Hit Sparks",
 		"pixel_count": 18,
-		"lifetime": 0.34,
-		"fade_out_time": 0.24,
-		"speed_min": 70.0,
-		"speed_max": 165.0,
-		"distance": 42.0,
-		"jitter_radius": 7.0,
-		"color_switch_interval": 0.035,
-		"size_min": 2.0,
-		"size_max": 4.0,
-		"gravity": 0.0,
+		"lifetime": 0.38,
+		"fade_out_time": 0.26,
+		"speed_min": 42.0,
+		"speed_max": 98.0,
+		"horizontal_bias": 0.85,
+		"upward_bias": 1.0,
+		"distance": 26.0,
+		"jitter_radius": 5.0,
+		"color_switch_interval": 0.028,
+		"size_min": 1.0,
+		"size_max": 2.0,
+		"gravity": 430.0,
 		"colors": [
-			"#FFF3A0",
-			"#FF7A24",
-			"#FFD447",
-			"#FFFFFF"
+			"#BB2D45",
+			"#D87A3C",
+			"#DB9B42",
+			"#17191B",
+			"#26292D"
 		]
 	},
 	"critical_hit_sparks": {
 		"display_name": "Critical Hit Sparks",
-		"pixel_count": 28,
-		"lifetime": 0.44,
-		"fade_out_time": 0.30,
-		"speed_min": 95.0,
-		"speed_max": 220.0,
-		"distance": 58.0,
-		"jitter_radius": 8.0,
-		"color_switch_interval": 0.028,
-		"size_min": 2.0,
-		"size_max": 5.0,
-		"gravity": 0.0,
+		"pixel_count": 26,
+		"lifetime": 0.48,
+		"fade_out_time": 0.34,
+		"speed_min": 58.0,
+		"speed_max": 125.0,
+		"horizontal_bias": 0.95,
+		"upward_bias": 1.08,
+		"distance": 34.0,
+		"jitter_radius": 6.0,
+		"color_switch_interval": 0.024,
+		"size_min": 1.0,
+		"size_max": 2.5,
+		"gravity": 460.0,
 		"colors": [
-			"#FFFFFF",
-			"#FFE066",
-			"#FF8C1A",
-			"#FF3D1F"
+			"#BB2D45",
+			"#D87A3C",
+			"#DB9B42",
+			"#17191B",
+			"#26292D"
 		]
 	},
 	"hud_life_damage": {
@@ -65,10 +71,11 @@
 		"size_min": 2.0,
 		"size_max": 3.0,
 		"colors": [
-			"#B50813",
-			"#FF1E24",
-			"#730008",
-			"#F25A4F"
+			"#BB2D45",
+			"#D87A3C",
+			"#DB9B42",
+			"#17191B",
+			"#26292D"
 		]
 	}
 }
