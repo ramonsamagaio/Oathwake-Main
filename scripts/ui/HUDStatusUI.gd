@@ -12,9 +12,9 @@ const EXP_BORDER_PATH := "res://assets/ui/HUDUI/EXP_BORDER.png"
 const EXP_BAR_PATH := "res://assets/ui/HUDUI/EXP_BAR.png"
 const FLAME_FRAME_PATH := "res://assets/ui/HUDUI/FLAME_FRAME.png"
 const PURPLE_FIRE_FRAMES_DIR := "res://assets/ui/HUDUI/purple_fire_frames"
-const LIFE_LABEL_OFFSET := Vector2(0, -5)
-const MANA_LABEL_OFFSET := Vector2(0, -4)
-const STAMINA_LABEL_OFFSET := Vector2(0, -4)
+const LIFE_LABEL_OFFSET := Vector2(0, -10)
+const MANA_LABEL_OFFSET := Vector2(0, 0)
+const STAMINA_LABEL_OFFSET := Vector2(0, 0)
 const XP_LABEL_OFFSET := Vector2(0, -3)
 
 var _layout: Dictionary = {}
@@ -70,7 +70,7 @@ func set_stamina(current_stamina: int, max_stamina: int) -> void:
 		_stamina_label.text = "%d/%d" % [current_stamina, safe_max]
 
 
-func set_xp(current_xp: int, xp_to_next_level: int, level: int) -> void:
+func set_xp(current_xp: int, xp_to_next_level: int, _level: int) -> void:
 	var safe_next := maxi(xp_to_next_level, 1)
 	_set_clip_ratio(_xp_clip, _xp_width, float(current_xp) / float(safe_next))
 	if _xp_label != null:
