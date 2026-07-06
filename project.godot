@@ -18,6 +18,7 @@ config/main_scene="res://scenes/ui/IntroScreen.tscn"
 
 [autoload]
 
+AnimatedCursor="*res://scripts/ui/AnimatedCursor.gd"
 ContentDB="*res://scripts/systems/ContentDB.gd"
 SaveSlotManager="*res://scripts/systems/SaveSlotManager.gd"
 SettingsManager="*res://scripts/systems/SettingsManager.gd"

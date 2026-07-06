@@ -50,9 +50,7 @@ var _hover_frame: TextureRect
 var _select_frame: TextureRect
 var _drag_handle: Control
 var _window_rect: Rect2
-var _hover_offset := Vector2.ZERO
 var _select_offset := Vector2.ZERO
-var _debug_logged := false
 
 
 func set_equipment_system(new_equipment_system) -> void:
@@ -64,7 +62,6 @@ func _ready() -> void:
 	visible = false
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_build_ui()
-	call_deferred("_debug_dump_layout_state")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -202,7 +199,7 @@ func _build_ui() -> void:
 	_window_panel.add_child(_select_frame)
 	UILayoutApplier.apply_texture_rect_from_layout(_select_frame, _layout, "inventory.select_frame", select_rect)
 	_select_frame.visible = false
-	_calculate_hover_select_offsets()
+	_calculate_select_offset()
 
 	_apply_inventory_ui_fonts()
 
@@ -246,8 +243,7 @@ func _get_inventory_slot_rect(index: int, window_rect: Rect2) -> Rect2:
 	return _get_layout_rect(slot_id, fallback_rect)
 
 
-func _calculate_hover_select_offsets() -> void:
-	_hover_offset = _calculate_frame_offset("inventory.hover_frame")
+func _calculate_select_offset() -> void:
 	_select_offset = _calculate_frame_offset("inventory.select_frame")
 
 
@@ -278,7 +274,7 @@ func _on_inventory_slot_hovered(slot_index: int) -> void:
 	if slot_index == selected_slot_index:
 		_hover_frame.visible = false
 		return
-	_place_frame_on_slot(_hover_frame, slot_index, _hover_offset)
+	_place_hover_on_slot(slot_index)
 	_hover_frame.visible = true
 
 
@@ -297,18 +293,20 @@ func _update_selected_slot_frame() -> void:
 	_select_frame.visible = true
 
 
+func _place_hover_on_slot(slot_index: int) -> void:
+	if _hover_frame == null or slot_index < 0 or slot_index >= slot_count:
+		return
+	var slot_rect := _get_inventory_slot_rect(slot_index, _window_rect)
+	_hover_frame.position = slot_rect.position - _window_rect.position
+	_hover_frame.size = slot_rect.size
+
+
 func _place_frame_on_slot(frame: TextureRect, slot_index: int, offset: Vector2) -> void:
 	if frame == null or slot_index < 0 or slot_index >= slot_count:
 		return
 	var slot_rect := _get_inventory_slot_rect(slot_index, _window_rect)
 	frame.position = slot_rect.position - _window_rect.position + offset
-
-
-func _debug_dump_layout_state() -> void:
-	if _debug_logged:
-		return
-	_debug_logged = true
-	print("inventory.hover_offset=%s inventory.select_offset=%s" % [_hover_offset, _select_offset])
+	frame.size = slot_rect.size
 
 
 func _on_use_selected_pressed() -> void:

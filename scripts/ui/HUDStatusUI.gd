@@ -11,7 +11,6 @@ const STAMINA_BAR_PATH := "res://assets/ui/HUDUI/BAR_STAMINA.png"
 const EXP_BORDER_PATH := "res://assets/ui/HUDUI/EXP_BORDER.png"
 const EXP_BAR_PATH := "res://assets/ui/HUDUI/EXP_BAR.png"
 const FLAME_FRAME_PATH := "res://assets/ui/HUDUI/FLAME_FRAME.png"
-const PURPLE_FIRE_PATH := "res://assets/ui/HUDUI/PURPLE_FIRE.gif"
 const PURPLE_FIRE_FRAMES_DIR := "res://assets/ui/HUDUI/purple_fire_frames"
 
 var _layout: Dictionary = {}
@@ -32,7 +31,6 @@ var _purple_fire: TextureRect
 var _purple_fire_frames: Array[Texture2D] = []
 var _purple_fire_frame_index := 0
 var _purple_fire_timer: Timer
-var _debug_logged := false
 
 
 func _ready() -> void:
@@ -40,7 +38,6 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_layout = UILayoutConfig.load_layout()
 	_build_ui()
-	call_deferred("_debug_dump_layout_state")
 	set_health(100, 100)
 	set_mana(100, 100)
 	set_stamina(100, 100)
@@ -149,6 +146,7 @@ func _add_fill_bar(element_id: String, path: String, rect: Rect2) -> Control:
 func _add_bar_label(rect: Rect2, font_size := 11) -> Label:
 	var label := Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.show_behind_parent = false
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.position = rect.position
@@ -158,36 +156,24 @@ func _add_bar_label(rect: Rect2, font_size := 11) -> Label:
 	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	label.add_theme_constant_override("shadow_offset_x", 1)
 	label.add_theme_constant_override("shadow_offset_y", 1)
+	label.z_index = 999
+	label.move_to_front()
 	return label
 
 
 func _add_alignment_flame() -> void:
 	var rect := _get_rect("hud.alignment_flame", Rect2(1490, 795, 40, 40))
 	_purple_fire = TextureRect.new()
-	_purple_fire.name = "PurpleFire"
+	_purple_fire.name = "Purple_fire"
 	_purple_fire.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_purple_fire.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_purple_fire.stretch_mode = TextureRect.STRETCH_SCALE
-	_apply_rect(_purple_fire, rect)
 	add_child(_purple_fire)
+	UILayoutApplier.apply_texture_rect_from_layout(_purple_fire, _layout, "hud.alignment_flame", rect)
 
 	_purple_fire_frames = _load_purple_fire_frames()
 	if not _purple_fire_frames.is_empty():
 		_purple_fire.texture = _purple_fire_frames[0]
 		_start_purple_fire_animation()
 		return
-
-	var fire_resource: Resource = ResourceLoader.load(PURPLE_FIRE_PATH) if ResourceLoader.exists(PURPLE_FIRE_PATH) else null
-	if fire_resource is Texture2D:
-		_purple_fire.texture = fire_resource as Texture2D
-		return
-
-	var image := Image.new()
-	if image.load(PURPLE_FIRE_PATH) == OK:
-		_purple_fire.texture = ImageTexture.create_from_image(image)
-		return
-
-	_purple_fire.texture = _load_texture(FLAME_FRAME_PATH)
 
 
 func _start_purple_fire_animation() -> void:
@@ -238,29 +224,6 @@ func _set_clip_ratio(clip: Control, full_width: float, ratio: float) -> void:
 		return
 	var clamped_ratio := clampf(ratio, 0.0, 1.0)
 	clip.size.x = maxf(0.0, full_width * clamped_ratio)
-
-
-func _debug_dump_layout_state() -> void:
-	if _debug_logged:
-		return
-	_debug_logged = true
-	_print_texture_rect_debug("hud.life_bar")
-	_print_texture_rect_debug("hud.mana_bar")
-	_print_texture_rect_debug("hud.stamina_bar")
-	_print_texture_rect_debug("hud.xp_bar_fill")
-	_print_texture_rect_debug("hud.xp_bar_frame")
-
-
-func _print_texture_rect_debug(element_id: String) -> void:
-	var element := UILayoutApplier.get_element_data(_layout, element_id)
-	if element.is_empty():
-		print("%s missing from layout" % element_id)
-		return
-	print("%s rect=%s stretch_mode=%s" % [
-		element_id,
-		UILayoutApplier.get_element_rect(_layout, element_id),
-		str(int(element.get("texture_rect_stretch_mode", -1))),
-	])
 
 
 func _get_rect(element_id: String, fallback: Rect2) -> Rect2:

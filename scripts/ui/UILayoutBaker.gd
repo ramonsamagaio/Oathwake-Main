@@ -208,6 +208,8 @@ func _get_normalized_element_id(control: Control) -> String:
 			return "hud.alignment_flame_frame"
 		"FLAME_FRAME":
 			return "hud.alignment_flame_frame"
+		"Purple_fire":
+			return "hud.alignment_flame"
 		"PURPLE_FLAME PLACEHOLDER":
 			return "hud.alignment_flame"
 		"PORTRAIT":
