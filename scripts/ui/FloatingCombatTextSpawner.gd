@@ -42,6 +42,7 @@ static func show_text(text: String, world_position: Vector2, color := Color(0.72
 
 static func show_hit_impact(world_position: Vector2, is_critical := false) -> void:
 	_spawn_hit_impact(world_position, is_critical)
+	_spawn_pixel_hit_sparks(world_position, is_critical)
 
 
 static func show_xp(amount: int, world_position: Vector2) -> void:
@@ -72,6 +73,15 @@ static func _spawn_hit_impact(world_position: Vector2, is_critical: bool) -> voi
 	hit_impact.global_position = world_position
 	if hit_impact.has_method("setup"):
 		hit_impact.call("setup", is_critical)
+
+
+static func _spawn_pixel_hit_sparks(world_position: Vector2, is_critical: bool) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or tree.root == null:
+		return
+	var pixel_vfx := tree.root.get_node_or_null("PixelVFX")
+	if pixel_vfx != null and pixel_vfx.has_method("spawn_world_hit_sparks"):
+		pixel_vfx.call("spawn_world_hit_sparks", world_position, is_critical)
 
 
 static func _request_critical_screen_shake() -> void:
