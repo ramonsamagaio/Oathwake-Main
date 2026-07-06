@@ -27,13 +27,13 @@ func _apply() -> void:
 	if ui == null:
 		return
 
-	_show_and_place_button(ui.get_node_or_null("PlayerStatsButton") as Button, -252, -172, -4, -140)
-	_show_and_place_button(ui.get_node_or_null("SpawnMonsterButton") as Button, -252, -132, -4, -100)
-	_show_and_place_button(ui.get_node_or_null("SaveButton") as Button, -252, -52, -132, -20)
-	_show_and_place_button(ui.get_node_or_null("LoadButton") as Button, -124, -52, -4, -20)
+	_show_and_place_button(ui.get_node_or_null("PlayerStatsButton") as Button, -252, -360, -4, -328)
+	_show_and_place_button(ui.get_node_or_null("SpawnMonsterButton") as Button, -252, -320, -4, -288)
+	_show_and_place_button(ui.get_node_or_null("SaveButton") as Button, -252, -280, -132, -248)
+	_show_and_place_button(ui.get_node_or_null("LoadButton") as Button, -124, -280, -4, -248)
 
-	_place_panel(ui.get_node_or_null("PlayerStatsPanel") as Control, -252, -420, -4, -140)
-	_place_panel(ui.get_node_or_null("MonsterSpawnPanel") as Control, -370, -620, -4, -140)
+	_place_panel(ui.get_node_or_null("PlayerStatsPanel") as Control, -252, -650, -4, -370)
+	_place_panel(ui.get_node_or_null("MonsterSpawnPanel") as Control, -370, -850, -4, -370)
 
 
 func _show_and_place_button(button: Button, left: float, top: float, right: float, bottom: float) -> void:
