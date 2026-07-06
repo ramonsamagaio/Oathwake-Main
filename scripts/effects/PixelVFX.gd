@@ -6,15 +6,17 @@ const PixelParticle2D := preload("res://scripts/effects/PixelParticle2D.gd")
 func spawn_world_hit_sparks(world_position: Vector2, is_critical := false) -> void:
 	var profile := _get_profile("critical_hit_sparks" if is_critical else "hit_sparks")
 	var count := int(profile.get("pixel_count", 14))
-	var speed_min := float(profile.get("speed_min", 70.0))
-	var speed_max := float(profile.get("speed_max", 155.0))
-	var lifetime := float(profile.get("lifetime", 0.36))
-	var size_min := float(profile.get("size_min", 2.0))
-	var size_max := float(profile.get("size_max", 4.0))
-	var jitter_radius := float(profile.get("jitter_radius", 6.0))
+	var speed_min := float(profile.get("speed_min", 45.0))
+	var speed_max := float(profile.get("speed_max", 105.0))
+	var lifetime := float(profile.get("lifetime", 0.34))
+	var size_min := float(profile.get("size_min", 1.0))
+	var size_max := float(profile.get("size_max", 2.0))
+	var jitter_radius := float(profile.get("jitter_radius", 5.0))
 	var color_switch_interval := float(profile.get("color_switch_interval", 0.035))
-	var gravity := float(profile.get("gravity", 0.0))
-	var colors := _parse_color_array(profile.get("colors", []), [Color(1.0, 0.92, 0.45, 1.0), Color(1.0, 0.38, 0.16, 1.0), Color.WHITE])
+	var gravity := float(profile.get("gravity", 420.0))
+	var horizontal_bias := float(profile.get("horizontal_bias", 0.9))
+	var upward_bias := float(profile.get("upward_bias", 1.0))
+	var colors := _parse_color_array(profile.get("colors", []), [Color("#BB2D45"), Color("#D87A3C"), Color("#DB9B42"), Color("#17191B"), Color("#26292D")])
 
 	var parent := _get_world_parent()
 	if parent == null:
@@ -25,10 +27,10 @@ func spawn_world_hit_sparks(world_position: Vector2, is_critical := false) -> vo
 		parent.add_child(particle)
 		particle.global_position = world_position + Vector2(randf_range(-jitter_radius, jitter_radius), randf_range(-jitter_radius, jitter_radius))
 		particle.z_index = 999
-		var angle := randf_range(0.0, TAU)
-		var speed := randf_range(speed_min, speed_max)
-		var velocity := Vector2.RIGHT.rotated(angle) * speed
-		particle.setup(velocity, lifetime * randf_range(0.75, 1.2), randf_range(size_min, size_max), colors, color_switch_interval, gravity)
+		var x_speed := randf_range(-speed_max * horizontal_bias, speed_max * horizontal_bias)
+		var y_speed := -randf_range(speed_min * upward_bias, speed_max * upward_bias)
+		var velocity := Vector2(x_speed, y_speed)
+		particle.setup(velocity, lifetime * randf_range(0.78, 1.18), randf_range(size_min, size_max), colors, color_switch_interval, gravity)
 
 
 func spawn_ui_bar_pixels(parent: Control, local_position: Vector2, profile_id := "hud_life_damage") -> void:
