@@ -27,6 +27,12 @@
 		"damage": 7,
 		"display_name": "Skeleton",
 		"level": 2,
+		"movement_mode": "walk",
+		"direction_mode": "4dir",
+		"locomotion": {
+			"move_speed": 40
+		},
+		"animations": {},
 		"loot_table": [
 			{
 				"chance": 1.0,
@@ -72,6 +78,18 @@
 		"damage": 4,
 		"display_name": "Gosma",
 		"level": 1,
+		"movement_mode": "hop",
+		"direction_mode": "single",
+		"locomotion": {
+			"air_time": 0.22,
+			"arc_height": 10,
+			"land_time": 0.08,
+			"move_speed": 42,
+			"pause_time": 0.18,
+			"prepare_time": 0.10,
+			"recover_time": 0.10
+		},
+		"animations": {},
 		"loot_table": [
 			{
 				"chance": 1.0,

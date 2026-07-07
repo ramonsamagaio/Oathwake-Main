@@ -18,12 +18,12 @@ config/main_scene="res://scenes/ui/IntroScreen.tscn"
 
 [autoload]
 
-AnimatedCursor="*res://scripts/ui/AnimatedCursor.gd"
 ContentDB="*res://scripts/systems/ContentDB.gd"
-DebugSidePanelRestorer="*res://scripts/ui/DebugSidePanelRestorer.gd"
-PixelVFX="*res://scripts/effects/PixelVFX.gd"
 SaveSlotManager="*res://scripts/systems/SaveSlotManager.gd"
 SettingsManager="*res://scripts/systems/SettingsManager.gd"
+AnimatedCursor="*res://scripts/ui/AnimatedCursor.gd"
+DebugSidePanelRestorer="*res://scripts/ui/DebugSidePanelRestorer.gd"
+PixelVFX="*res://scripts/effects/PixelVFX.gd"
 
 [display]
 

@@ -92,8 +92,23 @@ func refresh() -> void:
 
 
 func _build_ui() -> void:
+<<<<<<< Updated upstream
 	_layout = UILayoutConfig.load_layout()
 	var panel_rect := _get_layout_rect("hotbar.panel", Rect2(386, 820, 824, 78))
+=======
+	var panel := PanelContainer.new()
+	panel.name = "HotbarPanel"
+	panel.anchor_left = 0.5
+	panel.anchor_top = 1.0
+	panel.anchor_right = 0.5
+	panel.anchor_bottom = 1.0
+	panel.offset_left = -350.0
+	panel.offset_top = -108.0
+	panel.offset_right = 350.0
+	panel.offset_bottom = -40.0
+	add_child(panel)
+	OathwakeUISkin.apply_hotbar_panel(panel)
+>>>>>>> Stashed changes
 
 	_hotbar_panel = Control.new()
 	_hotbar_panel.name = "HotbarPanel"

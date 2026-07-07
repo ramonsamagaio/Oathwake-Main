@@ -1,5 +1,9 @@
 extends Button
 
+<<<<<<< Updated upstream
+=======
+const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
+>>>>>>> Stashed changes
 const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 
 signal equip_selected(slot_id: String)
@@ -32,9 +36,15 @@ func _update_display() -> void:
 		display_name = ""
 		durability = 0.0
 		is_broken = false
+<<<<<<< Updated upstream
 		_set_item_texture(null)
 		_apply_slot_style()
 		_layout_overlay_controls()
+=======
+		custom_minimum_size = Vector2(140, 58)
+		_apply_slot_style()
+		OathwakeTextStyle.apply_profile_to_control(self, "base_ui")
+>>>>>>> Stashed changes
 		return
 
 	var item_data := _get_item_data(item_id)
@@ -47,10 +57,18 @@ func _update_display() -> void:
 			is_broken = true
 	text = ""
 	tooltip_text = _make_tooltip(item_data)
+<<<<<<< Updated upstream
 	expand_icon = false
 	_set_item_texture(_get_texture(item_id))
 	_apply_slot_style()
 	_layout_overlay_controls()
+=======
+	icon = _get_texture(item_id)
+	expand_icon = true
+	custom_minimum_size = Vector2(140, 58)
+	_apply_slot_style()
+	OathwakeTextStyle.apply_profile_to_control(self, "base_ui")
+>>>>>>> Stashed changes
 
 
 func _get_item_data(requested_item_id: String) -> Dictionary:
@@ -107,6 +125,10 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	preview.custom_minimum_size = Vector2(56, 48)
 	preview.disabled = true
 	OathwakeUISkin.apply_slot_button(preview, "selected")
+<<<<<<< Updated upstream
+=======
+	OathwakeTextStyle.apply_profile_to_control(preview, "base_ui")
+>>>>>>> Stashed changes
 	set_drag_preview(preview)
 	return {
 		"type": "equipment_slot",

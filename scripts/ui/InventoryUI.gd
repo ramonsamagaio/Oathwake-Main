@@ -104,6 +104,7 @@ func refresh() -> void:
 
 
 func _build_ui() -> void:
+<<<<<<< Updated upstream
 	_layout = UILayoutConfig.load_layout()
 	_window_rect = _get_layout_rect("inventory.window", Rect2(315, 196, 947, 560))
 
@@ -136,6 +137,76 @@ func _build_ui() -> void:
 		var slot_rect := _get_inventory_slot_rect(_index, _window_rect)
 		slot.position = slot_rect.position - _window_rect.position
 		slot.size = slot_rect.size
+=======
+	var panel := PanelContainer.new()
+	panel.name = "Panel"
+	panel.anchor_left = 0.5
+	panel.anchor_top = 0.5
+	panel.anchor_right = 0.5
+	panel.anchor_bottom = 0.5
+	panel.offset_left = -330.0
+	panel.offset_top = -255.0
+	panel.offset_right = 330.0
+	panel.offset_bottom = 215.0
+	add_child(panel)
+	OathwakeUISkin.apply_panel(panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 34)
+	margin.add_theme_constant_override("margin_top", 46)
+	margin.add_theme_constant_override("margin_right", 34)
+	margin.add_theme_constant_override("margin_bottom", 30)
+	panel.add_child(margin)
+
+	var layout := VBoxContainer.new()
+	layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	layout.add_theme_constant_override("separation", 10)
+	margin.add_child(layout)
+
+	var title := Label.new()
+	title.text = "Inventory"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	layout.add_child(title)
+	OathwakeTextStyle.apply_profile_to_label(title, "ui_title")
+
+	var main_area := HBoxContainer.new()
+	main_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_area.add_theme_constant_override("separation", 22)
+	layout.add_child(main_area)
+
+	var left_side := VBoxContainer.new()
+	left_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_side.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left_side.add_theme_constant_override("separation", 8)
+	main_area.add_child(left_side)
+
+	var controls := HBoxContainer.new()
+	controls.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	controls.add_theme_constant_override("separation", 8)
+	left_side.add_child(controls)
+
+	var sort_button := _make_control_button("Sort", _on_sort_inventory_pressed)
+	controls.add_child(sort_button)
+
+	var split_button := _make_control_button("Split", _on_split_half_pressed)
+	controls.add_child(split_button)
+
+	var drop_stack_button := _make_control_button("Drop", _on_drop_stack_pressed)
+	controls.add_child(drop_stack_button)
+
+	grid = GridContainer.new()
+	grid.columns = columns
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	left_side.add_child(grid)
+
+	for _index in range(slot_count):
+		var slot: Button = InventorySlotScene.instantiate()
+>>>>>>> Stashed changes
 		slot.slot_selected.connect(_on_slot_selected)
 		slot.slot_right_clicked.connect(_on_slot_right_clicked)
 		slot.slot_drag_dropped.connect(_on_slot_drag_dropped)
@@ -145,6 +216,7 @@ func _build_ui() -> void:
 		slot.mouse_exited.connect(_on_inventory_slot_unhovered.bind(_index))
 		_window_panel.add_child(slot)
 		slots.append(slot)
+<<<<<<< Updated upstream
 		_apply_transparent_button_style(slot)
 
 	var trash := _make_trash_slot()
@@ -166,6 +238,69 @@ func _build_ui() -> void:
 
 	for slot_id in EQUIPMENT_SLOT_IDS:
 		var eq_slot = EquipmentSlotScene.instantiate()
+=======
+
+	var bottom_row := HBoxContainer.new()
+	bottom_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom_row.add_theme_constant_override("separation", 6)
+	left_side.add_child(bottom_row)
+
+	var trash := _make_trash_slot()
+	trash.trash_dropped.connect(_on_trash_dropped)
+	trash.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	bottom_row.add_child(trash)
+
+	var details_panel := PanelContainer.new()
+	details_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	details_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	details_panel.custom_minimum_size = Vector2(0, 70)
+	OathwakeUISkin.apply_tooltip(details_panel)
+	bottom_row.add_child(details_panel)
+
+	var details_margin := MarginContainer.new()
+	details_margin.add_theme_constant_override("margin_left", 10)
+	details_margin.add_theme_constant_override("margin_top", 6)
+	details_margin.add_theme_constant_override("margin_right", 10)
+	details_margin.add_theme_constant_override("margin_bottom", 6)
+	details_panel.add_child(details_margin)
+
+	details_label = Label.new()
+	details_label.text = "Select an item."
+	details_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	details_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	details_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	details_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	details_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	details_margin.add_child(details_label)
+
+	var eq_panel := VBoxContainer.new()
+	eq_panel.custom_minimum_size = Vector2(170, 0)
+	eq_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	eq_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	eq_panel.add_theme_constant_override("separation", 8)
+	main_area.add_child(eq_panel)
+
+	var eq_title := Label.new()
+	eq_title.text = "Equipment"
+	eq_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	eq_panel.add_child(eq_title)
+	OathwakeTextStyle.apply_profile_to_label(eq_title, "ui_title")
+
+	var eq_slots_vbox := VBoxContainer.new()
+	eq_slots_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	eq_slots_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	eq_slots_vbox.add_theme_constant_override("separation", 6)
+	eq_panel.add_child(eq_slots_vbox)
+
+	for slot_id in ["weapon", "tool", "armor", "accessory"]:
+		var slot_label := Label.new()
+		slot_label.text = slot_id.capitalize()
+		slot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		eq_slots_vbox.add_child(slot_label)
+		OathwakeTextStyle.apply_profile_to_label(slot_label, "base_ui")
+
+		var eq_slot: Button = EquipmentSlotScene.instantiate()
+>>>>>>> Stashed changes
 		eq_slot.slot_id = slot_id
 		var eq_rect := _get_layout_rect("equipment.%s" % slot_id, Rect2(_window_rect.position + Vector2(40, 80 + equipment_slot_nodes.size() * 46), Vector2(42, 42)))
 		eq_slot.position = eq_rect.position - _window_rect.position
@@ -173,6 +308,7 @@ func _build_ui() -> void:
 		eq_slot.equip_selected.connect(_on_equip_slot_selected)
 		eq_slot.equip_right_clicked.connect(_on_equip_right_clicked)
 		eq_slot.equip_drag_dropped.connect(_on_equip_drag_dropped)
+<<<<<<< Updated upstream
 		_window_panel.add_child(eq_slot)
 		equipment_slot_nodes.append(eq_slot)
 		_apply_transparent_button_style(eq_slot)
@@ -201,6 +337,12 @@ func _build_ui() -> void:
 	_select_frame.visible = false
 	_calculate_select_offset()
 
+=======
+		eq_slot.custom_minimum_size = Vector2(140, 58)
+		eq_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		eq_slots_vbox.add_child(eq_slot)
+		equipment_slot_nodes.append(eq_slot)
+>>>>>>> Stashed changes
 	_apply_inventory_ui_fonts()
 
 
@@ -416,8 +558,6 @@ func _apply_inventory_ui_fonts_recursive(node: Node) -> void:
 			OathwakeTextStyle.apply_profile_to_label(label, "ui_title")
 		else:
 			OathwakeTextStyle.apply_profile_to_label(label, "base_ui")
-	elif node is Button:
-		OathwakeTextStyle.apply_profile_to_control(node as Control, "ui_button")
 	elif node is LineEdit:
 		OathwakeTextStyle.apply_profile_to_control(node as Control, "base_ui")
 	elif node is OptionButton:
@@ -663,8 +803,13 @@ func _drop_from_slot(slot_index: int) -> void:
 func _make_trash_slot() -> ColorRect:
 	var trash := TrashSlotScript.new()
 	trash.name = "TrashSlot"
+<<<<<<< Updated upstream
 	trash.color = Color(0.35, 0.06, 0.07, 0.65)
 	trash.custom_minimum_size = Vector2(56, 56)
+=======
+	trash.color = Color(0.20, 0.07, 0.07, 0.72)
+	trash.custom_minimum_size = Vector2(58, 58)
+>>>>>>> Stashed changes
 	trash.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	trash.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var label := Label.new()
@@ -683,6 +828,19 @@ func _make_trash_slot() -> ColorRect:
 	trash.add_child(confirm)
 	confirm.set_name("ConfirmDialog")
 	return trash
+
+
+func _make_control_button(text_value: String, callback: Callable) -> Button:
+	var button := Button.new()
+	button.text = text_value
+	button.focus_mode = Control.FOCUS_NONE
+	button.custom_minimum_size = Vector2(120, 40)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if callback.is_valid():
+		button.pressed.connect(callback)
+	OathwakeUISkin.apply_button(button, "medium")
+	OathwakeTextStyle.apply_profile_to_control(button, "ui_button")
+	return button
 
 
 var _pending_trash_data: Dictionary = {}

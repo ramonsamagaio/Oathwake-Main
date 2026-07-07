@@ -3,6 +3,8 @@ extends CharacterBody2D
 const CombatCalculatorScript := preload("res://scripts/systems/CombatCalculator.gd")
 const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextSpawner.gd")
 const OverheadNameplateScene := preload("res://scenes/ui/OverheadNameplate.tscn")
+const MonsterAnimatorScript := preload("res://scripts/enemies/MonsterAnimator.gd")
+const MonsterLocomotionScript := preload("res://scripts/enemies/MonsterLocomotion.gd")
 const WorldItemSpawner := preload("res://scripts/systems/WorldItemSpawner.gd")
 
 signal attack_started
@@ -35,9 +37,17 @@ var spawn_tiles := []
 var loot_table := []
 var nameplate: Node2D
 var monster_data := {}
+var movement_mode := "walk"
+var direction_mode := "4dir"
+var locomotion_data := {}
+var animations_data := {}
+var facing_direction := "down"
 var combat_calculator := CombatCalculatorScript.new()
 var original_scale := Vector2.ONE
 var _attack_in_progress := false
+var _motion_state := "idle"
+var _monster_animator
+var _monster_locomotion
 
 @onready var damage_area: Area2D = $DamageArea
 
@@ -46,11 +56,29 @@ func _ready() -> void:
 	add_to_group("enemy")
 	original_scale = scale
 	_load_monster_data()
+	_setup_motion_systems()
 	health = max_health
 	_setup_nameplate()
 	damage_area.body_entered.connect(_on_damage_area_body_entered)
 	damage_area.body_exited.connect(_on_damage_area_body_exited)
 	player = get_tree().get_first_node_in_group("player") as CharacterBody2D
+	_update_motion_animation(Vector2.ZERO, "idle")
+
+
+func _physics_process(delta: float) -> void:
+	if is_dead:
+		return
+
+	if player == null or not is_instance_valid(player):
+		player = get_tree().get_first_node_in_group("player") as CharacterBody2D
+
+	var motion := _update_movement(delta)
+	velocity = motion.get("velocity", Vector2.ZERO)
+	facing_direction = str(motion.get("facing_direction", facing_direction))
+	_motion_state = str(motion.get("state", _motion_state))
+	_update_motion_animation(motion.get("visual_offset", Vector2.ZERO), _motion_state)
+	move_and_slide()
+	_update_damage(delta)
 
 
 func _update_damage(delta: float) -> void:
@@ -200,7 +228,18 @@ func _load_monster_data() -> void:
 	display_name = str(monster_data.get("display_name", display_name))
 	behavior = str(monster_data.get("behavior", behavior))
 	max_health = int(monster_data.get("max_health", max_health))
-	speed = float(monster_data.get("move_speed", speed))
+	movement_mode = str(monster_data.get("movement_mode", movement_mode))
+	direction_mode = str(monster_data.get("direction_mode", direction_mode))
+	var loaded_locomotion = monster_data.get("locomotion", locomotion_data)
+	if loaded_locomotion is Dictionary:
+		locomotion_data = loaded_locomotion.duplicate(true)
+	if locomotion_data.has("move_speed"):
+		speed = float(locomotion_data.get("move_speed", speed))
+	elif monster_data.has("move_speed"):
+		speed = float(monster_data.get("move_speed", speed))
+	animations_data = monster_data.get("animations", animations_data) if monster_data.get("animations", null) is Dictionary else {}
+	if locomotion_data.is_empty() and monster_data.has("locomotion") and monster_data.get("locomotion") is Dictionary:
+		locomotion_data = monster_data.get("locomotion", {}).duplicate(true)
 	damage = int(monster_data.get("damage", damage))
 	damage_cooldown = float(monster_data.get("attack_cooldown", damage_cooldown))
 	attack_windup_time = float(monster_data.get("attack_windup_time", attack_windup_time))
@@ -220,11 +259,56 @@ func _load_monster_data() -> void:
 
 
 func can_chase_player() -> bool:
-	return behavior == "aggressive_contact_chaser"
+	return movement_mode != "stationary"
 
 
 func is_stationary_behavior() -> bool:
-	return behavior == "stationary"
+	return movement_mode == "stationary"
+
+
+func _setup_motion_systems() -> void:
+	_monster_locomotion = MonsterLocomotionScript.new()
+	_monster_locomotion.name = "MonsterLocomotion"
+	add_child(_monster_locomotion)
+	_monster_locomotion.configure(monster_data, movement_mode, direction_mode, locomotion_data, speed)
+
+	var fallback_nodes := _get_fallback_visual_nodes()
+	_monster_animator = MonsterAnimatorScript.new()
+	_monster_animator.name = "MonsterAnimator"
+	add_child(_monster_animator)
+	_monster_animator.configure(self, monster_data, animations_data, direction_mode, fallback_nodes)
+
+
+func _update_movement(delta: float) -> Dictionary:
+	if _monster_locomotion == null:
+		return {
+			"velocity": Vector2.ZERO,
+			"state": "idle",
+			"facing_direction": facing_direction,
+			"visual_offset": Vector2.ZERO,
+		}
+	return _monster_locomotion.update(delta, self, player)
+
+
+func _update_motion_animation(visual_offset: Vector2, motion_state: String) -> void:
+	if _monster_animator == null:
+		return
+	_monster_animator.set_visual_offset(visual_offset)
+	_monster_animator.play_state(motion_state, facing_direction)
+
+
+func _get_fallback_visual_nodes() -> Array:
+	var fallback_nodes: Array = []
+	for child in get_children():
+		if child == null:
+			continue
+		if child == damage_area or child == nameplate:
+			continue
+		if child.name == "MonsterAnimator" or child.name == "MonsterLocomotion":
+			continue
+		if child is CanvasItem:
+			fallback_nodes.append(child)
+	return fallback_nodes
 
 
 func _setup_nameplate() -> void:
