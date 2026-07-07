@@ -1,6 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://dp85lysqif48y"]
 
-[ext_resource type="Script" path="res://scripts/enemies/Slime.gd" id="1_slime_script"]
+[ext_resource type="Script" uid="uid://dtkebih3f5gvc" path="res://scripts/enemies/Slime.gd" id="1_2diw3"]
+[ext_resource type="Texture2D" uid="uid://chvrcvfnqajsg" path="res://scenes/enemies/slime_idle1.png" id="2_t40eo"]
+[ext_resource type="Texture2D" uid="uid://d0dc8a5hn2np" path="res://scenes/enemies/slime_idle2.png" id="3_ronua"]
+[ext_resource type="Texture2D" uid="uid://disbyxnc7ehx0" path="res://scenes/enemies/slime_idle3.png" id="4_rdlcr"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_slime_collision"]
 radius = 14.0
@@ -8,21 +11,52 @@ radius = 14.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_damage_area"]
 radius = 18.0
 
-[node name="Slime" type="CharacterBody2D"]
-script = ExtResource("1_slime_script")
+[sub_resource type="SpriteFrames" id="SpriteFrames_3ef6s"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_t40eo")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_ronua")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_rdlcr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_ronua")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 6.0
+}]
 
-[node name="Body" type="Polygon2D" parent="."]
+[node name="Slime" type="CharacterBody2D" unique_id=760101013]
+script = ExtResource("1_2diw3")
+
+[node name="Body" type="Polygon2D" parent="." unique_id=658044451]
+visible = false
 color = Color(0.18, 0.72, 0.32, 1)
 polygon = PackedVector2Array(-16, 6, -10, -10, 0, -16, 12, -10, 18, 5, 10, 16, -7, 16)
 
-[node name="Highlight" type="Polygon2D" parent="."]
+[node name="Highlight" type="Polygon2D" parent="." unique_id=2147245703]
+visible = false
 color = Color(0.55, 0.95, 0.62, 1)
 polygon = PackedVector2Array(-6, -8, 2, -12, 8, -7, 1, -3)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=941128997]
+scale = Vector2(1.6, 1.6)
 shape = SubResource("CircleShape2D_slime_collision")
 
-[node name="DamageArea" type="Area2D" parent="."]
+[node name="DamageArea" type="Area2D" parent="." unique_id=1321870027]
+scale = Vector2(1.6, 1.6)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea" unique_id=81497672]
 shape = SubResource("CircleShape2D_damage_area")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=2029924536]
+position = Vector2(0, -3.999999)
+scale = Vector2(1, 1.1319346)
+sprite_frames = SubResource("SpriteFrames_3ef6s")
+animation = &"idle"
+frame_progress = 0.55251276
