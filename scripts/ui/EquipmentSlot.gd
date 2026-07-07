@@ -1,9 +1,6 @@
 extends Button
 
-<<<<<<< Updated upstream
-=======
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
->>>>>>> Stashed changes
 const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 
 signal equip_selected(slot_id: String)
@@ -32,19 +29,16 @@ func _update_display() -> void:
 	focus_mode = Control.FOCUS_NONE
 	if item_id.is_empty() or amount <= 0:
 		text = ""
+		icon = null
+		expand_icon = false
 		tooltip_text = "Empty %s Slot" % slot_id.capitalize()
 		display_name = ""
 		durability = 0.0
 		is_broken = false
-<<<<<<< Updated upstream
 		_set_item_texture(null)
 		_apply_slot_style()
 		_layout_overlay_controls()
-=======
-		custom_minimum_size = Vector2(140, 58)
-		_apply_slot_style()
 		OathwakeTextStyle.apply_profile_to_control(self, "base_ui")
->>>>>>> Stashed changes
 		return
 
 	var item_data := _get_item_data(item_id)
@@ -56,19 +50,13 @@ func _update_display() -> void:
 		if meta <= 0.0:
 			is_broken = true
 	text = ""
-	tooltip_text = _make_tooltip(item_data)
-<<<<<<< Updated upstream
+	icon = null
 	expand_icon = false
+	tooltip_text = _make_tooltip(item_data)
 	_set_item_texture(_get_texture(item_id))
 	_apply_slot_style()
 	_layout_overlay_controls()
-=======
-	icon = _get_texture(item_id)
-	expand_icon = true
-	custom_minimum_size = Vector2(140, 58)
-	_apply_slot_style()
 	OathwakeTextStyle.apply_profile_to_control(self, "base_ui")
->>>>>>> Stashed changes
 
 
 func _get_item_data(requested_item_id: String) -> Dictionary:
@@ -118,17 +106,13 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	if item_id.is_empty() or amount <= 0:
 		return null
 
-	var preview := Button.new()
-	preview.text = ""
-	preview.icon = _item_icon.texture if _item_icon != null else null
-	preview.expand_icon = true
-	preview.custom_minimum_size = Vector2(56, 48)
-	preview.disabled = true
-	OathwakeUISkin.apply_slot_button(preview, "selected")
-<<<<<<< Updated upstream
-=======
-	OathwakeTextStyle.apply_profile_to_control(preview, "base_ui")
->>>>>>> Stashed changes
+	var preview := TextureRect.new()
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	preview.texture = _item_icon.texture if _item_icon != null else null
+	preview.custom_minimum_size = Vector2(48, 48)
+	preview.size = Vector2(48, 48)
 	set_drag_preview(preview)
 	return {
 		"type": "equipment_slot",
