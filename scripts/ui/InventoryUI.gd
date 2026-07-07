@@ -16,6 +16,7 @@ const USE_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/USE_ON.png"
 const SPLIT_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/SPLIT_ON.png"
 const DROP_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/DROP_ON.png"
 const CLOSE_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/Xzinho ON.png"
+
 const EQUIPMENT_SLOT_IDS := [
 	"helm",
 	"armor",
@@ -51,6 +52,7 @@ var _select_frame: TextureRect
 var _drag_handle: Control
 var _window_rect: Rect2
 var _select_offset := Vector2.ZERO
+var _pending_trash_data: Dictionary = {}
 
 
 func set_equipment_system(new_equipment_system) -> void:
@@ -76,7 +78,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func set_inventory(new_inventory) -> void:
 	inventory = new_inventory
-	if inventory != null and inventory.has_signal("changed"):
+	if inventory != null and inventory.has_signal("changed") and not inventory.changed.is_connected(refresh):
 		inventory.changed.connect(refresh)
 	refresh()
 
@@ -104,7 +106,6 @@ func refresh() -> void:
 
 
 func _build_ui() -> void:
-<<<<<<< Updated upstream
 	_layout = UILayoutConfig.load_layout()
 	_window_rect = _get_layout_rect("inventory.window", Rect2(315, 196, 947, 560))
 
@@ -132,91 +133,20 @@ func _build_ui() -> void:
 	_drag_handle.position = drag_rect.position - _window_rect.position
 	_drag_handle.size = drag_rect.size
 
-	for _index in range(slot_count):
+	for index in range(slot_count):
 		var slot = InventorySlotScene.instantiate()
-		var slot_rect := _get_inventory_slot_rect(_index, _window_rect)
+		var slot_rect := _get_inventory_slot_rect(index, _window_rect)
 		slot.position = slot_rect.position - _window_rect.position
 		slot.size = slot_rect.size
-=======
-	var panel := PanelContainer.new()
-	panel.name = "Panel"
-	panel.anchor_left = 0.5
-	panel.anchor_top = 0.5
-	panel.anchor_right = 0.5
-	panel.anchor_bottom = 0.5
-	panel.offset_left = -330.0
-	panel.offset_top = -255.0
-	panel.offset_right = 330.0
-	panel.offset_bottom = 215.0
-	add_child(panel)
-	OathwakeUISkin.apply_panel(panel)
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 34)
-	margin.add_theme_constant_override("margin_top", 46)
-	margin.add_theme_constant_override("margin_right", 34)
-	margin.add_theme_constant_override("margin_bottom", 30)
-	panel.add_child(margin)
-
-	var layout := VBoxContainer.new()
-	layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	layout.add_theme_constant_override("separation", 10)
-	margin.add_child(layout)
-
-	var title := Label.new()
-	title.text = "Inventory"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	layout.add_child(title)
-	OathwakeTextStyle.apply_profile_to_label(title, "ui_title")
-
-	var main_area := HBoxContainer.new()
-	main_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	main_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main_area.add_theme_constant_override("separation", 22)
-	layout.add_child(main_area)
-
-	var left_side := VBoxContainer.new()
-	left_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left_side.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left_side.add_theme_constant_override("separation", 8)
-	main_area.add_child(left_side)
-
-	var controls := HBoxContainer.new()
-	controls.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	controls.add_theme_constant_override("separation", 8)
-	left_side.add_child(controls)
-
-	var sort_button := _make_control_button("Sort", _on_sort_inventory_pressed)
-	controls.add_child(sort_button)
-
-	var split_button := _make_control_button("Split", _on_split_half_pressed)
-	controls.add_child(split_button)
-
-	var drop_stack_button := _make_control_button("Drop", _on_drop_stack_pressed)
-	controls.add_child(drop_stack_button)
-
-	grid = GridContainer.new()
-	grid.columns = columns
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	grid.add_theme_constant_override("h_separation", 6)
-	grid.add_theme_constant_override("v_separation", 6)
-	left_side.add_child(grid)
-
-	for _index in range(slot_count):
-		var slot: Button = InventorySlotScene.instantiate()
->>>>>>> Stashed changes
 		slot.slot_selected.connect(_on_slot_selected)
 		slot.slot_right_clicked.connect(_on_slot_right_clicked)
 		slot.slot_drag_dropped.connect(_on_slot_drag_dropped)
 		slot.equipment_drag_dropped.connect(_on_equipment_drag_dropped_to_inventory)
 		slot.drag_started.connect(_on_slot_drag_started)
-		slot.mouse_entered.connect(_on_inventory_slot_hovered.bind(_index))
-		slot.mouse_exited.connect(_on_inventory_slot_unhovered.bind(_index))
+		slot.mouse_entered.connect(_on_inventory_slot_hovered.bind(index))
+		slot.mouse_exited.connect(_on_inventory_slot_unhovered.bind(index))
 		_window_panel.add_child(slot)
 		slots.append(slot)
-<<<<<<< Updated upstream
 		_apply_transparent_button_style(slot)
 
 	var trash := _make_trash_slot()
@@ -238,77 +168,14 @@ func _build_ui() -> void:
 
 	for slot_id in EQUIPMENT_SLOT_IDS:
 		var eq_slot = EquipmentSlotScene.instantiate()
-=======
-
-	var bottom_row := HBoxContainer.new()
-	bottom_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bottom_row.add_theme_constant_override("separation", 6)
-	left_side.add_child(bottom_row)
-
-	var trash := _make_trash_slot()
-	trash.trash_dropped.connect(_on_trash_dropped)
-	trash.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	bottom_row.add_child(trash)
-
-	var details_panel := PanelContainer.new()
-	details_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	details_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	details_panel.custom_minimum_size = Vector2(0, 70)
-	OathwakeUISkin.apply_tooltip(details_panel)
-	bottom_row.add_child(details_panel)
-
-	var details_margin := MarginContainer.new()
-	details_margin.add_theme_constant_override("margin_left", 10)
-	details_margin.add_theme_constant_override("margin_top", 6)
-	details_margin.add_theme_constant_override("margin_right", 10)
-	details_margin.add_theme_constant_override("margin_bottom", 6)
-	details_panel.add_child(details_margin)
-
-	details_label = Label.new()
-	details_label.text = "Select an item."
-	details_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	details_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	details_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	details_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	details_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	details_margin.add_child(details_label)
-
-	var eq_panel := VBoxContainer.new()
-	eq_panel.custom_minimum_size = Vector2(170, 0)
-	eq_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	eq_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	eq_panel.add_theme_constant_override("separation", 8)
-	main_area.add_child(eq_panel)
-
-	var eq_title := Label.new()
-	eq_title.text = "Equipment"
-	eq_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	eq_panel.add_child(eq_title)
-	OathwakeTextStyle.apply_profile_to_label(eq_title, "ui_title")
-
-	var eq_slots_vbox := VBoxContainer.new()
-	eq_slots_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	eq_slots_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	eq_slots_vbox.add_theme_constant_override("separation", 6)
-	eq_panel.add_child(eq_slots_vbox)
-
-	for slot_id in ["weapon", "tool", "armor", "accessory"]:
-		var slot_label := Label.new()
-		slot_label.text = slot_id.capitalize()
-		slot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		eq_slots_vbox.add_child(slot_label)
-		OathwakeTextStyle.apply_profile_to_label(slot_label, "base_ui")
-
-		var eq_slot: Button = EquipmentSlotScene.instantiate()
->>>>>>> Stashed changes
 		eq_slot.slot_id = slot_id
-		var eq_rect := _get_layout_rect("equipment.%s" % slot_id, Rect2(_window_rect.position + Vector2(40, 80 + equipment_slot_nodes.size() * 46), Vector2(42, 42)))
+		var fallback_position := _window_rect.position + Vector2(40, 80 + equipment_slot_nodes.size() * 46)
+		var eq_rect := _get_layout_rect("equipment.%s" % slot_id, Rect2(fallback_position, Vector2(42, 42)))
 		eq_slot.position = eq_rect.position - _window_rect.position
 		eq_slot.size = eq_rect.size
 		eq_slot.equip_selected.connect(_on_equip_slot_selected)
 		eq_slot.equip_right_clicked.connect(_on_equip_right_clicked)
 		eq_slot.equip_drag_dropped.connect(_on_equip_drag_dropped)
-<<<<<<< Updated upstream
 		_window_panel.add_child(eq_slot)
 		equipment_slot_nodes.append(eq_slot)
 		_apply_transparent_button_style(eq_slot)
@@ -336,25 +203,7 @@ func _build_ui() -> void:
 	UILayoutApplier.apply_texture_rect_from_layout(_select_frame, _layout, "inventory.select_frame", select_rect)
 	_select_frame.visible = false
 	_calculate_select_offset()
-
-=======
-		eq_slot.custom_minimum_size = Vector2(140, 58)
-		eq_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		eq_slots_vbox.add_child(eq_slot)
-		equipment_slot_nodes.append(eq_slot)
->>>>>>> Stashed changes
 	_apply_inventory_ui_fonts()
-
-
-func _make_inventory_button(text_value: String, callback: Callable) -> Button:
-	var button := Button.new()
-	button.text = text_value
-	button.custom_minimum_size = Vector2(74, 38)
-	button.focus_mode = Control.FOCUS_NONE
-	button.pressed.connect(callback)
-	OathwakeUISkin.apply_button(button, "medium")
-	OathwakeTextStyle.apply_profile_to_control(button, "ui_button")
-	return button
 
 
 func _add_texture_action_button(element_id: String, texture_path: String, callback: Callable, fallback_rect: Rect2, window_rect: Rect2) -> TextureButton:
@@ -455,9 +304,9 @@ func _on_use_selected_pressed() -> void:
 	if selected_equip_slot_id != "":
 		_on_equip_right_clicked(selected_equip_slot_id)
 		return
-	if selected_slot_index < 0:
+	if selected_slot_index < 0 or inventory == null:
 		return
-	var slot_data: Dictionary = inventory.get_slot(selected_slot_index) if inventory != null else {}
+	var slot_data: Dictionary = inventory.get_slot(selected_slot_index)
 	var item_id := str(slot_data.get("item_id", ""))
 	var amount := int(slot_data.get("amount", 0))
 	if item_id.is_empty() or amount <= 0:
@@ -517,10 +366,7 @@ func _on_window_drag_handle_gui_input(event: InputEvent) -> void:
 func _move_window_panel(delta: Vector2) -> void:
 	if _window_panel == null:
 		return
-	_window_panel.offset_left += delta.x
-	_window_panel.offset_right += delta.x
-	_window_panel.offset_top += delta.y
-	_window_panel.offset_bottom += delta.y
+	_window_panel.position += delta
 	_clamp_window_panel_to_viewport()
 
 
@@ -539,10 +385,7 @@ func _clamp_window_panel_to_viewport() -> void:
 	elif rect.position.y + rect.size.y > viewport_size.y:
 		correction.y = viewport_size.y - (rect.position.y + rect.size.y)
 	if correction != Vector2.ZERO:
-		_window_panel.offset_left += correction.x
-		_window_panel.offset_right += correction.x
-		_window_panel.offset_top += correction.y
-		_window_panel.offset_bottom += correction.y
+		_window_panel.position += correction
 
 
 func _apply_inventory_ui_fonts() -> void:
@@ -628,7 +471,6 @@ func _on_slot_right_clicked(slot_index: int, _inventory_id := "player", shift_pr
 func _on_slot_drag_dropped(from_index: int, to_index: int, _from_inventory_id := "player", _to_inventory_id := "player") -> void:
 	if inventory == null:
 		return
-
 	inventory.move_slot(from_index, to_index)
 	refresh()
 
@@ -721,7 +563,6 @@ func _get_equip_details_text(item_id: String, quantity: int, slot_id: String, it
 func _on_sort_inventory_pressed() -> void:
 	if inventory == null:
 		return
-
 	inventory.sort_items()
 	refresh()
 	details_label.text = "Inventory sorted."
@@ -730,7 +571,6 @@ func _on_sort_inventory_pressed() -> void:
 func _on_split_half_pressed() -> void:
 	if inventory == null or selected_slot_index < 0:
 		return
-
 	if inventory.split_half_to_empty_slot(selected_slot_index):
 		details_label.text = "Split stack."
 	else:
@@ -741,19 +581,16 @@ func _on_split_half_pressed() -> void:
 func _on_drop_stack_pressed() -> void:
 	if inventory == null or selected_slot_index < 0:
 		return
-
 	var slot_data: Dictionary = inventory.get_slot(selected_slot_index)
 	var amount := int(slot_data.get("amount", 0))
 	if amount <= 0:
 		return
-
 	var removed: Dictionary = inventory.remove_from_slot(selected_slot_index, amount)
 	var item_id := str(removed.get("item_id", ""))
 	var removed_amount := int(removed.get("amount", 0))
 	var drop_metadata: Variant = removed.get("metadata")
 	if item_id.is_empty() or removed_amount <= 0:
 		return
-
 	_drop_removed_item(item_id, removed_amount, drop_metadata if drop_metadata is Dictionary else {})
 	details_label.text = "Dropped %d %s." % [removed_amount, str(_get_item_data(item_id).get("display_name", item_id.capitalize()))]
 	refresh()
@@ -803,13 +640,8 @@ func _drop_from_slot(slot_index: int) -> void:
 func _make_trash_slot() -> ColorRect:
 	var trash := TrashSlotScript.new()
 	trash.name = "TrashSlot"
-<<<<<<< Updated upstream
 	trash.color = Color(0.35, 0.06, 0.07, 0.65)
 	trash.custom_minimum_size = Vector2(56, 56)
-=======
-	trash.color = Color(0.20, 0.07, 0.07, 0.72)
-	trash.custom_minimum_size = Vector2(58, 58)
->>>>>>> Stashed changes
 	trash.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	trash.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var label := Label.new()
@@ -828,22 +660,6 @@ func _make_trash_slot() -> ColorRect:
 	trash.add_child(confirm)
 	confirm.set_name("ConfirmDialog")
 	return trash
-
-
-func _make_control_button(text_value: String, callback: Callable) -> Button:
-	var button := Button.new()
-	button.text = text_value
-	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = Vector2(120, 40)
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	if callback.is_valid():
-		button.pressed.connect(callback)
-	OathwakeUISkin.apply_button(button, "medium")
-	OathwakeTextStyle.apply_profile_to_control(button, "ui_button")
-	return button
-
-
-var _pending_trash_data: Dictionary = {}
 
 
 func _on_trash_dropped(slot_index: int, inventory_id: String) -> void:
@@ -895,7 +711,6 @@ func _get_item_data(item_id: String) -> Dictionary:
 	var content_db := get_node_or_null("/root/ContentDB")
 	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
 		return {}
-
 	return content_db.get_item(item_id)
 
 
