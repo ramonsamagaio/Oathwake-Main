@@ -102,7 +102,6 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 
 	drag_started.emit(slot_index, inventory_id)
 
-<<<<<<< Updated upstream
 	var preview_texture := _item_icon.texture if _item_icon != null else null
 	var preview := TextureRect.new()
 	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -111,16 +110,6 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	preview.texture = preview_texture
 	preview.custom_minimum_size = Vector2(48, 48)
 	preview.size = Vector2(48, 48)
-=======
-	var preview := Button.new()
-	preview.text = "x%d" % amount
-	preview.icon = icon
-	preview.expand_icon = true
-	preview.custom_minimum_size = Vector2(56, 48)
-	preview.disabled = true
-	OathwakeUISkin.apply_slot_button(preview, "selected")
-	OathwakeTextStyle.apply_profile_to_control(preview, "item_quantity")
->>>>>>> Stashed changes
 	set_drag_preview(preview)
 	return {
 		"type": "inventory_slot",
