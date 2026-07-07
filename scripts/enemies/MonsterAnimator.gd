@@ -9,6 +9,7 @@ var _fallback_nodes: Array = []
 var _current_animation_name := ""
 var _current_flip_h := false
 var _current_flip_v := false
+var _uses_scene_sprite := false
 
 
 func configure(owner: Node2D, monster_data: Dictionary, animations_data: Dictionary, direction_mode: String, fallback_nodes: Array) -> void:
@@ -16,7 +17,12 @@ func configure(owner: Node2D, monster_data: Dictionary, animations_data: Diction
 	_direction_mode = direction_mode if not direction_mode.is_empty() else "single"
 	_fallback_nodes = fallback_nodes.duplicate()
 	_ensure_sprite()
-	_build_sprite_frames(animations_data)
+	if _sprite != null and _sprite.sprite_frames != null and not _sprite.sprite_frames.get_animation_names().is_empty():
+		_sprite_frames = _sprite.sprite_frames
+		_uses_scene_sprite = true
+	else:
+		_build_sprite_frames(animations_data)
+		_uses_scene_sprite = false
 	_set_fallback_visible(_sprite_frames == null or _sprite_frames.get_animation_names().is_empty())
 
 
@@ -33,9 +39,12 @@ func play_state(state: String, facing_direction: String) -> void:
 
 	var resolved := _resolve_animation_name(state, facing_direction)
 	if str(resolved.get("name", "")).is_empty():
-		_sprite.visible = false
-		_set_fallback_visible(true)
-		return
+		if _sprite_frames.has_animation("idle"):
+			resolved = {"name": "idle", "flip_h": false, "flip_v": false}
+		else:
+			_sprite.visible = true
+			_set_fallback_visible(false)
+			return
 
 	_set_fallback_visible(false)
 	_sprite.visible = true
@@ -57,6 +66,14 @@ func play_state(state: String, facing_direction: String) -> void:
 func _ensure_sprite() -> void:
 	if _sprite != null:
 		return
+	if _owner != null:
+		var existing := _owner.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+		if existing != null:
+			_sprite = existing
+			_sprite.centered = true
+			_sprite.position = _visual_offset
+			_sprite.z_index = 20
+			return
 	_sprite = AnimatedSprite2D.new()
 	_sprite.name = "MonsterSprite"
 	_sprite.centered = true
