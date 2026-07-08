@@ -101,17 +101,17 @@ func get_valid_slot_for_item(item_id: String) -> String:
 		return ""
 
 	var item_data: Dictionary = content_db.get_item(item_id)
+	var item_type := str(item_data.get("item_type", "")).to_lower()
+	if item_type == "tool" or item_type == "weapon":
+		return ""
 
 	var explicit_slot := str(item_data.get("equipment_slot", ""))
 	if not explicit_slot.is_empty():
+		if explicit_slot == "tool" or explicit_slot == "weapon" or explicit_slot == "hand_right" or explicit_slot == "hand_left":
+			return ""
 		return _normalize_slot_id(explicit_slot)
 
-	var item_type := str(item_data.get("item_type", ""))
 	match item_type:
-		"weapon":
-			return "hand_right"
-		"tool":
-			return "hand_right"
 		"armor":
 			return "armor"
 		"accessory":

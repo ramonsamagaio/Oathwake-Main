@@ -16,6 +16,7 @@ const USE_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/USE_ON.png"
 const SPLIT_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/SPLIT_ON.png"
 const DROP_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/DROP_ON.png"
 const CLOSE_BUTTON_TEXTURE_PATH := "res://assets/ui/HUDUI/Xzinho ON.png"
+const HOTBAR_SLOT_COUNT := 10
 
 const EQUIPMENT_SLOT_IDS := [
 	"helm",
@@ -311,6 +312,10 @@ func _on_use_selected_pressed() -> void:
 	var amount := int(slot_data.get("amount", 0))
 	if item_id.is_empty() or amount <= 0:
 		return
+	if _is_tool_or_weapon(item_id):
+		if _move_or_select_hotbar_item(selected_slot_index):
+			return
+		return
 	var equip_sys = _get_equipment_system()
 	if equip_sys != null and equip_sys.has_method("equip_from_inventory") and equip_sys.equip_from_inventory(inventory, selected_slot_index):
 		details_label.text = "Equipped %s." % str(_get_item_data(item_id).get("display_name", item_id.capitalize()))
@@ -443,6 +448,10 @@ func _on_slot_right_clicked(slot_index: int, _inventory_id := "player", shift_pr
 	var item_id := str(slot_data.get("item_id", ""))
 	var amount := int(slot_data.get("amount", 0))
 
+	if not shift_pressed and not ctrl_pressed and _is_tool_or_weapon(item_id):
+		_move_or_select_hotbar_item(slot_index)
+		return
+
 	if not shift_pressed and not ctrl_pressed and not item_id.is_empty() and amount == 1:
 		var equip_sys = _get_equipment_system()
 		if equip_sys != null and equip_sys.has_method("get_valid_slot_for_item"):
@@ -489,6 +498,58 @@ func _get_equipment_system():
 	return equipment_system
 
 
+func _is_tool_or_weapon(item_id: String) -> bool:
+	if item_id.is_empty():
+		return false
+	var item_data := _get_item_data(item_id)
+	var item_type := str(item_data.get("item_type", "")).to_lower()
+	return item_type == "tool" or item_type == "weapon"
+
+
+func _get_hotbar_ui() -> Object:
+	var main := get_tree().get_first_node_in_group("main")
+	if main != null:
+		var hotbar_from_main: Object = main.get("hotbar_ui") as Object
+		if hotbar_from_main != null:
+			return hotbar_from_main
+	return get_tree().get_first_node_in_group("hotbar_ui")
+
+
+func _find_first_empty_hotbar_slot() -> int:
+	if inventory == null:
+		return -1
+	var upper: int = min(HOTBAR_SLOT_COUNT, int(inventory.get_slot_count()))
+	for index in range(upper):
+		var slot_data: Dictionary = inventory.get_slot(index)
+		if str(slot_data.get("item_id", "")).is_empty() or int(slot_data.get("amount", 0)) <= 0:
+			return index
+	return -1
+
+
+func _move_or_select_hotbar_item(slot_index: int) -> bool:
+	var hotbar_ui: Object = _get_hotbar_ui()
+	if hotbar_ui == null or inventory == null:
+		return false
+
+	if slot_index >= 0 and slot_index < HOTBAR_SLOT_COUNT:
+		if hotbar_ui.has_method("select_slot"):
+			hotbar_ui.select_slot(slot_index)
+		details_label.text = "Selected hotbar slot %d." % (slot_index + 1)
+		return true
+
+	var target_index := _find_first_empty_hotbar_slot()
+	if target_index < 0:
+		details_label.text = "Hotbar full."
+		return false
+
+	inventory.move_slot(slot_index, target_index)
+	if hotbar_ui.has_method("select_slot"):
+		hotbar_ui.select_slot(target_index)
+	details_label.text = "Moved to hotbar slot %d." % (target_index + 1)
+	refresh()
+	return true
+
+
 func _on_equip_slot_selected(slot_id: String) -> void:
 	selected_equip_slot_id = slot_id
 	selected_slot_index = -1
@@ -521,6 +582,12 @@ func _on_equip_drag_dropped(slot_id: String, from_slot_index: int, from_inventor
 	if inventory == null or equipment_system == null:
 		return
 	if from_inventory_id != "player":
+		return
+	var slot_data: Dictionary = inventory.get_slot(from_slot_index)
+	var dragged_item_id := str(slot_data.get("item_id", ""))
+	if _is_tool_or_weapon(dragged_item_id):
+		details_label.text = "Use hotbar for tools/weapons."
+		refresh()
 		return
 	if equipment_system.equip_from_inventory(inventory, from_slot_index, slot_id):
 		details_label.text = "Equipped."

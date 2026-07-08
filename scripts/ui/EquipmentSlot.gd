@@ -128,13 +128,24 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	var from_inventory_id := str(data.get("inventory_id", ""))
 	if from_inventory_id != "player":
 		return false
+	var main = get_tree().get_first_node_in_group("main")
+	var inventory = main.get("inventory") if main != null else null
+	if inventory != null and inventory.has_method("get_slot"):
+		var from_index := int(data.get("slot_index", -1))
+		var slot_data = inventory.get_slot(from_index)
+		var item_id := str(slot_data.get("item_id", ""))
+		if not item_id.is_empty():
+			var content_db := get_node_or_null("/root/ContentDB")
+			if content_db != null and content_db.has_method("has_item") and content_db.has_item(item_id):
+				var item_data: Dictionary = content_db.get_item(item_id)
+				var item_type := str(item_data.get("item_type", "")).to_lower()
+				if item_type == "tool" or item_type == "weapon":
+					return true
 	var equip_system = _get_equipment_system()
 	if equip_system == null or not equip_system.has_method("can_equip_item"):
 		return false
-	var main = get_tree().get_first_node_in_group("main")
 	if main == null:
 		return false
-	var inventory = main.get("inventory")
 	if inventory == null or not inventory.has_method("get_slot"):
 		return false
 	var from_index := int(data.get("slot_index", -1))

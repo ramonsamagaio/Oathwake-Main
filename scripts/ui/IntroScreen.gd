@@ -159,7 +159,7 @@ func _on_video_finished() -> void:
 		_video_player.play()
 
 
-func _make_centered_texture_rect(path: String, size: Vector2) -> TextureRect:
+func _make_centered_texture_rect(path: String, rect_size: Vector2) -> TextureRect:
 	var rect := TextureRect.new()
 	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -167,10 +167,10 @@ func _make_centered_texture_rect(path: String, size: Vector2) -> TextureRect:
 	rect.anchor_top = 0.5
 	rect.anchor_right = 0.5
 	rect.anchor_bottom = 0.5
-	rect.offset_left = -size.x * 0.5
-	rect.offset_top = -size.y * 0.5
-	rect.offset_right = size.x * 0.5
-	rect.offset_bottom = size.y * 0.5
+	rect.offset_left = -rect_size.x * 0.5
+	rect.offset_top = -rect_size.y * 0.5
+	rect.offset_right = rect_size.x * 0.5
+	rect.offset_bottom = rect_size.y * 0.5
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rect.texture = _load_texture(path)
 	rect.modulate.a = 0.0

@@ -68,6 +68,8 @@ var spawn_position := Vector2.ZERO
 var initial_spawn_position := Vector2.ZERO
 var has_respawn_point := false
 var current_tool_index := 0
+var current_hotbar_item_id := ""
+var current_hotbar_slot_index := -1
 var last_direction := "down"
 var was_running := false
 var is_running := false
@@ -113,11 +115,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_Q:
-		_select_previous_tool()
-		get_viewport().set_input_as_handled()
-		return
-
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E:
 		if _is_storage_open() or _is_crafting_open():
 			return
@@ -133,10 +130,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _try_interact_with_nearby_workbench():
 			get_viewport().set_input_as_handled()
 			return
-
-		_select_next_tool()
-		get_viewport().set_input_as_handled()
-		return
 
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE:
 		if _is_storage_open() or _is_crafting_open():
@@ -427,7 +420,10 @@ func load_progression_data(save_data) -> void:
 
 
 func get_current_tool() -> String:
-	return unlocked_tools[current_tool_index]
+	var held_item_id := _get_current_held_item_id()
+	if held_item_id.is_empty():
+		return TOOL_HANDS
+	return _get_item_display_name(held_item_id)
 
 
 func has_tool(tool_name: String) -> bool:
@@ -459,6 +455,28 @@ func set_current_tool(tool_name: String) -> void:
 
 	current_tool_index = tool_index
 	tool_changed.emit(get_current_tool())
+
+
+func set_current_hotbar_item(item_id: String, slot_index: int) -> void:
+	var normalized_item_id := str(item_id).strip_edges()
+	if current_hotbar_slot_index == slot_index and current_hotbar_item_id == normalized_item_id:
+		return
+	current_hotbar_slot_index = slot_index
+
+	if normalized_item_id.is_empty():
+		current_hotbar_item_id = ""
+		tool_changed.emit(TOOL_HANDS)
+		return
+
+	var item_data := _get_item_data(normalized_item_id)
+	var item_type := str(item_data.get("item_type", "")).to_lower()
+	if item_type != "tool" and item_type != "weapon":
+		current_hotbar_item_id = ""
+		tool_changed.emit(TOOL_HANDS)
+		return
+
+	current_hotbar_item_id = normalized_item_id
+	tool_changed.emit(_get_item_display_name(normalized_item_id))
 
 
 func set_unlocked_tools(tool_names: Array) -> void:
@@ -549,7 +567,7 @@ func _perform_attack_hits() -> void:
 
 
 func _attack_enemy(target: Node) -> void:
-	if _is_equipped_weapon_broken():
+	if _is_current_hotbar_item_broken():
 		FloatingCombatTextSpawner.show_text("Weapon is broken!", global_position + Vector2(0, -28), Color(0.8, 0.2, 0.2, 1.0))
 		return
 
@@ -559,8 +577,7 @@ func _attack_enemy(target: Node) -> void:
 
 	var eq_system = _get_equipment_system()
 	var attacker_data := player_stats_resolver.get_total_player_data(self, eq_system)
-	var weapon_data := player_stats_resolver.get_equipped_weapon_data(eq_system)
-	var held_item_data := weapon_data if not weapon_data.is_empty() else _get_current_held_item_data()
+	var held_item_data := _get_current_held_item_data()
 
 	var combat_result := combat_calculator.calculate_damage(attacker_data, target_data, held_item_data)
 	attack_hit_frame.emit()
@@ -568,11 +585,11 @@ func _attack_enemy(target: Node) -> void:
 		target.call("apply_combat_result", combat_result)
 	else:
 		target.call("take_damage", int(combat_result.get("damage", attack_damage)))
-	_reduce_equipped_weapon_durability()
+	_reduce_current_hotbar_item_durability()
 
 
 func _attack_resource(target: Node) -> void:
-	if _is_equipped_tool_broken():
+	if _is_current_hotbar_item_broken():
 		FloatingCombatTextSpawner.show_text("Tool is broken!", global_position + Vector2(0, -28), Color(0.8, 0.2, 0.2, 1.0))
 		return
 
@@ -582,12 +599,12 @@ func _attack_resource(target: Node) -> void:
 	if target.has_method("apply_gather_hit"):
 		attack_hit_frame.emit()
 		target.call("apply_gather_hit", _get_current_held_item_data(), actor_data, {})
-		_reduce_equipped_tool_durability()
+		_reduce_current_hotbar_item_durability()
 		return
 
 	attack_hit_frame.emit()
 	target.call("take_damage", _get_resource_attack_damage(target))
-	_reduce_equipped_tool_durability()
+	_reduce_current_hotbar_item_durability()
 
 
 func _get_combat_data() -> Dictionary:
@@ -618,18 +635,23 @@ func _get_combat_data() -> Dictionary:
 
 
 func _get_current_held_item_data() -> Dictionary:
-	var tool_id := _get_current_tool_item_id()
-	var content_db := get_node_or_null("/root/ContentDB")
-	if content_db != null and content_db.has_method("has_item") and content_db.has_item(tool_id):
-		return content_db.get_item(tool_id)
+	var tool_id := _get_current_held_item_id()
+	if tool_id.is_empty():
+		return _get_hands_held_item_data()
+
+	var item_data := _get_item_data(tool_id)
+	if not item_data.is_empty():
+		return item_data
 
 	return {
 		"id": tool_id,
+		"item_type": "tool",
+		"tool_type": "hands",
 		"combat": {
-			"attack_power": 4 if get_current_tool() == TOOL_AXE or get_current_tool() == TOOL_PICKAXE else 0,
+			"attack_power": 0,
 			"attack_variance": 0.15,
-			"can_hit_monsters": true,
-			"can_hit_resources": true,
+			"can_hit_monsters": false,
+			"can_hit_resources": false,
 		},
 	}
 
@@ -747,31 +769,10 @@ func _get_resource_attack_damage(resource_node: Node) -> int:
 	if item_tool_damage > 0:
 		return item_tool_damage
 
-	var current_tool := get_current_tool()
-	var resource_type_id := _get_target_resource_type_id(resource_node)
-	var drop_item_id := _get_target_drop_item_id(resource_node)
-	if current_tool == TOOL_AXE:
-		return TOOL_RESOURCE_DAMAGE if resource_type_id == "tree" or drop_item_id == "wood" else BASE_RESOURCE_DAMAGE
-	if current_tool == TOOL_PICKAXE:
-		return TOOL_RESOURCE_DAMAGE if resource_type_id == "rock" or drop_item_id == "stone" else BASE_RESOURCE_DAMAGE
-
 	return BASE_RESOURCE_DAMAGE
 
 
 func _current_item_can_hit(flag_name: String, default_value: bool) -> bool:
-	var eq_system = _get_equipment_system()
-	if eq_system != null:
-		var slot_id := "weapon" if flag_name.find("monster") >= 0 else "tool"
-		var slot_data = eq_system.get_equipped_slot(slot_id)
-		var item_id := str(slot_data.get("item_id", ""))
-		if not item_id.is_empty():
-			var content_db := get_node_or_null("/root/ContentDB")
-			if content_db != null and content_db.has_method("has_item") and content_db.has_item(item_id):
-				var item_data: Dictionary = content_db.get_item(item_id)
-				var combat_value: Variant = item_data.get("combat", {})
-				if combat_value is Dictionary:
-					var combat: Dictionary = combat_value
-					return bool(combat.get(flag_name, default_value))
 	var held_item_data := _get_current_held_item_data()
 	var combat_value: Variant = held_item_data.get("combat", {})
 	if combat_value is Dictionary:
@@ -781,19 +782,90 @@ func _current_item_can_hit(flag_name: String, default_value: bool) -> bool:
 
 
 func _get_current_tool_item_id() -> String:
-	var hotbar_item_id := _get_selected_hotbar_tool_item_id()
-	if not hotbar_item_id.is_empty():
+	return _get_current_held_item_id()
+
+
+func _get_current_held_item_id() -> String:
+	var hotbar_item_id := _get_hotbar_slot_item_id(current_hotbar_slot_index)
+	if hotbar_item_id.is_empty():
+		return ""
+
+	var hotbar_item_data := _get_item_data(hotbar_item_id)
+	if not _is_tool_or_weapon_item_data(hotbar_item_data):
+		return ""
+
+	if current_hotbar_item_id.is_empty():
 		return hotbar_item_id
 
+	if current_hotbar_item_id == hotbar_item_id:
+		return current_hotbar_item_id
+
+	return hotbar_item_id
+
+
+func _get_hotbar_slot_item_id(slot_index: int) -> String:
+	var slot_data := _get_hotbar_slot_data(slot_index)
+	if slot_data.is_empty():
+		return ""
+	return str(slot_data.get("item_id", ""))
+
+
+func _get_hotbar_slot_data(slot_index: int) -> Dictionary:
+	var inventory: Object = _get_player_inventory()
+	if inventory == null or not inventory.has_method("get_slot_count") or not inventory.has_method("get_slot"):
+		return {}
+	if slot_index < 0 or slot_index >= int(inventory.get_slot_count()):
+		return {}
+	var slot_data: Dictionary = inventory.get_slot(slot_index)
+	if not slot_data is Dictionary:
+		return {}
+	var item_id := str(slot_data.get("item_id", ""))
+	var amount := int(slot_data.get("amount", 0))
+	if item_id.is_empty() or amount <= 0:
+		return {}
+	return slot_data
+
+
+func _get_player_inventory() -> Variant:
 	var main := get_tree().get_first_node_in_group("main")
-	if main != null:
-		var eq_system = main.get("equipment_system")
-		if eq_system != null and eq_system.has_method("get_equipped_slot"):
-			var tool_slot: Dictionary = eq_system.get_equipped_slot("tool")
-			var item_id := str(tool_slot.get("item_id", ""))
-			if not item_id.is_empty():
-				return item_id
-	return get_current_tool().to_lower()
+	if main == null:
+		return null
+	return main.get("inventory")
+
+
+func _get_item_data(item_id: String) -> Dictionary:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
+		return {}
+	return content_db.get_item(item_id)
+
+
+func _get_item_display_name(item_id: String) -> String:
+	var item_data := _get_item_data(item_id)
+	if item_data.is_empty():
+		return item_id.capitalize()
+	return str(item_data.get("display_name", item_id.capitalize()))
+
+
+func _is_tool_or_weapon_item_data(item_data: Dictionary) -> bool:
+	var item_type := str(item_data.get("item_type", "")).to_lower()
+	return item_type == "tool" or item_type == "weapon"
+
+
+func _get_hands_held_item_data() -> Dictionary:
+	return {
+		"id": "Hands",
+		"item_type": "tool",
+		"tool_type": "hands",
+		"tool_tier": 1,
+		"tool_damage": 0,
+		"combat": {
+			"attack_power": 0,
+			"attack_variance": 0.15,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+		},
+	}
 
 
 func _get_selected_hotbar_tool_item_id() -> String:
@@ -854,95 +926,50 @@ func _get_equipped_slot_metadata(slot_id: String) -> Dictionary:
 	return meta if meta is Dictionary else {}
 
 
-func _is_equipped_tool_broken() -> bool:
-	var meta := _get_equipped_slot_metadata("tool")
-	var main := get_tree().get_first_node_in_group("main")
-	if main == null:
-		return false
-	var eq_system = main.get("equipment_system")
-	if eq_system == null:
-		return false
-	var tool_slot = eq_system.get_equipped_slot("tool")
-	if not tool_slot is Dictionary:
-		return false
-	var item_id := str(tool_slot.get("item_id", ""))
-	if item_id.is_empty():
-		return false
-	return ItemInstanceHelper.is_broken({"item_id": item_id, "metadata": meta})
-
-
-func _is_equipped_weapon_broken() -> bool:
-	var meta := _get_equipped_slot_metadata("weapon")
-	var main := get_tree().get_first_node_in_group("main")
-	if main == null:
-		return false
-	var eq_system = main.get("equipment_system")
-	if eq_system == null:
-		return false
-	var weapon_slot = eq_system.get_equipped_slot("weapon")
-	if not weapon_slot is Dictionary:
-		return false
-	var item_id := str(weapon_slot.get("item_id", ""))
-	if item_id.is_empty():
-		return false
-	return ItemInstanceHelper.is_broken({"item_id": item_id, "metadata": meta})
-
-
 func _get_slot_metadata_from_dict(slot: Dictionary) -> Dictionary:
 	var raw = slot.get("metadata", {})
 	return raw if raw is Dictionary else {}
 
 
-func _reduce_equipped_tool_durability() -> void:
-	var main := get_tree().get_first_node_in_group("main")
-	if main == null:
-		return
-	var eq_system = main.get("equipment_system")
-	if eq_system == null or not eq_system.has_method("get_equipped_slot") or not eq_system.has_method("set_equipped_slot"):
-		return
-	var tool_slot = eq_system.get_equipped_slot("tool")
-	if not tool_slot is Dictionary:
-		return
-	var item_id := str(tool_slot.get("item_id", ""))
+func _is_current_hotbar_item_broken() -> bool:
+	var item_id := _get_current_held_item_id()
+	if item_id.is_empty():
+		return false
+	var max_dura := ItemInstanceHelper.get_max_durability(item_id)
+	if max_dura <= 0:
+		return false
+	var meta := _get_current_hotbar_item_metadata()
+	return ItemInstanceHelper.is_broken({"item_id": item_id, "metadata": meta})
+
+
+func _reduce_current_hotbar_item_durability() -> void:
+	var item_id := _get_current_held_item_id()
 	if item_id.is_empty():
 		return
 	var max_dura := ItemInstanceHelper.get_max_durability(item_id)
 	if max_dura <= 0:
 		return
-	var meta: Dictionary = _get_slot_metadata_from_dict(tool_slot)
-	var current_dura: int = meta.get("current_durability", max_dura)
+	var inventory: Object = _get_player_inventory()
+	if inventory == null or not inventory.has_method("get_slot") or not inventory.has_method("set_slot_metadata"):
+		return
+	var slot_index := current_hotbar_slot_index
+	if slot_index < 0:
+		return
+	var slot_data: Dictionary = inventory.get_slot(slot_index)
+	if str(slot_data.get("item_id", "")) != item_id:
+		return
+	var meta := _get_current_hotbar_item_metadata()
+	var current_dura: int = int(meta.get("current_durability", max_dura))
 	if current_dura <= 0:
 		return
 	meta["current_durability"] = max(0, current_dura - 1)
-	tool_slot["metadata"] = meta
-	eq_system.set_equipped_slot("tool", tool_slot)
-	eq_system.changed.emit()
+	inventory.set_slot_metadata(slot_index, meta)
 
 
-func _reduce_equipped_weapon_durability() -> void:
-	var main := get_tree().get_first_node_in_group("main")
-	if main == null:
-		return
-	var eq_system = main.get("equipment_system")
-	if eq_system == null or not eq_system.has_method("get_equipped_slot") or not eq_system.has_method("set_equipped_slot"):
-		return
-	var weapon_slot = eq_system.get_equipped_slot("weapon")
-	if not weapon_slot is Dictionary:
-		return
-	var item_id := str(weapon_slot.get("item_id", ""))
-	if item_id.is_empty():
-		return
-	var max_dura := ItemInstanceHelper.get_max_durability(item_id)
-	if max_dura <= 0:
-		return
-	var meta: Dictionary = _get_slot_metadata_from_dict(weapon_slot)
-	var current_dura: int = meta.get("current_durability", max_dura)
-	if current_dura <= 0:
-		return
-	meta["current_durability"] = max(0, current_dura - 1)
-	weapon_slot["metadata"] = meta
-	eq_system.set_equipped_slot("weapon", weapon_slot)
-	eq_system.changed.emit()
+func _get_current_hotbar_item_metadata() -> Dictionary:
+	var slot_data := _get_hotbar_slot_data(current_hotbar_slot_index)
+	var meta = slot_data.get("metadata", {})
+	return meta if meta is Dictionary else {}
 
 
 func _play_hit_flash(flash_color: Color) -> void:

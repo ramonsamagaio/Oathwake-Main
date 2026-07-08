@@ -43,6 +43,9 @@ func get_equipment_bonus(equipment_system) -> Dictionary:
 		if content_db.has_method("has_item") and not content_db.has_item(item_id):
 			continue
 		var item_data: Dictionary = content_db.get_item(item_id)
+		var item_type := str(item_data.get("item_type", "")).to_lower()
+		if item_type == "tool" or item_type == "weapon":
+			continue
 
 		var item_stats: Dictionary = item_data.get("stats_bonus", {})
 		if item_stats is Dictionary:

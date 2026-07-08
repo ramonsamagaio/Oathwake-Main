@@ -85,6 +85,7 @@ func refresh() -> void:
 		_setup_slot(slot, entries[index])
 
 	_update_selection()
+	_apply_selected_hotbar_item_to_player()
 
 
 func _build_ui() -> void:
@@ -190,20 +191,22 @@ func _get_hotbar_entries() -> Array:
 
 
 func _apply_selected_hotbar_item_to_player() -> void:
-	if player == null or not player.has_method("set_current_tool"):
+	if player == null:
 		return
 	var entry := _get_hotbar_entry(selected_slot)
 	var item_id := str(entry.get("id", "")).to_lower()
+	if not player.has_method("set_current_hotbar_item"):
+		if player.has_method("set_current_tool"):
+			player.set_current_tool("Hands")
+		return
 	if item_id.is_empty():
+		player.set_current_hotbar_item("", selected_slot)
 		return
 	var item_data := _get_item_data(item_id)
-	var item_type := str(item_data.get("item_type", "")).to_lower()
-	var tool_type := str(item_data.get("tool_type", ""))
-	if item_type != "tool" and tool_type.is_empty():
+	if not _is_tool_or_weapon(item_data):
+		player.set_current_hotbar_item("", selected_slot)
 		return
-	if tool_type.is_empty():
-		return
-	player.set_current_tool(tool_type)
+	player.set_current_hotbar_item(item_id, selected_slot)
 
 
 func _get_item_display_name(item_id: String) -> String:
@@ -220,6 +223,11 @@ func _get_item_data(item_id: String) -> Dictionary:
 	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
 		return {}
 	return content_db.get_item(item_id)
+
+
+func _is_tool_or_weapon(item_data: Dictionary) -> bool:
+	var item_type := str(item_data.get("item_type", "")).to_lower()
+	return item_type == "tool" or item_type == "weapon"
 
 
 func _get_hotbar_entry(slot_index: int) -> Dictionary:

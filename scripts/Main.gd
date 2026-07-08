@@ -377,6 +377,7 @@ func save_game() -> void:
 		"world_items": _get_world_items_save_data(),
 		"unlocked_tools": player.get_unlocked_tools(),
 		"current_tool": player.get_current_tool(),
+		"selected_hotbar_slot": int(hotbar_ui.get("selected_slot")) if hotbar_ui != null else 0,
 		"player_progression": _get_player_progression_save_data(),
 		"respawn_point": _get_respawn_point_save_data(),
 		"settlement": settlement_manager.get_save_data(),
@@ -439,6 +440,10 @@ func load_game() -> void:
 	player.set_current_tool(str(save_data.get("current_tool", player.get_current_tool())))
 	_load_player_progression(save_data.get("player_progression", {}))
 	_load_respawn_point(save_data.get("respawn_point", {}))
+	if hotbar_ui != null:
+		hotbar_ui.refresh()
+		if hotbar_ui.has_method("select_slot"):
+			hotbar_ui.select_slot(int(save_data.get("selected_hotbar_slot", hotbar_ui.get("selected_slot"))))
 	housing_system.validate_houses(false)
 	settlement_manager.load_save_data(save_data.get("settlement", {}))
 	_update_settlement_labels()
@@ -478,14 +483,6 @@ func _update_xp_label_from_player(_level = null) -> void:
 
 func _update_tool_label(current_tool := "") -> void:
 	var display_tool := str(current_tool)
-	if equipment_system != null:
-		var tool_slot: Dictionary = equipment_system.get_equipped_slot("hand_right")
-		var item_id := str(tool_slot.get("item_id", ""))
-		if not item_id.is_empty():
-			var content_db := get_node_or_null("/root/ContentDB")
-			if content_db != null and content_db.has_method("has_item") and content_db.has_item(item_id):
-				var item_data: Dictionary = content_db.get_item(item_id)
-				display_tool = str(item_data.get("display_name", item_id.capitalize()))
 	tool_label.text = "Tool: %s" % display_tool
 	if hud_status_ui != null and hud_status_ui.has_method("set_current_tool"):
 		hud_status_ui.set_current_tool(display_tool)
