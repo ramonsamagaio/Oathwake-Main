@@ -9,6 +9,21 @@ func setup(new_hotbar_ui: Node, new_slot_index: int) -> void:
 	slot_index = new_slot_index
 
 
+func _gui_input(event: InputEvent) -> void:
+	if slot_index < 0:
+		return
+	if not event is InputEventMouseButton:
+		return
+	var mouse_event := event as InputEventMouseButton
+	if mouse_event.button_index != MOUSE_BUTTON_RIGHT or not mouse_event.pressed:
+		return
+	if hotbar_ui == null or not hotbar_ui.has_method("clear_hotbar_slot"):
+		return
+
+	hotbar_ui.call("clear_hotbar_slot", slot_index)
+	accept_event()
+
+
 func _get_drag_data(_at_position: Vector2) -> Variant:
 	if slot_index < 0:
 		return null

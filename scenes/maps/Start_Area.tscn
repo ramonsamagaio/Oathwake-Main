@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://start_area_manual_map"]
+
+[sub_resource type="TileSet" id="TileSet_ground64"]
+tile_size = Vector2i(64, 64)
+
+[sub_resource type="TileSet" id="TileSet_detail64"]
+tile_size = Vector2i(64, 64)
+
+[sub_resource type="TileSet" id="TileSet_path64"]
+tile_size = Vector2i(64, 64)
+
+[sub_resource type="TileSet" id="TileSet_build32"]
+tile_size = Vector2i(32, 32)
+
+[sub_resource type="TileSet" id="TileSet_wall32"]
+tile_size = Vector2i(32, 32)
+
+[sub_resource type="TileSet" id="TileSet_collision32"]
+tile_size = Vector2i(32, 32)
+
+[node name="Start_Area" type="Node2D"]
+
+[node name="Ground64Layer" type="TileMapLayer" parent="."]
+z_index = -30
+tile_set = SubResource("TileSet_ground64")
+
+[node name="GroundDetail64Layer" type="TileMapLayer" parent="."]
+z_index = -25
+tile_set = SubResource("TileSet_detail64")
+
+[node name="Path64Layer" type="TileMapLayer" parent="."]
+z_index = -20
+tile_set = SubResource("TileSet_path64")
+
+[node name="Build32Layer" type="TileMapLayer" parent="."]
+z_index = -10
+tile_set = SubResource("TileSet_build32")
+
+[node name="Wall32Layer" type="TileMapLayer" parent="."]
+z_index = -5
+tile_set = SubResource("TileSet_wall32")
+
+[node name="CollisionLayer" type="TileMapLayer" parent="."]
+tile_set = SubResource("TileSet_collision32")
+
+[node name="Props" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Resources" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Enemies" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="SpawnZones" type="Node2D" parent="."]
+
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+
+[node name="Notes" type="Label" parent="."]
+offset_left = 32.0
+offset_top = 32.0
+offset_right = 440.0
+offset_bottom = 144.0
+text = "Start_Area
+Mapa inicial manual.
+Ground = 64x64
+Build = 32x32
+Walls = 32x32
+Nao utilizar geracao procedural nesta cena."

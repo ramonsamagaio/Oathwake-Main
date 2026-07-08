@@ -202,6 +202,8 @@ func clear_hotbar_slot(slot_index: int) -> void:
 		return
 	hotbar_shortcuts[slot_index] = {}
 	refresh()
+	if slot_index == selected_slot:
+		_apply_selected_hotbar_item_to_player()
 
 
 func _build_ui() -> void:
