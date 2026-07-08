@@ -781,6 +781,10 @@ func _current_item_can_hit(flag_name: String, default_value: bool) -> bool:
 
 
 func _get_current_tool_item_id() -> String:
+	var hotbar_item_id := _get_selected_hotbar_tool_item_id()
+	if not hotbar_item_id.is_empty():
+		return hotbar_item_id
+
 	var main := get_tree().get_first_node_in_group("main")
 	if main != null:
 		var eq_system = main.get("equipment_system")
@@ -790,6 +794,43 @@ func _get_current_tool_item_id() -> String:
 			if not item_id.is_empty():
 				return item_id
 	return get_current_tool().to_lower()
+
+
+func _get_selected_hotbar_tool_item_id() -> String:
+	var main := get_tree().get_first_node_in_group("main")
+	if main == null:
+		return ""
+
+	var hotbar_ui = main.get("hotbar_ui")
+	if hotbar_ui == null:
+		return ""
+
+	var inventory = hotbar_ui.get("inventory")
+	if inventory == null or not inventory.has_method("get_slot"):
+		return ""
+
+	var selected_slot := int(hotbar_ui.get("selected_slot"))
+	if selected_slot < 0 or selected_slot >= inventory.get_slot_count():
+		return ""
+
+	var slot_data = inventory.get_slot(selected_slot)
+	if not slot_data is Dictionary:
+		return ""
+
+	var item_id := str(slot_data.get("item_id", ""))
+	if item_id.is_empty():
+		return ""
+
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
+		return ""
+
+	var item_data: Dictionary = content_db.get_item(item_id)
+	var tool_type := str(item_data.get("tool_type", ""))
+	if str(item_data.get("item_type", "")).to_lower() != "tool" and tool_type.is_empty():
+		return ""
+
+	return item_id
 
 
 func _get_equipment_system():

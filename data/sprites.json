@@ -64,25 +64,25 @@
 	},
 	"herb": {
 		"category": "item",
-		"columns": 1,
+		"columns": 1.0,
 		"display_name": "Herb",
-		"frame_height": 32,
+		"frame_height": 32.0,
 		"frame_size": {
-			"h": 32,
-			"w": 32
+			"h": 32.0,
+			"w": 32.0
 		},
-		"frame_width": 32,
+		"frame_width": 32.0,
 		"region": {
-			"h": 32,
-			"w": 32,
-			"x": 0,
-			"y": 0
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
 		},
 		"region_enabled": false,
-		"rows": 1,
+		"rows": 1.0,
 		"tags": [],
 		"texture_path": "res://assets/sprites/items/testes/herb.png",
-		"total_frames": 1,
+		"total_frames": 1.0,
 		"type": "single_sprite"
 	},
 	"player_base": {
@@ -279,5 +279,51 @@
 		"region_enabled": false,
 		"tags": [],
 		"texture_path": "res://assets/sprites/items/testes/wood_log_bundle.png"
+	},
+	"wooden_axe": {
+		"category": "item",
+		"columns": 1,
+		"display_name": "Wooden Axe",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/wooden_axe.png",
+		"total_frames": 1,
+		"type": "single_sprite"
+	},
+	"wooden_pickaxe": {
+		"category": "item",
+		"columns": 1,
+		"display_name": "Wooden Pickaxe",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/wooden_pickaxe.png",
+		"total_frames": 1,
+		"type": "single_sprite"
 	}
 }

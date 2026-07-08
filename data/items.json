@@ -161,7 +161,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 1.0,
-			"attack_power": 8.0,
+			"attack_power": 8,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -169,14 +169,14 @@
 			"crit_damage_bonus": 0.02,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 3.0,
-				"tree": 8.0
+				"rock": 3,
+				"tree": 8
 			},
 			"stat_scaling": {
 				"agi": 0.0,
 				"dex": 0.15,
 				"int": 0.0,
-				"luk": 0.06,
+				"luk": 0.05,
 				"str": 0.55,
 				"vit": 0.0,
 				"wis": 0.0
@@ -185,16 +185,28 @@
 		"crit_chance": 0.01,
 		"crit_power": 1.52,
 		"description": "A simple axe for chopping trees and fighting weak monsters.",
-		"display_name": "Axe",
-		"durability": 90.0,
+		"display_name": "Wooden Axe",
+		"durability": 90,
 		"equipment_slot": "tool",
 		"item_type": "tool",
+		"material_family": "misc",
 		"repair_cost_multiplier": 0.45,
-		"stack_size": 1.0,
-		"tier": 1.0,
-		"tool_damage": 8.0,
+		"sprite_id": "wooden_axe",
+		"stack_size": 1,
+		"stats_bonus": {
+			"agi": 0,
+			"dex": 0,
+			"int": 0,
+			"luk": 0,
+			"str": 0,
+			"vit": 0,
+			"wis": 0
+		},
+		"tags": [],
+		"tier": 1,
+		"tool_damage": 8,
 		"tool_speed": 1.0,
-		"tool_tier": 1.0,
+		"tool_tier": 1,
 		"tool_type": "axe"
 	},
 	"basic_gem": {
@@ -216,13 +228,13 @@
 		"item_type": "material",
 		"material_family": "herb",
 		"sprite_id": "herb",
-		"stack_size": 99,
+		"stack_size": 99.0,
 		"tags": [
 			"herb",
 			"alchemy",
 			"tier_1"
 		],
-		"tier": 1
+		"tier": 1.0
 	},
 	"berry": {
 		"description": "A tier 1 food used for crafting and progression.",
@@ -585,7 +597,7 @@
 		"can_repair": false,
 		"combat": {
 			"attack_cooldown_modifier": 1.0,
-			"attack_power": 2,
+			"attack_power": 2.0,
 			"attack_variance": 0.1,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -593,8 +605,8 @@
 			"crit_damage_bonus": 0.0,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 1,
-				"tree": 2
+				"rock": 1.0,
+				"tree": 2.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -610,27 +622,27 @@
 		"crit_power": 1.5,
 		"description": "Bare hands. Useful in a pinch.",
 		"display_name": "Hands",
-		"durability": 0,
+		"durability": 0.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"material_family": "misc",
 		"repair_cost_multiplier": 0.5,
 		"sprite_id": "hand",
-		"stack_size": 1,
+		"stack_size": 1.0,
 		"stats_bonus": {
-			"agi": 0,
-			"dex": 0,
-			"int": 0,
-			"luk": 0,
-			"str": 0,
-			"vit": 0,
-			"wis": 0
+			"agi": 0.0,
+			"dex": 0.0,
+			"int": 0.0,
+			"luk": 0.0,
+			"str": 0.0,
+			"vit": 0.0,
+			"wis": 0.0
 		},
 		"tags": [],
-		"tier": 1,
-		"tool_damage": 2,
+		"tier": 1.0,
+		"tool_damage": 2.0,
 		"tool_speed": 1.0,
-		"tool_tier": 1,
+		"tool_tier": 1.0,
 		"tool_type": "hands"
 	},
 	"iron_axe": {
@@ -942,7 +954,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 1.0,
-			"attack_power": 8.0,
+			"attack_power": 8,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -950,14 +962,14 @@
 			"crit_damage_bonus": 0.02,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 8.0,
-				"tree": 3.0
+				"rock": 8,
+				"tree": 3
 			},
 			"stat_scaling": {
 				"agi": 0.0,
 				"dex": 0.25,
 				"int": 0.0,
-				"luk": 0.06,
+				"luk": 0.05,
 				"str": 0.45,
 				"vit": 0.0,
 				"wis": 0.0
@@ -966,16 +978,28 @@
 		"crit_chance": 0.01,
 		"crit_power": 1.52,
 		"description": "A simple pickaxe for breaking rocks and fighting weak monsters.",
-		"display_name": "Pickaxe",
-		"durability": 90.0,
+		"display_name": "Wooden Pickaxe",
+		"durability": 90,
 		"equipment_slot": "tool",
 		"item_type": "tool",
+		"material_family": "misc",
 		"repair_cost_multiplier": 0.45,
-		"stack_size": 1.0,
-		"tier": 1.0,
-		"tool_damage": 8.0,
+		"sprite_id": "wooden_pickaxe",
+		"stack_size": 1,
+		"stats_bonus": {
+			"agi": 0,
+			"dex": 0,
+			"int": 0,
+			"luk": 0,
+			"str": 0,
+			"vit": 0,
+			"wis": 0
+		},
+		"tags": [],
+		"tier": 1,
+		"tool_damage": 8,
 		"tool_speed": 1.0,
-		"tool_tier": 1.0,
+		"tool_tier": 1,
 		"tool_type": "pickaxe"
 	},
 	"profaned_crystal": {

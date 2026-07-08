@@ -4,16 +4,11 @@ const SpriteResolver = preload("res://scripts/systems/SpriteResolver.gd")
 const UILayoutConfig = preload("res://scripts/ui/UILayoutConfig.gd")
 const UILayoutApplier = preload("res://scripts/ui/UILayoutApplier.gd")
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
+const HotbarSlotScript := preload("res://scripts/ui/HotbarSlot.gd")
 
 @export var slot_count: int = 10
 
 const HOTBAR_TEXTURE_PATH := "res://assets/ui/HUDUI/HOTBAR.png"
-const TOOL_ITEM_IDS := {
-	"axe": "Axe",
-	"pickaxe": "Pickaxe",
-	"hands": "Hands",
-}
-
 var inventory
 var player
 var selected_slot := 0
@@ -30,6 +25,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process_input(true)
 	set_process_unhandled_input(true)
+	add_to_group("hotbar_ui")
 	_build_ui()
 
 
@@ -109,13 +105,14 @@ func _build_ui() -> void:
 	UILayoutApplier.apply_texture_rect_from_layout(background, _layout, "hotbar.panel", panel_rect)
 
 	for index in range(slot_count):
-		var button := Button.new()
+		var button = HotbarSlotScript.new()
 		button.name = "Slot%02d" % (index + 1)
 		button.focus_mode = Control.FOCUS_NONE
 		button.clip_contents = true
 		button.text = ""
 		button.icon = null
 		button.expand_icon = false
+		button.setup(self, index)
 		button.pressed.connect(select_slot.bind(index))
 		var fallback_rect := Rect2(13 + index * 82, 9, 66, 60)
 		var slot_rect := _get_layout_rect("hotbar.slot_%02d" % (index + 1), fallback_rect)
@@ -195,13 +192,18 @@ func _get_hotbar_entries() -> Array:
 func _apply_selected_hotbar_item_to_player() -> void:
 	if player == null or not player.has_method("set_current_tool"):
 		return
-	var entries := _get_hotbar_entries()
-	if selected_slot < 0 or selected_slot >= entries.size():
-		return
-	var entry: Dictionary = entries[selected_slot]
+	var entry := _get_hotbar_entry(selected_slot)
 	var item_id := str(entry.get("id", "")).to_lower()
-	if TOOL_ITEM_IDS.has(item_id):
-		player.set_current_tool(str(TOOL_ITEM_IDS[item_id]))
+	if item_id.is_empty():
+		return
+	var item_data := _get_item_data(item_id)
+	var item_type := str(item_data.get("item_type", "")).to_lower()
+	var tool_type := str(item_data.get("tool_type", ""))
+	if item_type != "tool" and tool_type.is_empty():
+		return
+	if tool_type.is_empty():
+		return
+	player.set_current_tool(tool_type)
 
 
 func _get_item_display_name(item_id: String) -> String:
@@ -211,6 +213,87 @@ func _get_item_display_name(item_id: String) -> String:
 
 	var item_data: Dictionary = content_db.get_item(item_id)
 	return str(item_data.get("display_name", item_id.capitalize()))
+
+
+func _get_item_data(item_id: String) -> Dictionary:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
+		return {}
+	return content_db.get_item(item_id)
+
+
+func _get_hotbar_entry(slot_index: int) -> Dictionary:
+	if inventory == null or slot_index < 0 or slot_index >= slot_count:
+		return {}
+	var slot_data: Dictionary = inventory.get_slot(slot_index)
+	if not slot_data is Dictionary:
+		return {}
+
+	var item_id := str(slot_data.get("item_id", ""))
+	var amount := int(slot_data.get("amount", 0))
+	if item_id.is_empty() or amount <= 0:
+		return {}
+
+	return {
+		"type": "item",
+		"id": item_id,
+		"amount": amount,
+		"label": _get_item_display_name(item_id),
+	}
+
+
+func _get_hotbar_drag_data(slot_index: int) -> Variant:
+	var entry := _get_hotbar_entry(slot_index)
+	if entry.is_empty():
+		return null
+	return {
+		"type": "inventory_slot",
+		"slot_index": slot_index,
+		"inventory_id": "player",
+	}
+
+
+func _make_hotbar_drag_preview(slot_index: int) -> TextureRect:
+	var entry := _get_hotbar_entry(slot_index)
+	var item_id := str(entry.get("id", ""))
+	if item_id.is_empty():
+		return null
+
+	var preview := TextureRect.new()
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	preview.texture = sprite_resolver.get_texture_for_item(item_id)
+	preview.custom_minimum_size = Vector2(48, 48)
+	preview.size = Vector2(48, 48)
+	return preview
+
+
+func _can_drop_on_hotbar_slot(slot_index: int, data: Variant) -> bool:
+	if inventory == null or slot_index < 0 or slot_index >= slot_count:
+		return false
+	if not data is Dictionary:
+		return false
+	if str(data.get("type", "")) != "inventory_slot":
+		return false
+
+	var from_inventory_id := str(data.get("inventory_id", ""))
+	if from_inventory_id != "player":
+		return false
+
+	var from_index := int(data.get("slot_index", -1))
+	return inventory.has_method("get_slot") and from_index >= 0 and from_index < inventory.get_slot_count()
+
+
+func _drop_on_hotbar_slot(slot_index: int, data: Variant) -> void:
+	if not _can_drop_on_hotbar_slot(slot_index, data):
+		return
+
+	var from_index := int((data as Dictionary).get("slot_index", -1))
+	if from_index == slot_index:
+		return
+
+	inventory.move_slot(from_index, slot_index)
 
 
 func _get_slot_index_for_key(keycode: int) -> int:
