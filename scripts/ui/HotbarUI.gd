@@ -20,7 +20,7 @@ var _selected_overlay: ColorRect
 
 
 func _ready() -> void:
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mouse_filter = Control.MOUSE_FILTER_PASS
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process_input(true)
@@ -94,26 +94,29 @@ func _build_ui() -> void:
 
 	_hotbar_panel = Control.new()
 	_hotbar_panel.name = "HotbarPanel"
-	_hotbar_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hotbar_panel.mouse_filter = Control.MOUSE_FILTER_PASS
 	_apply_rect(_hotbar_panel, panel_rect)
 	add_child(_hotbar_panel)
 
 	var background := TextureRect.new()
 	background.name = "HotbarBackground"
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	background.z_index = 0
 	background.texture = _load_texture(HOTBAR_TEXTURE_PATH)
 	_hotbar_panel.add_child(background)
 	UILayoutApplier.apply_texture_rect_from_layout(background, _layout, "hotbar.panel", panel_rect)
 
 	for index in range(slot_count):
-		var button = HotbarSlotScript.new()
+		var button: Button = HotbarSlotScript.new() as Button
 		button.name = "Slot%02d" % (index + 1)
+		button.mouse_filter = Control.MOUSE_FILTER_STOP
 		button.focus_mode = Control.FOCUS_NONE
+		button.z_index = 20
 		button.clip_contents = true
 		button.text = ""
 		button.icon = null
 		button.expand_icon = false
-		button.setup(self, index)
+		button.call("setup", self, index)
 		button.pressed.connect(select_slot.bind(index))
 		var fallback_rect := Rect2(13 + index * 82, 9, 66, 60)
 		var slot_rect := _get_layout_rect("hotbar.slot_%02d" % (index + 1), fallback_rect)
@@ -130,7 +133,7 @@ func _build_ui() -> void:
 	_selected_overlay.name = "SelectedSlotOverlay"
 	_selected_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_selected_overlay.color = Color(1.0, 0.92, 0.45, 0.11)
-	_selected_overlay.z_index = 10
+	_selected_overlay.z_index = 30
 	_hotbar_panel.add_child(_selected_overlay)
 
 
@@ -278,19 +281,27 @@ func _make_hotbar_drag_preview(slot_index: int) -> TextureRect:
 
 
 func _can_drop_on_hotbar_slot(slot_index: int, data: Variant) -> bool:
-	if inventory == null or slot_index < 0 or slot_index >= slot_count:
-		return false
+	return _get_hotbar_drop_reject_reason(slot_index, data).is_empty()
+
+
+func _get_hotbar_drop_reject_reason(slot_index: int, data: Variant) -> String:
+	if inventory == null:
+		return "inventory is null"
+	if slot_index < 0 or slot_index >= slot_count:
+		return "target slot out of range"
 	if not data is Dictionary:
-		return false
-	if str(data.get("type", "")) != "inventory_slot":
-		return false
-
-	var from_inventory_id := str(data.get("inventory_id", ""))
-	if from_inventory_id != "player":
-		return false
-
-	var from_index := int(data.get("slot_index", -1))
-	return inventory.has_method("get_slot") and from_index >= 0 and from_index < inventory.get_slot_count()
+		return "drag data is not Dictionary"
+	var drop_data: Dictionary = data as Dictionary
+	if str(drop_data.get("type", "")) != "inventory_slot":
+		return "type is not inventory_slot"
+	if str(drop_data.get("inventory_id", "")) != "player":
+		return "inventory_id is not player"
+	if not inventory.has_method("get_slot") or not inventory.has_method("get_slot_count"):
+		return "inventory API missing"
+	var from_index := int(drop_data.get("slot_index", -1))
+	if from_index < 0 or from_index >= int(inventory.get_slot_count()):
+		return "source slot out of range"
+	return ""
 
 
 func _drop_on_hotbar_slot(slot_index: int, data: Variant) -> void:
@@ -299,9 +310,13 @@ func _drop_on_hotbar_slot(slot_index: int, data: Variant) -> void:
 
 	var from_index := int((data as Dictionary).get("slot_index", -1))
 	if from_index == slot_index:
+		select_slot(slot_index)
 		return
 
 	inventory.move_slot(from_index, slot_index)
+	select_slot(slot_index)
+	refresh()
+	_apply_selected_hotbar_item_to_player()
 
 
 func _get_slot_index_for_key(keycode: int) -> int:

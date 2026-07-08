@@ -26,8 +26,15 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	if hotbar_ui == null or not hotbar_ui.has_method("_can_drop_on_hotbar_slot"):
+		print_debug("HotbarSlot drop rejected: missing hotbar_ui/helper slot=%d data=%s" % [slot_index, str(data)])
 		return false
-	return bool(hotbar_ui.call("_can_drop_on_hotbar_slot", slot_index, data))
+	var can_drop: bool = bool(hotbar_ui.call("_can_drop_on_hotbar_slot", slot_index, data))
+	if not can_drop:
+		var reason := "unknown"
+		if hotbar_ui.has_method("_get_hotbar_drop_reject_reason"):
+			reason = str(hotbar_ui.call("_get_hotbar_drop_reject_reason", slot_index, data))
+		print_debug("HotbarSlot drop rejected: slot=%d reason=%s data=%s" % [slot_index, reason, str(data)])
+	return can_drop
 
 
 func _drop_data(_at_position: Vector2, data: Variant) -> void:
