@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://start_area_manual_map"]
+[gd_scene format=3 uid="uid://bq4778k4wgjok"]
 
 [sub_resource type="TileSet" id="TileSet_ground64"]
 tile_size = Vector2i(64, 64)
@@ -18,45 +18,45 @@ tile_size = Vector2i(32, 32)
 [sub_resource type="TileSet" id="TileSet_collision32"]
 tile_size = Vector2i(32, 32)
 
-[node name="Start_Area" type="Node2D"]
+[node name="Start_Area" type="Node2D" unique_id=782845865]
 
-[node name="Ground64Layer" type="TileMapLayer" parent="."]
+[node name="Ground64Layer" type="TileMapLayer" parent="." unique_id=680903275]
 z_index = -30
 tile_set = SubResource("TileSet_ground64")
 
-[node name="GroundDetail64Layer" type="TileMapLayer" parent="."]
+[node name="GroundDetail64Layer" type="TileMapLayer" parent="." unique_id=1640222671]
 z_index = -25
 tile_set = SubResource("TileSet_detail64")
 
-[node name="Path64Layer" type="TileMapLayer" parent="."]
+[node name="Path64Layer" type="TileMapLayer" parent="." unique_id=2121982727]
 z_index = -20
 tile_set = SubResource("TileSet_path64")
 
-[node name="Build32Layer" type="TileMapLayer" parent="."]
+[node name="Build32Layer" type="TileMapLayer" parent="." unique_id=738301013]
 z_index = -10
 tile_set = SubResource("TileSet_build32")
 
-[node name="Wall32Layer" type="TileMapLayer" parent="."]
+[node name="Wall32Layer" type="TileMapLayer" parent="." unique_id=1724645920]
 z_index = -5
 tile_set = SubResource("TileSet_wall32")
 
-[node name="CollisionLayer" type="TileMapLayer" parent="."]
+[node name="CollisionLayer" type="TileMapLayer" parent="." unique_id=1160477617]
 tile_set = SubResource("TileSet_collision32")
 
-[node name="Props" type="Node2D" parent="."]
+[node name="Props" type="Node2D" parent="." unique_id=297906407]
 y_sort_enabled = true
 
-[node name="Resources" type="Node2D" parent="."]
+[node name="Resources" type="Node2D" parent="." unique_id=1558006593]
 y_sort_enabled = true
 
-[node name="Enemies" type="Node2D" parent="."]
+[node name="Enemies" type="Node2D" parent="." unique_id=1200536666]
 y_sort_enabled = true
 
-[node name="SpawnZones" type="Node2D" parent="."]
+[node name="SpawnZones" type="Node2D" parent="." unique_id=395158889]
 
-[node name="PlayerSpawn" type="Marker2D" parent="."]
+[node name="PlayerSpawn" type="Marker2D" parent="." unique_id=170547260]
 
-[node name="Notes" type="Label" parent="."]
+[node name="Notes" type="Label" parent="." unique_id=1368911243]
 offset_left = 32.0
 offset_top = 32.0
 offset_right = 440.0
