@@ -22,7 +22,7 @@ var _selected_overlay: ColorRect
 
 
 func _ready() -> void:
-	mouse_filter = Control.MOUSE_FILTER_PASS
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process_input(true)
@@ -30,7 +30,6 @@ func _ready() -> void:
 	add_to_group("hotbar_ui")
 	_ensure_shortcut_count()
 	_build_ui()
-	call_deferred("_repair_inventory_mouse_filter")
 
 
 func _input(event: InputEvent) -> void:
@@ -457,12 +456,6 @@ func _is_build_mode_enabled() -> bool:
 func _is_crafting_open() -> bool:
 	var crafting_system = get_tree().get_first_node_in_group("crafting_system")
 	return crafting_system != null and crafting_system.has_method("is_crafting_open") and crafting_system.is_crafting_open()
-
-
-func _repair_inventory_mouse_filter() -> void:
-	var inventory_ui := get_tree().root.find_child("InventoryUI", true, false) as Control
-	if inventory_ui != null:
-		inventory_ui.mouse_filter = Control.MOUSE_FILTER_PASS
 
 
 func _ensure_shortcut_count() -> void:
