@@ -18,6 +18,7 @@ var hotbar_shortcuts := []
 var sprite_resolver := SpriteResolver.new()
 var _layout: Dictionary = {}
 var _hotbar_panel: Control
+var _drop_padding_area: Button
 var _selected_overlay: ColorRect
 
 
@@ -137,6 +138,16 @@ func assign_shortcut_from_inventory_slot(source_slot_index: int, target_hotbar_i
 	if item_id.is_empty() or amount <= 0:
 		return false
 
+	var existing_index := _find_shortcut_index_by_item_id(item_id)
+	if existing_index == target_hotbar_index:
+		if select_after_assign:
+			select_slot(target_hotbar_index)
+		else:
+			refresh()
+		return true
+	if existing_index >= 0:
+		hotbar_shortcuts[existing_index] = {}
+
 	hotbar_shortcuts[target_hotbar_index] = {
 		"item_id": item_id,
 		"source_slot_index": source_slot_index,
@@ -181,6 +192,10 @@ func find_shortcut_for_item(item_id: String) -> int:
 	return -1
 
 
+func _find_shortcut_index_by_item_id(item_id: String) -> int:
+	return find_shortcut_for_item(item_id)
+
+
 func clear_hotbar_slot(slot_index: int) -> void:
 	_ensure_shortcut_count()
 	if slot_index < 0 or slot_index >= slot_count:
@@ -206,6 +221,20 @@ func _build_ui() -> void:
 	background.texture = _load_texture(HOTBAR_TEXTURE_PATH)
 	_hotbar_panel.add_child(background)
 	UILayoutApplier.apply_texture_rect_from_layout(background, _layout, "hotbar.panel", panel_rect)
+
+	_drop_padding_area = HotbarSlotScript.new() as Button
+	_drop_padding_area.name = "DropPaddingArea"
+	_drop_padding_area.mouse_filter = Control.MOUSE_FILTER_STOP
+	_drop_padding_area.focus_mode = Control.FOCUS_NONE
+	_drop_padding_area.z_index = 10
+	_drop_padding_area.text = ""
+	_drop_padding_area.icon = null
+	_drop_padding_area.expand_icon = false
+	_drop_padding_area.position = Vector2.ZERO
+	_drop_padding_area.size = panel_rect.size
+	_drop_padding_area.call("setup", self, -1)
+	_hotbar_panel.add_child(_drop_padding_area)
+	_apply_transparent_button_style(_drop_padding_area)
 
 	for index in range(slot_count):
 		var button: Button = HotbarSlotScript.new() as Button
@@ -371,6 +400,8 @@ func _make_hotbar_drag_preview(slot_index: int) -> TextureRect:
 	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	preview.texture = sprite_resolver.get_texture_for_item(item_id)
+	preview.z_index = 1000
+	preview.top_level = true
 	preview.custom_minimum_size = Vector2(48, 48)
 	preview.size = Vector2(48, 48)
 	return preview
@@ -378,6 +409,16 @@ func _make_hotbar_drag_preview(slot_index: int) -> TextureRect:
 
 func _can_drop_on_hotbar_slot(slot_index: int, data: Variant) -> bool:
 	return _get_hotbar_drop_reject_reason(slot_index, data).is_empty()
+
+
+func _can_drop_on_hotbar_panel(data: Variant) -> bool:
+	if not data is Dictionary:
+		return false
+	var drop_data: Dictionary = data as Dictionary
+	var drop_type := str(drop_data.get("type", ""))
+	if drop_type == "hotbar_shortcut":
+		return true
+	return _get_hotbar_drop_reject_reason(0, data).is_empty()
 
 
 func _get_hotbar_drop_reject_reason(slot_index: int, data: Variant) -> String:
@@ -414,21 +455,54 @@ func _drop_on_hotbar_slot(slot_index: int, data: Variant) -> void:
 	var drop_type := str(drop_data.get("type", ""))
 	if drop_type == "hotbar_shortcut":
 		var from_hotbar_index := int(drop_data.get("hotbar_slot_index", -1))
-		if from_hotbar_index < 0 or from_hotbar_index >= slot_count:
-			return
-		if from_hotbar_index == slot_index:
-			select_slot(slot_index)
-			return
-		var temp = hotbar_shortcuts[slot_index]
-		hotbar_shortcuts[slot_index] = hotbar_shortcuts[from_hotbar_index]
-		hotbar_shortcuts[from_hotbar_index] = temp
-		select_slot(slot_index)
-		refresh()
+		_move_shortcut(from_hotbar_index, slot_index)
 		return
 
 	var from_index := int(drop_data.get("slot_index", -1))
 	if assign_shortcut_from_inventory_slot(from_index, slot_index, true):
 		refresh()
+
+
+func _drop_on_hotbar_panel(local_position: Vector2, data: Variant) -> void:
+	if not _can_drop_on_hotbar_panel(data):
+		return
+	var target_slot_index := _get_slot_index_at_panel_position(local_position)
+	if target_slot_index < 0:
+		return
+	_drop_on_hotbar_slot(target_slot_index, data)
+
+
+func _move_shortcut(from_hotbar_index: int, target_hotbar_index: int) -> bool:
+	_ensure_shortcut_count()
+	if from_hotbar_index < 0 or from_hotbar_index >= slot_count:
+		return false
+	if target_hotbar_index < 0 or target_hotbar_index >= slot_count:
+		return false
+	if from_hotbar_index == target_hotbar_index:
+		select_slot(target_hotbar_index)
+		return true
+
+	var source_shortcut = hotbar_shortcuts[from_hotbar_index]
+	if not source_shortcut is Dictionary or (source_shortcut as Dictionary).is_empty():
+		return false
+
+	var target_shortcut = hotbar_shortcuts[target_hotbar_index]
+	hotbar_shortcuts[target_hotbar_index] = source_shortcut
+	hotbar_shortcuts[from_hotbar_index] = target_shortcut
+	select_slot(target_hotbar_index)
+	refresh()
+	return true
+
+
+func _get_slot_index_at_panel_position(local_position: Vector2) -> int:
+	for index in range(slots.size()):
+		var slot := slots[index] as Control
+		if slot == null:
+			continue
+		var slot_rect := Rect2(slot.position, slot.size)
+		if slot_rect.has_point(local_position):
+			return index
+	return -1
 
 
 func _get_slot_index_for_key(keycode: int) -> int:

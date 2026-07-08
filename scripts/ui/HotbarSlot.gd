@@ -10,6 +10,8 @@ func setup(new_hotbar_ui: Node, new_slot_index: int) -> void:
 
 
 func _get_drag_data(_at_position: Vector2) -> Variant:
+	if slot_index < 0:
+		return null
 	if hotbar_ui == null or not hotbar_ui.has_method("_get_hotbar_drag_data"):
 		return null
 
@@ -25,6 +27,11 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 
 
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
+	if slot_index < 0:
+		if hotbar_ui == null or not hotbar_ui.has_method("_can_drop_on_hotbar_panel"):
+			return false
+		return bool(hotbar_ui.call("_can_drop_on_hotbar_panel", data))
+
 	if hotbar_ui == null or not hotbar_ui.has_method("_can_drop_on_hotbar_slot"):
 		print_debug("HotbarSlot drop rejected: missing hotbar_ui/helper slot=%d data=%s" % [slot_index, str(data)])
 		return false
@@ -37,7 +44,11 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	return can_drop
 
 
-func _drop_data(_at_position: Vector2, data: Variant) -> void:
+func _drop_data(at_position: Vector2, data: Variant) -> void:
+	if slot_index < 0:
+		if hotbar_ui != null and hotbar_ui.has_method("_drop_on_hotbar_panel"):
+			hotbar_ui.call("_drop_on_hotbar_panel", at_position, data)
+		return
 	if hotbar_ui == null or not hotbar_ui.has_method("_drop_on_hotbar_slot"):
 		return
 	hotbar_ui.call("_drop_on_hotbar_slot", slot_index, data)

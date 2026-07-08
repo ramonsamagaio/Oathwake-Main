@@ -111,6 +111,8 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	preview.texture = _item_icon.texture if _item_icon != null else null
+	preview.z_index = 1000
+	preview.top_level = true
 	preview.custom_minimum_size = Vector2(48, 48)
 	preview.size = Vector2(48, 48)
 	set_drag_preview(preview)

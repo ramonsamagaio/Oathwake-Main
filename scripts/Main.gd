@@ -378,6 +378,7 @@ func save_game() -> void:
 		"unlocked_tools": player.get_unlocked_tools(),
 		"current_tool": player.get_current_tool(),
 		"selected_hotbar_slot": int(hotbar_ui.get("selected_slot")) if hotbar_ui != null else 0,
+		"hotbar_shortcuts": hotbar_ui.get_hotbar_shortcuts() if hotbar_ui != null and hotbar_ui.has_method("get_hotbar_shortcuts") else [],
 		"player_progression": _get_player_progression_save_data(),
 		"respawn_point": _get_respawn_point_save_data(),
 		"settlement": settlement_manager.get_save_data(),
@@ -441,6 +442,8 @@ func load_game() -> void:
 	_load_player_progression(save_data.get("player_progression", {}))
 	_load_respawn_point(save_data.get("respawn_point", {}))
 	if hotbar_ui != null:
+		if hotbar_ui.has_method("set_hotbar_shortcuts"):
+			hotbar_ui.set_hotbar_shortcuts(save_data.get("hotbar_shortcuts", []))
 		hotbar_ui.refresh()
 		if hotbar_ui.has_method("select_slot"):
 			hotbar_ui.select_slot(int(save_data.get("selected_hotbar_slot", hotbar_ui.get("selected_slot"))))

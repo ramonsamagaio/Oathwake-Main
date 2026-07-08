@@ -517,12 +517,11 @@ func _get_hotbar_ui() -> Object:
 
 
 func _find_first_empty_hotbar_slot() -> int:
-	if inventory == null:
+	var hotbar_ui: Object = _get_hotbar_ui()
+	if hotbar_ui == null or not hotbar_ui.has_method("_get_shortcut_item_id"):
 		return -1
-	var upper: int = min(HOTBAR_SLOT_COUNT, int(inventory.get_slot_count()))
-	for index in range(upper):
-		var slot_data: Dictionary = inventory.get_slot(index)
-		if str(slot_data.get("item_id", "")).is_empty() or int(slot_data.get("amount", 0)) <= 0:
+	for index in range(HOTBAR_SLOT_COUNT):
+		if str(hotbar_ui.call("_get_shortcut_item_id", index)).is_empty():
 			return index
 	return -1
 
@@ -531,21 +530,27 @@ func _move_or_select_hotbar_item(slot_index: int) -> bool:
 	var hotbar_ui: Object = _get_hotbar_ui()
 	if hotbar_ui == null or inventory == null:
 		return false
+	if not hotbar_ui.has_method("assign_shortcut_from_inventory_slot"):
+		return false
 
-	if slot_index >= 0 and slot_index < HOTBAR_SLOT_COUNT:
-		if hotbar_ui.has_method("select_slot"):
-			hotbar_ui.select_slot(slot_index)
-		details_label.text = "Selected hotbar slot %d." % (slot_index + 1)
-		return true
+	var slot_data: Dictionary = inventory.get_slot(slot_index)
+	var item_id := str(slot_data.get("item_id", ""))
+	if item_id.is_empty() or int(slot_data.get("amount", 0)) <= 0:
+		return false
+
+	if hotbar_ui.has_method("find_shortcut_for_item"):
+		var existing_index := int(hotbar_ui.call("find_shortcut_for_item", item_id))
+		if existing_index >= 0:
+			hotbar_ui.call("assign_shortcut_from_inventory_slot", slot_index, existing_index, true)
+			details_label.text = "Selected hotbar slot %d." % (existing_index + 1)
+			return true
 
 	var target_index := _find_first_empty_hotbar_slot()
 	if target_index < 0:
 		details_label.text = "Hotbar full."
 		return false
 
-	inventory.move_slot(slot_index, target_index)
-	if hotbar_ui.has_method("select_slot"):
-		hotbar_ui.select_slot(target_index)
+	hotbar_ui.call("assign_shortcut_from_inventory_slot", slot_index, target_index, true)
 	details_label.text = "Moved to hotbar slot %d." % (target_index + 1)
 	refresh()
 	return true
