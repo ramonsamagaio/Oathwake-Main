@@ -9,10 +9,12 @@ const HotbarSlotScript := preload("res://scripts/ui/HotbarSlot.gd")
 @export var slot_count: int = 10
 
 const HOTBAR_TEXTURE_PATH := "res://assets/ui/HUDUI/HOTBAR.png"
+
 var inventory
 var player
 var selected_slot := 0
 var slots := []
+var hotbar_shortcuts := []
 var sprite_resolver := SpriteResolver.new()
 var _layout: Dictionary = {}
 var _hotbar_panel: Control
@@ -26,6 +28,7 @@ func _ready() -> void:
 	set_process_input(true)
 	set_process_unhandled_input(true)
 	add_to_group("hotbar_ui")
+	_ensure_shortcut_count()
 	_build_ui()
 
 
@@ -58,6 +61,7 @@ func _handle_hotbar_key_event(event: InputEvent) -> void:
 func setup(new_inventory, new_player) -> void:
 	inventory = new_inventory
 	player = new_player
+	_ensure_shortcut_count()
 	if inventory != null and inventory.has_signal("changed") and not inventory.changed.is_connected(refresh):
 		inventory.changed.connect(refresh)
 	if player != null and player.has_signal("tool_changed") and not player.tool_changed.is_connected(_on_player_tool_changed):
@@ -72,6 +76,7 @@ func select_slot(slot_index: int) -> void:
 
 
 func refresh() -> void:
+	_ensure_shortcut_count()
 	if slots.is_empty():
 		return
 
@@ -86,6 +91,102 @@ func refresh() -> void:
 
 	_update_selection()
 	_apply_selected_hotbar_item_to_player()
+
+
+func get_hotbar_shortcuts() -> Array:
+	_ensure_shortcut_count()
+	return hotbar_shortcuts.duplicate(true)
+
+
+func set_hotbar_shortcuts(shortcuts: Variant) -> void:
+	_ensure_shortcut_count()
+	for index in range(slot_count):
+		hotbar_shortcuts[index] = {}
+
+	if shortcuts is Array:
+		for index in range(min(shortcuts.size(), slot_count)):
+			var raw_entry: Variant = shortcuts[index]
+			if raw_entry is Dictionary:
+				var item_id := str(raw_entry.get("item_id", ""))
+				var source_slot := int(raw_entry.get("source_slot_index", -1))
+				if not item_id.is_empty():
+					hotbar_shortcuts[index] = {
+						"item_id": item_id,
+						"source_slot_index": source_slot,
+					}
+			elif raw_entry is String and not str(raw_entry).is_empty():
+				hotbar_shortcuts[index] = {
+					"item_id": str(raw_entry),
+					"source_slot_index": -1,
+				}
+	refresh()
+
+
+func assign_shortcut_from_inventory_slot(source_slot_index: int, target_hotbar_index: int, select_after_assign := true) -> bool:
+	_ensure_shortcut_count()
+	if inventory == null:
+		return false
+	if target_hotbar_index < 0 or target_hotbar_index >= slot_count:
+		return false
+	if source_slot_index < 0 or source_slot_index >= int(inventory.get_slot_count()):
+		return false
+
+	var source_slot: Dictionary = inventory.get_slot(source_slot_index)
+	var item_id := str(source_slot.get("item_id", ""))
+	var amount := int(source_slot.get("amount", 0))
+	if item_id.is_empty() or amount <= 0:
+		return false
+
+	hotbar_shortcuts[target_hotbar_index] = {
+		"item_id": item_id,
+		"source_slot_index": source_slot_index,
+	}
+	if select_after_assign:
+		select_slot(target_hotbar_index)
+	else:
+		refresh()
+	return true
+
+
+func assign_shortcut_to_first_available(source_slot_index: int, select_after_assign := true) -> int:
+	_ensure_shortcut_count()
+	if inventory == null:
+		return -1
+	var source_slot: Dictionary = inventory.get_slot(source_slot_index)
+	var item_id := str(source_slot.get("item_id", ""))
+	if item_id.is_empty() or int(source_slot.get("amount", 0)) <= 0:
+		return -1
+
+	var existing_index := find_shortcut_for_item(item_id)
+	if existing_index >= 0:
+		if select_after_assign:
+			select_slot(existing_index)
+		return existing_index
+
+	for index in range(slot_count):
+		if _get_shortcut_item_id(index).is_empty():
+			if assign_shortcut_from_inventory_slot(source_slot_index, index, select_after_assign):
+				return index
+	return -1
+
+
+func find_shortcut_for_item(item_id: String) -> int:
+	_ensure_shortcut_count()
+	var normalized_item_id := str(item_id)
+	if normalized_item_id.is_empty():
+		return -1
+	for index in range(slot_count):
+		if _get_shortcut_item_id(index) == normalized_item_id:
+			return index
+	return -1
+
+
+func clear_hotbar_slot(slot_index: int) -> void:
+	_ensure_shortcut_count()
+	if slot_index < 0 or slot_index >= slot_count:
+		return
+	hotbar_shortcuts[slot_index] = {}
+	refresh()
 
 
 func _build_ui() -> void:
@@ -145,11 +246,14 @@ func _setup_empty_slot(slot: Button) -> void:
 
 
 func _setup_slot(slot: Button, entry: Dictionary) -> void:
+	if entry.is_empty():
+		_setup_empty_slot(slot)
+		return
 	var entry_id := str(entry.get("id", ""))
 	var label := str(entry.get("label", entry_id.capitalize()))
 	var amount := int(entry.get("amount", 0))
 	slot.text = ""
-	slot.tooltip_text = label
+	slot.tooltip_text = "%s Shortcut" % label
 	_set_slot_icon(slot, sprite_resolver.get_texture_for_item(entry_id))
 	_set_slot_quantity_text(slot, str(amount) if amount > 1 else "")
 
@@ -168,48 +272,43 @@ func _update_selection() -> void:
 
 func _get_hotbar_entries() -> Array:
 	var entries := []
-	if inventory == null:
-		return entries
-
-	var inventory_slots: Array = inventory.get_hotbar_slots(slot_count)
-	for slot in inventory_slots:
-		if not slot is Dictionary:
-			entries.append({})
-			continue
-		var item_id := str(slot.get("item_id", ""))
-		var amount := int(slot.get("amount", 0))
-		if item_id.is_empty() or amount <= 0:
+	_ensure_shortcut_count()
+	for index in range(slot_count):
+		var shortcut_data := _get_shortcut_resolved_data(index)
+		var item_id := str(shortcut_data.get("item_id", ""))
+		if item_id.is_empty():
 			entries.append({})
 			continue
 		entries.append({
-			"type": "item",
+			"type": "shortcut",
 			"id": item_id,
-			"amount": amount,
+			"amount": _get_inventory_item_count(item_id),
 			"label": _get_item_display_name(item_id),
+			"source_slot_index": int(shortcut_data.get("source_slot_index", -1)),
 		})
-
-	while entries.size() < slot_count:
-		entries.append({})
-	return entries.slice(0, slot_count)
+	return entries
 
 
 func _apply_selected_hotbar_item_to_player() -> void:
 	if player == null:
 		return
-	var entry := _get_hotbar_entry(selected_slot)
-	var item_id := str(entry.get("id", "")).to_lower()
 	if not player.has_method("set_current_hotbar_item"):
 		if player.has_method("set_current_tool"):
 			player.set_current_tool("Hands")
 		return
+
+	var shortcut_data := _get_shortcut_resolved_data(selected_slot)
+	var item_id := str(shortcut_data.get("item_id", ""))
+	var source_slot_index := int(shortcut_data.get("source_slot_index", -1))
 	if item_id.is_empty():
-		player.set_current_hotbar_item("", selected_slot)
+		player.set_current_hotbar_item("", -1)
 		return
+
 	var item_data := _get_item_data(item_id)
 	if not _is_tool_or_weapon(item_data):
-		player.set_current_hotbar_item("", selected_slot)
+		player.set_current_hotbar_item("", -1)
 		return
-	player.set_current_hotbar_item(item_id, selected_slot)
+	player.set_current_hotbar_item(item_id, source_slot_index)
 
 
 func _get_item_display_name(item_id: String) -> String:
@@ -234,22 +333,18 @@ func _is_tool_or_weapon(item_data: Dictionary) -> bool:
 
 
 func _get_hotbar_entry(slot_index: int) -> Dictionary:
-	if inventory == null or slot_index < 0 or slot_index >= slot_count:
+	if slot_index < 0 or slot_index >= slot_count:
 		return {}
-	var slot_data: Dictionary = inventory.get_slot(slot_index)
-	if not slot_data is Dictionary:
+	var shortcut_data := _get_shortcut_resolved_data(slot_index)
+	var item_id := str(shortcut_data.get("item_id", ""))
+	if item_id.is_empty():
 		return {}
-
-	var item_id := str(slot_data.get("item_id", ""))
-	var amount := int(slot_data.get("amount", 0))
-	if item_id.is_empty() or amount <= 0:
-		return {}
-
 	return {
-		"type": "item",
+		"type": "shortcut",
 		"id": item_id,
-		"amount": amount,
+		"amount": _get_inventory_item_count(item_id),
 		"label": _get_item_display_name(item_id),
+		"source_slot_index": int(shortcut_data.get("source_slot_index", -1)),
 	}
 
 
@@ -258,9 +353,10 @@ func _get_hotbar_drag_data(slot_index: int) -> Variant:
 	if entry.is_empty():
 		return null
 	return {
-		"type": "inventory_slot",
-		"slot_index": slot_index,
-		"inventory_id": "player",
+		"type": "hotbar_shortcut",
+		"hotbar_slot_index": slot_index,
+		"item_id": str(entry.get("id", "")),
+		"source_slot_index": int(entry.get("source_slot_index", -1)),
 	}
 
 
@@ -285,15 +381,18 @@ func _can_drop_on_hotbar_slot(slot_index: int, data: Variant) -> bool:
 
 
 func _get_hotbar_drop_reject_reason(slot_index: int, data: Variant) -> String:
-	if inventory == null:
-		return "inventory is null"
 	if slot_index < 0 or slot_index >= slot_count:
 		return "target slot out of range"
 	if not data is Dictionary:
 		return "drag data is not Dictionary"
 	var drop_data: Dictionary = data as Dictionary
-	if str(drop_data.get("type", "")) != "inventory_slot":
+	var drop_type := str(drop_data.get("type", ""))
+	if drop_type == "hotbar_shortcut":
+		return ""
+	if drop_type != "inventory_slot":
 		return "type is not inventory_slot"
+	if inventory == null:
+		return "inventory is null"
 	if str(drop_data.get("inventory_id", "")) != "player":
 		return "inventory_id is not player"
 	if not inventory.has_method("get_slot") or not inventory.has_method("get_slot_count"):
@@ -301,6 +400,9 @@ func _get_hotbar_drop_reject_reason(slot_index: int, data: Variant) -> String:
 	var from_index := int(drop_data.get("slot_index", -1))
 	if from_index < 0 or from_index >= int(inventory.get_slot_count()):
 		return "source slot out of range"
+	var source_slot: Dictionary = inventory.get_slot(from_index)
+	if str(source_slot.get("item_id", "")).is_empty() or int(source_slot.get("amount", 0)) <= 0:
+		return "source slot empty"
 	return ""
 
 
@@ -308,15 +410,25 @@ func _drop_on_hotbar_slot(slot_index: int, data: Variant) -> void:
 	if not _can_drop_on_hotbar_slot(slot_index, data):
 		return
 
-	var from_index := int((data as Dictionary).get("slot_index", -1))
-	if from_index == slot_index:
+	var drop_data: Dictionary = data as Dictionary
+	var drop_type := str(drop_data.get("type", ""))
+	if drop_type == "hotbar_shortcut":
+		var from_hotbar_index := int(drop_data.get("hotbar_slot_index", -1))
+		if from_hotbar_index < 0 or from_hotbar_index >= slot_count:
+			return
+		if from_hotbar_index == slot_index:
+			select_slot(slot_index)
+			return
+		var temp = hotbar_shortcuts[slot_index]
+		hotbar_shortcuts[slot_index] = hotbar_shortcuts[from_hotbar_index]
+		hotbar_shortcuts[from_hotbar_index] = temp
 		select_slot(slot_index)
+		refresh()
 		return
 
-	inventory.move_slot(from_index, slot_index)
-	select_slot(slot_index)
-	refresh()
-	_apply_selected_hotbar_item_to_player()
+	var from_index := int(drop_data.get("slot_index", -1))
+	if assign_shortcut_from_inventory_slot(from_index, slot_index, true):
+		refresh()
 
 
 func _get_slot_index_for_key(keycode: int) -> int:
@@ -332,7 +444,8 @@ func _get_slot_index_for_key(keycode: int) -> int:
 
 
 func _on_player_tool_changed(_tool_name: String) -> void:
-	refresh()
+	# Tool label changes should not mutate hotbar shortcuts.
+	pass
 
 
 func _is_build_mode_enabled() -> bool:
@@ -343,6 +456,74 @@ func _is_build_mode_enabled() -> bool:
 func _is_crafting_open() -> bool:
 	var crafting_system = get_tree().get_first_node_in_group("crafting_system")
 	return crafting_system != null and crafting_system.has_method("is_crafting_open") and crafting_system.is_crafting_open()
+
+
+func _ensure_shortcut_count() -> void:
+	while hotbar_shortcuts.size() < slot_count:
+		hotbar_shortcuts.append({})
+	while hotbar_shortcuts.size() > slot_count:
+		hotbar_shortcuts.pop_back()
+
+
+func _get_shortcut_item_id(slot_index: int) -> String:
+	var data := _get_shortcut_resolved_data(slot_index)
+	return str(data.get("item_id", ""))
+
+
+func _get_shortcut_resolved_data(slot_index: int) -> Dictionary:
+	_ensure_shortcut_count()
+	if inventory == null or slot_index < 0 or slot_index >= slot_count:
+		return {}
+	var shortcut = hotbar_shortcuts[slot_index]
+	if not shortcut is Dictionary:
+		return {}
+	var item_id := str(shortcut.get("item_id", ""))
+	if item_id.is_empty():
+		return {}
+
+	var source_slot_index := int(shortcut.get("source_slot_index", -1))
+	if _inventory_slot_contains_item(source_slot_index, item_id):
+		return {
+			"item_id": item_id,
+			"source_slot_index": source_slot_index,
+		}
+
+	var found_index := _find_inventory_slot_with_item(item_id)
+	if found_index >= 0:
+		hotbar_shortcuts[slot_index] = {
+			"item_id": item_id,
+			"source_slot_index": found_index,
+		}
+		return {
+			"item_id": item_id,
+			"source_slot_index": found_index,
+		}
+
+	return {}
+
+
+func _inventory_slot_contains_item(slot_index: int, item_id: String) -> bool:
+	if inventory == null or slot_index < 0 or slot_index >= int(inventory.get_slot_count()):
+		return false
+	var slot_data: Dictionary = inventory.get_slot(slot_index)
+	return str(slot_data.get("item_id", "")) == item_id and int(slot_data.get("amount", 0)) > 0
+
+
+func _find_inventory_slot_with_item(item_id: String) -> int:
+	if inventory == null or item_id.is_empty():
+		return -1
+	for index in range(int(inventory.get_slot_count())):
+		if _inventory_slot_contains_item(index, item_id):
+			return index
+	return -1
+
+
+func _get_inventory_item_count(item_id: String) -> int:
+	if inventory == null or item_id.is_empty():
+		return 0
+	if inventory.has_method("get_count"):
+		return int(inventory.get_count(item_id))
+	return 1 if _find_inventory_slot_with_item(item_id) >= 0 else 0
 
 
 func _get_layout_rect(element_id: String, fallback: Rect2) -> Rect2:
