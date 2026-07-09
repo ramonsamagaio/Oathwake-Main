@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://bb1idt5430v2i"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_04jhq"]
+particle_flag_disable_z = true
+gravity = Vector3(0, 98, 0)
+
+[node name="Ramonnosefeitos" type="Node2D" unique_id=1724169389]
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="." unique_id=1294641887]
+amount = 12
+amount_ratio = 0.895
+process_material = SubResource("ParticleProcessMaterial_04jhq")

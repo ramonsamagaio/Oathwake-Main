@@ -3,12 +3,17 @@
 [ext_resource type="Texture2D" uid="uid://bvw4l75jta7r4" path="res://assets/sprites/CENA_ALTAR/CENA_BASE.png" id="1_oqrps"]
 [ext_resource type="Texture2D" uid="uid://ctaj8q1fxojur" path="res://assets/sprites/CENA_ALTAR/brazier_glow_04_64x64.png" id="2_7j610"]
 [ext_resource type="PackedScene" uid="uid://ymv83dmtwlri" path="res://scenes/effects/purple_fire.tscn" id="3_7j610"]
-[ext_resource type="PackedScene" path="res://scenes/effects/EmberEmitter.tscn" id="4_np1dp"]
-
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_hkmm0"]
-blend_mode = 1
+[ext_resource type="PackedScene" path="res://scenes/effects/PurpleEmberEmitterNative.tscn" id="4_7tsrx"]
+[ext_resource type="PackedScene" path="res://scenes/effects/DivineFlashOverlay.tscn" id="6_ixxux"]
+[ext_resource type="PackedScene" path="res://scenes/effects/PurpleMistEmitterNative.tscn" id="7_61ns1"]
+[ext_resource type="PackedScene" path="res://scenes/effects/GlowOverlay.tscn" id="8_gtvji"]
+[ext_resource type="PackedScene" path="res://scenes/effects/FireflyAreaNative.tscn" id="9_xleuk"]
+[ext_resource type="Texture2D" uid="uid://mlcxx48jp8ed" path="res://resources/effects/textures/soft_light_radial.tres" id="10_7j0d3"]
+[ext_resource type="PackedScene" path="res://scenes/effects/VignetteOverlay.tscn" id="11_u2c4w"]
+[ext_resource type="PackedScene" path="res://scenes/effects/BossTempleCanvasModulate.tscn" id="12_61ns1"]
 
 [node name="DemoAltar" type="Node2D" unique_id=271027864]
+position = Vector2(0, 3)
 
 [node name="CenaBase" type="Sprite2D" parent="." unique_id=605102776]
 position = Vector2(798.12, 452.35)
@@ -24,10 +29,17 @@ texture = ExtResource("2_7j610")
 position = Vector2(-0.9999695, -46)
 scale = Vector2(1.5, 1.5)
 
-[node name="EmberEmitter" parent="BrazierGlow0464x64" unique_id=851281038 instance=ExtResource("4_np1dp")]
-material = SubResource("CanvasItemMaterial_hkmm0")
-position = Vector2(0, -22)
-color_palette = PackedColorArray(1, 0.9, 0.38, 1, 1, 0.48, 0.12, 1, 0.9, 0.28, 0.08, 1, 0.45, 0.08, 0.04, 1)
+[node name="PurpleEmberEmitterNative" parent="BrazierGlow0464x64" unique_id=2025229267 instance=ExtResource("4_7tsrx")]
+position = Vector2(-1, -18)
+scale = Vector2(0.565, 0.565)
+skew = -0.006981317
+amount = 209
+lifetime = 5.21
+collision_base_size = 9.11
+
+[node name="GlowOverlay2" parent="BrazierGlow0464x64" unique_id=817467645 instance=ExtResource("8_gtvji")]
+position = Vector2(0, -24)
+glow_color = Color(0.39763618, 0.0015374887, 0.63393474, 1)
 
 [node name="BrazierGlow0464x65" type="Sprite2D" parent="." unique_id=973143972]
 position = Vector2(986, 651)
@@ -52,3 +64,90 @@ texture = ExtResource("2_7j610")
 [node name="PurpleFire" parent="BrazierGlow0464x67" unique_id=1801976914 instance=ExtResource("3_7j610")]
 position = Vector2(-0.9999695, -46)
 scale = Vector2(1.5, 1.5)
+
+[node name="FlashOverlay" parent="." unique_id=963887062 instance=ExtResource("6_ixxux")]
+
+[node name="PurpleMistEmitterNative" parent="." unique_id=705890401 instance=ExtResource("7_61ns1")]
+position = Vector2(743.00006, 463)
+scale = Vector2(5.605, 5.605)
+amount = 106
+
+[node name="GlowOverlay" parent="." unique_id=1833688845 instance=ExtResource("8_gtvji")]
+position = Vector2(719, 85)
+intensity = 0.6
+alpha = 0.4
+scale_multiplier = 0.25
+flicker_enabled = true
+flicker_amount = 0.15
+flicker_speed = 2.6999999999999997
+
+[node name="FireflyAreaNative" parent="." unique_id=445461717 instance=ExtResource("9_xleuk")]
+position = Vector2(711, 465)
+scale = Vector2(7.365, 7.365)
+amount = 206
+lifetime = 5.45
+speed_scale = 0.4
+trail_lifetime = 7.3
+
+[node name="LUZES" type="Node2D" parent="." unique_id=2003268375]
+
+[node name="PointLight2D_Brazier_01" type="PointLight2D" parent="LUZES" unique_id=804972582]
+position = Vector2(744, 204)
+color = Color(1, 0.42, 0.18, 1)
+energy = 1.65
+shadow_enabled = true
+shadow_color = Color(0, 0, 0, 0.42)
+texture = ExtResource("10_7j0d3")
+texture_scale = 1.55
+
+[node name="PointLight2D_Brazier_02" type="PointLight2D" parent="LUZES" unique_id=614199833]
+position = Vector2(270, 256)
+color = Color(1, 0.42, 0.18, 1)
+energy = 0.9
+shadow_enabled = true
+shadow_color = Color(0, 0, 0, 0.42)
+texture = ExtResource("10_7j0d3")
+texture_scale = 1.55
+
+[node name="PointLight2D_Brazier_05" type="PointLight2D" parent="LUZES" unique_id=1624845255]
+position = Vector2(1221, 220)
+color = Color(1, 0.42, 0.18, 1)
+energy = 0.9
+shadow_enabled = true
+shadow_color = Color(0, 0, 0, 0.42)
+texture = ExtResource("10_7j0d3")
+texture_scale = 1.55
+
+[node name="PointLight2D_Brazier_03" type="PointLight2D" parent="LUZES" unique_id=774049100]
+position = Vector2(118, 452)
+color = Color(0.76, 0.18, 1, 1)
+energy = 1.37
+shadow_enabled = true
+shadow_color = Color(0, 0, 0, 0.46)
+texture = ExtResource("10_7j0d3")
+texture_scale = 1.25
+
+[node name="PointLight2D_Brazier_04" type="PointLight2D" parent="LUZES" unique_id=1057436876]
+position = Vector2(1399, 455)
+color = Color(0.76, 0.18, 1, 1)
+energy = 1.77
+shadow_enabled = true
+shadow_color = Color(0, 0, 0, 0.46)
+texture = ExtResource("10_7j0d3")
+texture_scale = 1.25
+
+[node name="PointLight2D_Altar_Core" type="PointLight2D" parent="LUZES" unique_id=1583725979]
+position = Vector2(756, 833)
+color = Color(0.48, 0.12, 0.95, 1)
+energy = 0.62
+shadow_enabled = true
+shadow_color = Color(0, 0, 0, 0.55)
+texture = ExtResource("10_7j0d3")
+texture_scale = 2.05
+
+[node name="VignetteOverlay" parent="." unique_id=2040243774 instance=ExtResource("11_u2c4w")]
+
+[node name="BossTempleCanvasModulate" parent="." unique_id=151819919 instance=ExtResource("12_61ns1")]
+modulate = Color(0.55455405, 0.554554, 0.5545539, 1)
+self_modulate = Color(0.12591085, 0.12591085, 0.12591082, 1)
+color = Color(0.72305477, 0.73235714, 0.7104731, 1)

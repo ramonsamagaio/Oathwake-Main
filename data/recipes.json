@@ -1,429 +1,434 @@
 {
-	"wall": {
-		"display_name": "Wall",
-		"type": "building",
-		"tier": 1,
-		"workstation": "basic",
-		"cost": {
-			"wood": 1
-		}
-	},
-	"campfire": {
-		"display_name": "Campfire",
-		"type": "building",
-		"tier": 1,
-		"workstation": "basic",
-		"cost": {
-			"wood": 3,
-			"stone": 1
-		}
-	},
-	"workbench": {
-		"display_name": "Workbench",
-		"type": "building",
-		"tier": 1,
-		"workstation": "basic",
-		"cost": {
-			"wood": 5,
-			"stone": 2
-		}
-	},
-	"bed": {
-		"display_name": "Bed",
-		"type": "building",
-		"tier": 1,
-		"workstation": "basic",
-		"cost": {
-			"wood": 6,
-			"gel": 2
-		}
-	},
-	"chest": {
-		"display_name": "Chest",
-		"type": "building",
-		"tier": 1,
-		"workstation": "workbench",
-		"output_item_id": "chest",
-		"output_amount": 1,
-		"scene_path": "res://scenes/buildings/Chest.tscn",
-		"cost": {
-			"wood": 10,
-			"stone": 2
-		},
-		"placement_cost": {
-			"chest": 1
-		}
-	},
-	"oak_chest": {
-		"display_name": "Oak Chest",
-		"type": "building",
-		"tier": 2,
-		"workstation": "workbench",
-		"output_item_id": "oak_chest",
-		"output_amount": 1,
-		"scene_path": "res://scenes/buildings/Chest.tscn",
-		"cost": {
-			"oak_wood": 10,
-			"stone": 4
-		},
-		"placement_cost": {
-			"oak_chest": 1
-		}
-	},
-	"ash_chest": {
-		"display_name": "Ash Chest",
-		"type": "building",
-		"tier": 3,
-		"workstation": "workbench",
-		"output_item_id": "ash_chest",
-		"output_amount": 1,
-		"scene_path": "res://scenes/buildings/Chest.tscn",
-		"cost": {
-			"ash_wood": 10,
-			"bronze_ingot": 2
-		},
-		"placement_cost": {
-			"ash_chest": 1
-		}
-	},
-	"maple_chest": {
-		"display_name": "Maple Chest",
-		"type": "building",
-		"tier": 4,
-		"workstation": "workbench",
-		"output_item_id": "maple_chest",
-		"output_amount": 1,
-		"scene_path": "res://scenes/buildings/Chest.tscn",
-		"cost": {
-			"maple_wood": 10,
-			"iron_ingot": 2
-		},
-		"placement_cost": {
-			"maple_chest": 1
-		}
-	},
-	"walnut_chest": {
-		"display_name": "Walnut Chest",
-		"type": "building",
-		"tier": 5,
-		"workstation": "workbench",
-		"output_item_id": "walnut_chest",
-		"output_amount": 1,
-		"scene_path": "res://scenes/buildings/Chest.tscn",
-		"cost": {
-			"walnut_wood": 10,
-			"steel_ingot": 2
-		},
-		"placement_cost": {
-			"walnut_chest": 1
-		}
-	},
-	"ebony_chest": {
-		"display_name": "Ebony Chest",
-		"type": "building",
-		"tier": 6,
-		"workstation": "workbench",
-		"output_item_id": "ebony_chest",
-		"output_amount": 1,
-		"scene_path": "res://scenes/buildings/Chest.tscn",
-		"cost": {
-			"ebony_wood": 10,
-			"titanium_ingot": 2
-		},
-		"placement_cost": {
-			"ebony_chest": 1
-		}
-	},
-	"ironwood_chest": {
-		"display_name": "Ironwood Chest",
-		"type": "building",
-		"tier": 7,
-		"workstation": "workbench",
-		"output_item_id": "ironwood_chest",
-		"output_amount": 1,
-		"scene_path": "res://scenes/buildings/Chest.tscn",
-		"cost": {
-			"ironwood": 10,
-			"adamantite_ingot": 2
-		},
-		"placement_cost": {
-			"ironwood_chest": 1
-		}
-	},
-	"axe": {
-		"display_name": "Axe",
-		"type": "tool",
-		"tier": 1,
-		"workstation": "workbench",
-		"output_item_id": "axe",
-		"output_amount": 1,
-		"cost": {
-			"wood": 3,
-			"stone": 1
-		}
-	},
-	"pickaxe": {
-		"display_name": "Pickaxe",
-		"type": "tool",
-		"tier": 1,
-		"workstation": "workbench",
-		"output_item_id": "pickaxe",
-		"output_amount": 1,
-		"cost": {
-			"wood": 2,
-			"stone": 3
-		}
-	},
-	"wood_axe": {
-		"display_name": "Wood Axe",
-		"type": "tool",
-		"tier": 1,
-		"workstation": "workbench",
-		"output_item_id": "wood_axe",
-		"output_amount": 1,
-		"cost": {
-			"wood": 5,
-			"fiber": 2
-		}
-	},
-	"wood_pickaxe": {
-		"display_name": "Wood Pickaxe",
-		"type": "tool",
-		"tier": 1,
-		"workstation": "workbench",
-		"output_item_id": "wood_pickaxe",
-		"output_amount": 1,
-		"cost": {
-			"wood": 5,
-			"stone": 2
-		}
-	},
-	"stone_axe": {
-		"display_name": "Stone Axe",
-		"type": "tool",
-		"tier": 2,
-		"workstation": "workbench",
-		"output_item_id": "stone_axe",
-		"output_amount": 1,
-		"cost": {
-			"wood": 4,
-			"stone": 6,
-			"fiber": 2
-		}
-	},
-	"stone_pickaxe": {
-		"display_name": "Stone Pickaxe",
-		"type": "tool",
-		"tier": 2,
-		"workstation": "workbench",
-		"output_item_id": "stone_pickaxe",
-		"output_amount": 1,
-		"cost": {
-			"wood": 4,
-			"stone": 8,
-			"fiber": 2
-		}
-	},
-	"fiber_cloth": {
-		"display_name": "Fiber Cloth",
-		"type": "material",
-		"tier": 1,
-		"workstation": "workbench",
-		"output_item_id": "fiber_cloth",
-		"output_amount": 1,
-		"cost": {
-			"fiber": 3
-		}
-	},
-	"linen": {
-		"display_name": "Linen",
-		"type": "material",
-		"tier": 2,
-		"workstation": "workbench",
-		"output_item_id": "linen",
-		"output_amount": 1,
-		"cost": {
-			"fiber_cloth": 2,
-			"oak_wood": 1
-		}
-	},
-	"cloth_armor": {
-		"display_name": "Cloth Armor",
-		"type": "armor",
-		"tier": 1,
-		"workstation": "workbench",
-		"output_item_id": "cloth_armor",
-		"output_amount": 1,
-		"cost": {
-			"fiber": 8,
-			"fiber_cloth": 2
-		}
-	},
-	"linen_armor": {
-		"display_name": "Linen Armor",
-		"type": "armor",
-		"tier": 2,
-		"workstation": "workbench",
-		"output_item_id": "linen_armor",
-		"output_amount": 1,
-		"cost": {
-			"fiber_cloth": 3,
-			"linen": 4
-		}
-	},
-	"wooden_sword": {
-		"display_name": "Wooden Sword",
-		"type": "weapon",
-		"tier": 1,
-		"workstation": "workbench",
-		"output_item_id": "wooden_sword",
-		"output_amount": 1,
-		"cost": {
-			"wood": 6,
-			"fiber": 2
-		}
-	},
-	"stone_sword": {
-		"display_name": "Stone Sword",
-		"type": "weapon",
-		"tier": 2,
-		"workstation": "workbench",
-		"output_item_id": "stone_sword",
-		"output_amount": 1,
-		"cost": {
-			"wood": 3,
-			"stone": 6,
-			"fiber": 2
-		}
-	},
-	"bronze_axe": {
-		"display_name": "Bronze Axe",
-		"type": "tool",
-		"tier": 3,
-		"workstation": "anvil",
-		"output_item_id": "bronze_axe",
-		"output_amount": 1,
-		"cost": {
-			"ash_wood": 3,
-			"bronze_ingot": 6,
-			"fiber": 2
-		}
-	},
-	"bronze_pickaxe": {
-		"display_name": "Bronze Pickaxe",
-		"type": "tool",
-		"tier": 3,
-		"workstation": "anvil",
-		"output_item_id": "bronze_pickaxe",
-		"output_amount": 1,
-		"cost": {
-			"ash_wood": 3,
-			"bronze_ingot": 6,
-			"fiber": 2
-		}
-	},
-	"iron_axe": {
-		"display_name": "Iron Axe",
-		"type": "tool",
-		"tier": 4,
-		"workstation": "anvil",
-		"output_item_id": "iron_axe",
-		"output_amount": 1,
-		"cost": {
-			"maple_wood": 3,
-			"iron_ingot": 6,
-			"linen": 2
-		}
-	},
-	"iron_pickaxe": {
-		"display_name": "Iron Pickaxe",
-		"type": "tool",
-		"tier": 4,
-		"workstation": "anvil",
-		"output_item_id": "iron_pickaxe",
-		"output_amount": 1,
-		"cost": {
-			"maple_wood": 3,
-			"iron_ingot": 6,
-			"linen": 2
-		}
-	},
-	"steel_axe": {
-		"display_name": "Steel Axe",
-		"type": "tool",
-		"tier": 5,
-		"workstation": "anvil",
-		"output_item_id": "steel_axe",
-		"output_amount": 1,
-		"cost": {
-			"walnut_wood": 3,
-			"steel_ingot": 6,
-			"reinforced_cloth": 2
-		}
-	},
-	"steel_pickaxe": {
-		"display_name": "Steel Pickaxe",
-		"type": "tool",
-		"tier": 5,
-		"workstation": "anvil",
-		"output_item_id": "steel_pickaxe",
-		"output_amount": 1,
-		"cost": {
-			"walnut_wood": 3,
-			"steel_ingot": 6,
-			"reinforced_cloth": 2
-		}
-	},
-	"titanium_axe": {
-		"display_name": "Titanium Axe",
-		"type": "tool",
-		"tier": 6,
-		"workstation": "anvil",
-		"output_item_id": "titanium_axe",
-		"output_amount": 1,
-		"cost": {
-			"ebony_wood": 3,
-			"titanium_ingot": 6,
-			"silkweave": 2
-		}
-	},
-	"titanium_pickaxe": {
-		"display_name": "Titanium Pickaxe",
-		"type": "tool",
-		"tier": 6,
-		"workstation": "anvil",
-		"output_item_id": "titanium_pickaxe",
-		"output_amount": 1,
-		"cost": {
-			"ebony_wood": 3,
-			"titanium_ingot": 6,
-			"silkweave": 2
-		}
-	},
 	"adamantite_axe": {
-		"display_name": "Adamantite Axe",
-		"type": "tool",
-		"tier": 7,
-		"workstation": "anvil",
-		"output_item_id": "adamantite_axe",
-		"output_amount": 1,
 		"cost": {
-			"ironwood": 3,
-			"adamantite_ingot": 6,
-			"runic_cloth": 2
-		}
+			"adamantite_ingot": 6.0,
+			"ironwood": 3.0,
+			"runic_cloth": 2.0
+		},
+		"display_name": "Adamantite Axe",
+		"output_amount": 1.0,
+		"output_item_id": "adamantite_axe",
+		"tier": 7.0,
+		"type": "tool",
+		"workstation": "anvil"
 	},
 	"adamantite_pickaxe": {
-		"display_name": "Adamantite Pickaxe",
-		"type": "tool",
-		"tier": 7,
-		"workstation": "anvil",
-		"output_item_id": "adamantite_pickaxe",
-		"output_amount": 1,
 		"cost": {
-			"ironwood": 3,
-			"adamantite_ingot": 6,
-			"runic_cloth": 2
-		}
+			"adamantite_ingot": 6.0,
+			"ironwood": 3.0,
+			"runic_cloth": 2.0
+		},
+		"display_name": "Adamantite Pickaxe",
+		"output_amount": 1.0,
+		"output_item_id": "adamantite_pickaxe",
+		"tier": 7.0,
+		"type": "tool",
+		"workstation": "anvil"
+	},
+	"ash_chest": {
+		"cost": {
+			"ash_wood": 10.0,
+			"bronze_ingot": 2.0
+		},
+		"display_name": "Ash Chest",
+		"output_amount": 1.0,
+		"output_item_id": "ash_chest",
+		"placement_cost": {
+			"ash_chest": 1.0
+		},
+		"scene_path": "res://scenes/buildings/Chest.tscn",
+		"tier": 3.0,
+		"type": "building",
+		"workstation": "workbench"
+	},
+	"axe": {
+		"cost": {
+			"stone": 1.0,
+			"wood": 3.0
+		},
+		"display_name": "Axe",
+		"output_amount": 1.0,
+		"output_item_id": "axe",
+		"tier": 1.0,
+		"type": "tool",
+		"workstation": "workbench"
+	},
+	"bed": {
+		"cost": {
+			"gel": 2.0,
+			"wood": 6.0
+		},
+		"display_name": "Bed",
+		"tier": 1.0,
+		"type": "building",
+		"workstation": "basic"
+	},
+	"bronze_axe": {
+		"cost": {
+			"ash_wood": 3.0,
+			"bronze_ingot": 6.0,
+			"fiber": 2.0
+		},
+		"display_name": "Bronze Axe",
+		"output_amount": 1.0,
+		"output_item_id": "bronze_axe",
+		"tier": 3.0,
+		"type": "tool",
+		"workstation": "anvil"
+	},
+	"bronze_pickaxe": {
+		"cost": {
+			"ash_wood": 3.0,
+			"bronze_ingot": 6.0,
+			"fiber": 2.0
+		},
+		"display_name": "Bronze Pickaxe",
+		"output_amount": 1.0,
+		"output_item_id": "bronze_pickaxe",
+		"tier": 3.0,
+		"type": "tool",
+		"workstation": "anvil"
+	},
+	"campfire": {
+		"cost": {
+			"stone": 1.0,
+			"wood": 3.0
+		},
+		"display_name": "Campfire",
+		"output_amount": 1,
+		"output_item_id": "adamantite_axe",
+		"skill_type": "lumbering",
+		"sprite_id": "campfire",
+		"tier": 1,
+		"type": "building",
+		"workstation": "basic",
+		"xp_reward": 0
+	},
+	"chest": {
+		"cost": {
+			"stone": 2.0,
+			"wood": 10.0
+		},
+		"display_name": "Chest",
+		"output_amount": 1.0,
+		"output_item_id": "chest",
+		"placement_cost": {
+			"chest": 1.0
+		},
+		"scene_path": "res://scenes/buildings/Chest.tscn",
+		"tier": 1.0,
+		"type": "building",
+		"workstation": "workbench"
+	},
+	"cloth_armor": {
+		"cost": {
+			"fiber": 8.0,
+			"fiber_cloth": 2.0
+		},
+		"display_name": "Cloth Armor",
+		"output_amount": 1.0,
+		"output_item_id": "cloth_armor",
+		"tier": 1.0,
+		"type": "armor",
+		"workstation": "workbench"
+	},
+	"ebony_chest": {
+		"cost": {
+			"ebony_wood": 10.0,
+			"titanium_ingot": 2.0
+		},
+		"display_name": "Ebony Chest",
+		"output_amount": 1.0,
+		"output_item_id": "ebony_chest",
+		"placement_cost": {
+			"ebony_chest": 1.0
+		},
+		"scene_path": "res://scenes/buildings/Chest.tscn",
+		"tier": 6.0,
+		"type": "building",
+		"workstation": "workbench"
+	},
+	"fiber_cloth": {
+		"cost": {
+			"fiber": 3.0
+		},
+		"display_name": "Fiber Cloth",
+		"output_amount": 1.0,
+		"output_item_id": "fiber_cloth",
+		"tier": 1.0,
+		"type": "material",
+		"workstation": "workbench"
+	},
+	"iron_axe": {
+		"cost": {
+			"iron_ingot": 6.0,
+			"linen": 2.0,
+			"maple_wood": 3.0
+		},
+		"display_name": "Iron Axe",
+		"output_amount": 1.0,
+		"output_item_id": "iron_axe",
+		"tier": 4.0,
+		"type": "tool",
+		"workstation": "anvil"
+	},
+	"iron_pickaxe": {
+		"cost": {
+			"iron_ingot": 6.0,
+			"linen": 2.0,
+			"maple_wood": 3.0
+		},
+		"display_name": "Iron Pickaxe",
+		"output_amount": 1.0,
+		"output_item_id": "iron_pickaxe",
+		"tier": 4.0,
+		"type": "tool",
+		"workstation": "anvil"
+	},
+	"ironwood_chest": {
+		"cost": {
+			"adamantite_ingot": 2.0,
+			"ironwood": 10.0
+		},
+		"display_name": "Ironwood Chest",
+		"output_amount": 1.0,
+		"output_item_id": "ironwood_chest",
+		"placement_cost": {
+			"ironwood_chest": 1.0
+		},
+		"scene_path": "res://scenes/buildings/Chest.tscn",
+		"tier": 7.0,
+		"type": "building",
+		"workstation": "workbench"
+	},
+	"linen": {
+		"cost": {
+			"fiber_cloth": 2.0,
+			"oak_wood": 1.0
+		},
+		"display_name": "Linen",
+		"output_amount": 1.0,
+		"output_item_id": "linen",
+		"tier": 2.0,
+		"type": "material",
+		"workstation": "workbench"
+	},
+	"linen_armor": {
+		"cost": {
+			"fiber_cloth": 3.0,
+			"linen": 4.0
+		},
+		"display_name": "Linen Armor",
+		"output_amount": 1.0,
+		"output_item_id": "linen_armor",
+		"tier": 2.0,
+		"type": "armor",
+		"workstation": "workbench"
+	},
+	"maple_chest": {
+		"cost": {
+			"iron_ingot": 2.0,
+			"maple_wood": 10.0
+		},
+		"display_name": "Maple Chest",
+		"output_amount": 1.0,
+		"output_item_id": "maple_chest",
+		"placement_cost": {
+			"maple_chest": 1.0
+		},
+		"scene_path": "res://scenes/buildings/Chest.tscn",
+		"tier": 4.0,
+		"type": "building",
+		"workstation": "workbench"
+	},
+	"oak_chest": {
+		"cost": {
+			"oak_wood": 10.0,
+			"stone": 4.0
+		},
+		"display_name": "Oak Chest",
+		"output_amount": 1.0,
+		"output_item_id": "oak_chest",
+		"placement_cost": {
+			"oak_chest": 1.0
+		},
+		"scene_path": "res://scenes/buildings/Chest.tscn",
+		"tier": 2.0,
+		"type": "building",
+		"workstation": "workbench"
+	},
+	"pickaxe": {
+		"cost": {
+			"stone": 3.0,
+			"wood": 2.0
+		},
+		"display_name": "Pickaxe",
+		"output_amount": 1.0,
+		"output_item_id": "pickaxe",
+		"tier": 1.0,
+		"type": "tool",
+		"workstation": "workbench"
+	},
+	"steel_axe": {
+		"cost": {
+			"reinforced_cloth": 2.0,
+			"steel_ingot": 6.0,
+			"walnut_wood": 3.0
+		},
+		"display_name": "Steel Axe",
+		"output_amount": 1.0,
+		"output_item_id": "steel_axe",
+		"tier": 5.0,
+		"type": "tool",
+		"workstation": "anvil"
+	},
+	"steel_pickaxe": {
+		"cost": {
+			"reinforced_cloth": 2.0,
+			"steel_ingot": 6.0,
+			"walnut_wood": 3.0
+		},
+		"display_name": "Steel Pickaxe",
+		"output_amount": 1.0,
+		"output_item_id": "steel_pickaxe",
+		"tier": 5.0,
+		"type": "tool",
+		"workstation": "anvil"
+	},
+	"stone_axe": {
+		"cost": {
+			"fiber": 2.0,
+			"stone": 6.0,
+			"wood": 4.0
+		},
+		"display_name": "Stone Axe",
+		"output_amount": 1.0,
+		"output_item_id": "stone_axe",
+		"tier": 2.0,
+		"type": "tool",
+		"workstation": "workbench"
+	},
+	"stone_pickaxe": {
+		"cost": {
+			"fiber": 2.0,
+			"stone": 8.0,
+			"wood": 4.0
+		},
+		"display_name": "Stone Pickaxe",
+		"output_amount": 1.0,
+		"output_item_id": "stone_pickaxe",
+		"tier": 2.0,
+		"type": "tool",
+		"workstation": "workbench"
+	},
+	"stone_sword": {
+		"cost": {
+			"fiber": 2.0,
+			"stone": 6.0,
+			"wood": 3.0
+		},
+		"display_name": "Stone Sword",
+		"output_amount": 1.0,
+		"output_item_id": "stone_sword",
+		"tier": 2.0,
+		"type": "weapon",
+		"workstation": "workbench"
+	},
+	"titanium_axe": {
+		"cost": {
+			"ebony_wood": 3.0,
+			"silkweave": 2.0,
+			"titanium_ingot": 6.0
+		},
+		"display_name": "Titanium Axe",
+		"output_amount": 1.0,
+		"output_item_id": "titanium_axe",
+		"tier": 6.0,
+		"type": "tool",
+		"workstation": "anvil"
+	},
+	"titanium_pickaxe": {
+		"cost": {
+			"ebony_wood": 3.0,
+			"silkweave": 2.0,
+			"titanium_ingot": 6.0
+		},
+		"display_name": "Titanium Pickaxe",
+		"output_amount": 1.0,
+		"output_item_id": "titanium_pickaxe",
+		"tier": 6.0,
+		"type": "tool",
+		"workstation": "anvil"
+	},
+	"wall": {
+		"cost": {
+			"wood": 1.0
+		},
+		"display_name": "Wall",
+		"tier": 1.0,
+		"type": "building",
+		"workstation": "basic"
+	},
+	"walnut_chest": {
+		"cost": {
+			"steel_ingot": 2.0,
+			"walnut_wood": 10.0
+		},
+		"display_name": "Walnut Chest",
+		"output_amount": 1.0,
+		"output_item_id": "walnut_chest",
+		"placement_cost": {
+			"walnut_chest": 1.0
+		},
+		"scene_path": "res://scenes/buildings/Chest.tscn",
+		"tier": 5.0,
+		"type": "building",
+		"workstation": "workbench"
+	},
+	"wood_axe": {
+		"cost": {
+			"fiber": 2.0,
+			"wood": 5.0
+		},
+		"display_name": "Wood Axe",
+		"output_amount": 1.0,
+		"output_item_id": "wood_axe",
+		"tier": 1.0,
+		"type": "tool",
+		"workstation": "workbench"
+	},
+	"wood_pickaxe": {
+		"cost": {
+			"stone": 2.0,
+			"wood": 5.0
+		},
+		"display_name": "Wood Pickaxe",
+		"output_amount": 1.0,
+		"output_item_id": "wood_pickaxe",
+		"tier": 1.0,
+		"type": "tool",
+		"workstation": "workbench"
+	},
+	"wooden_sword": {
+		"cost": {
+			"fiber": 2.0,
+			"wood": 6.0
+		},
+		"display_name": "Wooden Sword",
+		"output_amount": 1.0,
+		"output_item_id": "wooden_sword",
+		"tier": 1.0,
+		"type": "weapon",
+		"workstation": "workbench"
+	},
+	"workbench": {
+		"cost": {
+			"stone": 2.0,
+			"wood": 5.0
+		},
+		"display_name": "Workbench",
+		"tier": 1.0,
+		"type": "building",
+		"workstation": "basic"
 	}
 }

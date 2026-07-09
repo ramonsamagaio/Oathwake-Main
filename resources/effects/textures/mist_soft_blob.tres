@@ -1,4 +1,4 @@
-[gd_resource type="GradientTexture2D" load_steps=2 format=3]
+[gd_resource type="GradientTexture2D" format=3 uid="uid://cpnguwroyvti7"]
 
 [sub_resource type="Gradient" id="Gradient_mist_soft_blob"]
 offsets = PackedFloat32Array(0, 0.55, 1)
@@ -6,9 +6,9 @@ colors = PackedColorArray(1, 1, 1, 0.45, 1, 1, 1, 0.22, 1, 1, 1, 0)
 
 [resource]
 resource_name = "Mist Soft Blob Texture"
+gradient = SubResource("Gradient_mist_soft_blob")
 width = 96
 height = 48
-gradient = SubResource("Gradient_mist_soft_blob")
 fill = 1
 fill_from = Vector2(0.5, 0.5)
 fill_to = Vector2(1, 0.5)
