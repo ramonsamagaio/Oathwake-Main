@@ -95,7 +95,7 @@ Open the scene, select the `Sprite2D`, assign your PNG to `Texture`, then edit t
 
 ## Flash usage
 
-`DivineFlashOverlay.tscn` starts hidden and with `flash_intensity = 0.0`. For a manual test, make the node visible and raise `flash_intensity` in the material. For gameplay, trigger it later from the boss/event logic or an `AnimationPlayer`.
+`DivineFlashOverlay.tscn` ships with `flash_intensity = 0.0`, so it is effectively invisible until you raise that material parameter. For a manual test, select the `FlashRect`, open the material, and raise `flash_intensity`. For gameplay, trigger it later from the boss/event logic or an `AnimationPlayer`.
 
 ## Important
 
