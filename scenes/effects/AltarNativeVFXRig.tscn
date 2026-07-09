@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/purple_ember_particles.tres" id="1_purple_embers"]
 [ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/generic_mist_particles.tres" id="2_generic_mist"]
