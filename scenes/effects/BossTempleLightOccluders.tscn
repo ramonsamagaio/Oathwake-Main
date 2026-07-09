@@ -1,0 +1,61 @@
+[gd_scene load_steps=8 format=3]
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_left_column"]
+closed = true
+polygon = PackedVector2Array(-26, -62, 26, -62, 26, 62, -26, 62)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_right_column"]
+closed = true
+polygon = PackedVector2Array(-26, -62, 26, -62, 26, 62, -26, 62)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_left_wall"]
+closed = true
+polygon = PackedVector2Array(-160, -26, 160, -26, 160, 26, -160, 26)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_right_wall"]
+closed = true
+polygon = PackedVector2Array(-160, -26, 160, -26, 160, 26, -160, 26)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_altar"]
+closed = true
+polygon = PackedVector2Array(-116, -42, 116, -42, 116, 42, -116, 42)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_statue_left"]
+closed = true
+polygon = PackedVector2Array(-34, -80, 34, -80, 34, 80, -34, 80)
+
+[sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_statue_right"]
+closed = true
+polygon = PackedVector2Array(-34, -80, 34, -80, 34, 80, -34, 80)
+
+[node name="BossTempleLightOccluders" type="Node2D"]
+
+[node name="Occluder_LeftColumn" type="LightOccluder2D" parent="."]
+position = Vector2(-310, -120)
+occluder = SubResource("OccluderPolygon2D_left_column")
+
+[node name="Occluder_RightColumn" type="LightOccluder2D" parent="."]
+position = Vector2(310, -120)
+occluder = SubResource("OccluderPolygon2D_right_column")
+
+[node name="Occluder_LeftBrokenWall" type="LightOccluder2D" parent="."]
+position = Vector2(-470, 45)
+rotation = 0.12
+occluder = SubResource("OccluderPolygon2D_left_wall")
+
+[node name="Occluder_RightBrokenWall" type="LightOccluder2D" parent="."]
+position = Vector2(470, 45)
+rotation = -0.12
+occluder = SubResource("OccluderPolygon2D_right_wall")
+
+[node name="Occluder_Altar" type="LightOccluder2D" parent="."]
+position = Vector2(0, -210)
+occluder = SubResource("OccluderPolygon2D_altar")
+
+[node name="Occluder_StatueLeft" type="LightOccluder2D" parent="."]
+position = Vector2(-560, -70)
+occluder = SubResource("OccluderPolygon2D_statue_left")
+
+[node name="Occluder_StatueRight" type="LightOccluder2D" parent="."]
+position = Vector2(560, -70)
+occluder = SubResource("OccluderPolygon2D_statue_right")
