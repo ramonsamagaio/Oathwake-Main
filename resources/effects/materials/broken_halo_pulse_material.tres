@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/effects/broken_halo_pulse.gdshader" id="1_halo_shader"]
+
+[resource]
+resource_name = "Broken Halo Pulse Material"
+shader = ExtResource("1_halo_shader")
+shader_parameter/halo_color = Color(1, 0.62, 0.18, 0.55)
+shader_parameter/glow_strength = 0.72
+shader_parameter/pulse_speed = 0.42
+shader_parameter/flicker_strength = 0.12
+shader_parameter/broken_noise_scale = 34.0
+shader_parameter/alpha_cutoff = 0.05
