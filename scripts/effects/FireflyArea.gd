@@ -1,6 +1,10 @@
 @tool
 extends Node2D
 
+const TRAIL_STYLE_PIXEL := 0
+const TRAIL_STYLE_SOFT_GLOW := 1
+const TRAIL_STYLE_PIXEL_AND_SOFT_GLOW := 2
+
 @export_group("Area")
 @export var area_size: Vector2 = Vector2(256, 256)
 @export_range(0, 128, 1) var firefly_count: int = 8
@@ -16,18 +20,37 @@ extends Node2D
 @export_range(0.0, 80.0, 1.0) var drift_strength: float = 18.0
 @export_range(0.0, 8.0, 0.05) var direction_smoothness: float = 2.5
 
-@export_group("Glow / Trail")
+@export_group("Glow")
 @export var glow_enabled: bool = true
-@export_range(1.0, 24.0, 0.5) var glow_size: float = 7.0
+@export_range(1.0, 48.0, 0.5) var glow_size: float = 7.0
 @export_range(0.0, 1.0, 0.01) var glow_alpha: float = 0.18
+@export var soft_glow_enabled: bool = true
+@export_range(1, 12, 1) var soft_glow_steps: int = 5
+@export_range(0.1, 4.0, 0.1) var soft_glow_falloff: float = 1.7
+@export_range(0.0, 3.0, 0.01) var glow_intensity: float = 1.0
+
+@export_group("Trail")
 @export var trail_enabled: bool = true
-@export_range(0, 24, 1) var trail_length: int = 8
-@export_range(0.0, 1.0, 0.01) var trail_fade: float = 0.55
+@export_range(0, 96, 1) var trail_length: int = 18
+@export_range(0.0, 1.0, 0.01) var trail_fade: float = 0.62
+@export_enum("Pixel", "Soft Glow", "Pixel + Soft Glow") var trail_style: int = TRAIL_STYLE_PIXEL_AND_SOFT_GLOW
+@export_range(0.2, 8.0, 0.1) var trail_pixel_scale: float = 1.0
+@export_range(0.2, 24.0, 0.1) var trail_glow_size: float = 5.5
+@export_range(0.0, 1.0, 0.01) var trail_glow_alpha: float = 0.16
+@export_range(1, 12, 1) var trail_soft_steps: int = 4
+@export_range(0.1, 4.0, 0.1) var trail_soft_falloff: float = 1.35
 
 @export_group("Flicker")
 @export_range(0.0, 1.0, 0.01) var alpha_min: float = 0.35
 @export_range(0.0, 1.0, 0.01) var alpha_max: float = 0.9
-@export_range(0.05, 12.0, 0.05) var flicker_speed: float = 2.0
+@export_range(0.05, 24.0, 0.05) var flicker_speed: float = 2.0
+@export_range(0.0, 1.0, 0.01) var flicker_randomness: float = 0.35
+
+@export_group("Color Cycle")
+@export var color_cycle_enabled: bool = true
+@export_range(0.0, 48.0, 0.05) var color_cycle_speed: float = 5.0
+@export_range(0.0, 1.0, 0.01) var color_cycle_randomness: float = 0.65
+@export_range(0.0, 1.0, 0.01) var color_blend: float = 0.35
 
 @export_group("Editable Palette")
 @export var use_color_pickers: bool = true
@@ -82,11 +105,13 @@ func apply_warm_fireflies_preset() -> void:
 	speed_max = 18.0
 	drift_strength = 15.0
 	glow_enabled = true
+	soft_glow_enabled = true
 	glow_size = 7.0
 	glow_alpha = 0.18
 	trail_enabled = true
-	trail_length = 7
-	trail_fade = 0.5
+	trail_length = 18
+	trail_fade = 0.62
+	trail_style = TRAIL_STYLE_PIXEL_AND_SOFT_GLOW
 	active_palette_colors = 3
 	palette_color_1 = Color(1.0, 0.95, 0.58, 1.0)
 	palette_color_2 = Color(1.0, 0.76, 0.26, 1.0)
@@ -94,6 +119,8 @@ func apply_warm_fireflies_preset() -> void:
 	alpha_min = 0.35
 	alpha_max = 0.85
 	flicker_speed = 1.8
+	color_cycle_enabled = true
+	color_cycle_speed = 4.0
 	_mark_palette_dirty()
 	_reset_fireflies()
 
@@ -105,11 +132,15 @@ func apply_magic_wisps_preset() -> void:
 	speed_max = 13.0
 	drift_strength = 22.0
 	glow_enabled = true
+	soft_glow_enabled = true
 	glow_size = 10.0
 	glow_alpha = 0.2
 	trail_enabled = true
-	trail_length = 12
+	trail_length = 28
 	trail_fade = 0.7
+	trail_style = TRAIL_STYLE_SOFT_GLOW
+	trail_glow_size = 8.0
+	trail_glow_alpha = 0.2
 	active_palette_colors = 3
 	palette_color_1 = Color(0.55, 0.78, 1.0, 1.0)
 	palette_color_2 = Color(0.68, 0.46, 1.0, 1.0)
@@ -117,6 +148,8 @@ func apply_magic_wisps_preset() -> void:
 	alpha_min = 0.28
 	alpha_max = 0.78
 	flicker_speed = 0.9
+	color_cycle_enabled = true
+	color_cycle_speed = 2.2
 	_mark_palette_dirty()
 	_reset_fireflies()
 
@@ -125,7 +158,7 @@ func apply_low_density_preset() -> void:
 	firefly_count = 4
 	speed_min = 4.0
 	speed_max = 12.0
-	trail_length = 5
+	trail_length = 12
 	glow_size = 6.0
 	_reset_fireflies()
 
@@ -134,7 +167,7 @@ func apply_dense_forest_preset() -> void:
 	firefly_count = 16
 	speed_min = 6.0
 	speed_max = 20.0
-	trail_length = 9
+	trail_length = 24
 	glow_size = 8.0
 	_reset_fireflies()
 
@@ -148,14 +181,16 @@ func apply_temple_dust_preset() -> void:
 	speed_max = 7.0
 	drift_strength = 10.0
 	glow_enabled = true
+	soft_glow_enabled = true
 	glow_size = 5.0
 	glow_alpha = 0.08
 	trail_enabled = false
-	trail_length = 4
+	trail_length = 8
 	trail_fade = 0.25
 	alpha_min = 0.08
 	alpha_max = 0.32
 	flicker_speed = 0.65
+	color_cycle_enabled = false
 	active_palette_colors = 4
 	palette_color_1 = Color(0.55, 0.45, 0.75, 1.0)
 	palette_color_2 = Color(0.38, 0.32, 0.52, 1.0)
@@ -172,18 +207,22 @@ func _draw() -> void:
 
 	for firefly in _fireflies:
 		var position_value: Vector2 = firefly.get("position", Vector2.ZERO)
-		var color_value: Color = firefly.get("color", Color.WHITE)
 		var pixel_size: float = float(firefly.get("size", 1.0))
 		var phase: float = float(firefly.get("phase", 0.0))
-		var flicker := lerpf(alpha_min, alpha_max, (sin((_time * flicker_speed) + phase) + 1.0) * 0.5)
-		var draw_color := Color(color_value.r, color_value.g, color_value.b, flicker)
+		var local_flicker_speed := flicker_speed * (1.0 + float(firefly.get("seed", 0.0)) * flicker_randomness)
+		var flicker := lerpf(alpha_min, alpha_max, (sin((_time * local_flicker_speed) + phase) + 1.0) * 0.5)
+		var color_value := _get_firefly_color(firefly)
+		var draw_color := Color(color_value.r, color_value.g, color_value.b, flicker * color_value.a)
 
 		if trail_enabled:
 			_draw_trail(firefly, pixel_size, draw_color)
 
 		if glow_enabled and glow_size > 0.0 and glow_alpha > 0.0:
-			var local_glow_color := Color(draw_color.r, draw_color.g, draw_color.b, draw_color.a * glow_alpha)
-			draw_circle(position_value, glow_size, local_glow_color)
+			var glow_color := Color(draw_color.r, draw_color.g, draw_color.b, draw_color.a * glow_alpha * glow_intensity)
+			if soft_glow_enabled:
+				_draw_soft_circle(position_value, glow_size, glow_color, soft_glow_steps, soft_glow_falloff)
+			else:
+				draw_circle(position_value, glow_size, glow_color)
 
 		var half_size := Vector2(pixel_size, pixel_size) * 0.5
 		draw_rect(Rect2(position_value - half_size, Vector2(pixel_size, pixel_size)), draw_color, true)
@@ -198,8 +237,22 @@ func _draw_trail(firefly: Dictionary, pixel_size: float, color_value: Color) -> 
 		var fade := 1.0 - (float(index + 1) / float(maxi(trail.size(), 1)))
 		var trail_alpha := color_value.a * trail_fade * fade
 		var trail_color := Color(color_value.r, color_value.g, color_value.b, trail_alpha)
-		var trail_size := maxf(1.0, pixel_size * fade)
-		draw_rect(Rect2(trail_position - Vector2(trail_size, trail_size) * 0.5, Vector2(trail_size, trail_size)), trail_color, true)
+		if trail_style == TRAIL_STYLE_PIXEL or trail_style == TRAIL_STYLE_PIXEL_AND_SOFT_GLOW:
+			var trail_size := maxf(1.0, pixel_size * trail_pixel_scale * fade)
+			draw_rect(Rect2(trail_position - Vector2(trail_size, trail_size) * 0.5, Vector2(trail_size, trail_size)), trail_color, true)
+		if trail_style == TRAIL_STYLE_SOFT_GLOW or trail_style == TRAIL_STYLE_PIXEL_AND_SOFT_GLOW:
+			var glow_radius := maxf(0.5, trail_glow_size * fade)
+			var glow_color := Color(color_value.r, color_value.g, color_value.b, color_value.a * trail_glow_alpha * fade)
+			_draw_soft_circle(trail_position, glow_radius, glow_color, trail_soft_steps, trail_soft_falloff)
+
+
+func _draw_soft_circle(center: Vector2, radius: float, color_value: Color, steps: int, falloff: float) -> void:
+	var safe_steps := maxi(1, steps)
+	for step in range(safe_steps, 0, -1):
+		var ratio := float(step) / float(safe_steps)
+		var alpha_weight := pow(1.0 - ratio * 0.82, falloff)
+		var ring_color := Color(color_value.r, color_value.g, color_value.b, color_value.a * alpha_weight)
+		draw_circle(center, radius * ratio, ring_color)
 
 
 func _update_fireflies(delta: float) -> void:
@@ -254,11 +307,15 @@ func _refresh_fireflies_if_palette_changed() -> void:
 	_last_palette_signature = signature
 	for firefly in _fireflies:
 		firefly["color"] = _get_palette_color(_rng.randi_range(0, max(_get_active_palette().size() - 1, 0)))
+		firefly["palette_index"] = _rng.randi_range(0, max(_get_active_palette().size() - 1, 0))
 
 
 func _make_firefly() -> Dictionary:
 	var bounds := _get_bounds()
 	var angle := _rng.randf_range(0.0, TAU)
+	var palette := _get_active_palette()
+	var palette_index := _rng.randi_range(0, max(palette.size() - 1, 0))
+	var seed := _rng.randf()
 	return {
 		"position": Vector2(
 			_rng.randf_range(bounds.position.x, bounds.end.x),
@@ -267,7 +324,10 @@ func _make_firefly() -> Dictionary:
 		"velocity": Vector2(cos(angle), sin(angle)) * _rng.randf_range(speed_min, speed_max),
 		"speed": _rng.randf_range(speed_min, speed_max),
 		"phase": _rng.randf_range(0.0, TAU),
-		"color": _get_palette_color(_rng.randi_range(0, max(_get_active_palette().size() - 1, 0))),
+		"color": _get_palette_color(palette_index),
+		"palette_index": palette_index,
+		"color_phase": _rng.randf_range(0.0, TAU),
+		"seed": seed,
 		"size": _rng.randf_range(pixel_size_min, pixel_size_max),
 		"trail": [],
 	}
@@ -275,6 +335,32 @@ func _make_firefly() -> Dictionary:
 
 func _get_bounds() -> Rect2:
 	return Rect2(area_size * -0.5, area_size)
+
+
+func _get_firefly_color(firefly: Dictionary) -> Color:
+	var palette := _get_active_palette()
+	if palette.is_empty():
+		return Color(1.0, 0.86, 0.35, 1.0)
+	if not color_cycle_enabled or is_zero_approx(color_cycle_speed):
+		return firefly.get("color", palette[0])
+	var base_index := float(int(firefly.get("palette_index", 0)))
+	var seed := float(firefly.get("seed", 0.0))
+	var local_speed := color_cycle_speed * (1.0 + seed * color_cycle_randomness)
+	var phase := float(firefly.get("color_phase", 0.0))
+	var animated_index := base_index + (_time * local_speed) + phase
+	return _sample_palette(animated_index, color_blend)
+
+
+func _sample_palette(animated_index: float, blend_amount: float) -> Color:
+	var palette := _get_active_palette()
+	if palette.is_empty():
+		return Color(1.0, 0.86, 0.35, 1.0)
+	var count := palette.size()
+	var wrapped := fposmod(animated_index, float(count))
+	var index_a := int(floor(wrapped)) % count
+	var index_b := (index_a + 1) % count
+	var t := fract(wrapped) * clampf(blend_amount, 0.0, 1.0)
+	return palette[index_a].lerp(palette[index_b], t)
 
 
 func _get_palette_color(index: int) -> Color:
