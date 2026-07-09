@@ -26,3 +26,5 @@ shader_parameter/flicker_strength = 0.14
 shader_parameter/flicker_speed = 12.0
 shader_parameter/flicker_randomness = 0.28
 shader_parameter/seed_offset = 17.0
+shader_parameter/blend_style = 1.0
+shader_parameter/blend_amount = 1.0
