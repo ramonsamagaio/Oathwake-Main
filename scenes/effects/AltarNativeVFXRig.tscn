@@ -1,0 +1,47 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/purple_ember_particles.tres" id="1_purple_embers"]
+[ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/purple_mist_particles.tres" id="2_purple_mist"]
+[ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/firefly_particles.tres" id="3_firefly_particles"]
+[ext_resource type="Texture2D" path="res://assets/effects/particles/ember_pixel.svg" id="4_ember_pixel"]
+[ext_resource type="Texture2D" path="res://assets/effects/particles/mist_pixel.svg" id="5_mist_pixel"]
+[ext_resource type="Texture2D" path="res://assets/effects/particles/firefly_pixel.svg" id="6_firefly_pixel"]
+
+[node name="AltarNativeVFXRig" type="Node2D"]
+
+[node name="PurpleMist" type="GPUParticles2D" parent="."]
+emitting = true
+amount = 24
+lifetime = 2.8
+preprocess = 2.8
+randomness = 0.55
+visibility_rect = Rect2(-144, -112, 288, 160)
+local_coords = false
+process_material = ExtResource("2_purple_mist")
+texture = ExtResource("5_mist_pixel")
+z_index = 40
+
+[node name="PurpleEmbers" type="GPUParticles2D" parent="."]
+position = Vector2(0, -8)
+emitting = true
+amount = 48
+lifetime = 1.35
+preprocess = 1.35
+randomness = 0.4
+visibility_rect = Rect2(-80, -136, 160, 168)
+local_coords = false
+process_material = ExtResource("1_purple_embers")
+texture = ExtResource("4_ember_pixel")
+z_index = 50
+
+[node name="Fireflies" type="GPUParticles2D" parent="."]
+emitting = true
+amount = 18
+lifetime = 3.4
+preprocess = 3.4
+randomness = 0.75
+visibility_rect = Rect2(-160, -128, 320, 256)
+local_coords = false
+process_material = ExtResource("3_firefly_particles")
+texture = ExtResource("6_firefly_pixel")
+z_index = 45
