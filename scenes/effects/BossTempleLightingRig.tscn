@@ -1,0 +1,50 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://resources/effects/textures/soft_light_radial.tres" id="1_soft_light"]
+
+[node name="BossTempleLightingRig" type="Node2D"]
+
+[node name="PointLight2D_Brazier_01" type="PointLight2D" parent="."]
+position = Vector2(-480, -190)
+color = Color(1, 0.42, 0.18, 1)
+energy = 0.9
+texture = ExtResource("1_soft_light")
+texture_scale = 1.55
+shadow_enabled = true
+shadow_color = Color(0, 0, 0, 0.42)
+
+[node name="PointLight2D_Brazier_02" type="PointLight2D" parent="."]
+position = Vector2(480, -190)
+color = Color(1, 0.42, 0.18, 1)
+energy = 0.9
+texture = ExtResource("1_soft_light")
+texture_scale = 1.55
+shadow_enabled = true
+shadow_color = Color(0, 0, 0, 0.42)
+
+[node name="PointLight2D_Brazier_03" type="PointLight2D" parent="."]
+position = Vector2(-360, 180)
+color = Color(0.76, 0.18, 1, 1)
+energy = 0.45
+texture = ExtResource("1_soft_light")
+texture_scale = 1.25
+shadow_enabled = true
+shadow_color = Color(0, 0, 0, 0.46)
+
+[node name="PointLight2D_Brazier_04" type="PointLight2D" parent="."]
+position = Vector2(360, 180)
+color = Color(0.76, 0.18, 1, 1)
+energy = 0.45
+texture = ExtResource("1_soft_light")
+texture_scale = 1.25
+shadow_enabled = true
+shadow_color = Color(0, 0, 0, 0.46)
+
+[node name="PointLight2D_Altar_Core" type="PointLight2D" parent="."]
+position = Vector2(0, -190)
+color = Color(0.48, 0.12, 0.95, 1)
+energy = 0.62
+texture = ExtResource("1_soft_light")
+texture_scale = 2.05
+shadow_enabled = true
+shadow_color = Color(0, 0, 0, 0.55)
