@@ -1,0 +1,29 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/effects/FireflyArea.gd" id="1_firefly_area_script"]
+
+[node name="TempleDustArea" type="Node2D"]
+script = ExtResource("1_firefly_area_script")
+area_size = Vector2(1120, 560)
+firefly_count = 28
+pixel_size_min = 1.0
+pixel_size_max = 1.5
+speed_min = 2.0
+speed_max = 7.0
+drift_strength = 10.0
+direction_smoothness = 1.25
+glow_enabled = true
+glow_size = 5.0
+glow_alpha = 0.08
+trail_enabled = false
+trail_length = 4
+trail_fade = 0.25
+alpha_min = 0.08
+alpha_max = 0.32
+flicker_speed = 0.65
+active_palette_colors = 4
+palette_color_1 = Color(0.55, 0.45, 0.75, 1)
+palette_color_2 = Color(0.38, 0.32, 0.52, 1)
+palette_color_3 = Color(0.8, 0.7, 0.52, 1)
+palette_color_4 = Color(0.22, 0.22, 0.28, 1)
+z_index_value = 25
