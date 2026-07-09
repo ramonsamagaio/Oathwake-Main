@@ -38,12 +38,109 @@ It contains:
 - `res://scenes/effects/AltarAura_Shader.tscn`
 - `res://scenes/effects/CrackCorruptionOverlay_Shader.tscn`
 - `res://scenes/effects/DivineFlashOverlay.tscn`
+- `res://scenes/effects/DivineFlashMaskOverlay.tscn`
 - `res://scenes/effects/AltarAirDistortion_Shader.tscn`
 - `res://scenes/effects/PurpleEmberEmitterNative.tscn`
-- `res://scenes/effects/PurpleMistEmitterNative.tscn`
 - `res://scenes/effects/FireflyAreaNative.tscn`
+- `res://scenes/effects/PaletteMistEmitterNative.tscn`
+- `res://scenes/effects/PurpleMistEmitterNative.tscn`
+- `res://scenes/effects/GlowOverlayNative.tscn`
 - `res://scenes/effects/PurpleSoftGlow2D.tscn`
 - `res://scenes/effects/AltarNativeVFXRig.tscn`
+
+## Glow overlay
+
+Use this for a native editable glow field:
+
+- `res://scenes/effects/GlowOverlayNative.tscn`
+
+Open the assigned material:
+
+- `res://resources/effects/materials/purple_soft_glow_material.tres`
+
+Inspector controls include:
+
+- `palette_color_1` through `palette_color_6`
+- `palette_count`
+- `color_cycle_speed`
+- `palette_blend`
+- `pulse_speed`
+- `pulse_strength`
+- `flicker_speed`
+- `flicker_strength`
+- `flicker_randomness`
+- `glow_intensity`
+- `opacity`
+- `core_radius`
+- `edge_radius`
+- `falloff`
+- `pixel_steps`
+
+## Ember emitter palette glow
+
+Use:
+
+- `res://scenes/effects/PurpleEmberEmitterNative.tscn`
+
+The old script-style colored-pixel behavior is now done through a native `GPUParticles2D` plus this material:
+
+- `res://resources/effects/materials/ember_particle_palette_glow_material.tres`
+
+The particle material gives each particle a core plus circular glow. It also cycles colors quickly inside the palette. Edit the node for movement and edit the material for color/glow/flicker.
+
+Useful controls:
+
+- Movement: `Amount`, `Lifetime`, `Process Material > Initial Velocity`, `Gravity`, `Scale Min/Max`
+- Palette: `palette_color_1` through `palette_color_6`, `palette_count`
+- Color motion: `color_cycle_speed`, `palette_blend`, `particle_color_randomness`
+- Pixel glow: `core_radius`, `halo_radius`, `core_intensity`, `glow_intensity`
+- Flicker: `flicker_speed`, `flicker_strength`, `flicker_randomness`
+
+## Firefly area
+
+Use:
+
+- `res://scenes/effects/FireflyAreaNative.tscn`
+
+This scene no longer depends on Godot's built-in `Trails` checkbox. That checkbox can make small 2D particles look frozen or disappear depending on the trail settings. Instead, the scene has two editable emitters:
+
+- `Fireflies`: the visible colored fireflies
+- `FireflyGlowTrail`: a second soft native particle layer that behaves like a trail/glow cloud
+
+Color and glow controls live in:
+
+- `res://resources/effects/materials/firefly_particle_palette_glow_material.tres`
+- `res://resources/effects/materials/firefly_trail_palette_glow_material.tres`
+
+Movement speed lives in:
+
+- `res://resources/effects/particles/firefly_particles.tres`
+- `res://resources/effects/particles/firefly_glow_trail_particles.tres`
+
+## Generic palette mist
+
+Use:
+
+- `res://scenes/effects/PaletteMistEmitterNative.tscn`
+
+The older `PurpleMistEmitterNative.tscn` now points at the same generic palette mist setup.
+
+Color/evolution controls live in:
+
+- `res://resources/effects/materials/generic_mist_palette_material.tres`
+
+Useful controls:
+
+- `palette_color_1` through `palette_color_6`
+- `palette_count`
+- `color_cycle_speed`
+- `opacity`
+- `evolution_speed`
+- `drift_speed_x`
+- `drift_speed_y`
+- `noise_scale`
+- `noise_contrast`
+- `softness`
 
 ## How to edit particles
 
@@ -81,7 +178,7 @@ Useful files:
 - Crack/corruption glow: `res://resources/effects/materials/corruption_crack_glow_material.tres`
 - Divine flash: `res://resources/effects/materials/divine_flash_overlay_material.tres`
 - Air distortion: `res://resources/effects/materials/altar_air_distortion_material.tres`
-- Purple soft glow: `res://resources/effects/materials/purple_soft_glow_material.tres`
+- Palette soft glow: `res://resources/effects/materials/purple_soft_glow_material.tres`
 
 ## PNG overlay slots
 
@@ -90,12 +187,53 @@ These scenes are intentionally created without texture assigned because they are
 - `RitualSeal_Overlay_Shader.tscn`
 - `Halo_Overlay_Shader.tscn`
 - `CrackCorruptionOverlay_Shader.tscn`
+- `DivineFlashMaskOverlay.tscn`
 
 Open the scene, select the `Sprite2D`, assign your PNG to `Texture`, then edit the `ShaderMaterial` parameters.
 
 ## Flash usage
 
-`DivineFlashOverlay.tscn` ships with `flash_intensity = 0.0`, so it is effectively invisible until you raise that material parameter. For a manual test, select the `FlashRect`, open the material, and raise `flash_intensity`. For gameplay, trigger it later from the boss/event logic or an `AnimationPlayer`.
+Use full-screen flash:
+
+- `res://scenes/effects/DivineFlashOverlay.tscn`
+
+Use masked/local flash:
+
+- `res://scenes/effects/DivineFlashMaskOverlay.tscn`
+
+Edit:
+
+- `res://resources/effects/materials/divine_flash_overlay_material.tres`
+
+Useful controls:
+
+- `flash_intensity`
+- `flash_speed`
+- `flash_width`
+- `manual_phase`
+- `auto_flash_amount`
+- `use_texture_alpha_mask`
+- `mask_power`
+
+Set `auto_flash_amount` to `1.0` for automatic looping flash, or `0.0` for manual/static control through `manual_phase`. Set `flash_intensity` to `0.0` to disable it.
+
+## Vignette usage
+
+Open:
+
+- `res://resources/effects/materials/vignette_overlay_material.tres`
+
+The main knob is `intensity`. Lower it if the screen edge is crushing the gameplay area. Raise it if the temple needs to feel more claustrophobic.
+
+## Light occluder usage
+
+Open:
+
+- `res://scenes/effects/BossTempleLightOccluders.tscn`
+
+Each child is a `LightOccluder2D`. Select one, edit its `OccluderPolygon2D`, then move/rotate/scale it behind the actual column, altar, statue, wall, or boss body.
+
+For shadows to appear, the nearby `PointLight2D` must have `Shadow > Enabled` active. The light rig scene already has shadows enabled on the braziers and altar light.
 
 ## Important
 
