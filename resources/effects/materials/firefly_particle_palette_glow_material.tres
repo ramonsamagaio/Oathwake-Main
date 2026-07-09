@@ -1,0 +1,28 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/effects/particle_palette_glow.gdshader" id="1_particle_glow"]
+
+[resource]
+resource_name = "Firefly Particle Palette Glow Material"
+shader = ExtResource("1_particle_glow")
+shader_parameter/palette_color_1 = Color(1, 0.86, 0.32, 1)
+shader_parameter/palette_color_2 = Color(0.82, 0.42, 1, 1)
+shader_parameter/palette_color_3 = Color(0.44, 0.18, 1, 1)
+shader_parameter/palette_color_4 = Color(1, 0.55, 0.18, 1)
+shader_parameter/palette_color_5 = Color(0.18, 0.05, 0.36, 1)
+shader_parameter/palette_color_6 = Color(1, 1, 1, 1)
+shader_parameter/palette_count = 4.0
+shader_parameter/color_cycle_speed = 5.5
+shader_parameter/palette_blend = 0.8
+shader_parameter/particle_color_randomness = 0.8
+shader_parameter/core_radius = 0.14
+shader_parameter/halo_radius = 0.54
+shader_parameter/halo_softness = 0.42
+shader_parameter/core_intensity = 1.1
+shader_parameter/glow_intensity = 1.65
+shader_parameter/alpha_multiplier = 0.76
+shader_parameter/pixel_steps = 24.0
+shader_parameter/flicker_strength = 0.42
+shader_parameter/flicker_speed = 11.0
+shader_parameter/flicker_randomness = 0.9
+shader_parameter/seed_offset = 83.0
