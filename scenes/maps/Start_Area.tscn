@@ -164,16 +164,17 @@ tile_size = Vector2i(32, 32)
 [sub_resource type="TileSet" id="TileSet_collision32"]
 tile_size = Vector2i(32, 32)
 
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_0i05c"]
-blend_mode = 1
-
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_qfk0s"]
 blend_mode = 1
 
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_o46k1"]
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_ecg8o"]
+blend_mode = 1
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_7jwrf"]
 blend_mode = 1
 
 [node name="Start_Area" type="Node2D" unique_id=782845865]
+position = Vector2(0, -2)
 
 [node name="Ground64Layer" type="TileMapLayer" parent="." unique_id=680903275]
 z_index = -30
@@ -281,13 +282,13 @@ flicker_amount = 1.0
 flicker_speed = 4.75
 
 [node name="FireflyArea" parent="Props/Lamp01" unique_id=42263985 instance=ExtResource("35_ecg8o")]
-material = SubResource("CanvasItemMaterial_0i05c")
+material = SubResource("CanvasItemMaterial_qfk0s")
 position = Vector2(-91, -140)
 trail_length = 24
 color_palette = PackedColorArray(1, 0.95, 0.58, 1, 1, 0.78, 0.25, 1, 1, 0.58, 0.22, 1, 0.95, 0.68, 0.32, 1)
 
 [node name="FireflyArea" parent="Props/Lamp01/FireflyArea" unique_id=11653407 instance=ExtResource("35_ecg8o")]
-material = SubResource("CanvasItemMaterial_qfk0s")
+material = SubResource("CanvasItemMaterial_ecg8o")
 position = Vector2(192, 286)
 trail_length = 24
 color_palette = PackedColorArray(1, 0.95, 0.58, 1, 1, 0.78, 0.25, 1, 1, 0.58, 0.22, 1, 0.95, 0.68, 0.32, 1)
@@ -358,7 +359,7 @@ flicker_amount = 0.04
 flicker_speed = 12.0
 
 [node name="EmberEmitter" parent="Props/Campfire01" unique_id=1573323015 instance=ExtResource("44_q7531")]
-material = SubResource("CanvasItemMaterial_o46k1")
+material = SubResource("CanvasItemMaterial_7jwrf")
 position = Vector2(-1, -1)
 color_palette = PackedColorArray(1, 0.9, 0.38, 1, 1, 0.48, 0.12, 1, 0.9, 0.28, 0.08, 1, 0.45, 0.08, 0.04, 1)
 
