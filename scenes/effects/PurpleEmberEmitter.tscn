@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/effects/EmberEmitter.gd" id="1_ember_emitter_script"]
+
+[node name="PurpleEmberEmitter" type="Node2D"]
+script = ExtResource("1_ember_emitter_script")
+emission_area = Vector2(32, 16)
+ember_count = 18
+spawn_rate = 17.0
+rise_speed_min = 18.0
+rise_speed_max = 48.0
+horizontal_drift = 14.0
+lifetime_min = 0.55
+lifetime_max = 1.35
+glow_enabled = true
+glow_size = 5.5
+glow_alpha = 0.18
+trail_enabled = true
+trail_length = 6
+trail_alpha = 0.52
+active_palette_colors = 4
+palette_color_1 = Color(1, 0.52, 0.95, 1)
+palette_color_2 = Color(0.83, 0.22, 0.92, 1)
+palette_color_3 = Color(0.52, 0.15, 0.84, 1)
+palette_color_4 = Color(1, 0.76, 0.35, 1)
+z_index_value = 30
