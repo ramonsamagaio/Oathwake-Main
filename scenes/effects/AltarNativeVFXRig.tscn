@@ -1,22 +1,27 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/purple_ember_particles.tres" id="1_purple_embers"]
-[ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/purple_mist_particles.tres" id="2_purple_mist"]
+[ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/generic_mist_particles.tres" id="2_generic_mist"]
 [ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/firefly_particles.tres" id="3_firefly_particles"]
-[ext_resource type="Texture2D" path="res://resources/effects/textures/particle_soft_dot.tres" id="4_particle_dot"]
-[ext_resource type="Texture2D" path="res://resources/effects/textures/mist_soft_blob.tres" id="5_mist_blob"]
-[ext_resource type="Texture2D" path="res://resources/effects/textures/soft_light_radial.tres" id="6_soft_glow_texture"]
-[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/purple_soft_glow_material.tres" id="7_purple_soft_glow"]
+[ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/firefly_glow_trail_particles.tres" id="4_firefly_trail"]
+[ext_resource type="Texture2D" path="res://resources/effects/textures/particle_soft_dot.tres" id="5_particle_dot"]
+[ext_resource type="Texture2D" path="res://resources/effects/textures/mist_soft_blob.tres" id="6_mist_blob"]
+[ext_resource type="Texture2D" path="res://resources/effects/textures/soft_light_radial.tres" id="7_soft_glow_texture"]
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/purple_soft_glow_material.tres" id="8_palette_soft_glow"]
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/generic_mist_palette_material.tres" id="9_generic_mist_material"]
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/ember_particle_palette_glow_material.tres" id="10_ember_glow"]
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/firefly_particle_palette_glow_material.tres" id="11_firefly_glow"]
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/firefly_trail_palette_glow_material.tres" id="12_firefly_trail_glow"]
 
 [node name="AltarNativeVFXRig" type="Node2D"]
 
-[node name="PurpleSoftGlow" type="Sprite2D" parent="."]
-texture = ExtResource("6_soft_glow_texture")
-material = ExtResource("7_purple_soft_glow")
+[node name="PaletteSoftGlow" type="Sprite2D" parent="."]
+texture = ExtResource("7_soft_glow_texture")
+material = ExtResource("8_palette_soft_glow")
 scale = Vector2(2.5, 2.5)
 z_index = 35
 
-[node name="PurpleMist" type="GPUParticles2D" parent="."]
+[node name="PaletteMist" type="GPUParticles2D" parent="."]
 emitting = true
 amount = 24
 lifetime = 2.8
@@ -24,11 +29,12 @@ preprocess = 2.8
 randomness = 0.55
 visibility_rect = Rect2(-144, -112, 288, 160)
 local_coords = false
-process_material = ExtResource("2_purple_mist")
-texture = ExtResource("5_mist_blob")
+process_material = ExtResource("2_generic_mist")
+texture = ExtResource("6_mist_blob")
+material = ExtResource("9_generic_mist_material")
 z_index = 40
 
-[node name="PurpleEmbers" type="GPUParticles2D" parent="."]
+[node name="PaletteEmbers" type="GPUParticles2D" parent="."]
 position = Vector2(0, -8)
 emitting = true
 amount = 48
@@ -38,7 +44,8 @@ randomness = 0.4
 visibility_rect = Rect2(-80, -136, 160, 168)
 local_coords = false
 process_material = ExtResource("1_purple_embers")
-texture = ExtResource("4_particle_dot")
+texture = ExtResource("5_particle_dot")
+material = ExtResource("10_ember_glow")
 z_index = 50
 
 [node name="Fireflies" type="GPUParticles2D" parent="."]
@@ -50,5 +57,19 @@ randomness = 0.75
 visibility_rect = Rect2(-160, -128, 320, 256)
 local_coords = false
 process_material = ExtResource("3_firefly_particles")
-texture = ExtResource("4_particle_dot")
+texture = ExtResource("5_particle_dot")
+material = ExtResource("11_firefly_glow")
 z_index = 45
+
+[node name="FireflyGlowTrail" type="GPUParticles2D" parent="."]
+emitting = true
+amount = 14
+lifetime = 4.2
+preprocess = 4.2
+randomness = 0.9
+visibility_rect = Rect2(-180, -140, 360, 280)
+local_coords = false
+process_material = ExtResource("4_firefly_trail")
+texture = ExtResource("7_soft_glow_texture")
+material = ExtResource("12_firefly_trail_glow")
+z_index = 44
