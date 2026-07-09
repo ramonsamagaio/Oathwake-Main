@@ -1,6 +1,6 @@
 # Firefly area guide
 
-There are two usable firefly options now.
+There are three clear firefly options now.
 
 ## 1. Editable scripted fireflies, closest to the old look
 
@@ -26,31 +26,58 @@ This is the old visual style, but the script was upgraded with more Inspector co
 - `color_blend`
 - `flicker_randomness`
 
-This is the best choice when you want each individual firefly/wisp to carry its own visible historical trail. Godot's native particle trails are unavailable in the Compatibility renderer, so exact per-firefly trails need this custom draw approach.
+This is the best choice when you want each individual firefly/wisp to carry its own visible historical trail in the Compatibility renderer. It works because the script stores old positions per firefly and draws the trail from that history.
 
-## 2. Native Compatibility-friendly particle version
+## 2. Native Compatibility-safe particle version, no real trail
 
 Use:
 
 - `res://scenes/effects/FireflyAreaNative.tscn`
 
-This version avoids the built-in `Trails` checkbox and uses two native `GPUParticles2D` nodes instead:
+This is now intentionally only one `GPUParticles2D` emitter. It has individual particle glow through a `ShaderMaterial`, but it does **not** fake a trail with a second emitter anymore.
 
-- `Fireflies`: visible firefly pixels
-- `FireflyGlowTrail`: soft glow/trail particles
+Why: a second independent `GPUParticles2D` cannot follow the particles from the first one. It only creates unrelated glow particles. That was visually misleading and has been removed.
 
-The scene now has inline procedural `GradientTexture2D` resources so the texture field should no longer appear empty.
+Use this version when you want native particles with:
 
-Edit motion through:
+- palette color control
+- color cycle speed
+- flicker speed/randomness
+- glow radius/intensity
+- Compatibility renderer support
 
-- `Fireflies > Process Material`
-- `FireflyGlowTrail > Process Material`
+Edit movement through:
+
+- `FireflyAreaNative > Process Material`
 
 Edit color, glow, and flicker through:
 
 - `res://resources/effects/materials/firefly_particle_palette_glow_material.tres`
-- `res://resources/effects/materials/firefly_trail_palette_glow_material.tres`
 
-## Important Compatibility Renderer note
+## 3. Native Forward+/Mobile trail version
 
-Do not use the native `Trails` checkbox in this project while the renderer is `GL Compatibility`. Godot shows this warning because particle trails only work in Forward+ or Mobile. The native workaround is the second emitter, `FireflyGlowTrail`.
+Use:
+
+- `res://scenes/effects/FireflyAreaNativeForwardTrail.tscn`
+
+This is the same single-emitter native setup, but with native particle trails enabled. It only works when the project renderer is `Forward+` or `Mobile`. It will not work in `Compatibility`.
+
+If the scene opens and the trail properties do not appear, enable trails manually on the `GPUParticles2D` node in the Inspector after switching renderer.
+
+## How to switch renderer to see native particle trails
+
+1. Save the project.
+2. Go to `Project > Project Settings...`.
+3. In the search bar, type `rendering_method` or just `renderer`.
+4. Go to `Rendering > Renderer`.
+5. Change `Rendering Method` from `gl_compatibility` / `Compatibility` to one of:
+   - `forward_plus` / `Forward+`
+   - `mobile` / `Mobile`
+6. Close Project Settings.
+7. Restart the editor if Godot asks, or close and reopen the project manually.
+8. Open `res://scenes/effects/FireflyAreaNativeForwardTrail.tscn`.
+9. Select the `GPUParticles2D` node and make sure `Trails > Enabled` is active.
+
+## Important warning
+
+Switching from `Compatibility` to `Forward+` can change the look of 2D lighting, shaders, glow, performance, and export compatibility. Test the boss room after switching. If the whole project gets visually weird, switch back to `Compatibility` and use `FireflyArea.tscn` for real per-firefly trails.
