@@ -35,9 +35,9 @@ const TRAIL_STYLE_PIXEL_AND_SOFT_GLOW := 2
 @export_range(0.0, 1.0, 0.01) var trail_fade: float = 0.62
 @export_enum("Pixel", "Soft Glow", "Pixel + Soft Glow") var trail_style: int = TRAIL_STYLE_PIXEL_AND_SOFT_GLOW
 @export_range(0.2, 8.0, 0.1) var trail_pixel_scale: float = 1.0
-@export_range(0.2, 24.0, 0.1) var trail_glow_size: float = 5.5
+@export_range(0.2, 24.0, 0.1) var trail_glow_size: float = 2
 @export_range(0.0, 1.0, 0.01) var trail_glow_alpha: float = 0.16
-@export_range(1, 12, 1) var trail_soft_steps: int = 4
+@export_range(1, 12, 1) var trail_soft_steps: int = 2
 @export_range(0.1, 4.0, 0.1) var trail_soft_falloff: float = 1.35
 
 @export_group("Flicker")

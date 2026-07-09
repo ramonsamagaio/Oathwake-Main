@@ -3,7 +3,6 @@
 [ext_resource type="Texture2D" uid="uid://bvw4l75jta7r4" path="res://assets/sprites/CENA_ALTAR/CENA_BASE.png" id="1_oqrps"]
 [ext_resource type="Texture2D" uid="uid://ctaj8q1fxojur" path="res://assets/sprites/CENA_ALTAR/brazier_glow_04_64x64.png" id="2_7j610"]
 [ext_resource type="PackedScene" uid="uid://ymv83dmtwlri" path="res://scenes/effects/purple_fire.tscn" id="3_7j610"]
-[ext_resource type="PackedScene" path="res://scenes/effects/PurpleEmberEmitterNative.tscn" id="4_7tsrx"]
 [ext_resource type="PackedScene" path="res://scenes/effects/PurpleEmberEmitter.tscn" id="5_7tsrx"]
 [ext_resource type="PackedScene" path="res://scenes/effects/PurpleMistEmitterNative.tscn" id="7_61ns1"]
 [ext_resource type="PackedScene" path="res://scenes/effects/GlowOverlay.tscn" id="8_gtvji"]
@@ -42,30 +41,19 @@ metadata/_edit_lock_ = true
 position = Vector2(491, 655)
 texture = ExtResource("2_7j610")
 
-[node name="PurpleFire" parent="BrazierGlow0464x64" unique_id=1319591116 instance=ExtResource("3_7j610")]
-position = Vector2(-0.9999695, -46)
-scale = Vector2(1.5, 1.5)
-
-[node name="PurpleEmberEmitterNative" parent="BrazierGlow0464x64" unique_id=2025229267 instance=ExtResource("4_7tsrx")]
-visible = false
-position = Vector2(-1, -18)
-scale = Vector2(0.565, 0.565)
-skew = -0.006981317
-amount = 209
-lifetime = 5.21
-collision_base_size = 9.11
-
-[node name="GlowOverlay2" parent="BrazierGlow0464x64" unique_id=817467645 instance=ExtResource("8_gtvji")]
-position = Vector2(0, -24)
-glow_color = Color(0.39763618, 0.0015374887, 0.63393474, 1)
-flicker_enabled = true
-flicker_speed = 12.0
+[node name="GlowOverlayNative2" parent="BrazierGlow0464x64" unique_id=1444144425 instance=ExtResource("11_61ns1")]
+position = Vector2(3.0000002, -20)
+scale = Vector2(3.149414, 2.9479063)
 
 [node name="PurpleEmberEmitter" parent="BrazierGlow0464x64" unique_id=684603552 instance=ExtResource("5_7tsrx")]
 z_index = 30
 material = SubResource("CanvasItemMaterial_gtvji")
 position = Vector2(0, -20)
 color_palette = PackedColorArray(1, 0.9, 0.38, 1, 1, 0.48, 0.12, 1, 0.9, 0.28, 0.08, 1, 0.45, 0.08, 0.04, 1)
+
+[node name="PurpleFire" parent="BrazierGlow0464x64" unique_id=1319591116 instance=ExtResource("3_7j610")]
+position = Vector2(-0.9999695, -46)
+scale = Vector2(1.5, 1.5)
 
 [node name="BrazierGlow0464x65" type="Sprite2D" parent="." unique_id=973143972]
 position = Vector2(986, 651)
@@ -81,6 +69,10 @@ material = SubResource("CanvasItemMaterial_xleuk")
 position = Vector2(0, -20)
 color_palette = PackedColorArray(1, 0.9, 0.38, 1, 1, 0.48, 0.12, 1, 0.9, 0.28, 0.08, 1, 0.45, 0.08, 0.04, 1)
 
+[node name="GlowOverlayNative2" parent="BrazierGlow0464x65" unique_id=113985485 instance=ExtResource("11_61ns1")]
+position = Vector2(3.0000002, -18)
+scale = Vector2(3.149414, 2.9479063)
+
 [node name="BrazierGlow0464x66" type="Sprite2D" parent="." unique_id=648122494]
 position = Vector2(475, 303)
 texture = ExtResource("2_7j610")
@@ -95,6 +87,10 @@ material = SubResource("CanvasItemMaterial_7j0d3")
 position = Vector2(0, -20)
 color_palette = PackedColorArray(1, 0.9, 0.38, 1, 1, 0.48, 0.12, 1, 0.9, 0.28, 0.08, 1, 0.45, 0.08, 0.04, 1)
 
+[node name="GlowOverlayNative2" parent="BrazierGlow0464x66" unique_id=266146753 instance=ExtResource("11_61ns1")]
+position = Vector2(3.0000002, -18)
+scale = Vector2(3.149414, 2.9479063)
+
 [node name="BrazierGlow0464x67" type="Sprite2D" parent="." unique_id=2054778898]
 position = Vector2(1008, 303)
 texture = ExtResource("2_7j610")
@@ -108,6 +104,10 @@ z_index = 30
 material = SubResource("CanvasItemMaterial_u2c4w")
 position = Vector2(0, -20)
 color_palette = PackedColorArray(1, 0.9, 0.38, 1, 1, 0.48, 0.12, 1, 0.9, 0.28, 0.08, 1, 0.45, 0.08, 0.04, 1)
+
+[node name="GlowOverlayNative2" parent="BrazierGlow0464x67" unique_id=592355881 instance=ExtResource("11_61ns1")]
+position = Vector2(3.0000002, -18)
+scale = Vector2(3.149414, 2.9479063)
 
 [node name="PurpleMistEmitterNative" parent="." unique_id=705890401 instance=ExtResource("7_61ns1")]
 position = Vector2(743.00006, 463)
@@ -124,10 +124,10 @@ flicker_amount = 0.15
 flicker_speed = 2.6999999999999997
 
 [node name="FireflyAreaNative" parent="." unique_id=445461717 instance=ExtResource("9_xleuk")]
-visible = false
 position = Vector2(711, 465)
 scale = Vector2(7.365, 7.365)
 amount = 263
+trail_enabled = true
 
 [node name="LUZES" type="Node2D" parent="." unique_id=2003268375]
 
@@ -202,7 +202,5 @@ material = SubResource("CanvasItemMaterial_mah6x")
 position = Vector2(748, 213)
 area_size = Vector2(256.135, 256)
 firefly_count = 12
-trail_enabled = false
-trail_length = 96
-trail_fade = 0.32
+trail_length = 23
 color_palette = PackedColorArray(1, 0.95, 0.58, 1, 1, 0.78, 0.25, 1, 1, 0.58, 0.22, 1, 0.95, 0.68, 0.32, 1)

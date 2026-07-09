@@ -1,8 +1,8 @@
 [gd_resource type="ParticleProcessMaterial" format=3 uid="uid://ca2kiaxqvp2g5"]
 
 [sub_resource type="Gradient" id="Gradient_fireflies"]
-offsets = PackedFloat32Array(0, 0.6, 1)
-colors = PackedColorArray(1, 0.88, 0.36, 0, 1, 0.76, 0.22, 0.85, 0.5, 0.2, 1, 0)
+offsets = PackedFloat32Array(0.5985294, 1)
+colors = PackedColorArray(0.62602633, 0.6224488, 0.64587903, 0.85, 0.5, 0.2, 1, 0)
 
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_fireflies"]
 gradient = SubResource("Gradient_fireflies")
@@ -15,14 +15,16 @@ direction = Vector3(0, -0.2, 0)
 spread = 180.0
 initial_velocity_min = 2.0
 initial_velocity_max = 10.0
+orbit_velocity_min = -0.11399991
+orbit_velocity_max = -0.11399991
 radial_velocity_min = -2.0
 radial_velocity_max = 2.0
 gravity = Vector3(0, 0, 0)
-linear_accel_min = -4.0
-linear_accel_max = 4.0
+linear_accel_min = -89.71
+linear_accel_max = -81.71
+radial_accel_min = -2.2351742e-06
+radial_accel_max = -2.2351742e-06
 damping_min = 1.0
 damping_max = 4.0
-scale_min = 0.55
-scale_max = 1.45
-color = Color(1, 0.72, 0.25, 0.9)
+color = Color(0.44622165, 0.42813218, 0.4203328, 0.9019608)
 color_ramp = SubResource("GradientTexture1D_fireflies")
