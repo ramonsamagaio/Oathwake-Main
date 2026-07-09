@@ -574,6 +574,8 @@ func _build_form_for_current_record() -> void:
 			_build_item_form()
 		ContentEditorData.SECTION_RESOURCES:
 			_build_resource_form()
+		ContentEditorData.SECTION_BUILDINGS:
+			_build_building_form()
 		ContentEditorData.SECTION_MONSTERS:
 			_build_monster_form()
 		ContentEditorData.SECTION_RECIPES:
@@ -645,6 +647,7 @@ func _build_resource_form() -> void:
 	_add_line_edit("ID", "id", str(current_record.get("id", "")))
 	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
 	_add_sprite_picker(str(current_record.get("sprite_id", "")))
+	_add_line_edit("Scene Path", "scene_path", str(current_record.get("scene_path", "")))
 	_add_spin_box("Max Health", "max_health", int(current_record.get("max_health", 20)), 1, 999999, 1)
 	_add_drop_item_picker(str(current_record.get("drop_item_id", "wood")))
 	_add_spin_box("Drop Amount", "drop_amount", int(current_record.get("drop_amount", 1)), 1, 999999, 1)
@@ -655,8 +658,25 @@ func _build_resource_form() -> void:
 	_add_check_box("Allow Hands (harvest without tool)", "allow_hands", bool(current_record.get("allow_hands", true)))
 	_add_skill_type_option_button(str(current_record.get("skill_type", "lumbering")))
 	_add_spin_box("XP Reward", "xp_reward", int(current_record.get("xp_reward", 0)), 0, 999999, 1)
+	_add_line_edit("VFX Hooks", "vfx_hooks", _join_string_array(current_record.get("vfx_hooks", []), ", "))
+	_add_line_edit("Tags", "tags", _join_string_array(current_record.get("tags", []), ", "))
 	_add_drop_table_editor("Base Drops", "base_drops", current_record.get("base_drops", []))
 	_add_drop_table_editor("Rare Drops", "rare_drops", current_record.get("rare_drops", []))
+
+
+func _build_building_form() -> void:
+	form_title_label.text = "Building: %s" % str(current_record.get("id", ""))
+	_add_line_edit("ID", "id", str(current_record.get("id", "")))
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_sprite_picker(str(current_record.get("sprite_id", "")))
+	_add_line_edit("Scene Path", "scene_path", str(current_record.get("scene_path", "res://scenes/buildings/Building.tscn")))
+	_add_string_option_button("Building Type", "building_type", ["wall", "light", "workstation", "bed", "storage", "decor"], str(current_record.get("building_type", "decor")))
+	_add_line_edit("Workstation ID", "workstation_id", str(current_record.get("workstation_id", "")))
+	_add_string_option_button("Build Key", "build_key", ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-"], str(current_record.get("build_key", "")))
+	_add_line_edit("Placement Cost", "placement_cost", _cost_dictionary_to_text(current_record.get("placement_cost", {})))
+	_add_spin_box("Storage Slots", "storage_slot_count", _get_building_storage_slots(current_record), 1, 999, 1)
+	_add_line_edit("Tags", "tags", _join_string_array(current_record.get("tags", []), ", "))
+	_add_line_edit("Destroy VFX Profile", "destroy_vfx_profile", str(current_record.get("destroy_vfx_profile", "building_destroy_puff")))
 
 
 func _build_tier_form() -> void:
@@ -744,7 +764,17 @@ func _build_font_profile_form() -> void:
 
 func _build_vfx_profile_form() -> void:
 	form_title_label.text = "VFX Profile: %s" % str(current_record.get("id", "default"))
-	_add_read_only_value("ID", "default")
+	if str(current_record.get("id", "default")) == "default":
+		_add_read_only_value("ID", "default")
+	else:
+		_add_line_edit("ID", "id", str(current_record.get("id", "")))
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	if _is_hit_sparks_profile(current_record):
+		_add_hit_sparks_profile_fields()
+		return
+	if str(current_record.get("id", "default")) != "default":
+		_add_read_only_value("Profile Data", _stringify_value(current_record))
+		return
 	_add_float_spin_box("Critical Shake Strength", "critical_shake_strength", float(current_record.get("critical_shake_strength", 2.8)), 0.0, 999.0, 0.01)
 	_add_float_spin_box("Critical Shake Duration", "critical_shake_duration", float(current_record.get("critical_shake_duration", 0.14)), 0.0, 10.0, 0.01)
 	_add_float_spin_box("Tree Wind Strength", "tree_wind_strength", float(current_record.get("tree_wind_strength", 1.5)), 0.0, 999.0, 0.01)
@@ -757,6 +787,23 @@ func _build_vfx_profile_form() -> void:
 	_add_float_spin_box("Critical Hit Flash Duration", "critical_hit_flash_duration", float(current_record.get("critical_hit_flash_duration", 0.14)), 0.0, 10.0, 0.01)
 	_add_float_spin_box("Hit Bump Scale", "hit_bump_scale", float(current_record.get("hit_bump_scale", 1.04)), 0.0, 10.0, 0.01)
 	_add_float_spin_box("Critical Bump Scale", "critical_bump_scale", float(current_record.get("critical_bump_scale", 1.08)), 0.0, 10.0, 0.01)
+
+
+func _add_hit_sparks_profile_fields() -> void:
+	_add_spin_box("Pixel Count", "pixel_count", int(current_record.get("pixel_count", 18)), 0, 999, 1)
+	_add_float_spin_box("Lifetime", "lifetime", float(current_record.get("lifetime", 0.38)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Fade Out Time", "fade_out_time", float(current_record.get("fade_out_time", 0.26)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Speed Min", "speed_min", float(current_record.get("speed_min", 42.0)), 0.0, 9999.0, 1.0)
+	_add_float_spin_box("Speed Max", "speed_max", float(current_record.get("speed_max", 98.0)), 0.0, 9999.0, 1.0)
+	_add_float_spin_box("Horizontal Bias", "horizontal_bias", float(current_record.get("horizontal_bias", 0.85)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Upward Bias", "upward_bias", float(current_record.get("upward_bias", 1.0)), 0.0, 10.0, 0.01)
+	_add_float_spin_box("Distance", "distance", float(current_record.get("distance", 26.0)), 0.0, 9999.0, 1.0)
+	_add_float_spin_box("Jitter Radius", "jitter_radius", float(current_record.get("jitter_radius", 5.0)), 0.0, 9999.0, 0.5)
+	_add_float_spin_box("Color Switch Interval", "color_switch_interval", float(current_record.get("color_switch_interval", 0.028)), 0.0, 10.0, 0.001)
+	_add_float_spin_box("Size Min", "size_min", float(current_record.get("size_min", 1.0)), 0.0, 64.0, 0.1)
+	_add_float_spin_box("Size Max", "size_max", float(current_record.get("size_max", 2.0)), 0.0, 64.0, 0.1)
+	_add_float_spin_box("Gravity", "gravity", float(current_record.get("gravity", 430.0)), -9999.0, 9999.0, 1.0)
+	_add_line_edit("Colors", "colors", _join_string_array(current_record.get("colors", []), ", "))
 
 
 func _build_monster_form() -> void:
@@ -782,7 +829,7 @@ func _build_recipe_form() -> void:
 	_add_line_edit("ID", "id", str(current_record.get("id", "")))
 	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
 	_add_recipe_type_option_button(str(current_record.get("type", "item")))
-	_add_string_option_button("Workstation", "workstation", ["basic", "workbench", "furnace", "anvil", "cooking_fire", "alchemy_table"], str(current_record.get("workstation", "workbench")))
+	_add_string_option_button("Workstation", "workstation", _get_workstation_options(), str(current_record.get("workstation", "workbench")))
 	_add_spin_box("Tier", "tier", int(current_record.get("tier", 1)), 1, 7, 1)
 	_add_output_item_picker(str(current_record.get("output_item_id", current_record.get("id", ""))))
 	_add_spin_box("Output Amount", "output_amount", int(current_record.get("output_amount", 1)), 1, 999, 1)
@@ -1316,8 +1363,20 @@ func _add_drop_item_picker(initial_item_id: String) -> void:
 func _add_output_item_picker(initial_item_id: String) -> void:
 	var option_button := OptionButton.new()
 	_populate_item_option(option_button, initial_item_id)
+	_populate_building_output_options(option_button, initial_item_id)
 	_add_form_row("Output Item", option_button)
 	field_controls["output_item_id"] = option_button
+
+
+func _populate_building_output_options(option_button: OptionButton, selected_id: String) -> void:
+	for building_record in data_store.get_records(ContentEditorData.SECTION_BUILDINGS):
+		var building_id := str(building_record.get("id", ""))
+		var display_name := str(building_record.get("display_name", building_id))
+		var index := option_button.item_count
+		option_button.add_item("%s - %s (building)" % [building_id, display_name])
+		option_button.set_item_metadata(index, building_id)
+		if building_id == selected_id:
+			option_button.select(index)
 
 
 func _add_workstation_picker(initial_recipe_id: String) -> void:
@@ -4274,6 +4333,8 @@ func _on_save_pressed() -> void:
 			_save_item()
 		ContentEditorData.SECTION_RESOURCES:
 			_save_resource()
+		ContentEditorData.SECTION_BUILDINGS:
+			_save_building()
 		ContentEditorData.SECTION_MONSTERS:
 			_save_monster()
 		ContentEditorData.SECTION_RECIPES:
@@ -4321,6 +4382,20 @@ func _save_resource() -> void:
 	_set_line_edit_text("id", record_id)
 
 	var error := data_store.validate_resource(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
+func _save_building() -> void:
+	var record := _get_building_form_record()
+	var record_id := data_store.sanitize_id(str(record.get("id", "")))
+	record["id"] = record_id
+	_set_line_edit_text("id", record_id)
+
+	var error := data_store.validate_building(record_id, current_original_id, record)
 	if not error.is_empty():
 		_set_status(error, true)
 		return
@@ -4476,8 +4551,10 @@ func _save_font_profile() -> void:
 
 func _save_vfx_profile() -> void:
 	var record := _get_vfx_profile_form_record()
-	var record_id := "default"
+	var record_id := "default" if str(current_record.get("id", "default")) == "default" else data_store.sanitize_id(str(record.get("id", "")))
 	record["id"] = record_id
+	if field_controls.has("id"):
+		_set_line_edit_text("id", record_id)
 
 	var error := data_store.validate_vfx_profile(record_id, current_original_id, record)
 	if not error.is_empty():
@@ -4674,6 +4751,7 @@ func _get_resource_form_record() -> Dictionary:
 	record["id"] = _get_line_edit_text("id")
 	record["display_name"] = _get_line_edit_text("display_name")
 	record["sprite_id"] = selected_sprite_id
+	record["scene_path"] = _get_line_edit_text("scene_path")
 	record["max_health"] = _get_spin_box_int("max_health")
 	record["drop_item_id"] = selected_drop_item_id
 	record["drop_amount"] = _get_spin_box_int("drop_amount")
@@ -4684,9 +4762,70 @@ func _get_resource_form_record() -> Dictionary:
 	record["allow_hands"] = _get_check_box_pressed("allow_hands")
 	record["skill_type"] = _get_option_button_metadata("skill_type")
 	record["xp_reward"] = _get_spin_box_int("xp_reward")
+	record["vfx_hooks"] = _split_string_list(_get_line_edit_text("vfx_hooks"))
+	record["tags"] = _split_string_list(_get_line_edit_text("tags"))
 	record["base_drops"] = _get_drop_rows_record("base_drops")
 	record["rare_drops"] = _get_drop_rows_record("rare_drops")
 	return record
+
+
+func _get_building_form_record() -> Dictionary:
+	var storage_slots := _get_spin_box_int("storage_slot_count")
+	var record := {
+		"id": _get_line_edit_text("id"),
+		"display_name": _get_line_edit_text("display_name"),
+		"sprite_id": _get_option_button_metadata("sprite_id"),
+		"scene_path": _get_line_edit_text("scene_path"),
+		"building_type": _get_option_button_metadata("building_type"),
+		"workstation_id": _get_line_edit_text("workstation_id"),
+		"build_key": _get_option_button_metadata("build_key"),
+		"placement_cost": _parse_cost_dictionary(_get_line_edit_text("placement_cost")),
+		"tags": _split_string_list(_get_line_edit_text("tags")),
+		"destroy_vfx_profile": _get_line_edit_text("destroy_vfx_profile"),
+	}
+	if str(record.get("building_type", "")) == "storage":
+		record["storage"] = {
+			"slot_count": storage_slots,
+		}
+	return record
+
+
+func _cost_dictionary_to_text(cost_value: Variant) -> String:
+	if not cost_value is Dictionary:
+		return ""
+	var parts := []
+	for item_id in (cost_value as Dictionary).keys():
+		parts.append("%s:%s" % [str(item_id), str((cost_value as Dictionary)[item_id])])
+	parts.sort()
+	return ", ".join(parts)
+
+
+func _parse_cost_dictionary(text: String) -> Dictionary:
+	var cost := {}
+	for raw_part in text.split(",", false):
+		var part := raw_part.strip_edges()
+		if part.is_empty():
+			continue
+		var pieces := part.split(":", false)
+		if pieces.size() != 2:
+			continue
+		var item_id := data_store.sanitize_id(str(pieces[0]))
+		var amount := int(float(str(pieces[1]).strip_edges()))
+		if not item_id.is_empty() and amount > 0:
+			cost[item_id] = amount
+	return cost
+
+
+func _get_building_storage_slots(record: Dictionary) -> int:
+	var storage = record.get("storage", {})
+	if storage is Dictionary:
+		return max(int(storage.get("slot_count", 20)), 1)
+	return 20
+
+
+func _is_hit_sparks_profile(record: Dictionary) -> bool:
+	var record_id := str(record.get("id", ""))
+	return record_id == "hit_sparks" or record_id == "critical_hit_sparks"
 
 
 func _get_monster_form_record() -> Dictionary:
@@ -4865,8 +5004,31 @@ func _get_font_profile_form_record() -> Dictionary:
 
 
 func _get_vfx_profile_form_record() -> Dictionary:
+	if _is_hit_sparks_profile(current_record):
+		return {
+			"id": _get_line_edit_text("id"),
+			"display_name": _get_line_edit_text("display_name"),
+			"pixel_count": _get_spin_box_int("pixel_count"),
+			"lifetime": _get_float_spin_box_value("lifetime"),
+			"fade_out_time": _get_float_spin_box_value("fade_out_time"),
+			"speed_min": _get_float_spin_box_value("speed_min"),
+			"speed_max": _get_float_spin_box_value("speed_max"),
+			"horizontal_bias": _get_float_spin_box_value("horizontal_bias"),
+			"upward_bias": _get_float_spin_box_value("upward_bias"),
+			"distance": _get_float_spin_box_value("distance"),
+			"jitter_radius": _get_float_spin_box_value("jitter_radius"),
+			"color_switch_interval": _get_float_spin_box_value("color_switch_interval"),
+			"size_min": _get_float_spin_box_value("size_min"),
+			"size_max": _get_float_spin_box_value("size_max"),
+			"gravity": _get_float_spin_box_value("gravity"),
+			"colors": _split_string_list(_get_line_edit_text("colors")),
+		}
+	if str(current_record.get("id", "default")) != "default":
+		return current_record.duplicate(true)
+
 	return {
 		"id": "default",
+		"display_name": _get_line_edit_text("display_name"),
 		"critical_shake_strength": _get_float_spin_box_value("critical_shake_strength"),
 		"critical_shake_duration": _get_float_spin_box_value("critical_shake_duration"),
 		"tree_wind_strength": _get_float_spin_box_value("tree_wind_strength"),
@@ -5980,6 +6142,17 @@ func _get_building_recipe_records() -> Array:
 	return building_recipes
 
 
+func _get_workstation_options() -> Array:
+	var options := ["basic"]
+	for building_record in data_store.get_records(ContentEditorData.SECTION_BUILDINGS):
+		var workstation_id := str(building_record.get("workstation_id", ""))
+		if workstation_id.is_empty() or options.has(workstation_id):
+			continue
+		options.append(workstation_id)
+	options.sort()
+	return options
+
+
 func _get_sprite_categories() -> Array:
 	return [
 		"item",
@@ -6016,6 +6189,19 @@ func _parse_tags(text: String) -> Array:
 		tags.append(tag)
 
 	return tags
+
+
+func _split_string_list(text: String) -> Array:
+	var values := []
+
+	for raw_value in text.split(",", false):
+		var value := raw_value.strip_edges()
+		if value.is_empty() or values.has(value):
+			continue
+
+		values.append(value)
+
+	return values
 
 
 func _join_string_array(value, separator: String) -> String:

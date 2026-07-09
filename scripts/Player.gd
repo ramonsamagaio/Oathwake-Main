@@ -702,6 +702,21 @@ func _try_interact_with_nearby_workbench() -> bool:
 	if crafting_system == null or not crafting_system.has_method("try_open_workbench_for_player"):
 		return false
 
+	var nearest_workstation: Node2D = null
+	var nearest_distance := 72.0
+	for workstation in get_tree().get_nodes_in_group("workstation"):
+		if not workstation is Node2D:
+			continue
+		var workstation_node := workstation as Node2D
+		var distance := global_position.distance_to(workstation_node.global_position)
+		if distance > nearest_distance:
+			continue
+		nearest_workstation = workstation_node
+		nearest_distance = distance
+
+	if nearest_workstation != null and nearest_workstation.has_method("try_interact_with_player"):
+		return bool(nearest_workstation.call("try_interact_with_player", self))
+
 	return bool(crafting_system.call("try_open_workbench_for_player", self))
 
 

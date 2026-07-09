@@ -9,6 +9,8 @@ func spawn_world_hit_sparks(world_position: Vector2, is_critical := false) -> vo
 	var speed_min := float(profile.get("speed_min", 45.0))
 	var speed_max := float(profile.get("speed_max", 105.0))
 	var lifetime := float(profile.get("lifetime", 0.34))
+	var fade_out_time := float(profile.get("fade_out_time", lifetime))
+	var distance := float(profile.get("distance", speed_max * lifetime))
 	var size_min := float(profile.get("size_min", 1.0))
 	var size_max := float(profile.get("size_max", 2.0))
 	var jitter_radius := float(profile.get("jitter_radius", 5.0))
@@ -27,10 +29,12 @@ func spawn_world_hit_sparks(world_position: Vector2, is_critical := false) -> vo
 		parent.add_child(particle)
 		particle.global_position = world_position + Vector2(randf_range(-jitter_radius, jitter_radius), randf_range(-jitter_radius, jitter_radius))
 		particle.z_index = 999
-		var x_speed := randf_range(-speed_max * horizontal_bias, speed_max * horizontal_bias)
-		var y_speed := -randf_range(speed_min * upward_bias, speed_max * upward_bias)
+		var distance_scale := distance / maxf(speed_max * lifetime, 0.01)
+		var x_speed := randf_range(-speed_max * horizontal_bias, speed_max * horizontal_bias) * distance_scale
+		var y_speed := -randf_range(speed_min * upward_bias, speed_max * upward_bias) * distance_scale
 		var velocity := Vector2(x_speed, y_speed)
-		particle.setup(velocity, lifetime * randf_range(0.78, 1.18), randf_range(size_min, size_max), colors, color_switch_interval, gravity)
+		var particle_lifetime := lifetime * randf_range(0.78, 1.18)
+		particle.setup(velocity, particle_lifetime, randf_range(size_min, size_max), colors, color_switch_interval, gravity, minf(fade_out_time, particle_lifetime))
 
 
 func spawn_ui_bar_pixels(parent: Control, local_position: Vector2, profile_id := "hud_life_damage") -> void:

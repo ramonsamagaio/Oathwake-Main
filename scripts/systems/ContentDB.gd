@@ -1,7 +1,10 @@
 extends Node
 
+signal content_reloaded
+
 const ITEMS_PATH := "res://data/items.json"
 const RESOURCES_PATH := "res://data/resources.json"
+const BUILDINGS_PATH := "res://data/buildings.json"
 const MONSTERS_PATH := "res://data/monsters.json"
 const RECIPES_PATH := "res://data/recipes.json"
 const TERRAIN_TYPES_PATH := "res://data/terrain_types.json"
@@ -16,6 +19,7 @@ const VFX_PROFILES_PATH := "res://data/vfx_profiles.json"
 
 var items := {}
 var resources := {}
+var buildings := {}
 var monsters := {}
 var recipes := {}
 var terrain_types := {}
@@ -36,6 +40,7 @@ func _ready() -> void:
 func load_all() -> void:
 	items = _load_json_dictionary(ITEMS_PATH)
 	resources = _load_json_dictionary(RESOURCES_PATH)
+	buildings = _load_json_dictionary(BUILDINGS_PATH)
 	monsters = _load_json_dictionary(MONSTERS_PATH)
 	recipes = _load_json_dictionary(RECIPES_PATH)
 	terrain_types = _load_json_dictionary(TERRAIN_TYPES_PATH)
@@ -48,8 +53,10 @@ func load_all() -> void:
 	font_profiles = _load_json_dictionary(FONT_PROFILES_PATH)
 	vfx_profiles = _load_json_dictionary(VFX_PROFILES_PATH)
 
-	if not items.is_empty() and not resources.is_empty() and not monsters.is_empty() and not recipes.is_empty() and not terrain_types.is_empty() and not npcs.is_empty():
+	if not items.is_empty() and not resources.is_empty() and not buildings.is_empty() and not monsters.is_empty() and not recipes.is_empty() and not terrain_types.is_empty() and not npcs.is_empty():
 		print("ContentDB loaded successfully")
+
+	content_reloaded.emit()
 
 
 func get_item(id: String) -> Dictionary:
@@ -58,6 +65,10 @@ func get_item(id: String) -> Dictionary:
 
 func get_resource(id: String) -> Dictionary:
 	return _get_entry(resources, id, "resource")
+
+
+func get_building(id: String) -> Dictionary:
+	return _get_entry(buildings, id, "building")
 
 
 func get_monster(id: String) -> Dictionary:
@@ -120,6 +131,10 @@ func get_all_resources() -> Dictionary:
 	return resources.duplicate(true)
 
 
+func get_all_buildings() -> Dictionary:
+	return buildings.duplicate(true)
+
+
 func get_all_sprites() -> Dictionary:
 	return sprites.duplicate(true)
 
@@ -158,6 +173,10 @@ func has_item(id: String) -> bool:
 
 func has_resource(id: String) -> bool:
 	return resources.has(id)
+
+
+func has_building(id: String) -> bool:
+	return buildings.has(id)
 
 
 func has_monster(id: String) -> bool:

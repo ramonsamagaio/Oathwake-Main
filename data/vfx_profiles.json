@@ -13,6 +13,11 @@
 		"hit_bump_scale": 1.04,
 		"critical_bump_scale": 1.08
 	},
+	"building_destroy_puff": {
+		"display_name": "Building Destroy Puff",
+		"smoke_puff_lifetime": 0.32,
+		"smoke_puff_scale": 1.35
+	},
 	"hit_sparks": {
 		"display_name": "Hit Sparks",
 		"pixel_count": 18,

@@ -7,7 +7,6 @@ const ItemInstanceHelper = preload("res://scripts/systems/ItemInstanceHelper.gd"
 
 const TYPE_FILTERS := ["All", "Building", "Tool", "Weapon", "Material", "Food", "Alchemy"]
 const TIER_FILTERS := ["All", "T1", "T2", "T3", "T4", "T5", "T6", "T7"]
-const WORKSTATION_ID := "workbench"
 const REPAIRABLE_TYPES := ["tool", "weapon", "armor", "accessory"]
 
 var main
@@ -19,6 +18,7 @@ var recipes: Array = []
 var filtered_recipes: Array = []
 var selected_recipe_id := ""
 var last_message := ""
+var current_workstation_id := "workbench"
 
 var current_tab := "craft"
 
@@ -26,6 +26,7 @@ var craft_tab_button: Button
 var repair_tab_button: Button
 var craft_body: HBoxContainer
 var repair_body: VBoxContainer
+var header_label: Label
 
 var search_edit: LineEdit
 var type_filter: OptionButton
@@ -71,9 +72,12 @@ func setup(new_main, new_player) -> void:
 	refresh()
 
 
-func open() -> void:
+func open(workstation_id := "workbench") -> void:
+	current_workstation_id = workstation_id if not workstation_id.is_empty() else "basic"
 	visible = true
 	last_message = ""
+	if header_label != null:
+		header_label.text = _get_workstation_display_name()
 	refresh()
 
 
@@ -133,8 +137,8 @@ func _build_ui() -> void:
 	var header := HBoxContainer.new()
 	root.add_child(header)
 
-	var header_label := Label.new()
-	header_label.text = "Workbench"
+	header_label = Label.new()
+	header_label.text = _get_workstation_display_name()
 	header_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(header_label)
 
@@ -473,8 +477,10 @@ func _get_workbench_recipes() -> Array:
 		if not _has_item(output_item_id):
 			continue
 
-		var workstation := str(recipe.get("workstation", ""))
-		if workstation.is_empty() or workstation == WORKSTATION_ID:
+		var workstation := str(recipe.get("workstation", "basic"))
+		if workstation.is_empty():
+			workstation = "basic"
+		if workstation == "basic" or workstation == current_workstation_id:
 			result.append(recipe)
 
 	result.sort_custom(_compare_recipes)
@@ -692,6 +698,19 @@ func _has_item(item_id: String) -> bool:
 func _get_item_display_name(item_id: String) -> String:
 	var item_data := _get_item_data(item_id)
 	return str(item_data.get("display_name", item_id.capitalize()))
+
+
+func _get_workstation_display_name() -> String:
+	if current_workstation_id == "basic":
+		return "Basic Crafting"
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and content_db.has_method("get_all_buildings"):
+		var buildings: Dictionary = content_db.get_all_buildings()
+		for building_id in buildings.keys():
+			var building_data = buildings[building_id]
+			if building_data is Dictionary and str(building_data.get("workstation_id", "")) == current_workstation_id:
+				return str(building_data.get("display_name", current_workstation_id.capitalize()))
+	return current_workstation_id.capitalize()
 
 
 func _compare_recipes(a, b) -> bool:

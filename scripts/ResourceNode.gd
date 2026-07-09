@@ -37,6 +37,7 @@ func _ready() -> void:
 
 	_load_resource_data()
 	_apply_resource_sprite()
+	_connect_content_reload()
 	health = max_health
 
 
@@ -176,6 +177,21 @@ func _load_resource_data() -> void:
 	drop_amount = int(resource_data.get("drop_amount", drop_amount))
 	respawn_time_seconds = float(resource_data.get("respawn_time_seconds", respawn_time_seconds))
 	sprite_id = str(resource_data.get("sprite_id", sprite_id))
+
+
+func _connect_content_reload() -> void:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and content_db.has_signal("content_reloaded"):
+		var callback := Callable(self, "_on_content_reloaded")
+		if not content_db.content_reloaded.is_connected(callback):
+			content_db.content_reloaded.connect(callback)
+
+
+func _on_content_reloaded() -> void:
+	_load_resource_data()
+	_apply_resource_sprite()
+	if not collected_state:
+		health = min(health, max_health)
 
 
 func _get_resource_data() -> Dictionary:

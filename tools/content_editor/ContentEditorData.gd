@@ -2,6 +2,7 @@ extends RefCounted
 
 const SECTION_ITEMS := "items"
 const SECTION_RESOURCES := "resources"
+const SECTION_BUILDINGS := "buildings"
 const SECTION_MONSTERS := "monsters"
 const SECTION_RECIPES := "recipes"
 const SECTION_TERRAIN_TYPES := "terrain_types"
@@ -46,6 +47,7 @@ const DEFAULT_FONT_PROFILES := {
 const SECTIONS := [
 	SECTION_ITEMS,
 	SECTION_RESOURCES,
+	SECTION_BUILDINGS,
 	SECTION_MONSTERS,
 	SECTION_RECIPES,
 	SECTION_TERRAIN_TYPES,
@@ -63,6 +65,7 @@ const SECTIONS := [
 const SECTION_LABELS := {
 	SECTION_ITEMS: "Items",
 	SECTION_RESOURCES: "Resources",
+	SECTION_BUILDINGS: "Buildings",
 	SECTION_MONSTERS: "Monsters",
 	SECTION_RECIPES: "Recipes",
 	SECTION_TERRAIN_TYPES: "Terrain Types",
@@ -80,6 +83,7 @@ const SECTION_LABELS := {
 const SECTION_PATHS := {
 	SECTION_ITEMS: "res://data/items.json",
 	SECTION_RESOURCES: "res://data/resources.json",
+	SECTION_BUILDINGS: "res://data/buildings.json",
 	SECTION_MONSTERS: "res://data/monsters.json",
 	SECTION_RECIPES: "res://data/recipes.json",
 	SECTION_TERRAIN_TYPES: "res://data/terrain_types.json",
@@ -390,6 +394,56 @@ func validate_resource(record_id: String, original_id: String, record: Dictionar
 	if not sprite_error.is_empty():
 		return sprite_error
 
+	var scene_path := str(record.get("scene_path", "")).strip_edges()
+	if not scene_path.is_empty() and not scene_path.to_lower().ends_with(".tscn"):
+		return "Scene Path must point to a .tscn scene."
+
+	var tags = record.get("tags", [])
+	if not tags is Array:
+		return "Tags must be a list."
+	var vfx_hooks = record.get("vfx_hooks", [])
+	if not vfx_hooks is Array:
+		return "VFX Hooks must be a list."
+
+	return ""
+
+
+func validate_building(record_id: String, original_id: String, record: Dictionary) -> String:
+	var id_error := _validate_record_id(SECTION_BUILDINGS, record_id, original_id)
+	if not id_error.is_empty():
+		return id_error
+
+	if str(record.get("display_name", "")).strip_edges().is_empty():
+		return "Display Name cannot be empty."
+
+	if str(record.get("building_type", "")).strip_edges().is_empty():
+		return "Building Type cannot be empty."
+
+	var sprite_error := _validate_optional_sprite_id(record)
+	if not sprite_error.is_empty():
+		return sprite_error
+
+	var scene_path := str(record.get("scene_path", "")).strip_edges()
+	if not scene_path.is_empty() and not scene_path.to_lower().ends_with(".tscn"):
+		return "Scene Path must point to a .tscn scene."
+
+	var placement_cost = record.get("placement_cost", {})
+	if not placement_cost is Dictionary:
+		return "Placement Cost must be a dictionary."
+	for item_id in (placement_cost as Dictionary).keys():
+		if not has_record(SECTION_ITEMS, str(item_id)):
+			return "Placement Cost references an unknown item/resource: %s" % str(item_id)
+		if int((placement_cost as Dictionary)[item_id]) < 1:
+			return "Placement Cost amounts must be greater than or equal to 1."
+
+	var tags = record.get("tags", [])
+	if not tags is Array:
+		return "Tags must be a list."
+
+	var workstation_id := str(record.get("workstation_id", "")).strip_edges()
+	if workstation_id != "" and workstation_id != sanitize_id(workstation_id):
+		return "Workstation ID must use lowercase_with_underscore."
+
 	return ""
 
 
@@ -484,7 +538,9 @@ func validate_font_profile(record_id: String, original_id: String, record: Dicti
 
 func validate_vfx_profile(record_id: String, _original_id: String, record: Dictionary) -> String:
 	if record_id != "default":
-		return "VFX Profiles must keep the default record id."
+		if record_id != "hit_sparks" and record_id != "critical_hit_sparks":
+			return ""
+		return _validate_hit_sparks_profile(record)
 
 	for field_name in [
 		"critical_shake_strength",
@@ -509,6 +565,39 @@ func validate_vfx_profile(record_id: String, _original_id: String, record: Dicti
 		return "critical_hit_flash_duration should be greater than or equal to hit_flash_duration."
 	if float(record.get("critical_bump_scale", 0.0)) < float(record.get("hit_bump_scale", 0.0)):
 		return "critical_bump_scale should be greater than or equal to hit_bump_scale."
+
+	return ""
+
+
+func _validate_hit_sparks_profile(record: Dictionary) -> String:
+	for field_name in [
+		"pixel_count",
+		"lifetime",
+		"fade_out_time",
+		"speed_min",
+		"speed_max",
+		"horizontal_bias",
+		"upward_bias",
+		"distance",
+		"jitter_radius",
+		"color_switch_interval",
+		"size_min",
+		"size_max",
+	]:
+		if float(record.get(field_name, -1.0)) < 0.0:
+			return "%s must be greater than or equal to 0." % field_name
+
+	if float(record.get("speed_max", 0.0)) < float(record.get("speed_min", 0.0)):
+		return "speed_max should be greater than or equal to speed_min."
+	if float(record.get("size_max", 0.0)) < float(record.get("size_min", 0.0)):
+		return "size_max should be greater than or equal to size_min."
+
+	var colors = record.get("colors", [])
+	if not colors is Array:
+		return "Colors must be a list."
+	for color in colors:
+		if not _is_html_color(str(color)):
+			return "Colors must use #RRGGBB or #RRGGBBAA."
 
 	return ""
 
@@ -591,8 +680,8 @@ func validate_recipe(record_id: String, original_id: String, record: Dictionary)
 		return "Output Amount must be greater than or equal to 1."
 
 	var output_item_id := str(record.get("output_item_id", "")).strip_edges()
-	if not output_item_id.is_empty() and not has_record(SECTION_ITEMS, output_item_id):
-		return "Output Item must reference an existing item."
+	if not output_item_id.is_empty() and not has_record(SECTION_ITEMS, output_item_id) and not has_record(SECTION_BUILDINGS, output_item_id):
+		return "Output must reference an existing item or building."
 
 	var sprite_error := _validate_optional_sprite_id(record)
 	if not sprite_error.is_empty():
@@ -629,12 +718,8 @@ func validate_npc(record_id: String, original_id: String, record: Dictionary) ->
 
 	var preferred_workstation := str(record.get("preferred_workstation", ""))
 	if not preferred_workstation.is_empty():
-		if not has_record(SECTION_RECIPES, preferred_workstation):
-			return "Preferred Workstation must reference an existing recipe."
-
-		var recipe := get_record(SECTION_RECIPES, preferred_workstation)
-		if str(recipe.get("type", "")) != "building":
-			return "Preferred Workstation must reference a building recipe."
+		if not _has_workstation_id(preferred_workstation):
+			return "Preferred Workstation must reference an existing workstation_id."
 
 	var production = record.get("production", [])
 	if not production is Array:
@@ -855,6 +940,7 @@ func find_sprite_usages(sprite_id: String) -> Array:
 	_append_sprite_usage_in_section(usages, SECTION_ITEMS, sprite_id)
 	_append_sprite_usage_in_section(usages, SECTION_MONSTERS, sprite_id)
 	_append_sprite_usage_in_section(usages, SECTION_RESOURCES, sprite_id)
+	_append_sprite_usage_in_section(usages, SECTION_BUILDINGS, sprite_id)
 	_append_sprite_usage_in_section(usages, SECTION_RECIPES, sprite_id)
 	_append_sprite_usage_in_section(usages, SECTION_TERRAIN_TYPES, sprite_id)
 	_append_animation_set_sprite_usage(usages, sprite_id)
@@ -987,6 +1073,26 @@ func _append_recipe_item_usage(usages: Array, item_id: String) -> void:
 			for cost_entry in cost:
 				if cost_entry is Dictionary and str(cost_entry.get("item_id", cost_entry.get("resource", ""))).to_lower() == item_id:
 					usages.append("recipe %s cost" % recipe_id)
+
+	var buildings := get_section_data(SECTION_BUILDINGS)
+	for building_id in buildings.keys():
+		var building_data = buildings[building_id]
+		if not building_data is Dictionary:
+			continue
+		var placement_cost = building_data.get("placement_cost", {})
+		if placement_cost is Dictionary and placement_cost.has(item_id):
+			usages.append("building %s placement_cost" % building_id)
+
+
+func _has_workstation_id(workstation_id: String) -> bool:
+	if workstation_id == "basic":
+		return true
+	var buildings := get_section_data(SECTION_BUILDINGS)
+	for building_id in buildings.keys():
+		var building_data = buildings[building_id]
+		if building_data is Dictionary and str(building_data.get("workstation_id", "")) == workstation_id:
+			return true
+	return false
 
 
 func _backup_file(path: String) -> String:

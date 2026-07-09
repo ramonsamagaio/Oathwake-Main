@@ -31,6 +31,10 @@ func request_shake(strength: float = -1.0, duration: float = -1.0) -> void:
 	shake_duration = max(shake_duration, requested_duration)
 
 
+func debug_trigger_critical_shake() -> void:
+	request_shake()
+
+
 func _process(delta: float) -> void:
 	if shake_time_left <= 0.0:
 		offset = base_offset

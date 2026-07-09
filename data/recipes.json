@@ -96,7 +96,7 @@
 		},
 		"display_name": "Campfire",
 		"output_amount": 1,
-		"output_item_id": "adamantite_axe",
+		"output_item_id": "campfire",
 		"skill_type": "lumbering",
 		"sprite_id": "campfire",
 		"tier": 1,

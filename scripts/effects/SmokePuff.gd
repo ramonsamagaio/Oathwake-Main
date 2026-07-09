@@ -3,6 +3,7 @@ extends Node2D
 
 @export_group("Profile")
 @export var use_content_db_profile: bool = true
+@export var vfx_profile_id: String = "default"
 @export var auto_play: bool = true
 @export var auto_free_on_finish: bool = true
 
@@ -48,8 +49,15 @@ func _process(_delta: float) -> void:
 		_apply_visuals()
 
 
+func setup_profile(profile_id: String) -> void:
+	vfx_profile_id = profile_id if not profile_id.is_empty() else "default"
+	_apply_profile()
+
+
 func _get_vfx_profile() -> Dictionary:
 	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and content_db.has_method("has_vfx_profile") and content_db.has_vfx_profile(vfx_profile_id):
+		return content_db.get_vfx_profile(vfx_profile_id)
 	if content_db != null and content_db.has_method("has_vfx_profile") and content_db.has_vfx_profile("default"):
 		return content_db.get_vfx_profile("default")
 	return {}

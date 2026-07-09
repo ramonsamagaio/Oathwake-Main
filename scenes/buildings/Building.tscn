@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/buildings/Building.gd" id="1_building_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_building"]
+size = Vector2(28, 24)
+
+[node name="Building" type="StaticBody2D"]
+y_sort_enabled = true
+script = ExtResource("1_building_script")
+
+[node name="FallbackVisual" type="ColorRect" parent="."]
+offset_left = -14.0
+offset_top = -18.0
+offset_right = 14.0
+offset_bottom = 6.0
+color = Color(0.5, 0.32, 0.18, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_building")

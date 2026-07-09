@@ -13,6 +13,7 @@ var crafting_open := false
 var last_message := ""
 var recipe_book := RecipeBookScript.new()
 var workbench_recipe_ids := []
+var current_workstation_id := "basic"
 
 @onready var main = get_node(main_path)
 @onready var player = get_node(player_path)
@@ -29,7 +30,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if is_crafting_open() and not _is_player_near_workbench():
+	if is_crafting_open() and current_workstation_id != "basic" and not _is_player_near_current_workstation():
 		_set_crafting_open(false)
 
 
@@ -55,10 +56,21 @@ func is_crafting_open() -> bool:
 func try_open_workbench_for_player(player_node: Node2D) -> bool:
 	if player_node == null:
 		return false
-	if not _is_position_near_workbench(player_node.global_position):
+	if not _is_position_near_workstation(player_node.global_position, "workbench"):
 		return false
 
-	_open_crafting()
+	_open_crafting("workbench")
+	return true
+
+
+func try_open_workstation(workstation_id: String, workstation_node: Node2D = null) -> bool:
+	if workstation_id.is_empty():
+		return false
+	if workstation_node != null and player != null:
+		if player.global_position.distance_to(workstation_node.global_position) > workbench_range:
+			return false
+
+	_open_crafting(workstation_id)
 	return true
 
 
@@ -67,14 +79,14 @@ func _toggle_crafting() -> void:
 		_set_crafting_open(false)
 		return
 
-	if not _is_player_near_workbench():
-		print("Need a Workbench nearby.")
-		return
+	current_workstation_id = _get_nearby_workstation_id()
+	if current_workstation_id.is_empty():
+		current_workstation_id = "basic"
 
 	if build_system.has_method("set_build_mode_enabled"):
 		build_system.set_build_mode_enabled(false)
 
-	_open_crafting()
+	_open_crafting(current_workstation_id)
 
 
 func _set_crafting_open(is_open: bool) -> void:
@@ -82,14 +94,15 @@ func _set_crafting_open(is_open: bool) -> void:
 	crafting_label.visible = false
 	if workbench_ui != null:
 		if is_open and workbench_ui.has_method("open"):
-			workbench_ui.open()
+			workbench_ui.open(current_workstation_id)
 		elif not is_open and workbench_ui.has_method("close"):
 			workbench_ui.close()
 
 
-func _open_crafting() -> void:
+func _open_crafting(workstation_id := "basic") -> void:
 	if build_system.has_method("set_build_mode_enabled"):
 		build_system.set_build_mode_enabled(false)
+	current_workstation_id = workstation_id if not workstation_id.is_empty() else "basic"
 	last_message = ""
 	_set_crafting_open(true)
 
@@ -166,15 +179,25 @@ func _set_message(message: String) -> void:
 	_update_crafting_label()
 
 
-func _is_player_near_workbench() -> bool:
-	return _is_position_near_workbench(player.global_position)
+func _is_player_near_current_workstation() -> bool:
+	return _is_position_near_workstation(player.global_position, current_workstation_id)
 
 
-func _is_position_near_workbench(global_position: Vector2) -> bool:
-	if not build_system.has_method("is_workbench_near_position"):
+func _is_position_near_workstation(global_position: Vector2, workstation_id: String) -> bool:
+	if workstation_id == "basic":
+		return true
+	if not build_system.has_method("is_workstation_near_position"):
 		return false
 
-	return build_system.is_workbench_near_position(global_position, workbench_range)
+	return build_system.is_workstation_near_position(workstation_id, global_position, workbench_range)
+
+
+func _get_nearby_workstation_id() -> String:
+	if build_system.has_method("get_workstation_id_near_position"):
+		return str(build_system.get_workstation_id_near_position(player.global_position, workbench_range))
+	if build_system.has_method("is_workbench_near_position") and build_system.is_workbench_near_position(player.global_position, workbench_range):
+		return "workbench"
+	return ""
 
 
 func _can_spend_cost(cost: Array) -> bool:

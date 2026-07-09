@@ -1,0 +1,210 @@
+{
+	"anvil": {
+		"building_type": "workstation",
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 24,
+				"w": 28
+			}
+		},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Anvil",
+		"placement_cost": {
+			"stone": 8,
+			"wood": 4
+		},
+		"scene_path": "res://scenes/buildings/Building.tscn",
+		"sprite_id": "",
+		"tags": [
+			"crafting"
+		],
+		"workstation_id": "anvil"
+	},
+	"bed": {
+		"build_key": "4",
+		"building_type": "bed",
+		"collision": {
+			"enabled": false
+		},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Bed",
+		"placement_cost": {
+			"gel": 2,
+			"wood": 6
+		},
+		"scene_path": "res://scenes/buildings/Building.tscn",
+		"sprite_id": "",
+		"tags": [
+			"housing"
+		],
+		"workstation_id": ""
+	},
+	"campfire": {
+		"build_key": "2",
+		"building_type": "light",
+		"collision": {
+			"enabled": false
+		},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Campfire",
+		"light": {
+			"enabled": true
+		},
+		"placement_cost": {
+			"stone": 1,
+			"wood": 3
+		},
+		"scene_path": "res://scenes/buildings/Building.tscn",
+		"sprite_id": "campfire",
+		"tags": [
+			"safe_radius",
+			"light"
+		],
+		"workstation_id": ""
+	},
+	"chest": {
+		"build_key": "5",
+		"building_type": "storage",
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 24,
+				"w": 28
+			}
+		},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Chest",
+		"placement_cost": {
+			"chest": 1
+		},
+		"scene_path": "res://scenes/buildings/Chest.tscn",
+		"sprite_id": "",
+		"storage": {
+			"slot_count": 20
+		},
+		"tags": [
+			"storage"
+		],
+		"workstation_id": ""
+	},
+	"iron_workbench": {
+		"building_type": "workstation",
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 24,
+				"w": 28
+			}
+		},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Iron Workbench",
+		"placement_cost": {
+			"iron_ingot": 4,
+			"wood": 8
+		},
+		"scene_path": "res://scenes/buildings/Building.tscn",
+		"sprite_id": "",
+		"tags": [
+			"crafting"
+		],
+		"workstation_id": "iron_workbench"
+	},
+	"laboratory": {
+		"building_type": "workstation",
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 24,
+				"w": 28
+			}
+		},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Laboratory",
+		"placement_cost": {
+			"basic_gem": 2,
+			"iron_ingot": 6,
+			"wood": 10
+		},
+		"scene_path": "res://scenes/buildings/Building.tscn",
+		"sprite_id": "",
+		"tags": [
+			"crafting"
+		],
+		"workstation_id": "laboratory"
+	},
+	"steel_workbench": {
+		"building_type": "workstation",
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 24,
+				"w": 28
+			}
+		},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Steel Workbench",
+		"placement_cost": {
+			"steel_ingot": 4,
+			"wood": 10
+		},
+		"scene_path": "res://scenes/buildings/Building.tscn",
+		"sprite_id": "",
+		"tags": [
+			"crafting"
+		],
+		"workstation_id": "steel_workbench"
+	},
+	"wall": {
+		"build_key": "1",
+		"building_type": "wall",
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 32,
+				"w": 32
+			}
+		},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Wall",
+		"placement_cost": {
+			"wood": 1
+		},
+		"scene_path": "res://scenes/buildings/Building.tscn",
+		"sprite_id": "",
+		"tags": [
+			"wall"
+		],
+		"workstation_id": ""
+	},
+	"workbench": {
+		"build_key": "3",
+		"building_type": "workstation",
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 24,
+				"w": 28
+			}
+		},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Workbench",
+		"placement_cost": {
+			"stone": 2,
+			"wood": 5
+		},
+		"scene_path": "res://scenes/buildings/Building.tscn",
+		"sprite_id": "",
+		"tags": [
+			"crafting"
+		],
+		"workstation_id": "workbench"
+	}
+}
