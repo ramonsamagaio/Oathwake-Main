@@ -1,6 +1,6 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://2yxjn5oba0md"]
 
-[ext_resource type="Shader" path="res://shaders/effects/pixel_soft_glow.gdshader" id="1_pixel_soft_glow"]
+[ext_resource type="Shader" uid="uid://djui4cn2vyhkl" path="res://shaders/effects/pixel_soft_glow.gdshader" id="1_pixel_soft_glow"]
 
 [resource]
 resource_name = "Palette Soft Glow Material"
@@ -18,7 +18,7 @@ shader_parameter/core_radius = 0.14
 shader_parameter/edge_radius = 0.5
 shader_parameter/falloff = 2.8
 shader_parameter/pixel_steps = 28.0
-shader_parameter/opacity = 1.0
+shader_parameter/opacity = 0.3499999921768
 shader_parameter/glow_intensity = 1.0
 shader_parameter/pulse_strength = 0.12
 shader_parameter/pulse_speed = 1.3

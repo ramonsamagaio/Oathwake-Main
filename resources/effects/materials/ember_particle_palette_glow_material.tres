@@ -1,22 +1,22 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://bqt6o8d76h2io"]
 
-[ext_resource type="Shader" path="res://shaders/effects/particle_palette_glow.gdshader" id="1_particle_glow"]
+[ext_resource type="Shader" uid="uid://bdplameato80r" path="res://shaders/effects/particle_palette_glow.gdshader" id="1_particle_glow"]
 
 [resource]
 resource_name = "Ember Particle Palette Glow Material"
 shader = ExtResource("1_particle_glow")
 shader_parameter/palette_color_1 = Color(0.95, 0.22, 1, 0.82)
-shader_parameter/palette_color_2 = Color(0.58, 0.10, 0.92, 0.70)
+shader_parameter/palette_color_2 = Color(0.58, 0.1, 0.92, 0.7)
 shader_parameter/palette_color_3 = Color(0.26, 0.05, 0.62, 0.58)
 shader_parameter/palette_color_4 = Color(1, 0.54, 0.18, 0.56)
-shader_parameter/palette_color_5 = Color(0.18, 0.02, 0.10, 0.34)
+shader_parameter/palette_color_5 = Color(0.18, 0.02, 0.1, 0.34)
 shader_parameter/palette_color_6 = Color(0.86, 0.78, 1, 0.38)
 shader_parameter/palette_count = 5.0
 shader_parameter/color_cycle_speed = 4.5
 shader_parameter/palette_blend = 0.42
 shader_parameter/particle_color_randomness = 0.45
 shader_parameter/core_radius = 0.12
-shader_parameter/halo_radius = 0.30
+shader_parameter/halo_radius = 0.3
 shader_parameter/halo_softness = 0.75
 shader_parameter/core_intensity = 0.95
 shader_parameter/glow_intensity = 0.62

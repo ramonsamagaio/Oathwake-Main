@@ -6,7 +6,7 @@ const TRAIL_STYLE_SOFT_GLOW := 1
 const TRAIL_STYLE_PIXEL_AND_SOFT_GLOW := 2
 
 @export_group("Area")
-@export var area_size: Vector2 = Vector2(256, 256)
+@export var area_size: Vector2 = Vector2(512, 512)
 @export_range(0, 128, 1) var firefly_count: int = 8
 @export var debug_draw_area: bool = false
 
@@ -31,7 +31,7 @@ const TRAIL_STYLE_PIXEL_AND_SOFT_GLOW := 2
 
 @export_group("Trail")
 @export var trail_enabled: bool = true
-@export_range(0, 96, 1) var trail_length: int = 18
+@export_range(0, 96, 1) var trail_length: int = 50
 @export_range(0.0, 1.0, 0.01) var trail_fade: float = 0.62
 @export_enum("Pixel", "Soft Glow", "Pixel + Soft Glow") var trail_style: int = TRAIL_STYLE_PIXEL_AND_SOFT_GLOW
 @export_range(0.2, 8.0, 0.1) var trail_pixel_scale: float = 1.0
@@ -359,7 +359,7 @@ func _sample_palette(animated_index: float, blend_amount: float) -> Color:
 	var wrapped := fposmod(animated_index, float(count))
 	var index_a := int(floor(wrapped)) % count
 	var index_b := (index_a + 1) % count
-	var t := fract(wrapped) * clampf(blend_amount, 0.0, 1.0)
+	var t: float = (wrapped - floor(wrapped)) * clampf(blend_amount, 0.0, 1.0)
 	return palette[index_a].lerp(palette[index_b], t)
 
 

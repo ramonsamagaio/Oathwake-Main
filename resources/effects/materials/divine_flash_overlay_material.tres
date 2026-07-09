@@ -1,6 +1,6 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://b3y7ifsr34ikl"]
 
-[ext_resource type="Shader" path="res://shaders/effects/divine_flash_overlay.gdshader" id="1_flash_shader"]
+[ext_resource type="Shader" uid="uid://do67t0rd32kr0" path="res://shaders/effects/divine_flash_overlay.gdshader" id="1_flash_shader"]
 
 [resource]
 resource_name = "Divine Flash Overlay Material"

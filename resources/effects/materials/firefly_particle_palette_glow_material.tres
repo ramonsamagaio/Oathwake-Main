@@ -1,6 +1,6 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dvr6knbks1vmh"]
 
-[ext_resource type="Shader" path="res://shaders/effects/particle_palette_glow.gdshader" id="1_particle_glow"]
+[ext_resource type="Shader" uid="uid://bdplameato80r" path="res://shaders/effects/particle_palette_glow.gdshader" id="1_particle_glow"]
 
 [resource]
 resource_name = "Firefly Particle Palette Glow Material"
