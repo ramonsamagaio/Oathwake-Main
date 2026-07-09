@@ -1,8 +1,8 @@
 # Native editable effects
 
-These effects intentionally avoid custom emitter scripts. They use native Godot nodes, `GPUParticles2D`, `CanvasModulate`, `LightOccluder2D`, `PointLight2D`, `ShaderMaterial`, and procedural `.tres` texture resources so the look can be tuned directly in the Inspector.
+These effects intentionally avoid custom emitter scripts when the effect can be represented by native Godot resources. They use native Godot nodes, `GPUParticles2D`, `CanvasModulate`, `LightOccluder2D`, `PointLight2D`, `ShaderMaterial`, and procedural `.tres` texture resources so the look can be tuned directly in the Inspector.
 
-No new sprite/image files are required by this setup. The particle and light textures are editable Godot resources under `res://resources/effects/textures/`.
+No new sprite/image files are required by this setup. The particle and light textures are editable Godot resources under `res://resources/effects/textures/` or inline in the scene.
 
 ## Main boss temple rig
 
@@ -42,6 +42,8 @@ It contains:
 - `res://scenes/effects/AltarAirDistortion_Shader.tscn`
 - `res://scenes/effects/PurpleEmberEmitterNative.tscn`
 - `res://scenes/effects/FireflyAreaNative.tscn`
+- `res://scenes/effects/FireflyAreaNativeForwardTrail.tscn`
+- `res://scenes/effects/FireflyArea.tscn`
 - `res://scenes/effects/PaletteMistEmitterNative.tscn`
 - `res://scenes/effects/PurpleMistEmitterNative.tscn`
 - `res://scenes/effects/GlowOverlayNative.tscn`
@@ -86,7 +88,7 @@ The old script-style colored-pixel behavior is now done through a native `GPUPar
 
 - `res://resources/effects/materials/ember_particle_palette_glow_material.tres`
 
-The particle material gives each particle a core plus circular glow. It also cycles colors quickly inside the palette. Edit the node for movement and edit the material for color/glow/flicker.
+The particle material gives each particle a core plus circular glow. It also cycles colors inside the palette. Edit the node for movement and edit the material for color/glow/flicker.
 
 Useful controls:
 
@@ -96,26 +98,37 @@ Useful controls:
 - Pixel glow: `core_radius`, `halo_radius`, `core_intensity`, `glow_intensity`
 - Flicker: `flicker_speed`, `flicker_strength`, `flicker_randomness`
 
-## Firefly area
+## Firefly / wisp area
+
+There are three firefly options:
+
+### Compatibility renderer with true per-firefly trail
+
+Use:
+
+- `res://scenes/effects/FireflyArea.tscn`
+
+This is the old visual style with upgraded Inspector controls. It uses a small `@tool` draw script because true trail needs history: each firefly stores its previous positions and draws its own tail. This is the correct option when the project is still using `Compatibility` and you want a real trail.
+
+### Native Compatibility-safe version, no trail
 
 Use:
 
 - `res://scenes/effects/FireflyAreaNative.tscn`
 
-This scene no longer depends on Godot's built-in `Trails` checkbox. That checkbox can make small 2D particles look frozen or disappear depending on the trail settings. Instead, the scene has two editable emitters:
+This scene is intentionally only one `GPUParticles2D`. It has glow on each particle through its material, but no fake second-emitter trail. A separate emitter cannot follow the first emitter's individual particles, so that misleading setup was removed.
 
-- `Fireflies`: the visible colored fireflies
-- `FireflyGlowTrail`: a second soft native particle layer that behaves like a trail/glow cloud
-
-Color and glow controls live in:
+Edit color, glow, flicker, and color-cycle speed here:
 
 - `res://resources/effects/materials/firefly_particle_palette_glow_material.tres`
-- `res://resources/effects/materials/firefly_trail_palette_glow_material.tres`
 
-Movement speed lives in:
+### Native Forward+ / Mobile version with real native particle trails
 
-- `res://resources/effects/particles/firefly_particles.tres`
-- `res://resources/effects/particles/firefly_glow_trail_particles.tres`
+Use:
+
+- `res://scenes/effects/FireflyAreaNativeForwardTrail.tscn`
+
+This is a single `GPUParticles2D` with native trails enabled. It requires the project renderer to be `Forward+` or `Mobile`. It will not work in `Compatibility`.
 
 ## Generic palette mist
 
