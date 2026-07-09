@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://ymv83dmtwlri"]
+
+[ext_resource type="Texture2D" uid="uid://bnb6gm46dx17o" path="res://assets/sprites/CENA_ALTAR/frame_00.png" id="1_xkq16"]
+[ext_resource type="Texture2D" uid="uid://bvxcbyws8ngjb" path="res://assets/sprites/CENA_ALTAR/frame_01.png" id="2_lc05k"]
+[ext_resource type="Texture2D" uid="uid://c5rpabhvb8dsp" path="res://assets/sprites/CENA_ALTAR/frame_02.png" id="3_e6jtn"]
+[ext_resource type="Texture2D" uid="uid://3ftuvxkxlfgd" path="res://assets/sprites/CENA_ALTAR/frame_03.png" id="4_0tg04"]
+[ext_resource type="Texture2D" uid="uid://7xo6xf07fg7q" path="res://assets/sprites/CENA_ALTAR/frame_04.png" id="5_gjocu"]
+[ext_resource type="Texture2D" uid="uid://cwjbxv8gc0066" path="res://assets/sprites/CENA_ALTAR/frame_05.png" id="6_taok0"]
+[ext_resource type="Texture2D" uid="uid://u5k2jqoj28u3" path="res://assets/sprites/CENA_ALTAR/frame_06.png" id="7_x0q8l"]
+[ext_resource type="Texture2D" uid="uid://j8khp6ylx6sd" path="res://assets/sprites/CENA_ALTAR/frame_07.png" id="8_u8rwn"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_l2f0i"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_xkq16")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_lc05k")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_e6jtn")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_0tg04")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_gjocu")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_taok0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_x0q8l")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_u8rwn")
+}],
+"loop": true,
+"name": &"default",
+"speed": 9.0
+}]
+
+[node name="PurpleFire" type="Node2D" unique_id=1319591116]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1591423050]
+sprite_frames = SubResource("SpriteFrames_l2f0i")
+autoplay = "default"
+frame_progress = 0.8789883
