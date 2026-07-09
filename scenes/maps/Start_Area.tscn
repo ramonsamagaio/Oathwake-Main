@@ -34,12 +34,16 @@
 [ext_resource type="Texture2D" uid="uid://bcnobqsdnbeaq" path="res://assets/sprites/tilesets/PROPS_FARM/lamp_post_01_128x128.png" id="32_q7531"]
 [ext_resource type="Texture2D" uid="uid://b43si4jgjbmfj" path="res://assets/sprites/tilesets/PROPS_FARM/wood_stack_01_128x128.png" id="33_0i05c"]
 [ext_resource type="Texture2D" uid="uid://ds6n4bmjwqskl" path="res://assets/sprites/tilesets/PROPS_FARM/fence_square_01_128x128.png" id="34_6mny3"]
+[ext_resource type="PackedScene" path="res://scenes/effects/GlowOverlay.tscn" id="34_qfk0s"]
+[ext_resource type="PackedScene" path="res://scenes/effects/FireflyArea.tscn" id="35_ecg8o"]
 [ext_resource type="Texture2D" uid="uid://d1boi0ihwx6ym" path="res://assets/sprites/tilesets/PROPS_FARM/fence_corner_01_128x128.png" id="35_y4y7o"]
 [ext_resource type="Texture2D" uid="uid://y5n3t18vebl6" path="res://assets/sprites/tilesets/PROPS_FARM/fence_gate_01_128x128.png" id="36_7bk31"]
 [ext_resource type="Texture2D" uid="uid://o2evv0s0emv2" path="res://assets/sprites/tilesets/PROPS_FARM/fence_post_01_64x64.png" id="37_pyshw"]
 [ext_resource type="Texture2D" uid="uid://dp81b1y5c5781" path="res://assets/sprites/tilesets/PROPS_FARM/fence_rope_01_128x128.png" id="38_qfk0s"]
 [ext_resource type="Texture2D" uid="uid://dpnhq8rg8ismn" path="res://assets/sprites/tilesets/PROPS_FARM/fence_wood_01_128x128.png" id="39_ecg8o"]
 [ext_resource type="Texture2D" uid="uid://cxrmfokluyjcu" path="res://assets/sprites/tilesets/PROPS_FARM/barrel_01_64x64.png" id="40_7jwrf"]
+[ext_resource type="Texture2D" uid="uid://cabjs3ceq63e7" path="res://assets/sprites/items/testes/campfire1.png" id="43_7jwrf"]
+[ext_resource type="PackedScene" path="res://scenes/effects/EmberEmitter.tscn" id="44_q7531"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_8st66"]
 texture = ExtResource("1_hx00m")
@@ -160,6 +164,15 @@ tile_size = Vector2i(32, 32)
 [sub_resource type="TileSet" id="TileSet_collision32"]
 tile_size = Vector2i(32, 32)
 
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_0i05c"]
+blend_mode = 1
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_qfk0s"]
+blend_mode = 1
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_o46k1"]
+blend_mode = 1
+
 [node name="Start_Area" type="Node2D" unique_id=782845865]
 
 [node name="Ground64Layer" type="TileMapLayer" parent="." unique_id=680903275]
@@ -187,11 +200,14 @@ tile_set = SubResource("TileSet_wall32")
 [node name="CollisionLayer" type="TileMapLayer" parent="." unique_id=1160477617]
 tile_set = SubResource("TileSet_collision32")
 
+[node name="Effects" type="Node2D" parent="." unique_id=860107037]
+
 [node name="Props" type="Node2D" parent="." unique_id=297906407]
 y_sort_enabled = true
+position = Vector2(8, 3)
 
 [node name="Log01" type="Sprite2D" parent="Props" unique_id=1556721812]
-position = Vector2(1150, 449)
+position = Vector2(1152, 454)
 texture = ExtResource("18_2bsph")
 
 [node name="Log02" type="Sprite2D" parent="Props" unique_id=1266284017]
@@ -257,6 +273,43 @@ texture = ExtResource("31_7jwrf")
 position = Vector2(992, 215)
 texture = ExtResource("32_q7531")
 
+[node name="GlowOverlay" parent="Props/Lamp01" unique_id=1763829506 instance=ExtResource("34_qfk0s")]
+position = Vector2(401, -72)
+alpha = 0.67
+scale_multiplier = 0.25
+flicker_amount = 1.0
+flicker_speed = 4.75
+
+[node name="FireflyArea" parent="Props/Lamp01" unique_id=42263985 instance=ExtResource("35_ecg8o")]
+material = SubResource("CanvasItemMaterial_0i05c")
+position = Vector2(-91, -140)
+trail_length = 24
+color_palette = PackedColorArray(1, 0.95, 0.58, 1, 1, 0.78, 0.25, 1, 1, 0.58, 0.22, 1, 0.95, 0.68, 0.32, 1)
+
+[node name="FireflyArea" parent="Props/Lamp01/FireflyArea" unique_id=11653407 instance=ExtResource("35_ecg8o")]
+material = SubResource("CanvasItemMaterial_qfk0s")
+position = Vector2(192, 286)
+trail_length = 24
+color_palette = PackedColorArray(1, 0.95, 0.58, 1, 1, 0.78, 0.25, 1, 1, 0.58, 0.22, 1, 0.95, 0.68, 0.32, 1)
+
+[node name="GlowOverlay2" parent="Props/Lamp01" unique_id=1835027910 instance=ExtResource("34_qfk0s")]
+position = Vector2(341, -68)
+intensity = 0.35
+alpha = 1.0
+scale_multiplier = 0.6000000000000001
+flicker_enabled = true
+flicker_amount = 0.1
+flicker_speed = 7.3
+
+[node name="GlowOverlay3" parent="Props/Lamp01" unique_id=1996024699 instance=ExtResource("34_qfk0s")]
+position = Vector2(15, 3)
+intensity = 0.35
+alpha = 1.0
+scale_multiplier = 0.6000000000000001
+flicker_enabled = true
+flicker_amount = 0.1
+flicker_speed = 7.3
+
 [node name="Curral01" type="Sprite2D" parent="Props" unique_id=1039327371]
 position = Vector2(1540, 180)
 texture = ExtResource("34_6mny3")
@@ -291,15 +344,37 @@ texture = ExtResource("40_7jwrf")
 
 [node name="Sprite2D10" type="Sprite2D" parent="Props" unique_id=1220853024]
 
+[node name="Campfire01" type="Sprite2D" parent="Props" unique_id=1485516546]
+position = Vector2(1428, 309)
+texture = ExtResource("43_7jwrf")
+
+[node name="GlowOverlay2" parent="Props/Campfire01" unique_id=71541455 instance=ExtResource("34_qfk0s")]
+position = Vector2(-3, 6)
+intensity = 0.35
+alpha = 1.0
+scale_multiplier = 0.6000000000000001
+flicker_enabled = true
+flicker_amount = 0.04
+flicker_speed = 12.0
+
+[node name="EmberEmitter" parent="Props/Campfire01" unique_id=1573323015 instance=ExtResource("44_q7531")]
+material = SubResource("CanvasItemMaterial_o46k1")
+position = Vector2(-1, -1)
+color_palette = PackedColorArray(1, 0.9, 0.38, 1, 1, 0.48, 0.12, 1, 0.9, 0.28, 0.08, 1, 0.45, 0.08, 0.04, 1)
+
 [node name="Resources" type="Node2D" parent="." unique_id=1558006593]
 y_sort_enabled = true
+position = Vector2(-16, 20)
 
 [node name="Enemies" type="Node2D" parent="." unique_id=1200536666]
 y_sort_enabled = true
+position = Vector2(15, -6)
 
 [node name="SpawnZones" type="Node2D" parent="." unique_id=395158889]
+position = Vector2(17, 20)
 
 [node name="PlayerSpawn" type="Marker2D" parent="." unique_id=170547260]
+position = Vector2(834, 467)
 
 [node name="Notes" type="Label" parent="." unique_id=1368911243]
 offset_left = 32.0

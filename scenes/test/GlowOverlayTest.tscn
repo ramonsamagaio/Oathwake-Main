@@ -1,0 +1,84 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/effects/GlowOverlay.tscn" id="1_glow_overlay"]
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/glows/Glow1.png" id="2_window_glow"]
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/glows/glow2.png" id="3_lamp_glow"]
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/glows/glow3.png" id="4_magic_glow"]
+
+[node name="GlowOverlayTest" type="Node2D"]
+
+[node name="Background" type="Polygon2D" parent="."]
+color = Color(0.025, 0.022, 0.032, 1)
+polygon = PackedVector2Array(-80, -80, 1000, -80, 1000, 360, -80, 360)
+
+[node name="WindowGlow" parent="." instance=ExtResource("1_glow_overlay")]
+position = Vector2(120, 150)
+glow_texture = ExtResource("2_window_glow")
+glow_color = Color(1, 0.55, 0.22, 1)
+intensity = 0.85
+alpha = 0.58
+stretch = Vector2(1.75, 0.75)
+
+[node name="LampGlow" parent="." instance=ExtResource("1_glow_overlay")]
+position = Vector2(340, 150)
+glow_texture = ExtResource("3_lamp_glow")
+glow_color = Color(1, 0.78, 0.32, 1)
+intensity = 1.15
+alpha = 0.72
+scale_multiplier = 0.9
+flicker_enabled = true
+flicker_amount = 0.06
+flicker_speed = 2.0
+
+[node name="MagicGlow" parent="." instance=ExtResource("1_glow_overlay")]
+position = Vector2(560, 150)
+mode = 2
+glow_texture = ExtResource("4_magic_glow")
+glow_color = Color(0.55, 0.35, 1, 1)
+intensity = 1.45
+alpha = 0.78
+scale_multiplier = 1.1
+stretch = Vector2(1.1, 1)
+flicker_enabled = true
+flicker_amount = 0.08
+flicker_speed = 0.9
+
+[node name="FireGlow" parent="." instance=ExtResource("1_glow_overlay")]
+position = Vector2(780, 150)
+glow_texture = ExtResource("3_lamp_glow")
+glow_color = Color(1, 0.36, 0.12, 1)
+intensity = 1.25
+alpha = 0.7
+scale_multiplier = 0.85
+stretch = Vector2(1.05, 0.9)
+flicker_enabled = true
+flicker_amount = 0.1
+flicker_speed = 3.0
+
+[node name="WindowLabel" type="Label" parent="."]
+offset_left = 75.0
+offset_top = 255.0
+offset_right = 175.0
+offset_bottom = 281.0
+text = "Window"
+
+[node name="LampLabel" type="Label" parent="."]
+offset_left = 305.0
+offset_top = 255.0
+offset_right = 389.0
+offset_bottom = 281.0
+text = "Lamp"
+
+[node name="MagicLabel" type="Label" parent="."]
+offset_left = 520.0
+offset_top = 255.0
+offset_right = 620.0
+offset_bottom = 281.0
+text = "Magic"
+
+[node name="FireLabel" type="Label" parent="."]
+offset_left = 745.0
+offset_top = 255.0
+offset_right = 830.0
+offset_bottom = 281.0
+text = "Fire"

@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/effects/GlowOverlay.gd" id="1_glow_overlay_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/glows/glow2.png" id="2_default_glow"]
+
+[node name="GlowOverlay" type="Node2D"]
+script = ExtResource("1_glow_overlay_script")
+glow_texture = ExtResource("2_default_glow")
+
+[node name="TextureGlow" type="Sprite2D" parent="."]
+texture = ExtResource("2_default_glow")
+
+[node name="ProceduralGlow" type="Sprite2D" parent="."]
+visible = false
+
+[node name="PointLight2D" type="PointLight2D" parent="."]
+visible = false
+enabled = false
