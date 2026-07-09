@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/floor_dead_fog_material.tres" id="1_fog_material"]
+
+[node name="FogLayer_Shader" type="Polygon2D"]
+polygon = PackedVector2Array(-800, -450, 800, -450, 800, 450, -800, 450)
+color = Color(1, 1, 1, 1)
+material = ExtResource("1_fog_material")
+z_index = 42
