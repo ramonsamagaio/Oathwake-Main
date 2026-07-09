@@ -1,11 +1,33 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/firefly_particles.tres" id="1_firefly_particles"]
 [ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/firefly_glow_trail_particles.tres" id="2_firefly_trail_particles"]
-[ext_resource type="Texture2D" path="res://resources/effects/textures/particle_soft_dot.tres" id="3_particle_dot"]
-[ext_resource type="Texture2D" path="res://resources/effects/textures/soft_light_radial.tres" id="4_soft_light"]
-[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/firefly_particle_palette_glow_material.tres" id="5_firefly_glow"]
-[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/firefly_trail_palette_glow_material.tres" id="6_firefly_trail_glow"]
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/firefly_particle_palette_glow_material.tres" id="3_firefly_glow"]
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/firefly_trail_palette_glow_material.tres" id="4_firefly_trail_glow"]
+
+[sub_resource type="Gradient" id="Gradient_particle_dot"]
+offsets = PackedFloat32Array(0, 0.65, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.8, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_particle_dot"]
+width = 16
+height = 16
+gradient = SubResource("Gradient_particle_dot")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_soft_light"]
+offsets = PackedFloat32Array(0, 0.32, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.38, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_soft_light"]
+width = 256
+height = 256
+gradient = SubResource("Gradient_soft_light")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
 
 [node name="FireflyAreaNative" type="Node2D"]
 
@@ -18,19 +40,19 @@ randomness = 0.75
 visibility_rect = Rect2(-128, -96, 256, 192)
 local_coords = false
 process_material = ExtResource("1_firefly_particles")
-texture = ExtResource("3_particle_dot")
-material = ExtResource("5_firefly_glow")
+texture = SubResource("GradientTexture2D_particle_dot")
+material = ExtResource("3_firefly_glow")
 z_index = 45
 
 [node name="FireflyGlowTrail" type="GPUParticles2D" parent="."]
 emitting = true
-amount = 18
-lifetime = 4.2
-preprocess = 4.2
+amount = 36
+lifetime = 5.4
+preprocess = 5.4
 randomness = 0.9
-visibility_rect = Rect2(-144, -112, 288, 224)
+visibility_rect = Rect2(-180, -140, 360, 280)
 local_coords = false
 process_material = ExtResource("2_firefly_trail_particles")
-texture = ExtResource("4_soft_light")
-material = ExtResource("6_firefly_trail_glow")
+texture = SubResource("GradientTexture2D_soft_light")
+material = ExtResource("4_firefly_trail_glow")
 z_index = 44
