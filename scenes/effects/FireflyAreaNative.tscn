@@ -1,9 +1,15 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/firefly_particles.tres" id="1_firefly_particles"]
-[ext_resource type="Texture2D" path="res://resources/effects/textures/particle_soft_dot.tres" id="2_particle_dot"]
+[ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/firefly_glow_trail_particles.tres" id="2_firefly_trail_particles"]
+[ext_resource type="Texture2D" path="res://resources/effects/textures/particle_soft_dot.tres" id="3_particle_dot"]
+[ext_resource type="Texture2D" path="res://resources/effects/textures/soft_light_radial.tres" id="4_soft_light"]
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/firefly_particle_palette_glow_material.tres" id="5_firefly_glow"]
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/firefly_trail_palette_glow_material.tres" id="6_firefly_trail_glow"]
 
-[node name="FireflyAreaNative" type="GPUParticles2D"]
+[node name="FireflyAreaNative" type="Node2D"]
+
+[node name="Fireflies" type="GPUParticles2D" parent="."]
 emitting = true
 amount = 22
 lifetime = 3.2
@@ -12,5 +18,19 @@ randomness = 0.75
 visibility_rect = Rect2(-128, -96, 256, 192)
 local_coords = false
 process_material = ExtResource("1_firefly_particles")
-texture = ExtResource("2_particle_dot")
+texture = ExtResource("3_particle_dot")
+material = ExtResource("5_firefly_glow")
 z_index = 45
+
+[node name="FireflyGlowTrail" type="GPUParticles2D" parent="."]
+emitting = true
+amount = 18
+lifetime = 4.2
+preprocess = 4.2
+randomness = 0.9
+visibility_rect = Rect2(-144, -112, 288, 224)
+local_coords = false
+process_material = ExtResource("2_firefly_trail_particles")
+texture = ExtResource("4_soft_light")
+material = ExtResource("6_firefly_trail_glow")
+z_index = 44
