@@ -16,9 +16,13 @@ uniform float palette_blend : hint_range(0.0, 1.0, 0.01) = 0.55;
 uniform float core_radius : hint_range(0.0, 0.5, 0.01) = 0.14;
 uniform float edge_radius : hint_range(0.1, 0.9, 0.01) = 0.5;
 uniform float falloff : hint_range(0.5, 8.0, 0.1) = 2.8;
-uniform float pixel_steps : hint_range(4.0, 256.0, 1.0) = 28.0;
 uniform float opacity : hint_range(0.0, 2.0, 0.01) = 0.35;
 uniform float glow_intensity : hint_range(0.0, 4.0, 0.01) = 1.0;
+
+uniform float pixelation_amount : hint_range(0.0, 1.0, 0.01) = 0.0;
+uniform float pixel_steps : hint_range(4.0, 512.0, 1.0) = 128.0;
+uniform float noise_pixelation_amount : hint_range(0.0, 1.0, 0.01) = 0.0;
+uniform float noise_steps : hint_range(4.0, 512.0, 1.0) = 64.0;
 
 uniform float pulse_strength : hint_range(0.0, 1.0, 0.01) = 0.12;
 uniform float pulse_speed : hint_range(0.0, 120.0, 0.01) = 1.3;
@@ -35,6 +39,17 @@ float hash(vec2 p) {
 	p = fract(p * vec2(123.34, 456.21));
 	p += dot(p, p + 45.32);
 	return fract(p.x * p.y);
+}
+
+float smooth_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float a = hash(i);
+	float b = hash(i + vec2(1.0, 0.0));
+	float c = hash(i + vec2(0.0, 1.0));
+	float d = hash(i + vec2(1.0, 1.0));
+	vec2 u = f * f * (3.0 - 2.0 * f);
+	return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
 }
 
 vec4 palette_at(float index) {
@@ -68,31 +83,24 @@ vec3 soft_light_blend(vec3 base, vec3 layer) {
 }
 
 vec3 apply_blend_style(vec3 base, vec3 layer, float style) {
-	if (style < 0.5) {
-		return layer;
-	}
-	if (style < 1.5) {
-		return base + layer;
-	}
-	if (style < 2.5) {
-		return 1.0 - (1.0 - base) * (1.0 - layer);
-	}
-	if (style < 3.5) {
-		return base * layer;
-	}
-	if (style < 4.5) {
-		return overlay_blend(base, layer);
-	}
+	if (style < 0.5) { return layer; }
+	if (style < 1.5) { return base + layer; }
+	if (style < 2.5) { return 1.0 - (1.0 - base) * (1.0 - layer); }
+	if (style < 3.5) { return base * layer; }
+	if (style < 4.5) { return overlay_blend(base, layer); }
 	return soft_light_blend(base, layer);
 }
 
 void fragment() {
 	vec2 pixel_uv = floor(UV * pixel_steps) / pixel_steps + vec2(0.5 / pixel_steps);
-	float distance_from_center = distance(pixel_uv, vec2(0.5));
+	vec2 shape_uv = mix(UV, pixel_uv, pixelation_amount);
+	float distance_from_center = distance(shape_uv, vec2(0.5));
 	float glow_mask = 1.0 - smoothstep(core_radius, edge_radius, distance_from_center);
 	glow_mask = pow(clamp(glow_mask, 0.0, 1.0), falloff);
 
-	float local_seed = hash(floor(pixel_uv * pixel_steps) + vec2(seed_offset, seed_offset * 0.37));
+	vec2 noise_pixel_uv = floor(UV * noise_steps) / noise_steps + vec2(0.5 / noise_steps);
+	vec2 noise_uv = mix(UV, noise_pixel_uv, noise_pixelation_amount);
+	float local_seed = smooth_noise(noise_uv * 12.0 + vec2(seed_offset, seed_offset * 0.37));
 	float pulse = 1.0 + sin(TIME * pulse_speed) * pulse_strength;
 	float flicker_phase = TIME * (flicker_speed + local_seed * flicker_speed * flicker_randomness) + local_seed * 31.416;
 	float flicker = 1.0 - flicker_strength + (sin(flicker_phase) * 0.5 + 0.5) * flicker_strength;
