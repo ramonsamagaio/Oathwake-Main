@@ -1,0 +1,28 @@
+[gd_resource type="ParticleProcessMaterial" load_steps=3 format=3]
+
+[sub_resource type="Gradient" id="Gradient_generic_mist"]
+offsets = PackedFloat32Array(0, 0.52, 1)
+colors = PackedColorArray(0.46, 0.14, 0.82, 0, 0.34, 0.16, 0.62, 0.28, 0.06, 0.05, 0.10, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_generic_mist"]
+gradient = SubResource("Gradient_generic_mist")
+
+[resource]
+resource_name = "Generic Mist Particles"
+emission_shape = 3
+emission_box_extents = Vector3(80, 20, 1)
+direction = Vector3(0, -1, 0)
+spread = 65.0
+gravity = Vector3(0, -4, 0)
+initial_velocity_min = 3.0
+initial_velocity_max = 12.0
+angular_velocity_min = -10.0
+angular_velocity_max = 10.0
+linear_accel_min = -2.0
+linear_accel_max = 2.0
+damping_min = 0.5
+damping_max = 2.0
+scale_min = 1.0
+scale_max = 2.4
+color = Color(0.46, 0.14, 0.82, 0.45)
+color_ramp = SubResource("GradientTexture1D_generic_mist")
