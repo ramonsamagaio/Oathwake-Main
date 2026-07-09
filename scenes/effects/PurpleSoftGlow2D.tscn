@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/effects/textures/soft_glow_disc.svg" id="1_soft_glow_disc"]
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/purple_soft_glow_material.tres" id="2_purple_soft_glow"]
+
+[node name="PurpleSoftGlow2D" type="Sprite2D"]
+texture = ExtResource("1_soft_glow_disc")
+material = ExtResource("2_purple_soft_glow")
+scale = Vector2(2.5, 2.5)
+z_index = 35
