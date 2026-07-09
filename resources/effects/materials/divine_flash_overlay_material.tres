@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/effects/divine_flash_overlay.gdshader" id="1_flash_shader"]
+
+[resource]
+resource_name = "Divine Flash Overlay Material"
+shader = ExtResource("1_flash_shader")
+shader_parameter/flash_color = Color(0.72, 0.86, 1, 1)
+shader_parameter/flash_intensity = 0.0
+shader_parameter/center_bias = 0.18
+shader_parameter/edge_bloom = 0.35
+shader_parameter/pixel_steps = 96.0

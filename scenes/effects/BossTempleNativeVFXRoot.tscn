@@ -1,0 +1,45 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/effects/BossTempleCanvasModulate.tscn" id="1_canvas_modulate"]
+[ext_resource type="PackedScene" path="res://scenes/effects/BossTempleLightingRig.tscn" id="2_lighting"]
+[ext_resource type="PackedScene" path="res://scenes/effects/BossTempleLightOccluders.tscn" id="3_occluders"]
+[ext_resource type="PackedScene" path="res://scenes/effects/FogLayerShader.tscn" id="4_fog"]
+[ext_resource type="PackedScene" path="res://scenes/effects/DustAshParticles.tscn" id="5_dust"]
+[ext_resource type="PackedScene" path="res://scenes/effects/RitualSeal_Overlay_Shader.tscn" id="6_ritual"]
+[ext_resource type="PackedScene" path="res://scenes/effects/Halo_Overlay_Shader.tscn" id="7_halo"]
+[ext_resource type="PackedScene" path="res://scenes/effects/AltarAura_Shader.tscn" id="8_aura"]
+[ext_resource type="PackedScene" path="res://scenes/effects/CrackCorruptionOverlay_Shader.tscn" id="9_cracks"]
+[ext_resource type="PackedScene" path="res://scenes/effects/AltarAirDistortion_Shader.tscn" id="10_air"]
+[ext_resource type="PackedScene" path="res://scenes/effects/VignetteOverlay.tscn" id="11_vignette"]
+[ext_resource type="PackedScene" path="res://scenes/effects/DivineFlashOverlay.tscn" id="12_flash"]
+
+[node name="BossTempleNativeVFXRoot" type="Node2D"]
+
+[node name="CanvasModulate" parent="." instance=ExtResource("1_canvas_modulate")]
+
+[node name="Lights" parent="." instance=ExtResource("2_lighting")]
+
+[node name="LightOccluders" parent="." instance=ExtResource("3_occluders")]
+
+[node name="FogLayer_Shader" parent="." instance=ExtResource("4_fog")]
+
+[node name="DustAshParticles" parent="." instance=ExtResource("5_dust")]
+
+[node name="RitualSeal_Overlay_Shader" parent="." instance=ExtResource("6_ritual")]
+position = Vector2(0, 50)
+
+[node name="Halo_Overlay_Shader" parent="." instance=ExtResource("7_halo")]
+position = Vector2(0, -280)
+
+[node name="AltarAura_Shader" parent="." instance=ExtResource("8_aura")]
+position = Vector2(0, -210)
+
+[node name="CrackCorruptionOverlay_Shader" parent="." instance=ExtResource("9_cracks")]
+position = Vector2(0, -55)
+
+[node name="AltarAirDistortion_Shader" parent="." instance=ExtResource("10_air")]
+position = Vector2(0, -210)
+
+[node name="VignetteOverlay" parent="." instance=ExtResource("11_vignette")]
+
+[node name="FlashOverlay" parent="." instance=ExtResource("12_flash")]

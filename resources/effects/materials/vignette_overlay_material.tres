@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/effects/fullscreen_vignette.gdshader" id="1_vignette_shader"]
+
+[resource]
+resource_name = "Vignette Overlay Material"
+shader = ExtResource("1_vignette_shader")
+shader_parameter/vignette_color = Color(0.015, 0.01, 0.028, 0.9)
+shader_parameter/inner_radius = 0.38
+shader_parameter/outer_radius = 0.82
+shader_parameter/intensity = 0.74
+shader_parameter/vertical_bias = 0.02
+shader_parameter/pixel_steps = 128.0
