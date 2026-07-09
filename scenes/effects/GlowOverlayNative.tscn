@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://resources/effects/textures/soft_light_radial.tres" id="1_soft_light"]
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/purple_soft_glow_material.tres" id="2_palette_glow"]
+
+[node name="GlowOverlayNative" type="Sprite2D"]
+texture = ExtResource("1_soft_light")
+material = ExtResource("2_palette_glow")
+centered = true
+scale = Vector2(2.5, 2.5)
+z_index = 55
