@@ -1,0 +1,25 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/effects/generic_mist_palette.gdshader" id="1_generic_mist"]
+
+[resource]
+resource_name = "Generic Mist Palette Material"
+shader = ExtResource("1_generic_mist")
+shader_parameter/palette_color_1 = Color(0.46, 0.14, 0.82, 0.24)
+shader_parameter/palette_color_2 = Color(0.18, 0.08, 0.36, 0.18)
+shader_parameter/palette_color_3 = Color(0.08, 0.14, 0.16, 0.16)
+shader_parameter/palette_color_4 = Color(0.55, 0.08, 0.18, 0.12)
+shader_parameter/palette_color_5 = Color(0.18, 0.18, 0.1, 0.12)
+shader_parameter/palette_color_6 = Color(1, 1, 1, 0.1)
+shader_parameter/palette_count = 3.0
+shader_parameter/color_cycle_speed = 0.12
+shader_parameter/palette_blend = 0.75
+shader_parameter/opacity = 0.55
+shader_parameter/evolution_speed = 0.18
+shader_parameter/drift_speed_x = 0.035
+shader_parameter/drift_speed_y = 0.012
+shader_parameter/noise_scale = 13.0
+shader_parameter/noise_contrast = 0.72
+shader_parameter/softness = 0.42
+shader_parameter/edge_fade = 0.22
+shader_parameter/pixel_steps = 96.0
