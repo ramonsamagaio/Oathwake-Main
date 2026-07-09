@@ -756,7 +756,7 @@ func _update_build_label() -> void:
 func _get_building_ui_order() -> Array:
 	var content_db := _get_content_db()
 	if content_db != null and content_db.has_method("get_all_buildings"):
-		var ids := content_db.get_all_buildings().keys()
+		var ids: Array = content_db.get_all_buildings().keys()
 		ids.sort_custom(_compare_building_ids_by_order)
 		return ids
 
@@ -1104,9 +1104,14 @@ func _spawn_building_scene(tile_position: Vector2i, building_type: String) -> vo
 	var scene_path := str(building_data.get("scene_path", ""))
 	var scene: PackedScene = null
 	if not scene_path.is_empty() and ResourceLoader.exists(scene_path):
-		scene = load(scene_path)
+		var loaded_scene: Resource = load(scene_path)
+		if loaded_scene is PackedScene:
+			scene = loaded_scene as PackedScene
 	if scene == null:
-		scene = ChestScene if _is_storage_building_type(building_type) else GenericBuildingScene
+		if _is_storage_building_type(building_type):
+			scene = ChestScene
+		else:
+			scene = GenericBuildingScene
 
 	var building_scene: Node = scene.instantiate()
 	buildings_root.add_child(building_scene)

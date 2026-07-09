@@ -1,8 +1,8 @@
 {
-	"campfire": {
+	"axe_adamantite": {
 		"category": "item",
 		"columns": 1,
-		"display_name": "Campfire",
+		"display_name": "Axe Adamantite",
 		"frame_height": 32,
 		"frame_size": {
 			"h": 32,
@@ -18,8 +18,54 @@
 		"region_enabled": false,
 		"rows": 1,
 		"tags": [],
-		"texture_path": "res://assets/sprites/items/testes/campfire1.png",
+		"texture_path": "res://assets/sprites/items/tools/image-gen-9(1).png",
 		"total_frames": 1,
+		"type": "single_sprite"
+	},
+	"campfire": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Campfire",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/campfire1.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"coal": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Coal",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/ores/coal.png",
+		"total_frames": 1.0,
 		"type": "single_sprite"
 	},
 	"fiber": {
@@ -106,6 +152,121 @@
 		"tags": [],
 		"texture_path": "res://assets/sprites/items/testes/herb.png",
 		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"iron_ore": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Iron Ore",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/ores/iron_ore.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"node_berries": {
+		"category": "item",
+		"columns": 1,
+		"display_name": "Node Berries",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [],
+		"texture_path": "res://assets/sprites/resources/BERRIES.png",
+		"total_frames": 1,
+		"type": "single_sprite"
+	},
+	"node_fiber": {
+		"category": "item",
+		"columns": 1,
+		"display_name": "Node Fiber",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [],
+		"texture_path": "res://assets/sprites/resources/FIBER.png",
+		"total_frames": 1,
+		"type": "single_sprite"
+	},
+	"node_herb": {
+		"category": "item",
+		"columns": 1,
+		"display_name": "Node Herb",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [],
+		"texture_path": "res://assets/sprites/resources/HERBS.png",
+		"total_frames": 1,
+		"type": "single_sprite"
+	},
+	"node_stonr": {
+		"category": "item",
+		"columns": 1,
+		"display_name": "Node Stone",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [],
+		"texture_path": "res://assets/sprites/resources/STONE.png",
+		"total_frames": 1,
 		"type": "single_sprite"
 	},
 	"player_base": {
@@ -260,6 +421,29 @@
 		"rows": 1.0,
 		"tags": [],
 		"texture_path": "res://assets/sprites/items/testes/stone_64x64.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"tree0": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Tree0",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/resources/TREE.png",
 		"total_frames": 1.0,
 		"type": "single_sprite"
 	},

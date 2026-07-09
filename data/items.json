@@ -3,39 +3,52 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 0.76,
-			"attack_power": 68.0,
+			"attack_power": 68,
 			"attack_variance": 0.16,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
-			"crit_chance_bonus": 0.066,
+			"crit_chance_bonus": 0.07,
 			"crit_damage_bonus": 0.25,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 24.0,
-				"tree": 68.0
+				"rock": 24,
+				"tree": 68
 			},
 			"stat_scaling": {
 				"agi": 0.0,
 				"dex": 0.15,
 				"int": 0.0,
-				"luk": 0.06,
+				"luk": 0.05,
 				"str": 0.55,
 				"vit": 0.0,
 				"wis": 0.0
 			}
 		},
-		"crit_chance": 0.066,
+		"crit_chance": 0.07,
 		"crit_power": 1.75,
+		"description": "",
 		"display_name": "Adamantite Axe",
-		"durability": 700.0,
+		"durability": 700,
 		"equipment_slot": "tool",
 		"item_type": "tool",
+		"material_family": "misc",
 		"repair_cost_multiplier": 0.9,
-		"stack_size": 1.0,
-		"tier": 7.0,
-		"tool_damage": 68.0,
+		"sprite_id": "axe_adamantite",
+		"stack_size": 1,
+		"stats_bonus": {
+			"agi": 0,
+			"dex": 0,
+			"int": 0,
+			"luk": 0,
+			"str": 0,
+			"vit": 0,
+			"wis": 0
+		},
+		"tags": [],
+		"tier": 7,
+		"tool_damage": 68,
 		"tool_speed": 0.76,
-		"tool_tier": 7.0,
+		"tool_tier": 7,
 		"tool_type": "axe"
 	},
 	"adamantite_ingot": {
@@ -161,7 +174,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 1.0,
-			"attack_power": 8,
+			"attack_power": 8.0,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -169,8 +182,8 @@
 			"crit_damage_bonus": 0.02,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 3,
-				"tree": 8
+				"rock": 3.0,
+				"tree": 8.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -186,27 +199,27 @@
 		"crit_power": 1.52,
 		"description": "A simple axe for chopping trees and fighting weak monsters.",
 		"display_name": "Wooden Axe",
-		"durability": 90,
+		"durability": 90.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"material_family": "misc",
 		"repair_cost_multiplier": 0.45,
 		"sprite_id": "wooden_axe",
-		"stack_size": 1,
+		"stack_size": 1.0,
 		"stats_bonus": {
-			"agi": 0,
-			"dex": 0,
-			"int": 0,
-			"luk": 0,
-			"str": 0,
-			"vit": 0,
-			"wis": 0
+			"agi": 0.0,
+			"dex": 0.0,
+			"int": 0.0,
+			"luk": 0.0,
+			"str": 0.0,
+			"vit": 0.0,
+			"wis": 0.0
 		},
 		"tags": [],
-		"tier": 1,
-		"tool_damage": 8,
+		"tier": 1.0,
+		"tool_damage": 8.0,
 		"tool_speed": 1.0,
-		"tool_tier": 1,
+		"tool_tier": 1.0,
 		"tool_type": "axe"
 	},
 	"basic_gem": {
@@ -413,6 +426,7 @@
 		"display_name": "Coal",
 		"item_type": "material",
 		"material_family": "ore",
+		"sprite_id": "coal",
 		"stack_size": 99.0,
 		"tags": [
 			"ore",
@@ -533,13 +547,13 @@
 		"item_type": "material",
 		"material_family": "fiber",
 		"sprite_id": "fiber",
-		"stack_size": 99.0,
+		"stack_size": 99,
 		"tags": [
 			"fiber",
 			"cloth",
 			"tier_1"
 		],
-		"tier": 1.0
+		"tier": 1
 	},
 	"fiber_cloth": {
 		"description": "A tier 1 cloth used for crafting and progression.",
@@ -702,6 +716,7 @@
 		"display_name": "Iron Ore",
 		"item_type": "material",
 		"material_family": "ore",
+		"sprite_id": "iron_ore",
 		"stack_size": 999.0,
 		"tags": [
 			"ore",
@@ -954,7 +969,7 @@
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 1.0,
-			"attack_power": 8,
+			"attack_power": 8.0,
 			"attack_variance": 0.18,
 			"can_hit_monsters": true,
 			"can_hit_resources": true,
@@ -962,8 +977,8 @@
 			"crit_damage_bonus": 0.02,
 			"damage_type": "physical",
 			"resource_damage": {
-				"rock": 8,
-				"tree": 3
+				"rock": 8.0,
+				"tree": 3.0
 			},
 			"stat_scaling": {
 				"agi": 0.0,
@@ -979,27 +994,27 @@
 		"crit_power": 1.52,
 		"description": "A simple pickaxe for breaking rocks and fighting weak monsters.",
 		"display_name": "Wooden Pickaxe",
-		"durability": 90,
+		"durability": 90.0,
 		"equipment_slot": "tool",
 		"item_type": "tool",
 		"material_family": "misc",
 		"repair_cost_multiplier": 0.45,
 		"sprite_id": "wooden_pickaxe",
-		"stack_size": 1,
+		"stack_size": 1.0,
 		"stats_bonus": {
-			"agi": 0,
-			"dex": 0,
-			"int": 0,
-			"luk": 0,
-			"str": 0,
-			"vit": 0,
-			"wis": 0
+			"agi": 0.0,
+			"dex": 0.0,
+			"int": 0.0,
+			"luk": 0.0,
+			"str": 0.0,
+			"vit": 0.0,
+			"wis": 0.0
 		},
 		"tags": [],
-		"tier": 1,
-		"tool_damage": 8,
+		"tier": 1.0,
+		"tool_damage": 8.0,
 		"tool_speed": 1.0,
-		"tool_tier": 1,
+		"tool_tier": 1.0,
 		"tool_type": "pickaxe"
 	},
 	"profaned_crystal": {
