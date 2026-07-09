@@ -4,7 +4,6 @@
 
 [node name="FlashOverlay" type="CanvasLayer"]
 layer = 100
-visible = false
 
 [node name="FlashRect" type="ColorRect" parent="."]
 anchors_preset = 15
