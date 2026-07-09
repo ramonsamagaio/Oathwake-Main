@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="ShaderMaterial" path="res://resources/effects/materials/vignette_overlay_material.tres" id="1_vignette_material"]
+
+[node name="VignetteOverlay" type="CanvasLayer"]
+layer = 90
+
+[node name="VignetteRect" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
+material = ExtResource("1_vignette_material")
