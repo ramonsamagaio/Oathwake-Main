@@ -1,0 +1,120 @@
+; Map contract root. The older authored scene remains as visual-only content.
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/maps/MapRoot.gd" id="1_map_root"]
+[ext_resource type="PackedScene" path="res://scenes/maps/Start_Area.tscn" id="2_authored_visuals"]
+[ext_resource type="PackedScene" path="res://scenes/Tree.tscn" id="3_tree"]
+[ext_resource type="PackedScene" path="res://scenes/Rock.tscn" id="4_rock"]
+[ext_resource type="PackedScene" path="res://scenes/ResourceBush.tscn" id="5_bush"]
+[ext_resource type="PackedScene" path="res://scenes/systems/MonsterSpawnZone.tscn" id="6_spawn_zone"]
+[ext_resource type="PackedScene" path="res://scenes/npcs/NPC.tscn" id="7_npc"]
+
+[node name="StartArea" type="Node2D"]
+script = ExtResource("1_map_root")
+map_id = "start_area"
+display_name = "Start Area"
+
+[node name="GroundLayer" type="TileMapLayer" parent="."]
+z_index = -10
+
+[node name="ObstacleLayer" type="TileMapLayer" parent="."]
+z_index = -5
+
+[node name="BuildLayer" type="TileMapLayer" parent="."]
+z_index = -1
+
+[node name="Props" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="AuthoredVisuals" parent="Props" instance=ExtResource("2_authored_visuals")]
+
+[node name="Resources" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Tree" parent="Resources" instance=ExtResource("3_tree")]
+position = Vector2(-96, -48)
+resource_id = "tree_01"
+
+[node name="Tree2" parent="Resources" instance=ExtResource("3_tree")]
+position = Vector2(-160, 96)
+resource_id = "tree_02"
+
+[node name="Tree3" parent="Resources" instance=ExtResource("3_tree")]
+position = Vector2(96, -160)
+resource_id = "tree_03"
+
+[node name="Tree4" parent="Resources" instance=ExtResource("3_tree")]
+position = Vector2(-224, -96)
+resource_id = "tree_04"
+
+[node name="Rock" parent="Resources" instance=ExtResource("4_rock")]
+position = Vector2(112, 64)
+resource_id = "rock_01"
+
+[node name="Rock2" parent="Resources" instance=ExtResource("4_rock")]
+position = Vector2(192, -96)
+resource_id = "rock_02"
+
+[node name="Rock3" parent="Resources" instance=ExtResource("4_rock")]
+position = Vector2(-64, 192)
+resource_id = "rock_03"
+
+[node name="FiberBush" parent="Resources" instance=ExtResource("5_bush")]
+position = Vector2(64, -80)
+resource_id = "fiber_bush_01"
+
+[node name="FiberBush2" parent="Resources" instance=ExtResource("5_bush")]
+position = Vector2(-128, -144)
+resource_id = "fiber_bush_02"
+
+[node name="HerbBush" parent="Resources" instance=ExtResource("5_bush")]
+position = Vector2(-64, 80)
+resource_id = "herb_bush_01"
+resource_type_id = "herb_bush"
+resource_name = "Herb Bush"
+
+[node name="OakTree" parent="Resources" instance=ExtResource("3_tree")]
+position = Vector2(384, -96)
+resource_id = "oak_tree_01"
+resource_type_id = "oak_tree"
+resource_name = "Oak Tree"
+
+[node name="OakTree2" parent="Resources" instance=ExtResource("3_tree")]
+position = Vector2(448, 128)
+resource_id = "oak_tree_02"
+resource_type_id = "oak_tree"
+resource_name = "Oak Tree"
+
+[node name="CoalNode" parent="Resources" instance=ExtResource("4_rock")]
+position = Vector2(352, 192)
+resource_id = "coal_node_01"
+resource_type_id = "coal_node"
+resource_name = "Coal Node"
+
+[node name="Enemies" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="SlimeSpawnZone" parent="Enemies" instance=ExtResource("6_spawn_zone")]
+position = Vector2(384, 160)
+spawn_interval = 1.0
+spawn_radius = 32.0
+
+[node name="SkeletonSpawnZone" parent="Enemies" instance=ExtResource("6_spawn_zone")]
+position = Vector2(160, 64)
+monster_id = "skeleton"
+spawn_interval = 1.0
+spawn_radius = 32.0
+
+[node name="NPCs" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Villager" parent="NPCs" instance=ExtResource("7_npc")]
+position = Vector2(-64, 128)
+
+[node name="WorldItems" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+
+[node name="PlayerSpawn" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(834, 467)

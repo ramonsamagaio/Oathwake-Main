@@ -1,0 +1,45 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/game/Game.gd" id="1_game_script"]
+[ext_resource type="Script" path="res://scripts/game/MapLoader.gd" id="2_map_loader_script"]
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="3_player_scene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/InventoryUI.tscn" id="4_inventory_ui"]
+[ext_resource type="PackedScene" path="res://scenes/ui/HotbarUI.tscn" id="5_hotbar_ui"]
+[ext_resource type="PackedScene" path="res://scenes/ui/StorageUI.tscn" id="6_storage_ui"]
+[ext_resource type="PackedScene" path="res://scenes/ui/WorkbenchUI.tscn" id="7_workbench_ui"]
+[ext_resource type="PackedScene" path="res://scenes/ui/CharacterStatusUI.tscn" id="8_status_ui"]
+[ext_resource type="Script" path="res://scripts/BuildSystem.gd" id="9_build_system"]
+[ext_resource type="Script" path="res://scripts/save/SaveCoordinator.gd" id="10_save_coordinator"]
+
+[node name="Game" type="Node2D"]
+script = ExtResource("1_game_script")
+
+[node name="CurrentMapRoot" type="Node2D" parent="."]
+
+[node name="RuntimeEntities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Player" parent="RuntimeEntities" instance=ExtResource("3_player_scene")]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="InventoryUI" parent="UI" instance=ExtResource("4_inventory_ui")]
+
+[node name="StorageUI" parent="UI" instance=ExtResource("6_storage_ui")]
+
+[node name="WorkbenchUI" parent="UI" instance=ExtResource("7_workbench_ui")]
+
+[node name="HotbarUI" parent="UI" instance=ExtResource("5_hotbar_ui")]
+
+[node name="CharacterStatusUI" parent="UI" instance=ExtResource("8_status_ui")]
+
+[node name="Systems" type="Node" parent="."]
+
+[node name="MapLoader" type="Node" parent="Systems"]
+script = ExtResource("2_map_loader_script")
+
+[node name="BuildSystem" type="Node" parent="Systems"]
+script = ExtResource("9_build_system")
+
+[node name="SaveCoordinator" type="Node" parent="Systems"]
+script = ExtResource("10_save_coordinator")

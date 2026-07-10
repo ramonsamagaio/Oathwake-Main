@@ -33,6 +33,7 @@
 			"move_speed": 40
 		},
 		"animations": {},
+		"animation_set_id": "",
 		"loot_table": [
 			{
 				"chance": 1.0,
@@ -43,6 +44,7 @@
 		],
 		"max_health": 76,
 		"scene_path": "res://scenes/enemies/Skeleton.tscn",
+		"sprite_id": "",
 		"xp_reward": 18,
 		"move_speed": 40,
 		"spawn_tiles": [
@@ -90,6 +92,7 @@
 			"recover_time": 0.10
 		},
 		"animations": {},
+		"animation_set_id": "",
 		"loot_table": [
 			{
 				"chance": 1.0,
@@ -100,6 +103,7 @@
 		],
 		"max_health": 40,
 		"scene_path": "res://scenes/enemies/Slime.tscn",
+		"sprite_id": "",
 		"xp_reward": 8,
 		"move_speed": 42,
 		"spawn_tiles": [

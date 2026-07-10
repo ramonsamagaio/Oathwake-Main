@@ -812,6 +812,7 @@ func _build_monster_form() -> void:
 	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
 	_add_spin_box("Level", "level", int(current_record.get("level", 1)), 1, 999999, 1)
 	_add_sprite_picker(str(current_record.get("sprite_id", "")))
+	_add_animation_set_picker(str(current_record.get("animation_set_id", "")))
 	_add_spin_box("Max Health", "max_health", int(current_record.get("max_health", 20)), 1, 999999, 1)
 	_add_spin_box("Move Speed", "move_speed", int(current_record.get("move_speed", 40)), 0, 999999, 1)
 	_add_spin_box("Damage", "damage", int(current_record.get("damage", 5)), 0, 999999, 1)
@@ -4687,6 +4688,7 @@ func _get_item_form_record() -> Dictionary:
 	record["description"] = _get_text_edit_text("description")
 	record["stack_size"] = _get_spin_box_int("stack_size")
 	record["sprite_id"] = selected_sprite_id
+	record["animation_set_id"] = selected_animation_set_id
 	record["item_type"] = _get_option_button_metadata("item_type")
 	record["tier"] = _get_spin_box_int("tier")
 	record["material_family"] = _get_option_button_metadata("material_family")
@@ -4834,6 +4836,7 @@ func _get_monster_form_record() -> Dictionary:
 	record["display_name"] = _get_line_edit_text("display_name")
 	record["level"] = _get_spin_box_int("level")
 	record["sprite_id"] = selected_sprite_id
+	record["animation_set_id"] = selected_animation_set_id
 	record["max_health"] = _get_spin_box_int("max_health")
 	record["move_speed"] = _get_spin_box_int("move_speed")
 	record["damage"] = _get_spin_box_int("damage")

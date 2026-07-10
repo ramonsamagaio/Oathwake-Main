@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/GenericMonster.gd" id="1_generic_monster"]
+
+[sub_resource type="CircleShape2D" id="1_body_shape"]
+radius = 14.0
+
+[sub_resource type="CircleShape2D" id="2_damage_shape"]
+radius = 18.0
+
+[node name="GenericMonster" type="CharacterBody2D"]
+script = ExtResource("1_generic_monster")
+
+[node name="FallbackVisual" type="Polygon2D" parent="."]
+color = Color(0.66, 0.24, 0.72, 1)
+polygon = PackedVector2Array(-15, 8, -11, -10, 0, -16, 12, -10, 17, 5, 8, 17, -9, 16)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1_body_shape")
+
+[node name="DamageArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea"]
+shape = SubResource("2_damage_shape")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+centered = true
+position = Vector2(0, -4)

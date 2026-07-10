@@ -20,6 +20,10 @@ polygon = PackedVector2Array(-14, 7, -10, -9, -2, -15, 8, -15, 15, -8, 18, 4, 10
 color = Color(0.95, 0.94, 0.90, 1)
 polygon = PackedVector2Array(-4, -8, 2, -12, 8, -8, 1, -4)
 
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+centered = true
+position = Vector2(0, -4)
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_skeleton_collision")
 

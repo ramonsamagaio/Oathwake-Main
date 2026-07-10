@@ -7,18 +7,15 @@ const SettingsManager = preload("res://scripts/systems/SettingsManager.gd")
 const WorldItemSpawner = preload("res://scripts/systems/WorldItemSpawner.gd")
 const InventoryDebug = preload("res://scripts/systems/InventoryDebug.gd")
 const EquipmentSystem = preload("res://scripts/systems/EquipmentSystem.gd")
+const GameplayInventoryBridge = preload("res://scripts/game/GameplayInventoryBridge.gd")
+const GameplayAudioController = preload("res://scripts/game/GameplayAudioController.gd")
+const DebugPanelController = preload("res://scripts/game/DebugPanelController.gd")
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 const HUDStatusUIScene := preload("res://scenes/ui/HUDStatusUI.tscn")
 const DebugTreeScene = preload("res://scenes/Tree.tscn")
 const DebugRockScene = preload("res://scenes/Rock.tscn")
 const MonsterSpawner = preload("res://scripts/systems/MonsterSpawner.gd")
 const BUILD_TYPE_BED := "bed"
-const OVERWORLD_THEME_PATH := "res://assets/audio/themes/OVERWORLD THEME 01.mp3"
-const FOREST_AMBIENCE_PATH := "res://assets/audio/ambience/Forest Day.wav"
-const AMBIENCE_CHECK_INTERVAL := 0.35
-const AMBIENCE_ACTIVE_VOLUME_DB := -22.0
-const AMBIENCE_INACTIVE_VOLUME_DB := -80.0
-const AMBIENCE_FADE_TIME := 1.0
 
 var inventory := Inventory.new()
 var equipment_system := EquipmentSystem.new()
@@ -28,13 +25,10 @@ var save_slot_manager: Node
 var settings_manager: Node
 var player_stat_spin_boxes := {}
 var monster_spawner := MonsterSpawner.new()
-var overworld_music_player: AudioStreamPlayer
-var _forest_ambience_player: AudioStreamPlayer
-var _ambience_volume_tween: Tween
-var _ambience_check_timer := 0.0
-var _ambience_active := false
 var hud_status_ui: Control
-var _debug_ui_visible := false
+var inventory_bridge: GameplayInventoryBridge
+var audio_controller: GameplayAudioController
+var debug_panel_controller: DebugPanelController
 
 @export var bed_respawn_range: float = 72.0
 
@@ -83,27 +77,44 @@ func _ready() -> void:
 		settings_manager.load_settings()
 		settings_manager.apply_settings()
 	add_child(monster_spawner)
-	_setup_overworld_music()
-	_setup_forest_ambience()
+	audio_controller = GameplayAudioController.new()
+	add_child(audio_controller)
+	audio_controller.setup(world, player)
 	_configure_save_buttons()
 	_configure_player_stats_debug_ui()
 	_configure_monster_spawn_debug_ui()
 	_apply_oathwake_ui_font()
 	_ensure_hud_status_ui()
+	debug_panel_controller = DebugPanelController.new()
+	add_child(debug_panel_controller)
+	debug_panel_controller.setup({
+		"hud_status_ui": hud_status_ui,
+		"labels": {
+			"wood": wood_label, "stone": stone_label, "gel": gel_label, "tool": tool_label,
+			"health": health_label, "xp": xp_label, "villagers": villagers_label,
+			"houses": houses_label, "housed_villagers": housed_villagers_label,
+			"player_stats_panel": player_stats_panel, "monster_spawn_panel": monster_spawn_panel,
+		},
+		"panels": [wood_label, stone_label, gel_label, tool_label, health_label, xp_label,
+			villagers_label, houses_label, housed_villagers_label, save_button, load_button,
+			player_stats_button, spawn_monster_button],
+	})
 	_set_debug_ui_visible(false)
+	inventory_bridge = GameplayInventoryBridge.new()
+	add_child(inventory_bridge)
+	inventory_bridge.setup({
+		"controller": self, "inventory": inventory, "equipment_system": equipment_system,
+		"player": player, "inventory_ui": inventory_ui, "storage_ui": storage_ui,
+		"hotbar_ui": hotbar_ui, "character_status_ui": character_status_ui,
+		"workbench_ui": $UI/WorkbenchUI,
+	})
 	inventory.changed.connect(_update_resource_labels)
 	player.health_changed.connect(_update_health_label)
 	player.tool_changed.connect(_update_tool_label)
 	housing_system.changed.connect(_on_housing_changed)
 	settlement_manager.changed.connect(_update_settlement_labels)
-	inventory_ui.set_inventory(inventory)
-	inventory_ui.set_equipment_system(equipment_system)
 	equipment_system.changed.connect(inventory_ui.refresh)
 	equipment_system.changed.connect(_update_tool_label)
-	storage_ui.setup(inventory, player)
-	hotbar_ui.setup(inventory, player)
-	character_status_ui.setup(player)
-	character_status_ui.set_equipment_system(equipment_system)
 	if player.has_signal("xp_changed"):
 		player.xp_changed.connect(_update_xp_label)
 	if player.has_signal("level_changed"):
@@ -120,88 +131,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	_update_terrain_ambience(delta)
-
-
-func _setup_overworld_music() -> void:
-	overworld_music_player = AudioStreamPlayer.new()
-	overworld_music_player.bus = "Master"
-	overworld_music_player.volume_db = -8.0
-	var stream := _load_audio_stream(OVERWORLD_THEME_PATH)
-	if stream == null:
-		push_warning("Main could not load overworld theme: %s" % OVERWORLD_THEME_PATH)
-		return
-
-	_set_stream_loop(stream, true)
-	overworld_music_player.stream = stream
-	add_child(overworld_music_player)
-	overworld_music_player.play()
-
-
-func _setup_forest_ambience() -> void:
-	_forest_ambience_player = AudioStreamPlayer.new()
-	_forest_ambience_player.name = "ForestAmbiencePlayer"
-	_forest_ambience_player.bus = "Master"
-	_forest_ambience_player.autoplay = false
-	_forest_ambience_player.volume_db = AMBIENCE_INACTIVE_VOLUME_DB
-
-	var stream := _load_audio_stream(FOREST_AMBIENCE_PATH)
-	if stream == null:
-		push_warning("Main could not load forest ambience: %s" % FOREST_AMBIENCE_PATH)
-		return
-
-	_set_stream_loop(stream, true)
-	_forest_ambience_player.stream = stream
-	add_child(_forest_ambience_player)
-
-
-func _load_audio_stream(path: String) -> AudioStream:
-	if not ResourceLoader.exists(path):
-		return null
-
-	return load(path) as AudioStream
-
-
-func _set_stream_loop(stream: Resource, loop_enabled: bool) -> void:
-	for property_info in stream.get_property_list():
-		if str(property_info.get("name", "")) == "loop":
-			stream.set("loop", loop_enabled)
-			return
-
-
-func _update_terrain_ambience(delta: float) -> void:
-	if player == null or world == null or _forest_ambience_player == null:
-		return
-	if not world.has_method("get_tile_type_at_position"):
-		return
-	if _forest_ambience_player.stream == null:
-		return
-
-	_ambience_check_timer += delta
-	if _ambience_check_timer < AMBIENCE_CHECK_INTERVAL:
-		return
-
-	_ambience_check_timer = 0.0
-	var tile_type := str(world.get_tile_type_at_position(player.global_position)).to_lower()
-	var should_be_active := tile_type == "grass" or tile_type == "forest"
-	if should_be_active == _ambience_active:
-		return
-
-	_set_forest_ambience_active(should_be_active)
-
-
-func _set_forest_ambience_active(is_active: bool) -> void:
-	_ambience_active = is_active
-	if _ambience_volume_tween != null:
-		_ambience_volume_tween.kill()
-		_ambience_volume_tween = null
-
-	if is_active and not _forest_ambience_player.playing:
-		_forest_ambience_player.play()
-
-	_ambience_volume_tween = create_tween()
-	var target_volume := AMBIENCE_ACTIVE_VOLUME_DB if is_active else AMBIENCE_INACTIVE_VOLUME_DB
-	_ambience_volume_tween.tween_property(_forest_ambience_player, "volume_db", target_volume, AMBIENCE_FADE_TIME)
+	if audio_controller != null:
+		audio_controller.update_ambience(delta)
 
 
 func _apply_oathwake_ui_font() -> void:
@@ -245,33 +176,13 @@ func _ensure_hud_status_ui() -> void:
 
 
 func _set_debug_ui_visible(is_visible: bool) -> void:
-	_debug_ui_visible = is_visible
-	var debug_nodes: Array[CanvasItem] = [
-		wood_label,
-		stone_label,
-		gel_label,
-		tool_label,
-		health_label,
-		xp_label,
-		villagers_label,
-		houses_label,
-		housed_villagers_label,
-		save_button,
-		load_button,
-		player_stats_button,
-		spawn_monster_button,
-	]
-	for node in debug_nodes:
-		if node != null:
-			node.visible = is_visible
-	if not is_visible:
-		player_stats_panel.visible = false
-		monster_spawn_panel.visible = false
+	if debug_panel_controller != null:
+		debug_panel_controller.set_debug_visible(is_visible)
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F3:
-		_set_debug_ui_visible(not _debug_ui_visible)
+		_set_debug_ui_visible(not debug_panel_controller.is_visible)
 		get_viewport().set_input_as_handled()
 		return
 
@@ -341,7 +252,7 @@ func add_resource(resource_name: String, amount: int) -> void:
 
 
 func add_item_to_inventory(item_id: String, amount: int, metadata: Dictionary = {}) -> int:
-	return inventory.add_item(item_id, amount, metadata)
+	return inventory_bridge.add_item(item_id, amount, metadata)
 
 
 func drop_item_near_player(item_id: String, amount: int, metadata: Dictionary = {}) -> void:
@@ -354,16 +265,15 @@ func drop_item_near_player(item_id: String, amount: int, metadata: Dictionary = 
 func open_storage(storage_node) -> void:
 	if build_system != null and build_system.has_method("set_build_mode_enabled"):
 		build_system.set_build_mode_enabled(false)
-	if storage_ui != null and storage_ui.has_method("open_storage"):
-		storage_ui.open_storage(storage_node)
+	inventory_bridge.open_storage(storage_node)
 
 
 func can_spend_resource(resource_name: String, amount: int) -> bool:
-	return inventory.has_item(resource_name, amount)
+	return inventory_bridge.can_spend(resource_name, amount)
 
 
 func spend_resource(resource_name: String, amount: int) -> bool:
-	return inventory.remove_item(resource_name, amount)
+	return inventory_bridge.spend(resource_name, amount)
 
 
 func save_game() -> void:
@@ -457,15 +367,15 @@ func load_game() -> void:
 
 
 func _update_resource_labels() -> void:
-	wood_label.text = "%s: %d" % [_get_item_display_name("wood"), inventory.get_count("wood")]
-	stone_label.text = "%s: %d" % [_get_item_display_name("stone"), inventory.get_count("stone")]
-	gel_label.text = "%s: %d" % [_get_item_display_name("gel"), inventory.get_count("gel")]
+	debug_panel_controller.set_resource_counts(
+		_get_item_display_name("wood"), inventory.get_count("wood"),
+		_get_item_display_name("stone"), inventory.get_count("stone"),
+		_get_item_display_name("gel"), inventory.get_count("gel")
+	)
 
 
 func _update_health_label(current_health: int, max_health: int) -> void:
-	health_label.text = "Health: %d/%d" % [current_health, max_health]
-	if hud_status_ui != null and hud_status_ui.has_method("set_health"):
-		hud_status_ui.set_health(current_health, max_health)
+	debug_panel_controller.set_health(current_health, max_health)
 
 
 func _update_xp_label(current_xp: Variant = null, xp_to_next_level: Variant = null, level: Variant = null) -> void:
@@ -475,9 +385,7 @@ func _update_xp_label(current_xp: Variant = null, xp_to_next_level: Variant = nu
 	var xp_value := int(current_xp if current_xp != null else player.current_xp)
 	var xp_next := int(xp_to_next_level if xp_to_next_level != null else player.xp_to_next_level)
 	var level_value := int(level if level != null else player.level)
-	xp_label.text = "LV %d | XP %d/%d" % [level_value, xp_value, xp_next]
-	if hud_status_ui != null and hud_status_ui.has_method("set_xp"):
-		hud_status_ui.set_xp(xp_value, xp_next, level_value)
+	debug_panel_controller.set_xp(xp_value, xp_next, level_value)
 
 
 func _update_xp_label_from_player(_level = null) -> void:
@@ -486,18 +394,15 @@ func _update_xp_label_from_player(_level = null) -> void:
 
 func _update_tool_label(current_tool := "") -> void:
 	var display_tool := str(current_tool)
-	tool_label.text = "Tool: %s" % display_tool
-	if hud_status_ui != null and hud_status_ui.has_method("set_current_tool"):
-		hud_status_ui.set_current_tool(display_tool)
+	debug_panel_controller.set_current_tool(display_tool)
 
 
 func _update_settlement_labels() -> void:
-	villagers_label.text = "Villagers: %d" % settlement_manager.get_recruited_count()
-	houses_label.text = "Houses: %d" % housing_system.get_valid_house_count()
-	housed_villagers_label.text = "Housed Villagers: %d/%d" % [
-		settlement_manager.get_housed_count(),
+	debug_panel_controller.set_settlement(
 		settlement_manager.get_recruited_count(),
-	]
+		housing_system.get_valid_house_count(),
+		settlement_manager.get_housed_count()
+	)
 
 
 func _on_housing_changed(_valid_house_count: int) -> void:

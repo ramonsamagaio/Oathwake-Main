@@ -86,6 +86,29 @@
 		"skill_type": "lumbering",
 		"xp_reward": 110.0
 	},
+	"berry_bush": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1.0,
+				"item_id": "berry",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"display_name": "Berry Bush",
+		"drop_amount": 2,
+		"drop_item_id": "berry",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/BerryBush.tscn",
+		"skill_type": "foraging",
+		"sprite_id": "",
+		"tags": [],
+		"vfx_hooks": [],
+		"xp_reward": 5
+	},
 	"fiber_bush": {
 		"allow_hands": true,
 		"base_drops": [
@@ -112,7 +135,7 @@
 		"resource_hp": 8.0,
 		"resource_tier": 1.0,
 		"respawn_time_seconds": 35.0,
-		"scene_path": "",
+		"scene_path": "res://scenes/resources/FiberGrass.tscn",
 		"skill_type": "foraging",
 		"sprite_id": "node_fiber",
 		"tags": [],
@@ -145,7 +168,7 @@
 		"resource_hp": 6.0,
 		"resource_tier": 1.0,
 		"respawn_time_seconds": 40.0,
-		"scene_path": "",
+		"scene_path": "res://scenes/resources/HerbBush.tscn",
 		"skill_type": "foraging",
 		"sprite_id": "node_herb",
 		"tags": [],
@@ -265,6 +288,7 @@
 		"resource_hp": 38.0,
 		"resource_tier": 2.0,
 		"respawn_time_seconds": 60.0,
+		"scene_path": "res://scenes/resources/OakTree.tscn",
 		"skill_type": "lumbering",
 		"xp_reward": 20.0
 	},
@@ -294,7 +318,7 @@
 		"resource_hp": 28,
 		"resource_tier": 1,
 		"respawn_time_seconds": 45,
-		"scene_path": "",
+		"scene_path": "res://scenes/resources/RockNode.tscn",
 		"skill_type": "mining",
 		"sprite_id": "node_stonr",
 		"tags": [],
@@ -327,7 +351,7 @@
 		"resource_hp": 22,
 		"resource_tier": 1,
 		"respawn_time_seconds": 30,
-		"scene_path": "",
+		"scene_path": "res://scenes/resources/OakTree.tscn",
 		"skill_type": "lumbering",
 		"sprite_id": "tree0",
 		"tags": [],

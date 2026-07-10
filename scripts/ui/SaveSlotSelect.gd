@@ -3,7 +3,10 @@ extends Control
 signal back_requested
 
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
-const GAME_SCENE_PATH := "res://scenes/Main.tscn"
+const SavePathsScript := preload("res://scripts/save/SavePaths.gd")
+const SaveSessionScript := preload("res://scripts/save/SaveSession.gd")
+const PlayerProfileSaveScript := preload("res://scripts/save/PlayerProfileSave.gd")
+const GAME_SCENE_PATH := "res://scenes/game/Game.tscn"
 const SLOT_IDS := ["slot_1", "slot_2", "slot_3"]
 
 const BASE_MENU_TEXTURE := preload("res://assets/ui/MM_UI/BASE _MENU.png")
@@ -151,22 +154,23 @@ func _set_control_rect(control: Control, rect: Rect2) -> void:
 
 
 func _refresh_slot_buttons() -> void:
-	var save_slot_manager := _get_save_slot_manager()
 	for slot_id in SLOT_IDS:
 		var button: TextureButton = _slot_buttons[slot_id]
 		var label: Label = _slot_labels[slot_id]
-		var summary: Dictionary = save_slot_manager.get_slot_summary(slot_id)
+		var summary := _get_session_summary(slot_id)
 		var slot_label: String = slot_id.replace("_", " ").capitalize()
 		var enabled := true
 		if not bool(summary.get("exists", false)):
-			label.text = "%s\nEmpty" % slot_label
+			var legacy_note := "\nLegacy save (migration pending)" if bool(summary.get("legacy_exists", false)) else ""
+			label.text = "%s\nEmpty%s" % [slot_label, legacy_note]
 			enabled = _mode == "new"
 		elif not bool(summary.get("valid", true)):
-			label.text = "%s\nInvalid Save" % slot_label
+			label.text = "%s\nInvalid Session" % slot_label
 			enabled = _mode == "new"
 		else:
-			label.text = "%s\nLV %d  XP %d/%d" % [
+			label.text = "%s\n%s  LV %d  XP %d/%d" % [
 				slot_label,
+				str(summary.get("display_name", "Player")),
 				int(summary.get("level", 1)),
 				int(summary.get("current_xp", 0)),
 				int(summary.get("xp_to_next_level", 30)),
@@ -196,7 +200,7 @@ func _refresh_action_buttons() -> void:
 		return
 	var has_selection := not _selected_slot_id.is_empty()
 	_load_button.disabled = not has_selection
-	_delete_button.disabled = not has_selection or not _get_save_slot_manager().slot_exists(_selected_slot_id)
+	_delete_button.disabled = not has_selection or not _session_exists(_selected_slot_id)
 	var load_label := _load_button.get_child(0) as Label
 	if load_label != null:
 		load_label.text = "Start" if _mode == "new" else "Load"
@@ -211,25 +215,26 @@ func _on_slot_pressed(slot_id: String) -> void:
 func _on_load_or_start_pressed() -> void:
 	if _selected_slot_id.is_empty():
 		return
-	var save_slot_manager := _get_save_slot_manager()
 	if _mode == "new":
-		if save_slot_manager.slot_exists(_selected_slot_id):
+		if _session_exists(_selected_slot_id):
 			_pending_slot_id = _selected_slot_id
 			_confirm_dialog.popup_centered()
 			return
-		_start_game_in_slot(_selected_slot_id, false)
+		_start_new_game_in_slot(_selected_slot_id)
 		return
 
-	if not save_slot_manager.slot_exists(_selected_slot_id):
+	if not _session_exists(_selected_slot_id):
 		return
-	_start_game_in_slot(_selected_slot_id, true)
+	_load_game_in_slot(_selected_slot_id)
 
 
 func _on_delete_pressed() -> void:
 	if _selected_slot_id.is_empty():
 		return
-	var save_slot_manager := _get_save_slot_manager()
-	if save_slot_manager.delete_slot(_selected_slot_id):
+	var session_path := SavePathsScript.get_session_path(_selected_slot_id)
+	if not session_path.is_empty() and FileAccess.file_exists(session_path) and DirAccess.remove_absolute(session_path) == OK:
+		# TODO(migration): offer an explicit cleanup flow for orphaned player/world files.
+		# Never delete them automatically when replacing or deleting a session slot.
 		_selected_slot_id = ""
 		_refresh_slot_buttons()
 		_refresh_action_buttons()
@@ -238,14 +243,24 @@ func _on_delete_pressed() -> void:
 func _confirm_new_game_overwrite() -> void:
 	if _pending_slot_id.is_empty():
 		return
-	_start_game_in_slot(_pending_slot_id, false)
+	_start_new_game_in_slot(_pending_slot_id)
 
 
-func _start_game_in_slot(slot_id: String, preserve_existing_save: bool) -> void:
-	var save_slot_manager := _get_save_slot_manager()
-	save_slot_manager.set_active_slot(slot_id)
-	if not preserve_existing_save and save_slot_manager.slot_exists(slot_id):
-		save_slot_manager.delete_slot(slot_id)
+func _start_new_game_in_slot(slot_id: String) -> void:
+	if not _can_open_game_scene():
+		return
+	var game_session := _get_game_session()
+	if game_session == null or not game_session.start_new_session(slot_id):
+		return
+	get_tree().change_scene_to_file(GAME_SCENE_PATH)
+
+
+func _load_game_in_slot(slot_id: String) -> void:
+	if not _can_open_game_scene():
+		return
+	var game_session := _get_game_session()
+	if game_session == null or not game_session.load_session(slot_id):
+		return
 	get_tree().change_scene_to_file(GAME_SCENE_PATH)
 
 
@@ -254,8 +269,53 @@ func _on_back_pressed() -> void:
 	back_requested.emit()
 
 
-func _get_save_slot_manager() -> Node:
+func _get_session_summary(slot_id: String) -> Dictionary:
+	var summary := {
+		"exists": false,
+		"valid": true,
+		"legacy_exists": _legacy_slot_exists(slot_id),
+	}
+	var session_path := SavePathsScript.get_session_path(slot_id)
+	if session_path.is_empty() or not FileAccess.file_exists(session_path):
+		return summary
+	summary["exists"] = true
+	var session_result := SaveSessionScript.new().load_session(slot_id)
+	if not bool(session_result.get("ok", false)):
+		summary["valid"] = false
+		return summary
+	var session_data: Dictionary = session_result.get("data", {})
+	var player_id := str(session_data.get("player_id", ""))
+	var player_result := PlayerProfileSaveScript.new().load_profile(player_id)
+	if not bool(player_result.get("ok", false)):
+		summary["valid"] = false
+		return summary
+	var player_data: Dictionary = player_result.get("data", {})
+	summary["display_name"] = str(player_data.get("display_name", "Player"))
+	summary["level"] = int(player_data.get("level", 1))
+	summary["current_xp"] = int(player_data.get("current_xp", 0))
+	summary["xp_to_next_level"] = int(player_data.get("xp_to_next_level", 30))
+	return summary
+
+
+func _session_exists(slot_id: String) -> bool:
+	var path := SavePathsScript.get_session_path(slot_id)
+	return not path.is_empty() and FileAccess.file_exists(path)
+
+
+func _legacy_slot_exists(slot_id: String) -> bool:
 	var manager := get_node_or_null("/root/SaveSlotManager")
-	if manager != null:
-		return manager
-	return preload("res://scripts/systems/SaveSlotManager.gd").new()
+	return manager != null and manager.has_method("slot_exists") and manager.slot_exists(slot_id)
+
+
+func _get_game_session() -> Node:
+	var session := get_node_or_null("/root/GameSession")
+	if session == null:
+		push_error("SaveSlotSelect requires the GameSession autoload.")
+	return session
+
+
+func _can_open_game_scene() -> bool:
+	if ResourceLoader.exists(GAME_SCENE_PATH):
+		return true
+	push_error("SaveSlotSelect could not find %s" % GAME_SCENE_PATH)
+	return false

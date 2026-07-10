@@ -302,13 +302,21 @@ func _apply_resource_sprite() -> void:
 		push_warning("ResourceNode %s sprite texture is not Texture2D: %s" % [resource_id, texture_path])
 		return
 
+	var content_sprite_target := get_node_or_null("ContentSpriteTarget") as Node
+	if content_sprite_target == null:
+		content_sprite_target = find_child("ContentSpriteTarget", true, false) as Node
+	if content_sprite == null and content_sprite_target != null:
+		content_sprite = content_sprite_target.get_node_or_null("ContentSprite") as Sprite2D
 	if content_sprite == null:
 		content_sprite = get_node_or_null("ContentSprite") as Sprite2D
 	if content_sprite == null:
 		content_sprite = Sprite2D.new()
 		content_sprite.name = "ContentSprite"
-		add_child(content_sprite)
-		move_child(content_sprite, 0)
+		if content_sprite_target != null:
+			content_sprite_target.add_child(content_sprite)
+		else:
+			add_child(content_sprite)
+			move_child(content_sprite, 0)
 
 	content_sprite.texture = texture
 	content_sprite.centered = true

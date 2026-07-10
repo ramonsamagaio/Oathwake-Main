@@ -41,28 +41,108 @@ var building_scene_by_cell := {}
 var next_bed_id := 1
 var next_chest_id := 1
 
-@onready var main = get_node(main_path)
-@onready var player: CharacterBody2D = get_node(player_path)
-@onready var build_layer: TileMapLayer = get_node(build_layer_path)
-@onready var ground_layer: TileMapLayer = get_node(ground_layer_path)
-@onready var obstacle_layer: TileMapLayer = get_node(obstacle_layer_path)
-@onready var resources_root: Node2D = get_node(resources_root_path)
-@onready var build_label: Label = get_node(build_label_path)
+var main: Node
+var player: CharacterBody2D
+var build_layer: TileMapLayer
+var ground_layer: TileMapLayer
+var obstacle_layer: TileMapLayer
+var resources_root: Node2D
+var build_label: Label
 var buildings_root: Node2D
 
 
 func _ready() -> void:
 	add_to_group("build_system")
-	buildings_root = _get_or_create_buildings_root()
+	setup({})
 
+
+## Configures the builder for an explicit gameplay/map context.
+## Legacy NodePaths are used only when a reference was not supplied by the caller.
+func setup(context: Dictionary) -> void:
+	var previous_build_layer := build_layer
+	_remove_preview()
+	_apply_context(context)
+	if previous_build_layer != null and build_layer != previous_build_layer:
+		# Map-local placement state must be restored by load_built_buildings() for the new map.
+		building_metadata_by_cell.clear()
+		building_scene_by_cell.clear()
+		next_bed_id = 1
+		next_chest_id = 1
+		if not context.has("buildings_root"):
+			buildings_root = null
+	_resolve_legacy_references()
+	if build_layer == null:
+		push_warning("BuildSystem has no build layer yet; waiting for setup(context).")
+		return
+	if buildings_root == null:
+		buildings_root = _get_or_create_buildings_root()
 	if build_layer.tile_set != null:
 		tile_size = build_layer.tile_set.tile_size
-
 	_create_preview()
 	_update_build_label()
 
 
+## Clears map-bound references before switching maps. Building save data is retained
+## until the caller explicitly loads the next map's building state.
+func clear_runtime_references() -> void:
+	_remove_preview()
+	main = null
+	player = null
+	ground_layer = null
+	obstacle_layer = null
+	build_layer = null
+	resources_root = null
+	build_label = null
+	buildings_root = null
+
+
+func _apply_context(context: Dictionary) -> void:
+	if context.has("main"):
+		main = context.get("main") as Node
+	elif context.has("controller"):
+		main = context.get("controller") as Node
+	if context.has("player"):
+		player = context.get("player") as CharacterBody2D
+	if context.has("ground_layer"):
+		ground_layer = context.get("ground_layer") as TileMapLayer
+	if context.has("obstacle_layer"):
+		obstacle_layer = context.get("obstacle_layer") as TileMapLayer
+	if context.has("build_layer"):
+		build_layer = context.get("build_layer") as TileMapLayer
+	if context.has("resources_root"):
+		resources_root = context.get("resources_root") as Node2D
+	if context.has("build_label"):
+		build_label = context.get("build_label") as Label
+	if context.has("buildings_root"):
+		buildings_root = context.get("buildings_root") as Node2D
+
+
+func _resolve_legacy_references() -> void:
+	if main == null:
+		main = get_node_or_null(main_path)
+	if player == null:
+		player = get_node_or_null(player_path) as CharacterBody2D
+	if build_layer == null:
+		build_layer = get_node_or_null(build_layer_path) as TileMapLayer
+	if ground_layer == null:
+		ground_layer = get_node_or_null(ground_layer_path) as TileMapLayer
+	if obstacle_layer == null:
+		obstacle_layer = get_node_or_null(obstacle_layer_path) as TileMapLayer
+	if resources_root == null:
+		resources_root = get_node_or_null(resources_root_path) as Node2D
+	if build_label == null:
+		build_label = get_node_or_null(build_label_path) as Label
+
+
+func _remove_preview() -> void:
+	if preview != null and is_instance_valid(preview):
+		preview.queue_free()
+	preview = null
+
+
 func _process(_delta: float) -> void:
+	if build_layer == null:
+		return
 	current_tile = _get_mouse_tile()
 	_update_preview()
 	_update_build_label()
@@ -99,6 +179,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _get_mouse_tile() -> Vector2i:
+	if build_layer == null:
+		return Vector2i.ZERO
 	var mouse_position := build_layer.to_local(build_layer.get_global_mouse_position())
 	return _local_position_to_grid_cell(mouse_position)
 
@@ -124,6 +206,8 @@ func _try_place_bed(tile_position: Vector2i) -> bool:
 
 
 func _try_place_building(tile_position: Vector2i, building_type: String) -> bool:
+	if not _has_build_context():
+		return false
 	building_type = _normalize_building_type(building_type)
 	if not _can_place_building(tile_position, building_type, true):
 		return false
@@ -143,6 +227,8 @@ func _try_remove_wall(tile_position: Vector2i) -> bool:
 
 
 func _try_remove_building(tile_position: Vector2i) -> bool:
+	if build_layer == null:
+		return false
 	var building_type := _get_building_type_at_tile(tile_position)
 	if building_type.is_empty():
 		print("There is no player-built construction here.")
@@ -160,7 +246,7 @@ func _try_remove_building(tile_position: Vector2i) -> bool:
 	building_metadata_by_cell.erase(_cell_key(tile_position))
 	_spawn_destroy_puff(building_type, building_position)
 	_refund_building_cost(building_type)
-	if main.has_method("on_building_removed"):
+	if main != null and main.has_method("on_building_removed"):
 		main.on_building_removed(building_type, building_position, metadata)
 	print("Removed %s at tile %s" % [_get_building_display_name(building_type), tile_position])
 	_update_preview()
@@ -169,6 +255,8 @@ func _try_remove_building(tile_position: Vector2i) -> bool:
 
 func get_built_buildings() -> Array:
 	var buildings := []
+	if build_layer == null:
+		return buildings
 	var saved_keys := {}
 
 	for cell_key in building_metadata_by_cell.keys():
@@ -206,6 +294,9 @@ func get_built_buildings() -> Array:
 
 
 func load_built_buildings(buildings: Array) -> void:
+	if build_layer == null:
+		push_warning("BuildSystem cannot load buildings without a build layer.")
+		return
 	_clear_built_buildings()
 	building_metadata_by_cell.clear()
 	next_bed_id = 1
@@ -264,8 +355,16 @@ func _can_place_wall(tile_position: Vector2i, show_message := false) -> bool:
 	return _can_place_building(tile_position, BUILD_TYPE_WALL, show_message)
 
 
+func _has_build_context() -> bool:
+	return main != null and player != null and ground_layer != null and obstacle_layer != null and build_layer != null
+
+
 func _can_place_building(tile_position: Vector2i, building_type: String, show_message := false) -> bool:
 	building_type = _normalize_building_type(building_type)
+	if not _has_build_context():
+		if show_message:
+			print("BuildSystem is not configured for the current map.")
+		return false
 
 	if not _is_known_building_type(building_type):
 		if show_message:
@@ -460,6 +559,8 @@ func _normalize_building_type(building_type: String) -> String:
 
 
 func _can_spend_building_cost(building_type: String) -> bool:
+	if main == null or not main.has_method("can_spend_resource"):
+		return false
 	for cost in _get_building_cost(building_type):
 		var resource_name := str(cost.get("resource", ""))
 		var amount := int(cost.get("amount", 0))
@@ -470,6 +571,8 @@ func _can_spend_building_cost(building_type: String) -> bool:
 
 
 func _spend_building_cost(building_type: String) -> void:
+	if main == null or not main.has_method("spend_resource"):
+		return
 	for cost in _get_building_cost(building_type):
 		var resource_name := str(cost.get("resource", ""))
 		var amount := int(cost.get("amount", 0))
@@ -477,6 +580,8 @@ func _spend_building_cost(building_type: String) -> void:
 
 
 func _refund_building_cost(building_type: String) -> void:
+	if main == null or not main.has_method("add_resource"):
+		return
 	for cost in _get_building_cost(building_type):
 		var resource_name := str(cost.get("resource", ""))
 		var amount := int(cost.get("amount", 0))
@@ -633,6 +738,8 @@ func is_bed_near_position(global_position: Vector2, max_distance: float) -> bool
 
 
 func _is_resource_at_tile(tile_position: Vector2i) -> bool:
+	if resources_root == null:
+		return false
 	for resource_node in resources_root.get_children():
 		if resource_node is Node2D and not resource_node.is_queued_for_deletion():
 			if resource_node.has_method("is_collected") and resource_node.is_collected():
@@ -689,6 +796,8 @@ func _is_crafting_open() -> bool:
 
 
 func _create_preview() -> void:
+	if build_layer == null:
+		return
 	preview = Polygon2D.new()
 	preview.name = "BuildPreview"
 	preview.polygon = PackedVector2Array([
@@ -732,6 +841,8 @@ func _get_preview_color() -> Color:
 
 
 func _update_build_label() -> void:
+	if build_label == null:
+		return
 	var mode_text := "On" if build_mode_enabled else "Off"
 	var lines := [
 		"B: Build Mode %s" % mode_text,
@@ -956,6 +1067,8 @@ func _get_build_key(building_type: String) -> int:
 
 func _get_all_building_cells() -> Array:
 	var cells := []
+	if build_layer == null:
+		return cells
 	for cell_key in building_metadata_by_cell.keys():
 		cells.append(_cell_from_key(str(cell_key)))
 	for cell in build_layer.get_used_cells():
@@ -1186,16 +1299,18 @@ func _has_items_in_storage_slots(storage_slots: Variant) -> bool:
 
 
 func _get_or_create_buildings_root() -> Node2D:
-	var world := get_node_or_null("../World") as Node2D
-	if world == null:
+	if build_layer == null:
+		return null
+	var map_root := build_layer.get_parent() as Node2D
+	if map_root == null:
 		return null
 
-	var existing := world.get_node_or_null("Buildings") as Node2D
+	var existing := map_root.get_node_or_null("Buildings") as Node2D
 	if existing != null:
 		return existing
 
 	var new_root := Node2D.new()
 	new_root.name = "Buildings"
 	new_root.y_sort_enabled = true
-	world.add_child(new_root)
+	map_root.add_child(new_root)
 	return new_root

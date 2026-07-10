@@ -658,6 +658,9 @@ func validate_monster(record_id: String, original_id: String, record: Dictionary
 	var sprite_error := _validate_optional_sprite_id(record)
 	if not sprite_error.is_empty():
 		return sprite_error
+	var animation_set_id := str(record.get("animation_set_id", ""))
+	if not animation_set_id.is_empty() and not has_record(SECTION_ANIMATION_SETS, animation_set_id):
+		return "Animation Set must reference an existing animation set."
 
 	return ""
 

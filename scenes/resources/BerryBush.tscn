@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/resources/ResourceNodeBase.tscn" id="1_base"]
+
+[node name="BerryBush" instance=ExtResource("1_base")]
+resource_type_id = "berry_bush"
+resource_name = "Berry Bush"
