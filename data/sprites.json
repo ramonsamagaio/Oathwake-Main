@@ -1,25 +1,25 @@
 {
 	"axe_adamantite": {
 		"category": "item",
-		"columns": 1,
+		"columns": 1.0,
 		"display_name": "Axe Adamantite",
-		"frame_height": 32,
+		"frame_height": 32.0,
 		"frame_size": {
-			"h": 32,
-			"w": 32
+			"h": 32.0,
+			"w": 32.0
 		},
-		"frame_width": 32,
+		"frame_width": 32.0,
 		"region": {
-			"h": 32,
-			"w": 32,
-			"x": 0,
-			"y": 0
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
 		},
 		"region_enabled": false,
-		"rows": 1,
+		"rows": 1.0,
 		"tags": [],
 		"texture_path": "res://assets/sprites/items/tools/image-gen-9(1).png",
-		"total_frames": 1,
+		"total_frames": 1.0,
 		"type": "single_sprite"
 	},
 	"campfire": {
@@ -179,94 +179,94 @@
 	},
 	"node_berries": {
 		"category": "item",
-		"columns": 1,
+		"columns": 1.0,
 		"display_name": "Node Berries",
-		"frame_height": 32,
+		"frame_height": 32.0,
 		"frame_size": {
-			"h": 32,
-			"w": 32
+			"h": 32.0,
+			"w": 32.0
 		},
-		"frame_width": 32,
+		"frame_width": 32.0,
 		"region": {
-			"h": 32,
-			"w": 32,
-			"x": 0,
-			"y": 0
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
 		},
 		"region_enabled": false,
-		"rows": 1,
+		"rows": 1.0,
 		"tags": [],
 		"texture_path": "res://assets/sprites/resources/BERRIES.png",
-		"total_frames": 1,
+		"total_frames": 1.0,
 		"type": "single_sprite"
 	},
 	"node_fiber": {
 		"category": "item",
-		"columns": 1,
+		"columns": 1.0,
 		"display_name": "Node Fiber",
-		"frame_height": 32,
+		"frame_height": 32.0,
 		"frame_size": {
-			"h": 32,
-			"w": 32
+			"h": 32.0,
+			"w": 32.0
 		},
-		"frame_width": 32,
+		"frame_width": 32.0,
 		"region": {
-			"h": 32,
-			"w": 32,
-			"x": 0,
-			"y": 0
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
 		},
 		"region_enabled": false,
-		"rows": 1,
+		"rows": 1.0,
 		"tags": [],
 		"texture_path": "res://assets/sprites/resources/FIBER.png",
-		"total_frames": 1,
+		"total_frames": 1.0,
 		"type": "single_sprite"
 	},
 	"node_herb": {
 		"category": "item",
-		"columns": 1,
+		"columns": 1.0,
 		"display_name": "Node Herb",
-		"frame_height": 32,
+		"frame_height": 32.0,
 		"frame_size": {
-			"h": 32,
-			"w": 32
+			"h": 32.0,
+			"w": 32.0
 		},
-		"frame_width": 32,
+		"frame_width": 32.0,
 		"region": {
-			"h": 32,
-			"w": 32,
-			"x": 0,
-			"y": 0
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
 		},
 		"region_enabled": false,
-		"rows": 1,
+		"rows": 1.0,
 		"tags": [],
 		"texture_path": "res://assets/sprites/resources/HERBS.png",
-		"total_frames": 1,
+		"total_frames": 1.0,
 		"type": "single_sprite"
 	},
 	"node_stonr": {
 		"category": "item",
-		"columns": 1,
+		"columns": 1.0,
 		"display_name": "Node Stone",
-		"frame_height": 32,
+		"frame_height": 32.0,
 		"frame_size": {
-			"h": 32,
-			"w": 32
+			"h": 32.0,
+			"w": 32.0
 		},
-		"frame_width": 32,
+		"frame_width": 32.0,
 		"region": {
-			"h": 32,
-			"w": 32,
-			"x": 0,
-			"y": 0
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
 		},
 		"region_enabled": false,
-		"rows": 1,
+		"rows": 1.0,
 		"tags": [],
 		"texture_path": "res://assets/sprites/resources/STONE.png",
-		"total_frames": 1,
+		"total_frames": 1.0,
 		"type": "single_sprite"
 	},
 	"player_base": {
@@ -290,6 +290,29 @@
 		"tags": [],
 		"texture_path": "res://assets/sprites/characters/player_base/player_base_body_sheet.png",
 		"total_frames": 64.0,
+		"type": "sprite_sheet"
+	},
+	"player_templar": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Player_templar",
+		"frame_height": 64,
+		"frame_size": {
+			"h": 64,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 64,
+			"w": 64,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 6,
+		"tags": [],
+		"texture_path": "res://assets/sprites/characters/player_templar/player_templar.png",
+		"total_frames": 36,
 		"type": "sprite_sheet"
 	},
 	"stone": {

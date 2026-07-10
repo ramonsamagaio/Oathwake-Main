@@ -252,7 +252,9 @@ func add_resource(resource_name: String, amount: int) -> void:
 
 
 func add_item_to_inventory(item_id: String, amount: int, metadata: Dictionary = {}) -> int:
-	return inventory_bridge.add_item(item_id, amount, metadata)
+	if inventory_bridge != null:
+		return inventory_bridge.add_item(item_id, amount, metadata)
+	return inventory.add_item(item_id, amount, metadata)
 
 
 func drop_item_near_player(item_id: String, amount: int, metadata: Dictionary = {}) -> void:
@@ -265,15 +267,20 @@ func drop_item_near_player(item_id: String, amount: int, metadata: Dictionary = 
 func open_storage(storage_node) -> void:
 	if build_system != null and build_system.has_method("set_build_mode_enabled"):
 		build_system.set_build_mode_enabled(false)
-	inventory_bridge.open_storage(storage_node)
+	if inventory_bridge != null:
+		inventory_bridge.open_storage(storage_node)
 
 
 func can_spend_resource(resource_name: String, amount: int) -> bool:
-	return inventory_bridge.can_spend(resource_name, amount)
+	if inventory_bridge != null:
+		return inventory_bridge.can_spend(resource_name, amount)
+	return inventory != null and inventory.has_item(resource_name, amount)
 
 
 func spend_resource(resource_name: String, amount: int) -> bool:
-	return inventory_bridge.spend(resource_name, amount)
+	if inventory_bridge != null:
+		return inventory_bridge.spend(resource_name, amount)
+	return inventory != null and inventory.remove_item(resource_name, amount)
 
 
 func save_game() -> void:

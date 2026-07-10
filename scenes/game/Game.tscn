@@ -1,72 +1,160 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene format=3 uid="uid://cie2gamq0fk6e"]
 
-[ext_resource type="Script" path="res://scripts/game/Game.gd" id="1_game_script"]
-[ext_resource type="Script" path="res://scripts/game/MapLoader.gd" id="2_map_loader_script"]
-[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="3_player_scene"]
+[ext_resource type="Script" uid="uid://b8dm0bjjaql5u" path="res://scripts/game/Game.gd" id="1_game_script"]
+[ext_resource type="Script" uid="uid://dtmvh77o0fdqi" path="res://scripts/game/MapLoader.gd" id="2_map_loader_script"]
+[ext_resource type="PackedScene" uid="uid://ocffh2angc1c" path="res://scenes/Player.tscn" id="3_player_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/InventoryUI.tscn" id="4_inventory_ui"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HotbarUI.tscn" id="5_hotbar_ui"]
 [ext_resource type="PackedScene" path="res://scenes/ui/StorageUI.tscn" id="6_storage_ui"]
 [ext_resource type="PackedScene" path="res://scenes/ui/WorkbenchUI.tscn" id="7_workbench_ui"]
 [ext_resource type="PackedScene" path="res://scenes/ui/CharacterStatusUI.tscn" id="8_status_ui"]
-[ext_resource type="Script" path="res://scripts/BuildSystem.gd" id="9_build_system"]
-[ext_resource type="Script" path="res://scripts/save/SaveCoordinator.gd" id="10_save_coordinator"]
-[ext_resource type="Script" path="res://scripts/systems/CraftingSystem.gd" id="11_crafting_system"]
-[ext_resource type="Script" path="res://scripts/systems/HousingSystem.gd" id="12_housing_system"]
-[ext_resource type="Script" path="res://scripts/systems/SettlementManager.gd" id="13_settlement_manager"]
-[ext_resource type="Script" path="res://scripts/world/DayNightCycle.gd" id="14_day_night"]
-[ext_resource type="Script" path="res://scripts/enemies/NightEnemySpawner.gd" id="15_night_spawner"]
+[ext_resource type="Script" uid="uid://jqom0c7djf0e" path="res://scripts/BuildSystem.gd" id="9_build_system"]
+[ext_resource type="Script" uid="uid://dc2fvcckgxydx" path="res://scripts/save/SaveCoordinator.gd" id="10_save_coordinator"]
+[ext_resource type="Script" uid="uid://bfye71qr66ki3" path="res://scripts/systems/CraftingSystem.gd" id="11_crafting_system"]
+[ext_resource type="Script" uid="uid://b83p4dxpj350s" path="res://scripts/systems/HousingSystem.gd" id="12_housing_system"]
+[ext_resource type="Script" uid="uid://cqwakesixyo7t" path="res://scripts/systems/SettlementManager.gd" id="13_settlement_manager"]
+[ext_resource type="Script" uid="uid://bi04wraoxj1fh" path="res://scripts/world/DayNightCycle.gd" id="14_day_night"]
+[ext_resource type="Script" uid="uid://bq6u7sqiptlbl" path="res://scripts/enemies/NightEnemySpawner.gd" id="15_night_spawner"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/Slime.tscn" id="16_slime"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUDStatusUI.tscn" id="17_hud_status"]
 
-[node name="Game" type="Node2D"]
+[node name="Game" type="Node2D" unique_id=2133599417]
 script = ExtResource("1_game_script")
 
-[node name="WorldTint" type="CanvasModulate" parent="."]
+[node name="WorldTint" type="CanvasModulate" parent="." unique_id=1359142384]
 
-[node name="CurrentMapRoot" type="Node2D" parent="."]
+[node name="CurrentMapRoot" type="Node2D" parent="." unique_id=1084848041]
 
-[node name="RuntimeEntities" type="Node2D" parent="."]
+[node name="RuntimeEntities" type="Node2D" parent="." unique_id=1559657494]
 y_sort_enabled = true
 
-[node name="Player" parent="RuntimeEntities" instance=ExtResource("3_player_scene")]
+[node name="Player" parent="RuntimeEntities" unique_id=117263621 instance=ExtResource("3_player_scene")]
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=53977041]
 
-[node name="InventoryUI" parent="UI" instance=ExtResource("4_inventory_ui")]
+[node name="InventoryUI" parent="UI" unique_id=704599672 instance=ExtResource("4_inventory_ui")]
 
-[node name="StorageUI" parent="UI" instance=ExtResource("6_storage_ui")]
+[node name="StorageUI" parent="UI" unique_id=650608077 instance=ExtResource("6_storage_ui")]
 
-[node name="WorkbenchUI" parent="UI" instance=ExtResource("7_workbench_ui")]
+[node name="WorkbenchUI" parent="UI" unique_id=1291405543 instance=ExtResource("7_workbench_ui")]
 
-[node name="HotbarUI" parent="UI" instance=ExtResource("5_hotbar_ui")]
+[node name="HotbarUI" parent="UI" unique_id=1735465704 instance=ExtResource("5_hotbar_ui")]
 
-[node name="CharacterStatusUI" parent="UI" instance=ExtResource("8_status_ui")]
+[node name="CharacterStatusUI" parent="UI" unique_id=1395085930 instance=ExtResource("8_status_ui")]
 
-[node name="HUDStatusUI" parent="UI" instance=ExtResource("17_hud_status")]
+[node name="HUDStatusUI" parent="UI" unique_id=1231664397 instance=ExtResource("17_hud_status")]
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="Systems" type="Node" parent="."]
+[node name="SpawnMonsterButton" type="Button" parent="UI" unique_id=794836599]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -252.0
+offset_top = -92.0
+offset_right = -4.0
+offset_bottom = -60.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+text = "SPAWN"
 
-[node name="MapLoader" type="Node" parent="Systems"]
+[node name="MonsterSpawnPanel" type="Panel" parent="UI" unique_id=69754692]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -240.0
+offset_right = 180.0
+offset_bottom = 240.0
+
+[node name="TitleLabel" type="Label" parent="UI/MonsterSpawnPanel" unique_id=147263225]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 178.0
+offset_bottom = 33.0
+text = "Spawn"
+
+[node name="CloseButton" type="Button" parent="UI/MonsterSpawnPanel" unique_id=833240812]
+layout_mode = 0
+offset_left = 318.0
+offset_top = 8.0
+offset_right = 346.0
+offset_bottom = 36.0
+focus_mode = 0
+text = "X"
+
+[node name="SpawnScroll" type="ScrollContainer" parent="UI/MonsterSpawnPanel" unique_id=533775439]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 44.0
+offset_right = 348.0
+offset_bottom = 468.0
+horizontal_scroll_mode = 0
+
+[node name="MonsterList" type="VBoxContainer" parent="UI/MonsterSpawnPanel/SpawnScroll" unique_id=118223396]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SaveButton" type="Button" parent="UI" unique_id=1204412285]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -252.0
+offset_top = -52.0
+offset_right = -132.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+text = "SAVE GAME"
+
+[node name="LoadButton" type="Button" parent="UI" unique_id=234493538]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -124.0
+offset_top = -52.0
+offset_right = -4.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+text = "LOAD GAME"
+
+[node name="Systems" type="Node" parent="." unique_id=484419278]
+
+[node name="MapLoader" type="Node" parent="Systems" unique_id=541837038]
 script = ExtResource("2_map_loader_script")
 
-[node name="BuildSystem" type="Node" parent="Systems"]
+[node name="BuildSystem" type="Node" parent="Systems" unique_id=1122952393]
 script = ExtResource("9_build_system")
 
-[node name="SaveCoordinator" type="Node" parent="Systems"]
+[node name="SaveCoordinator" type="Node" parent="Systems" unique_id=1484089991]
 script = ExtResource("10_save_coordinator")
 
-[node name="CraftingSystem" type="Node" parent="Systems"]
+[node name="CraftingSystem" type="Node" parent="Systems" unique_id=1954443751]
 script = ExtResource("11_crafting_system")
 
-[node name="HousingSystem" type="Node" parent="Systems"]
+[node name="HousingSystem" type="Node" parent="Systems" unique_id=1215468234]
 script = ExtResource("12_housing_system")
 
-[node name="SettlementManager" type="Node" parent="Systems"]
+[node name="SettlementManager" type="Node" parent="Systems" unique_id=1427606197]
 script = ExtResource("13_settlement_manager")
 
-[node name="DayNightCycle" type="Node" parent="Systems"]
+[node name="DayNightCycle" type="Node" parent="Systems" unique_id=1918717164]
 script = ExtResource("14_day_night")
 
-[node name="NightEnemySpawner" type="Node" parent="Systems"]
+[node name="NightEnemySpawner" type="Node" parent="Systems" unique_id=1328287738]
 script = ExtResource("15_night_spawner")
 slime_scene = ExtResource("16_slime")

@@ -1,97 +1,277 @@
 {
 	"player_base_body": {
 		"anchor": {
-			"x": 32,
-			"y": 44
+			"x": 32.0,
+			"y": 44.0
 		},
 		"animations": {
 			"idle_down": {
-				"fps": 1,
-				"frame_count": 1,
+				"fps": 1.0,
+				"frame_count": 1.0,
 				"frames": [
-					0
+					0.0
 				],
 				"loop": true
 			},
 			"idle_left": {
-				"fps": 1,
-				"frame_count": 1,
+				"fps": 1.0,
+				"frame_count": 1.0,
 				"frames": [
-					24
+					24.0
 				],
 				"loop": true
 			},
 			"idle_right": {
-				"fps": 1,
-				"frame_count": 1,
+				"fps": 1.0,
+				"frame_count": 1.0,
 				"frames": [
-					16
+					16.0
 				],
 				"loop": true
 			},
 			"idle_up": {
-				"fps": 1,
-				"frame_count": 1,
+				"fps": 1.0,
+				"frame_count": 1.0,
 				"frames": [
-					8
+					8.0
 				],
 				"loop": true
 			},
 			"walk_down": {
-				"fps": 8,
-				"frame_count": 6,
+				"fps": 8.0,
+				"frame_count": 6.0,
 				"frames": [
-					32,
-					33,
-					34,
-					35,
-					36,
-					37
+					32.0,
+					33.0,
+					34.0,
+					35.0,
+					36.0,
+					37.0
 				],
 				"loop": true
 			},
 			"walk_left": {
-				"fps": 8,
-				"frame_count": 6,
+				"fps": 8.0,
+				"frame_count": 6.0,
 				"frames": [
-					56,
-					57,
-					58,
-					59,
-					60,
-					61
+					56.0,
+					57.0,
+					58.0,
+					59.0,
+					60.0,
+					61.0
 				],
 				"loop": true
 			},
 			"walk_right": {
-				"fps": 8,
-				"frame_count": 6,
+				"fps": 8.0,
+				"frame_count": 6.0,
 				"frames": [
-					48,
-					49,
-					50,
-					51,
-					52,
-					53
+					48.0,
+					49.0,
+					50.0,
+					51.0,
+					52.0,
+					53.0
 				],
 				"loop": true
 			},
 			"walk_up": {
-				"fps": 8,
-				"frame_count": 6,
+				"fps": 8.0,
+				"frame_count": 6.0,
 				"frames": [
-					40,
-					41,
-					42,
-					43,
-					44,
-					45
+					40.0,
+					41.0,
+					42.0,
+					43.0,
+					44.0,
+					45.0
 				],
 				"loop": true
 			}
 		},
 		"direction_mode": "4dir",
 		"display_name": "Player Animations",
-		"sprite_sheet_id": "player_base"
+		"sprite_sheet_id": "player_templar"
+	},
+	"player_templar_body": {
+		"anchor": {
+			"x": 32,
+			"y": 44
+		},
+		"animations": {
+			"attack_down": {
+				"fps": 10,
+				"frames": [
+					33
+				],
+				"loop": false
+			},
+			"attack_left": {
+				"fps": 10,
+				"frames": [
+					12
+				],
+				"loop": false
+			},
+			"attack_right": {
+				"fps": 10,
+				"frames": [
+					27
+				],
+				"loop": false
+			},
+			"attack_up": {
+				"fps": 10,
+				"frames": [
+					18
+				],
+				"loop": false
+			},
+			"idle_down": {
+				"fps": 8,
+				"frames": [
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": true
+			},
+			"idle_down_left": {
+				"fps": 1.0,
+				"frames": [],
+				"loop": true
+			},
+			"idle_down_right": {
+				"fps": 1.0,
+				"frames": [],
+				"loop": true
+			},
+			"idle_left": {
+				"fps": 1,
+				"frames": [
+					2
+				],
+				"loop": true
+			},
+			"idle_right": {
+				"fps": 1,
+				"frames": [
+					1
+				],
+				"loop": true
+			},
+			"idle_up": {
+				"fps": 1,
+				"frames": [
+					0
+				],
+				"loop": true
+			},
+			"idle_up_left": {
+				"fps": 1.0,
+				"frames": [],
+				"loop": true
+			},
+			"idle_up_right": {
+				"fps": 1.0,
+				"frames": [],
+				"loop": true
+			},
+			"interact_down": {
+				"fps": 10.0,
+				"frames": [],
+				"loop": false
+			},
+			"interact_left": {
+				"fps": 10.0,
+				"frames": [],
+				"loop": false
+			},
+			"interact_right": {
+				"fps": 10.0,
+				"frames": [],
+				"loop": false
+			},
+			"interact_up": {
+				"fps": 10.0,
+				"frames": [],
+				"loop": false
+			},
+			"walk_down": {
+				"fps": 8.0,
+				"frames": [
+					28.0,
+					29.0,
+					30.0,
+					31.0,
+					32.0,
+					33.0
+				],
+				"loop": true
+			},
+			"walk_down_left": {
+				"fps": 8.0,
+				"frames": [],
+				"loop": true
+			},
+			"walk_down_right": {
+				"fps": 8.0,
+				"frames": [],
+				"loop": true
+			},
+			"walk_left": {
+				"fps": 8.0,
+				"frames": [
+					10.0,
+					11.0,
+					12.0,
+					13.0,
+					14.0,
+					15.0
+				],
+				"loop": true
+			},
+			"walk_right": {
+				"fps": 8.0,
+				"frames": [
+					22.0,
+					23.0,
+					24.0,
+					25.0,
+					26.0,
+					27.0
+				],
+				"loop": true
+			},
+			"walk_up": {
+				"fps": 8.0,
+				"frames": [
+					16.0,
+					17.0,
+					18.0,
+					19.0,
+					20.0,
+					21.0
+				],
+				"loop": true
+			},
+			"walk_up_left": {
+				"fps": 8.0,
+				"frames": [],
+				"loop": true
+			},
+			"walk_up_right": {
+				"fps": 8.0,
+				"frames": [],
+				"loop": true
+			}
+		},
+		"direction_mode": "4dir",
+		"display_name": "Player Templar Body",
+		"sprite_sheet_id": "player_templar"
 	}
 }

@@ -10,7 +10,13 @@ var is_visible := false
 
 func setup(context: Dictionary) -> void:
 	labels = context.get("labels", {})
-	panels = context.get("panels", [])
+	panels.clear()
+	var panel_nodes: Variant = context.get("panels", [])
+	if panel_nodes is Array:
+		for entry in panel_nodes:
+			var canvas_item := entry as CanvasItem
+			if canvas_item != null:
+				panels.append(canvas_item)
 	hud_status_ui = context.get("hud_status_ui") as Control
 
 

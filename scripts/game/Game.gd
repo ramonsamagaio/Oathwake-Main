@@ -5,6 +5,8 @@ const InventoryScript := preload("res://scripts/Inventory.gd")
 const EquipmentSystemScript := preload("res://scripts/systems/EquipmentSystem.gd")
 const GameplayInventoryBridgeScript := preload("res://scripts/game/GameplayInventoryBridge.gd")
 const GameplayAudioControllerScript := preload("res://scripts/game/GameplayAudioController.gd")
+const ResourceSceneFactoryScript := preload("res://scripts/resources/ResourceSceneFactory.gd")
+const MonsterSpawnerScript := preload("res://scripts/systems/MonsterSpawner.gd")
 const WorldItemSpawner := preload("res://scripts/systems/WorldItemSpawner.gd")
 
 var inventory := InventoryScript.new()
@@ -13,6 +15,8 @@ var game_session: Node
 var current_map: Node2D
 var inventory_bridge: GameplayInventoryBridge
 var audio_controller: GameplayAudioController
+var monster_spawner := MonsterSpawnerScript.new()
+var resource_scene_factory := ResourceSceneFactoryScript.new()
 
 @onready var current_map_root: Node2D = $CurrentMapRoot
 @onready var runtime_entities: Node2D = $RuntimeEntities
@@ -31,6 +35,12 @@ var audio_controller: GameplayAudioController
 @onready var workbench_ui = $UI/WorkbenchUI
 @onready var character_status_ui = $UI/CharacterStatusUI
 @onready var hud_status_ui = $UI/HUDStatusUI
+@onready var save_button: Button = $UI/SaveButton
+@onready var load_button: Button = $UI/LoadButton
+@onready var spawn_monster_button: Button = $UI/SpawnMonsterButton
+@onready var monster_spawn_panel: Panel = $UI/MonsterSpawnPanel
+@onready var close_monster_spawn_button: Button = $UI/MonsterSpawnPanel/CloseButton
+@onready var monster_spawn_list: VBoxContainer = $UI/MonsterSpawnPanel/SpawnScroll/MonsterList
 
 
 func _ready() -> void:
@@ -42,7 +52,10 @@ func _ready() -> void:
 	_ensure_development_session()
 	inventory_bridge = GameplayInventoryBridgeScript.new()
 	add_child(inventory_bridge)
+	add_child(monster_spawner)
 	_setup_ui()
+	_configure_debug_action_buttons()
+	_configure_monster_spawn_debug_ui()
 	_load_current_map()
 	_setup_runtime_systems()
 	_configure_save_coordinator()
@@ -75,6 +88,11 @@ func add_resource(resource_name: String, amount: int) -> void:
 		print("Inventory full. Could not add %d %s" % [leftover, resource_name])
 
 
+func _on_resource_collected(_resource_id: String, _item_id: String, _amount: int) -> void:
+	# Resource pickup is handled by world drops; this keeps the debug-spawned nodes compatible.
+	pass
+
+
 func drop_item_near_player(item_id: String, amount: int, metadata: Dictionary = {}) -> void:
 	if item_id.is_empty() or amount <= 0:
 		return
@@ -102,6 +120,20 @@ func load_game(slot_id: String) -> bool:
 	_configure_save_coordinator()
 	save_coordinator.apply_loaded_data()
 	return true
+
+
+func _on_save_button_pressed() -> void:
+	if save_game():
+		print("Game saved for slot %s" % str(game_session.get("active_slot_id")))
+
+
+func _on_load_button_pressed() -> void:
+	var slot_id := str(game_session.get("active_slot_id"))
+	if slot_id.is_empty():
+		push_warning("Game could not load because there is no active session slot.")
+		return
+	if load_game(slot_id):
+		print("Game loaded for slot %s" % slot_id)
 
 
 func _ensure_development_session() -> void:
@@ -218,3 +250,274 @@ func _connect_current_map_systems(map_root: Node2D) -> void:
 	# can restore them here.
 	if map_root == null:
 		return
+
+
+func _configure_debug_action_buttons() -> void:
+	save_button.focus_mode = Control.FOCUS_NONE
+	load_button.focus_mode = Control.FOCUS_NONE
+	save_button.pressed.connect(_on_save_button_pressed)
+	load_button.pressed.connect(_on_load_button_pressed)
+
+
+func _configure_monster_spawn_debug_ui() -> void:
+	spawn_monster_button.focus_mode = Control.FOCUS_NONE
+	spawn_monster_button.text = "SPAWN"
+	close_monster_spawn_button.focus_mode = Control.FOCUS_NONE
+	monster_spawn_panel.visible = false
+	spawn_monster_button.pressed.connect(_on_spawn_monster_button_pressed)
+	close_monster_spawn_button.pressed.connect(_on_close_monster_spawn_pressed)
+	_populate_spawn_debug_panel()
+
+
+func _populate_spawn_debug_panel() -> void:
+	for child in monster_spawn_list.get_children():
+		child.queue_free()
+
+	_add_spawn_panel_title("Natural Spawn")
+	var natural_spawn_toggle := CheckBox.new()
+	natural_spawn_toggle.text = "Natural map spawn"
+	natural_spawn_toggle.focus_mode = Control.FOCUS_NONE
+	natural_spawn_toggle.button_pressed = _is_natural_spawn_enabled()
+	natural_spawn_toggle.toggled.connect(_on_natural_spawn_toggled)
+	monster_spawn_list.add_child(natural_spawn_toggle)
+
+	_add_spawn_panel_title("Spawn Categories")
+	_add_spawn_navigation_button("Monsters", _show_monster_spawn_category)
+	_add_spawn_navigation_button("Trees / Wood", _show_resource_spawn_category.bind("wood"))
+	_add_spawn_navigation_button("Ores / Rocks", _show_resource_spawn_category.bind("ore"))
+	_add_spawn_navigation_button("Other Resources", _show_resource_spawn_category.bind("other"))
+	_add_spawn_navigation_button("Items", _show_items_spawn_category)
+
+
+func _add_spawn_panel_title(title_text: String) -> void:
+	var label := Label.new()
+	label.text = title_text
+	monster_spawn_list.add_child(label)
+
+
+func _add_spawn_navigation_button(label_text: String, callback: Callable) -> void:
+	var button := Button.new()
+	button.text = label_text
+	button.focus_mode = Control.FOCUS_NONE
+	button.pressed.connect(callback)
+	monster_spawn_list.add_child(button)
+
+
+func _clear_spawn_panel_content(title_text: String, show_back_button := true) -> void:
+	for child in monster_spawn_list.get_children():
+		child.queue_free()
+
+	if show_back_button:
+		var back_button := Button.new()
+		back_button.text = "Back"
+		back_button.focus_mode = Control.FOCUS_NONE
+		back_button.pressed.connect(_populate_spawn_debug_panel)
+		monster_spawn_list.add_child(back_button)
+
+	_add_spawn_panel_title(title_text)
+
+
+func _show_monster_spawn_category() -> void:
+	_clear_spawn_panel_content("Monsters")
+	_populate_monster_spawn_buttons()
+
+
+func _show_items_spawn_category() -> void:
+	_clear_spawn_panel_content("Items")
+	_populate_items_spawn_buttons()
+
+
+func _show_resource_spawn_category(category: String) -> void:
+	match category:
+		"wood":
+			_clear_spawn_panel_content("Trees / Wood")
+		"ore":
+			_clear_spawn_panel_content("Ores / Rocks")
+		_:
+			_clear_spawn_panel_content("Other Resources")
+	_populate_resource_spawn_buttons(category)
+
+
+func _populate_monster_spawn_buttons() -> void:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("get_all_monsters"):
+		return
+
+	var monsters: Dictionary = content_db.get_all_monsters()
+	var monster_ids: Array = monsters.keys()
+	monster_ids.sort()
+	for monster_id in monster_ids:
+		var monster_data: Variant = monsters[monster_id]
+		if not monster_data is Dictionary:
+			continue
+
+		var button := Button.new()
+		button.text = str(monster_data.get("display_name", str(monster_id).capitalize()))
+		button.focus_mode = Control.FOCUS_NONE
+		button.pressed.connect(_on_debug_spawn_monster_pressed.bind(str(monster_id)))
+		monster_spawn_list.add_child(button)
+
+
+func _populate_resource_spawn_buttons(category: String) -> void:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("get_all_resources"):
+		return
+
+	var resources: Dictionary = content_db.get_all_resources()
+	var resource_ids: Array = resources.keys()
+	resource_ids.sort()
+	for resource_id in resource_ids:
+		var resource_data: Variant = resources[resource_id]
+		if not resource_data is Dictionary:
+			continue
+		if _get_resource_spawn_category(str(resource_id), resource_data) != category:
+			continue
+
+		var button := Button.new()
+		button.text = "%s  [T%d]" % [
+			str(resource_data.get("display_name", str(resource_id).capitalize())),
+			int(resource_data.get("resource_tier", 1)),
+		]
+		button.focus_mode = Control.FOCUS_NONE
+		button.pressed.connect(_on_debug_spawn_resource_pressed.bind(str(resource_id)))
+		monster_spawn_list.add_child(button)
+
+
+func _populate_items_spawn_buttons(search_text := "") -> void:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("get_all_items"):
+		return
+
+	var items: Dictionary = content_db.get_all_items()
+	var item_ids: Array = items.keys()
+	item_ids.sort()
+
+	var search_line := LineEdit.new()
+	search_line.placeholder_text = "Search items..."
+	search_line.focus_mode = Control.FOCUS_ALL
+	search_line.text = search_text
+	search_line.text_changed.connect(_on_items_search_text_changed)
+	monster_spawn_list.add_child(search_line)
+
+	for item_id in item_ids:
+		var item_data: Variant = items[item_id]
+		if not item_data is Dictionary:
+			continue
+		var display_name := str(item_data.get("display_name", str(item_id).capitalize()))
+		var item_type := str(item_data.get("item_type", ""))
+
+		if not search_text.is_empty():
+			var search_lower := search_text.to_lower()
+			var match_name := display_name.to_lower().contains(search_lower)
+			var match_id := str(item_id).to_lower().contains(search_lower)
+			var match_type := item_type.to_lower().contains(search_lower)
+			if not match_name and not match_id and not match_type:
+				continue
+
+		var button := Button.new()
+		button.text = "%s  [%s]" % [display_name, item_type]
+		button.focus_mode = Control.FOCUS_NONE
+		button.pressed.connect(_on_debug_spawn_item_pressed.bind(str(item_id)))
+		monster_spawn_list.add_child(button)
+
+	if search_text.is_empty():
+		search_line.grab_focus()
+
+
+func _on_items_search_text_changed(new_text: String) -> void:
+	_clear_spawn_panel_content("Items", false)
+	_populate_items_spawn_buttons(new_text)
+	_add_spawn_back_button_for_items()
+
+
+func _add_spawn_back_button_for_items() -> void:
+	var back_button := Button.new()
+	back_button.text = "Back"
+	back_button.focus_mode = Control.FOCUS_NONE
+	back_button.pressed.connect(_populate_spawn_debug_panel)
+	var first_child: Node = monster_spawn_list.get_child(0)
+	if first_child != null:
+		monster_spawn_list.add_child(back_button)
+		monster_spawn_list.move_child(back_button, 0)
+	else:
+		monster_spawn_list.add_child(back_button)
+
+
+func _on_debug_spawn_item_pressed(item_id: String) -> void:
+	var leftover := add_item_to_inventory(item_id, 1)
+	if leftover == 0:
+		print("Spawned item: %s" % item_id)
+	else:
+		print("Inventory full, could not spawn: %s" % item_id)
+
+
+func _get_resource_spawn_category(resource_id: String, resource_data: Dictionary) -> String:
+	var required_tool_type := str(resource_data.get("required_tool_type", ""))
+	var skill_type := str(resource_data.get("skill_type", ""))
+	if required_tool_type == "axe" or skill_type == "lumbering" or resource_id.contains("tree"):
+		return "wood"
+	if required_tool_type == "pickaxe" or skill_type == "mining" or resource_id.contains("ore") or resource_id.contains("rock") or resource_id.contains("node"):
+		return "ore"
+	return "other"
+
+
+func _on_spawn_monster_button_pressed() -> void:
+	_populate_spawn_debug_panel()
+	monster_spawn_panel.visible = true
+
+
+func _on_close_monster_spawn_pressed() -> void:
+	monster_spawn_panel.visible = false
+
+
+func _on_debug_spawn_monster_pressed(monster_id: String) -> void:
+	var enemies_root := _get_current_enemies_root()
+	if enemies_root == null:
+		push_warning("Game could not find the current map enemy root for debug spawn.")
+		return
+	var monster := monster_spawner.spawn_monster(monster_id, player.global_position + Vector2(96, 0))
+	if monster == null:
+		return
+	enemies_root.add_child(monster)
+	print("Spawned monster: %s" % monster_id)
+
+
+func _on_debug_spawn_resource_pressed(resource_type_id: String) -> void:
+	var resources_root := _get_current_resources_root()
+	if resources_root == null:
+		push_warning("Game could not find the current map resource root for debug spawn.")
+		return
+	var resource_id := "debug_%s_%d" % [resource_type_id, Time.get_ticks_msec()]
+	var resource_position := resources_root.to_local(player.global_position + Vector2(-96, 0))
+	var resource := resource_scene_factory.instantiate_resource(resource_type_id, resource_id, resource_position)
+	if resource == null:
+		return
+	resources_root.add_child(resource)
+	resource.global_position = player.global_position + Vector2(-96, 0)
+	if resource.has_signal("collected"):
+		resource.connect("collected", _on_resource_collected)
+	print("Spawned resource: %s" % resource_type_id)
+
+
+func _on_natural_spawn_toggled(is_enabled: bool) -> void:
+	if night_enemy_spawner != null:
+		night_enemy_spawner.natural_spawn_enabled = is_enabled
+	print("Natural monster spawn: %s" % ("ON" if is_enabled else "OFF"))
+
+
+func _is_natural_spawn_enabled() -> bool:
+	if night_enemy_spawner == null:
+		return false
+	return bool(night_enemy_spawner.get("natural_spawn_enabled"))
+
+
+func _get_current_enemies_root() -> Node2D:
+	if current_map is MapRoot:
+		return (current_map as MapRoot).get_enemies_root()
+	return null
+
+
+func _get_current_resources_root() -> Node2D:
+	if current_map is MapRoot:
+		return (current_map as MapRoot).get_resources_root()
+	return null
