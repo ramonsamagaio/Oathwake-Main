@@ -113,6 +113,7 @@ position = Vector2(-64, 128)
 
 [node name="WorldItems" type="Node2D" parent="."]
 y_sort_enabled = true
+groups = ["world_items_root"]
 
 [node name="SpawnPoints" type="Node2D" parent="."]
 

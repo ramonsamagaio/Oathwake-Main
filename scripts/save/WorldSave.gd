@@ -15,6 +15,7 @@ func create_default_data(world_id: String, world_name := "New World", seed := 0)
 		"current_map_id": "start_area",
 		"time": {"time_of_day": 0.0},
 		"maps": {},
+		"player_states": {},
 		"settlement": {},
 	}
 
@@ -33,14 +34,14 @@ func validate(data: Variant) -> Dictionary:
 	if not data is Dictionary:
 		return {"ok": false, "error": "World save must be a JSON object."}
 	var world_data: Dictionary = data
-	for key in ["schema_version", "world_id", "world_name", "seed", "current_map_id", "time", "maps", "settlement"]:
+	for key in ["schema_version", "world_id", "world_name", "seed", "current_map_id", "time", "maps", "player_states", "settlement"]:
 		if not world_data.has(key):
 			return {"ok": false, "error": "World save missing required field: %s" % key}
 	if int(world_data["schema_version"]) != SCHEMA_VERSION:
 		return {"ok": false, "error": "Unsupported world save schema version."}
 	if str(world_data["world_id"]).strip_edges().is_empty():
 		return {"ok": false, "error": "World save has an empty world_id."}
-	if not world_data["time"] is Dictionary or not world_data["maps"] is Dictionary or not world_data["settlement"] is Dictionary:
+	if not world_data["time"] is Dictionary or not world_data["maps"] is Dictionary or not world_data["player_states"] is Dictionary or not world_data["settlement"] is Dictionary:
 		return {"ok": false, "error": "World save has invalid structured data."}
 	return {"ok": true, "error": ""}
 
@@ -81,7 +82,19 @@ func _load_json(path: String) -> Dictionary:
 	var json := JSON.new()
 	if json.parse(file.get_as_text()) != OK:
 		return {"ok": false, "error": "Could not parse world save JSON.", "data": {}}
-	var validation := validate(json.data)
+	var normalized_data := normalize_data(json.data)
+	var validation := validate(normalized_data)
 	if not bool(validation.get("ok", false)):
 		return {"ok": false, "error": str(validation.get("error", "Invalid world save.")), "data": {}}
-	return {"ok": true, "error": "", "data": json.data}
+	return {"ok": true, "error": "", "data": normalized_data}
+
+
+func normalize_data(data: Variant) -> Dictionary:
+	if not data is Dictionary:
+		return {}
+	var world_data: Dictionary = data.duplicate(true)
+	var defaults := create_default_data(str(world_data.get("world_id", "world_001")), str(world_data.get("world_name", "New World")), int(world_data.get("seed", 0)))
+	for key in defaults.keys():
+		if not world_data.has(key):
+			world_data[key] = defaults[key]
+	return world_data

@@ -15,16 +15,36 @@ var recipe_book := RecipeBookScript.new()
 var workbench_recipe_ids := []
 var current_workstation_id := "basic"
 
-@onready var main = get_node(main_path)
-@onready var player = get_node(player_path)
-@onready var build_system = get_node(build_system_path)
-@onready var crafting_label: Label = get_node(crafting_label_path)
-@onready var workbench_ui = get_node(workbench_ui_path)
+var main: Node
+var player: Node2D
+var build_system: Node
+var crafting_label: Label
+var workbench_ui
 
 
 func _ready() -> void:
 	add_to_group("crafting_system")
-	crafting_label.visible = false
+	setup({})
+
+
+func setup(context: Dictionary) -> void:
+	main = context.get("controller", context.get("main", main)) as Node
+	player = context.get("player", player) as Node2D
+	build_system = context.get("build_system", build_system) as Node
+	crafting_label = context.get("crafting_label", crafting_label) as Label
+	workbench_ui = context.get("workbench_ui", workbench_ui)
+	if main == null:
+		main = get_node_or_null(main_path)
+	if player == null:
+		player = get_node_or_null(player_path) as Node2D
+	if build_system == null:
+		build_system = get_node_or_null(build_system_path)
+	if crafting_label == null:
+		crafting_label = get_node_or_null(crafting_label_path) as Label
+	if workbench_ui == null:
+		workbench_ui = get_node_or_null(workbench_ui_path)
+	if crafting_label != null:
+		crafting_label.visible = false
 	if workbench_ui != null and workbench_ui.has_method("setup"):
 		workbench_ui.setup(main, player)
 
@@ -83,7 +103,7 @@ func _toggle_crafting() -> void:
 	if current_workstation_id.is_empty():
 		current_workstation_id = "basic"
 
-	if build_system.has_method("set_build_mode_enabled"):
+	if build_system != null and build_system.has_method("set_build_mode_enabled"):
 		build_system.set_build_mode_enabled(false)
 
 	_open_crafting(current_workstation_id)
@@ -91,7 +111,8 @@ func _toggle_crafting() -> void:
 
 func _set_crafting_open(is_open: bool) -> void:
 	crafting_open = is_open
-	crafting_label.visible = false
+	if crafting_label != null:
+		crafting_label.visible = false
 	if workbench_ui != null:
 		if is_open and workbench_ui.has_method("open"):
 			workbench_ui.open(current_workstation_id)
@@ -100,7 +121,7 @@ func _set_crafting_open(is_open: bool) -> void:
 
 
 func _open_crafting(workstation_id := "basic") -> void:
-	if build_system.has_method("set_build_mode_enabled"):
+	if build_system != null and build_system.has_method("set_build_mode_enabled"):
 		build_system.set_build_mode_enabled(false)
 	current_workstation_id = workstation_id if not workstation_id.is_empty() else "basic"
 	last_message = ""
@@ -186,14 +207,14 @@ func _is_player_near_current_workstation() -> bool:
 func _is_position_near_workstation(global_position: Vector2, workstation_id: String) -> bool:
 	if workstation_id == "basic":
 		return true
-	if not build_system.has_method("is_workstation_near_position"):
+	if build_system == null or not build_system.has_method("is_workstation_near_position"):
 		return false
 
 	return build_system.is_workstation_near_position(workstation_id, global_position, workbench_range)
 
 
 func _get_nearby_workstation_id() -> String:
-	if build_system.has_method("get_workstation_id_near_position"):
+	if build_system != null and build_system.has_method("get_workstation_id_near_position"):
 		return str(build_system.get_workstation_id_near_position(player.global_position, workbench_range))
 	if build_system.has_method("is_workbench_near_position") and build_system.is_workbench_near_position(player.global_position, workbench_range):
 		return "workbench"
@@ -242,7 +263,8 @@ func _update_crafting_label() -> void:
 	if not last_message.is_empty():
 		lines.append(last_message)
 
-	crafting_label.text = _join_lines(lines)
+	if crafting_label != null:
+		crafting_label.text = _join_lines(lines)
 
 
 func _get_cost_text(cost: Array) -> String:

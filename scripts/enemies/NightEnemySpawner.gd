@@ -18,18 +18,39 @@ extends Node
 var spawn_timer := 0.0
 var rng := RandomNumberGenerator.new()
 
-@onready var player: CharacterBody2D = get_node(player_path)
-@onready var day_night_cycle: Node = get_node(day_night_cycle_path)
-@onready var enemies_root: Node2D = get_node(enemies_root_path)
-@onready var build_system = get_node(build_system_path)
-@onready var world = get_node(world_path)
+var player: CharacterBody2D
+var day_night_cycle: Node
+var enemies_root: Node2D
+var build_system: Node
+var world: Node
 
 
 func _ready() -> void:
 	rng.randomize()
+	setup({})
+
+
+func setup(context: Dictionary) -> void:
+	player = context.get("player", player) as CharacterBody2D
+	day_night_cycle = context.get("day_night_cycle", day_night_cycle) as Node
+	enemies_root = context.get("enemies_root", enemies_root) as Node2D
+	build_system = context.get("build_system", build_system) as Node
+	world = context.get("world", world) as Node
+	if player == null:
+		player = get_node_or_null(player_path) as CharacterBody2D
+	if day_night_cycle == null:
+		day_night_cycle = get_node_or_null(day_night_cycle_path)
+	if enemies_root == null:
+		enemies_root = get_node_or_null(enemies_root_path) as Node2D
+	if build_system == null:
+		build_system = get_node_or_null(build_system_path)
+	if world == null:
+		world = get_node_or_null(world_path)
 
 
 func _process(delta: float) -> void:
+	if player == null or day_night_cycle == null or enemies_root == null:
+		return
 	if not natural_spawn_enabled:
 		spawn_timer = 0.0
 		return
@@ -111,7 +132,7 @@ func _get_random_spawn_position() -> Vector2:
 
 
 func _is_position_near_campfire(spawn_position: Vector2) -> bool:
-	if not build_system.has_method("get_campfire_positions"):
+	if build_system == null or not build_system.has_method("get_campfire_positions"):
 		return false
 
 	for campfire_position in build_system.get_campfire_positions():

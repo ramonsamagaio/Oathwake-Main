@@ -143,6 +143,7 @@ func _collect_world_data() -> void:
 		world_data["settlement"] = settlement_manager.get_save_data()
 	if day_night_cycle != null:
 		world_data["time"] = {"time_of_day": float(day_night_cycle.get("time_of_day"))}
+	_collect_player_world_state(world_data)
 	game_session.set("world_data", world_data)
 
 
@@ -165,6 +166,50 @@ func _apply_world_data() -> void:
 		var time_data: Variant = world_data.get("time", {})
 		if time_data is Dictionary:
 			day_night_cycle.set("time_of_day", float(time_data.get("time_of_day", 0.0)))
+	_apply_player_world_state(world_data)
+
+
+func _collect_player_world_state(world_data: Dictionary) -> void:
+	if player == null:
+		return
+	var player_id := str(game_session.get("active_player_id"))
+	if player_id.is_empty():
+		return
+	var player_states_value: Variant = world_data.get("player_states", {})
+	var player_states: Dictionary = player_states_value if player_states_value is Dictionary else {}
+	var state := {
+		"current_map_id": str(game_session.get("current_map_id")),
+		"position": {"x": player.global_position.x, "y": player.global_position.y},
+		"has_respawn_point": false,
+		"respawn_map_id": str(game_session.get("current_map_id")),
+		"respawn_position": {"x": 0.0, "y": 0.0},
+		"initialized": true,
+	}
+	if player.has_method("has_custom_respawn_point") and player.has_custom_respawn_point():
+		var respawn_position: Vector2 = player.get_respawn_point()
+		state["has_respawn_point"] = true
+		state["respawn_position"] = {"x": respawn_position.x, "y": respawn_position.y}
+	player_states[player_id] = state
+	world_data["player_states"] = player_states
+
+
+func _apply_player_world_state(world_data: Dictionary) -> void:
+	if player == null:
+		return
+	var player_states: Variant = world_data.get("player_states", {})
+	if not player_states is Dictionary:
+		return
+	var state: Variant = player_states.get(str(game_session.get("active_player_id")), {})
+	if not state is Dictionary or not bool(state.get("initialized", false)):
+		return
+	if str(state.get("current_map_id", "")) != str(game_session.get("current_map_id")):
+		return
+	var position_data: Variant = state.get("position", {})
+	if position_data is Dictionary:
+		player.global_position = Vector2(float(position_data.get("x", player.global_position.x)), float(position_data.get("y", player.global_position.y)))
+	var respawn_data: Variant = state.get("respawn_position", {})
+	if bool(state.get("has_respawn_point", false)) and respawn_data is Dictionary and player.has_method("set_respawn_point"):
+		player.set_respawn_point(Vector2(float(respawn_data.get("x", 0.0)), float(respawn_data.get("y", 0.0))))
 
 
 func _get_map_save_data() -> Dictionary:

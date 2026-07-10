@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/game/Game.gd" id="1_game_script"]
 [ext_resource type="Script" path="res://scripts/game/MapLoader.gd" id="2_map_loader_script"]
@@ -10,9 +10,18 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/CharacterStatusUI.tscn" id="8_status_ui"]
 [ext_resource type="Script" path="res://scripts/BuildSystem.gd" id="9_build_system"]
 [ext_resource type="Script" path="res://scripts/save/SaveCoordinator.gd" id="10_save_coordinator"]
+[ext_resource type="Script" path="res://scripts/systems/CraftingSystem.gd" id="11_crafting_system"]
+[ext_resource type="Script" path="res://scripts/systems/HousingSystem.gd" id="12_housing_system"]
+[ext_resource type="Script" path="res://scripts/systems/SettlementManager.gd" id="13_settlement_manager"]
+[ext_resource type="Script" path="res://scripts/world/DayNightCycle.gd" id="14_day_night"]
+[ext_resource type="Script" path="res://scripts/enemies/NightEnemySpawner.gd" id="15_night_spawner"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/Slime.tscn" id="16_slime"]
+[ext_resource type="PackedScene" path="res://scenes/ui/HUDStatusUI.tscn" id="17_hud_status"]
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_game_script")
+
+[node name="WorldTint" type="CanvasModulate" parent="."]
 
 [node name="CurrentMapRoot" type="Node2D" parent="."]
 
@@ -33,6 +42,8 @@ y_sort_enabled = true
 
 [node name="CharacterStatusUI" parent="UI" instance=ExtResource("8_status_ui")]
 
+[node name="HUDStatusUI" parent="UI" instance=ExtResource("17_hud_status")]
+
 [node name="Systems" type="Node" parent="."]
 
 [node name="MapLoader" type="Node" parent="Systems"]
@@ -43,3 +54,19 @@ script = ExtResource("9_build_system")
 
 [node name="SaveCoordinator" type="Node" parent="Systems"]
 script = ExtResource("10_save_coordinator")
+
+[node name="CraftingSystem" type="Node" parent="Systems"]
+script = ExtResource("11_crafting_system")
+
+[node name="HousingSystem" type="Node" parent="Systems"]
+script = ExtResource("12_housing_system")
+
+[node name="SettlementManager" type="Node" parent="Systems"]
+script = ExtResource("13_settlement_manager")
+
+[node name="DayNightCycle" type="Node" parent="Systems"]
+script = ExtResource("14_day_night")
+
+[node name="NightEnemySpawner" type="Node" parent="Systems"]
+script = ExtResource("15_night_spawner")
+slime_scene = ExtResource("16_slime")

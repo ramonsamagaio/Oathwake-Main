@@ -12,6 +12,11 @@ const ADJACENT_TILE_OFFSETS := [
 	Vector2(0, 1),
 	Vector2(1, 1),
 ]
+static var _configured_world_items_root: Node2D
+
+
+static func set_world_items_root(root: Node2D) -> void:
+	_configured_world_items_root = root
 
 
 static func spawn_item(item_id: String, amount: int, world_position: Vector2, metadata: Dictionary = {}) -> Node2D:
@@ -65,6 +70,8 @@ static func spawn_drops(drop_results: Array, world_position: Vector2) -> void:
 
 
 static func _get_world_items_parent() -> Node2D:
+	if _configured_world_items_root != null and is_instance_valid(_configured_world_items_root):
+		return _configured_world_items_root
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null or tree.current_scene == null:
 		return null
@@ -72,6 +79,9 @@ static func _get_world_items_parent() -> Node2D:
 	var existing := tree.current_scene.get_node_or_null("World/WorldItems") as Node2D
 	if existing != null:
 		return existing
+	var grouped_root := tree.get_first_node_in_group("world_items_root") as Node2D
+	if grouped_root != null:
+		return grouped_root
 
 	var world := tree.current_scene.get_node_or_null("World") as Node2D
 	if world == null:

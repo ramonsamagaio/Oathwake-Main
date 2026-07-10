@@ -11,6 +11,12 @@ func create_default_data(player_id: String, display_name := "Player") -> Diction
 		"schema_version": SCHEMA_VERSION,
 		"player_id": player_id,
 		"display_name": display_name,
+		"appearance": {
+			"gender": "masculino",
+			"hair": "hair_m_01",
+			"skin": "skin_01",
+			"eyes": "eyes_01",
+		},
 		"level": 1,
 		"current_xp": 0,
 		"xp_to_next_level": 30,
@@ -56,7 +62,7 @@ func validate(data: Variant) -> Dictionary:
 	if not data is Dictionary:
 		return {"ok": false, "error": "Player profile must be a JSON object."}
 	var profile: Dictionary = data
-	for key in ["schema_version", "player_id", "display_name", "level", "current_xp", "xp_to_next_level", "health", "max_health", "inventory_slots", "equipment_slots", "unlocked_tools", "current_tool", "hotbar_shortcuts", "selected_hotbar_slot", "player_stats"]:
+	for key in ["schema_version", "player_id", "display_name", "appearance", "level", "current_xp", "xp_to_next_level", "health", "max_health", "inventory_slots", "equipment_slots", "unlocked_tools", "current_tool", "hotbar_shortcuts", "selected_hotbar_slot", "player_stats"]:
 		if not profile.has(key):
 			return {"ok": false, "error": "Player profile missing required field: %s" % key}
 	if int(profile["schema_version"]) != SCHEMA_VERSION:
@@ -65,7 +71,7 @@ func validate(data: Variant) -> Dictionary:
 		return {"ok": false, "error": "Player profile has an empty player_id."}
 	if not profile["inventory_slots"] is Array or not profile["equipment_slots"] is Dictionary:
 		return {"ok": false, "error": "Player profile inventory or equipment has an invalid type."}
-	if not profile["unlocked_tools"] is Array or not profile["hotbar_shortcuts"] is Array or not profile["player_stats"] is Dictionary:
+	if not profile["unlocked_tools"] is Array or not profile["hotbar_shortcuts"] is Array or not profile["player_stats"] is Dictionary or not profile["appearance"] is Dictionary:
 		return {"ok": false, "error": "Player profile has invalid collection data."}
 	return {"ok": true, "error": ""}
 
@@ -107,7 +113,27 @@ func _load_json(path: String) -> Dictionary:
 	var json := JSON.new()
 	if json.parse(file.get_as_text()) != OK:
 		return {"ok": false, "error": "Could not parse player profile JSON.", "data": {}}
-	var validation := validate(json.data)
+	var normalized_data := normalize_data(json.data)
+	var validation := validate(normalized_data)
 	if not bool(validation.get("ok", false)):
 		return {"ok": false, "error": str(validation.get("error", "Invalid player profile.")), "data": {}}
-	return {"ok": true, "error": "", "data": json.data}
+	return {"ok": true, "error": "", "data": normalized_data}
+
+
+func normalize_data(data: Variant) -> Dictionary:
+	if not data is Dictionary:
+		return {}
+	var profile: Dictionary = data.duplicate(true)
+	var defaults := create_default_data(str(profile.get("player_id", "player_001")), str(profile.get("display_name", "Player")))
+	for key in defaults.keys():
+		if not profile.has(key):
+			profile[key] = defaults[key]
+	var appearance: Variant = profile.get("appearance", {})
+	if not appearance is Dictionary:
+		appearance = {}
+	var default_appearance: Dictionary = defaults["appearance"]
+	for key in default_appearance.keys():
+		if not appearance.has(key):
+			appearance[key] = default_appearance[key]
+	profile["appearance"] = appearance
+	return profile

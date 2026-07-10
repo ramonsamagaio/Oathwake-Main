@@ -19,17 +19,22 @@ var _player_save := PlayerProfileSaveScript.new()
 var _world_save := WorldSaveScript.new()
 
 
-func start_new_session(slot_id: String, player_name := "Player", world_name := "World") -> bool:
+func start_new_session(slot_id: String, player_name := "Player", world_name := "World", appearance: Dictionary = {}) -> bool:
 	if SavePathsScript.get_session_path(slot_id).is_empty():
 		push_error("GameSession received an invalid slot id: %s" % slot_id)
 		return false
 
 	active_slot_id = slot_id
-	active_player_id = _create_id("player", slot_id)
+	active_player_id = _create_unique_player_id(player_name)
 	active_world_id = _create_id("world", slot_id)
 	player_data = _player_save.create_default_data(active_player_id, player_name)
+	if not appearance.is_empty():
+		player_data["appearance"] = appearance.duplicate(true)
 	world_data = _world_save.create_default_data(active_world_id, world_name, _create_seed())
 	current_map_id = str(world_data.get("current_map_id", "start_area"))
+	world_data["player_states"] = {
+		active_player_id: _create_initial_player_state(current_map_id),
+	}
 	_ensure_current_map_data()
 	return save_all()
 
@@ -173,6 +178,31 @@ func _ensure_current_map_data() -> void:
 func _create_id(prefix: String, slot_id: String) -> String:
 	var timestamp := Time.get_unix_time_from_system()
 	return "%s_%s_%d_%d" % [prefix, slot_id, timestamp, randi_range(1000, 9999)]
+
+
+func _create_unique_player_id(player_name: String) -> String:
+	var regex := RegEx.new()
+	regex.compile("[^a-z0-9]+")
+	var base_id := regex.sub(player_name.to_lower().strip_edges(), "_", true).strip_edges().trim_prefix("_").trim_suffix("_")
+	if base_id.is_empty():
+		base_id = "player"
+	var candidate := base_id
+	var suffix := 2
+	while FileAccess.file_exists(SavePathsScript.get_player_path(candidate)):
+		candidate = "%s_%d" % [base_id, suffix]
+		suffix += 1
+	return candidate
+
+
+func _create_initial_player_state(map_id: String) -> Dictionary:
+	return {
+		"current_map_id": map_id,
+		"position": {"x": 0.0, "y": 0.0},
+		"has_respawn_point": false,
+		"respawn_map_id": map_id,
+		"respawn_position": {"x": 0.0, "y": 0.0},
+		"initialized": false,
+	}
 
 
 func _create_seed() -> int:

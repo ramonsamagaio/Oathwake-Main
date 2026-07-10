@@ -8,18 +8,25 @@ signal changed(valid_house_count: int)
 
 var valid_house_bed_ids := {}
 
-@onready var build_system = get_node(build_system_path)
+var build_system: Node
 
 
 func _ready() -> void:
 	add_to_group("housing_system")
+	setup({})
 	validate_houses(false)
+
+
+func setup(context: Dictionary) -> void:
+	build_system = context.get("build_system", build_system) as Node
+	if build_system == null:
+		build_system = get_node_or_null(build_system_path)
 
 
 func validate_houses(print_result := true) -> int:
 	valid_house_bed_ids.clear()
 
-	if not build_system.has_method("get_beds"):
+	if build_system == null or not build_system.has_method("get_beds"):
 		return 0
 
 	for bed in build_system.get_beds():

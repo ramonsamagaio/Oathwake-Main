@@ -8,12 +8,22 @@ extends Node
 
 var time_of_day := 0.0
 
-@onready var canvas_modulate: CanvasModulate = get_node(canvas_modulate_path)
-@onready var state_label: Label = get_node(state_label_path)
+var canvas_modulate: CanvasModulate
+var state_label: Label
 
 
 func _ready() -> void:
+	setup({})
 	_update_day_night_visuals()
+
+
+func setup(context: Dictionary) -> void:
+	canvas_modulate = context.get("canvas_modulate", canvas_modulate) as CanvasModulate
+	state_label = context.get("state_label", state_label) as Label
+	if canvas_modulate == null:
+		canvas_modulate = get_node_or_null(canvas_modulate_path) as CanvasModulate
+	if state_label == null:
+		state_label = get_node_or_null(state_label_path) as Label
 
 
 func _process(delta: float) -> void:
@@ -27,8 +37,10 @@ func is_day() -> bool:
 
 func _update_day_night_visuals() -> void:
 	var night_strength := _get_night_strength()
-	canvas_modulate.color = day_color.lerp(night_color, night_strength)
-	state_label.text = "Day" if is_day() else "Night"
+	if canvas_modulate != null:
+		canvas_modulate.color = day_color.lerp(night_color, night_strength)
+	if state_label != null:
+		state_label.text = "Day" if is_day() else "Night"
 
 
 func _get_night_strength() -> float:

@@ -61,6 +61,38 @@ func get_default_spawn_position() -> Vector2:
 	return spawn_point.global_position if spawn_point != null else global_position
 
 
+func get_tile_type_at_position(_global_position: Vector2) -> String:
+	return "grass"
+
+
+func _ready() -> void:
+	_ensure_functional_ground()
+
+
+func _ensure_functional_ground() -> void:
+	# Authored visuals can remain independent while this layer supplies buildable cells.
+	if _ground_layer.tile_set == null:
+		var image := Image.create(192, 32, false, Image.FORMAT_RGBA8)
+		image.fill(Color(0.16, 0.30, 0.18, 0.20))
+		var source := TileSetAtlasSource.new()
+		source.texture = ImageTexture.create_from_image(image)
+		source.texture_region_size = Vector2i(32, 32)
+		for atlas_x in range(6):
+			source.create_tile(Vector2i(atlas_x, 0))
+		var tile_set := TileSet.new()
+		tile_set.tile_size = Vector2i(32, 32)
+		tile_set.add_source(source, 0)
+		_ground_layer.tile_set = tile_set
+	if _ground_layer.get_used_cells().is_empty():
+		for x in range(-8, 60):
+			for y in range(-8, 40):
+				_ground_layer.set_cell(Vector2i(x, y), 0, Vector2i.ZERO)
+	if _build_layer.tile_set == null:
+		_build_layer.tile_set = _ground_layer.tile_set
+	if _obstacle_layer.tile_set == null:
+		_obstacle_layer.tile_set = _ground_layer.tile_set
+
+
 func get_map_save_data() -> Dictionary:
 	var data := _loaded_save_data.duplicate(true)
 	data["map_id"] = map_id

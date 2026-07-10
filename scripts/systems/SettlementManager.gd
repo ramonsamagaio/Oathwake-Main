@@ -9,14 +9,30 @@ signal changed
 @export var npc_assignment_range: float = 96.0
 @export var bed_assignment_range: float = 96.0
 
-@onready var main = get_node(main_path)
-@onready var player: Node2D = get_node(player_path)
-@onready var build_system = get_node(build_system_path)
-@onready var housing_system = get_node(housing_system_path)
+var main: Node
+var player: Node2D
+var build_system: Node
+var housing_system: Node
 
 
 func _ready() -> void:
 	add_to_group("settlement_manager")
+	setup({})
+
+
+func setup(context: Dictionary) -> void:
+	main = context.get("controller", context.get("main", main)) as Node
+	player = context.get("player", player) as Node2D
+	build_system = context.get("build_system", build_system) as Node
+	housing_system = context.get("housing_system", housing_system) as Node
+	if main == null:
+		main = get_node_or_null(main_path)
+	if player == null:
+		player = get_node_or_null(player_path) as Node2D
+	if build_system == null:
+		build_system = get_node_or_null(build_system_path)
+	if housing_system == null:
+		housing_system = get_node_or_null(housing_system_path)
 
 
 func recruit_npc(npc: Node) -> bool:
