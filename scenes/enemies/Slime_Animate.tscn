@@ -60,3 +60,10 @@ scale = Vector2(1, 1.1319346)
 sprite_frames = SubResource("SpriteFrames_3ef6s")
 animation = &"idle"
 frame_progress = 0.55251276
+
+[node name="GroundShadow" type="Polygon2D" parent="." unique_id=397965340]
+show_behind_parent = true
+position = Vector2(0, 25)
+scale = Vector2(1.5, 0.8)
+color = Color(0, 0, 0, 0.34)
+polygon = PackedVector2Array(-13, -3, -10, -5, -4, -6, 4, -6, 10, -5, 13, -3, 14, 0, 13, 3, 10, 5, 4, 6, -4, 6, -10, 5, -13, 3, -14, 0)

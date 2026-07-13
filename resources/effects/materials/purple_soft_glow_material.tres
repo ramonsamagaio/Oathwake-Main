@@ -5,7 +5,7 @@
 [resource]
 resource_name = "Palette Soft Glow Material"
 shader = ExtResource("1_pixel_soft_glow")
-shader_parameter/palette_color_1 = Color(0.92, 0.22, 1, 0.55)
+shader_parameter/palette_color_1 = Color(0.75559807, 0.43216726, 1, 0.54901963)
 shader_parameter/palette_color_2 = Color(0.5, 0.08, 0.95, 0.5)
 shader_parameter/palette_color_3 = Color(1, 0.58, 0.2, 0.42)
 shader_parameter/palette_color_4 = Color(0.18, 0.04, 0.4, 0.36)
@@ -15,9 +15,9 @@ shader_parameter/palette_count = 1.0
 shader_parameter/color_cycle_speed = 1.7999972775264013
 shader_parameter/palette_blend = 0.0
 shader_parameter/core_radius = 0.0
-shader_parameter/edge_radius = 0.89999997615814
-shader_parameter/falloff = 2.5000000298024
-shader_parameter/opacity = 1.11999997496576
+shader_parameter/edge_radius = 0.51999999210228
+shader_parameter/falloff = 5.30000007152576
+shader_parameter/opacity = 1.749999960884
 shader_parameter/glow_intensity = 0.80999998189488
 shader_parameter/pixelation_amount = 0.0
 shader_parameter/pixel_steps = 4.0

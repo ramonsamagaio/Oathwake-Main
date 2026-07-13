@@ -12,6 +12,13 @@ radius = 12.0
 position = Vector2(0, -3)
 script = ExtResource("1_player_script")
 
+[node name="GroundShadow" type="Polygon2D" parent="." unique_id=1325074921]
+show_behind_parent = true
+position = Vector2(0, 30.000002)
+scale = Vector2(1.45, 0.72)
+color = Color(0, 0, 0, 0.32)
+polygon = PackedVector2Array(-11, -3, -8, -5, -3, -6, 3, -6, 8, -5, 11, -3, 12, 0, 11, 3, 8, 5, 3, 6, -3, 6, -8, 5, -11, 3, -12, 0)
+
 [node name="Body" type="Polygon2D" parent="." unique_id=213101848]
 color = Color(0.22, 0.46, 0.95, 1)
 polygon = PackedVector2Array(0, -16, 12, -6, 10, 14, -10, 14, -12, -6)
