@@ -8,7 +8,7 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_glow"]
 resource_local_to_scene = true
 shader = ExtResource("3_glow_shader")
-shader_parameter/enabled = true
+shader_parameter/enabled = false
 shader_parameter/bloom_threshold = 0.82
 shader_parameter/bloom_intensity = 0.38
 shader_parameter/blur_iterations = 1
@@ -38,6 +38,7 @@ script = ExtResource("1_screen_effects_script")
 copy_mode = 2
 
 [node name="GaussianGlow" type="ColorRect" parent="."]
+visible = false
 material = SubResource("ShaderMaterial_glow")
 anchors_preset = 15
 anchor_right = 1.0
@@ -45,7 +46,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(1, 1, 1, 1)
+color = Color(0, 0, 0, 0)
 
 [node name="SpeedLines" type="ColorRect" parent="."]
 visible = false
@@ -56,4 +57,4 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(1, 1, 1, 1)
+color = Color(0, 0, 0, 0)

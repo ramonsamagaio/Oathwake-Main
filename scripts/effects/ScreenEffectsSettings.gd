@@ -14,7 +14,7 @@ extends Node
 @export var dash_noise_texture: Texture2D
 
 @export_category("Gaussian Glow")
-@export var glow_enabled := true
+@export var glow_enabled := false
 @export_range(0.0, 2.0, 0.01) var bloom_threshold := 0.82
 @export_range(0.0, 5.0, 0.01) var bloom_intensity := 0.38
 @export_range(1, 4, 1) var blur_iterations := 1
