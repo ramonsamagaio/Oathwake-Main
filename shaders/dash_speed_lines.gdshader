@@ -4,7 +4,6 @@ shader_type canvas_item;
 render_mode unshaded;
 
 uniform bool enabled = false;
-uniform sampler2D noise : repeat_enable, filter_linear;
 uniform vec4 line_color : source_color = vec4(0.72, 0.88, 1.0, 0.12);
 uniform float line_count : hint_range(0.05, 2.0, 0.05) = 0.45;
 uniform float line_density : hint_range(0.0, 1.0, 0.01) = 0.18;
