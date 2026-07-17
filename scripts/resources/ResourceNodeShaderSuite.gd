@@ -32,7 +32,6 @@ func _apply_content_sprite_material(sprite: Sprite2D) -> void:
 	shader_material.resource_local_to_scene = true
 	shader_material.shader = FoliageWindShader
 	shader_material.set_shader_parameter("enabled", bool(foliage_settings.get("effect_enabled")))
-	shader_material.set_shader_parameter("noise_texture", foliage_settings.get("noise_texture"))
 	shader_material.set_shader_parameter("time_scale", float(foliage_settings.get("time_scale")))
 	shader_material.set_shader_parameter("noise_scale", float(foliage_settings.get("noise_scale")))
 	shader_material.set_shader_parameter("render_noise", bool(foliage_settings.get("render_noise_debug")))
