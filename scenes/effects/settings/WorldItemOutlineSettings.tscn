@@ -6,6 +6,6 @@
 script = ExtResource("1_settings_script")
 effect_enabled = true
 outline_color = Color(0.08, 0.06, 0.04, 0.95)
-outline_size = 0.018
+outline_size = 0.025
 alpha_threshold = 0.5
 samples = 12
