@@ -33,33 +33,16 @@ func _load_frames() -> void:
 	_frames.clear()
 	for path_value in CURSOR_FRAMES:
 		var path := str(path_value)
-		if not FileAccess.file_exists(path):
+		if not ResourceLoader.exists(path):
 			continue
-		var image := Image.load_from_file(path)
-		if image == null or image.is_empty() or image.get_width() <= 0 or image.get_height() <= 0:
-			push_warning("AnimatedCursor: ignored empty cursor image '%s'." % path)
-			continue
-		_limit_cursor_image_size(image)
-		if image.is_empty() or image.get_width() <= 0 or image.get_height() <= 0:
-			push_warning("AnimatedCursor: cursor image became invalid after resizing '%s'." % path)
-			continue
-		var texture := ImageTexture.create_from_image(image)
+		var texture := ResourceLoader.load(path) as Texture2D
 		if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
-			push_warning("AnimatedCursor: could not create a valid cursor texture '%s'." % path)
+			push_warning("AnimatedCursor: ignored invalid cursor texture '%s'." % path)
+			continue
+		if texture.get_width() > MAX_CURSOR_DIMENSION or texture.get_height() > MAX_CURSOR_DIMENSION:
+			push_warning("AnimatedCursor: cursor texture '%s' exceeds %d pixels and was ignored." % [path, MAX_CURSOR_DIMENSION])
 			continue
 		_frames.append(texture)
-
-
-func _limit_cursor_image_size(image: Image) -> void:
-	var width := image.get_width()
-	var height := image.get_height()
-	var largest_dimension := maxi(width, height)
-	if largest_dimension <= MAX_CURSOR_DIMENSION:
-		return
-	var resize_scale := float(MAX_CURSOR_DIMENSION) / float(largest_dimension)
-	var target_width := maxi(int(round(float(width) * resize_scale)), 1)
-	var target_height := maxi(int(round(float(height) * resize_scale)), 1)
-	image.resize(target_width, target_height, Image.INTERPOLATE_NEAREST)
 
 
 func _build_sequence() -> void:
