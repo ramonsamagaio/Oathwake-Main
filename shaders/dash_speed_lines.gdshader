@@ -13,7 +13,7 @@ uniform float mask_size : hint_range(0.0, 1.0, 0.01) = 0.18;
 uniform float mask_edge : hint_range(0.0, 1.0, 0.01) = 0.72;
 uniform float animation_speed : hint_range(0.1, 20.0, 0.1) = 7.0;
 
-float inverse_lerp(float from_value, float to_value, float value) {
+float safe_inverse_lerp(float from_value, float to_value, float value) {
 	return (value - from_value) / max(to_value - from_value, 0.0001);
 }
 
@@ -44,7 +44,7 @@ void fragment() {
 	vec2 polar_uv = polar_coordinates(rotate_uv(UV, vec2(0.5), rotation), vec2(0.5), 0.01, line_count);
 	float line_noise = texture(noise, polar_uv).r;
 	float mask_value = length(UV - vec2(0.5));
-	float mask = inverse_lerp(mask_size, mask_edge, mask_value);
+	float mask = safe_inverse_lerp(mask_size, mask_edge, mask_value);
 	float result = 1.0 - mask * line_density;
 	result = smoothstep(result, result + line_falloff, line_noise);
 	COLOR = vec4(line_color.rgb, min(line_color.a, result * line_color.a));

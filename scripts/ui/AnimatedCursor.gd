@@ -33,9 +33,14 @@ func _load_frames() -> void:
 	for path in CURSOR_FRAMES:
 		if not ResourceLoader.exists(path):
 			continue
-		var texture := ResourceLoader.load(path)
-		if texture is Texture2D:
-			_frames.append(texture as Texture2D)
+		var resource := ResourceLoader.load(path)
+		if not resource is Texture2D:
+			continue
+		var texture := resource as Texture2D
+		if texture.get_width() <= 0 or texture.get_height() <= 0:
+			push_warning("AnimatedCursor: ignored zero-sized cursor texture '%s'." % path)
+			continue
+		_frames.append(texture)
 
 
 func _build_sequence() -> void:
@@ -86,4 +91,7 @@ func _apply_current_cursor() -> void:
 	var frame_index := _sequence[_sequence_index]
 	if frame_index < 0 or frame_index >= _frames.size():
 		frame_index = 0
-	Input.set_custom_mouse_cursor(_frames[frame_index], Input.CURSOR_ARROW, Vector2.ZERO)
+	var texture := _frames[frame_index]
+	if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
+		return
+	Input.set_custom_mouse_cursor(texture, Input.CURSOR_ARROW, Vector2.ZERO)

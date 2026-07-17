@@ -21,9 +21,13 @@ func get_texture_for_sprite(sprite_id: String) -> Texture2D:
 		print("SpriteResolver: missing texture_path for sprite_id '%s'." % sprite_id)
 		return get_placeholder_texture()
 
-	var texture = load(texture_path)
-	if texture is Texture2D:
-		return texture
+	var loaded_resource = ResourceLoader.load(texture_path)
+	if loaded_resource is Texture2D:
+		var texture := loaded_resource as Texture2D
+		if _is_usable_texture(texture):
+			return texture
+		print("SpriteResolver: zero-sized texture for sprite_id '%s' at '%s'." % [sprite_id, texture_path])
+		return get_placeholder_texture()
 
 	print("SpriteResolver: texture_path is not a Texture2D for sprite_id '%s'." % sprite_id)
 	return get_placeholder_texture()
@@ -70,10 +74,14 @@ func get_texture_for_tileset(tileset_id: String) -> Texture2D:
 
 
 func get_placeholder_texture() -> Texture2D:
-	if placeholder_texture != null:
+	if _is_usable_texture(placeholder_texture):
 		return placeholder_texture
 
 	var image := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+	if image == null or image.is_empty():
+		push_error("SpriteResolver: failed to create the 16x16 placeholder image.")
+		return null
+
 	image.fill(Color(0.16, 0.15, 0.18, 1.0))
 	for y in range(16):
 		for x in range(16):
@@ -81,7 +89,14 @@ func get_placeholder_texture() -> Texture2D:
 				image.set_pixel(x, y, Color(0.55, 0.52, 0.62, 1.0))
 
 	placeholder_texture = ImageTexture.create_from_image(image)
+	if not _is_usable_texture(placeholder_texture):
+		push_error("SpriteResolver: placeholder texture creation returned an invalid texture.")
+		placeholder_texture = null
 	return placeholder_texture
+
+
+func _is_usable_texture(texture: Texture2D) -> bool:
+	return texture != null and texture.get_width() > 0 and texture.get_height() > 0
 
 
 func _get_content_db() -> Node:
