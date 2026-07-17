@@ -29,7 +29,7 @@ shader_parameter/mask_edge = 0.72
 shader_parameter/animation_speed = 7.0
 
 [node name="ScreenEffects" type="CanvasLayer"]
-layer = 0
+layer = 5
 script = ExtResource("1_screen_effects_script")
 
 [node name="Settings" parent="." instance=ExtResource("2_settings_scene")]
