@@ -25,7 +25,8 @@ script = ExtResource("1_world_item_script")
 [node name="GroundShadow" type="Polygon2D" parent="."]
 z_index = 0
 position = Vector2(0, 9)
-color = Color(0, 0, 0, 0.32)
+modulate = Color(1, 1, 1, 0.32)
+color = Color(0, 0, 0, 1)
 polygon = PackedVector2Array(-8, 0, -6, -2, -2, -3, 2, -3, 6, -2, 8, 0, 6, 2, 2, 3, -2, 3, -6, 2)
 
 [node name="OutlineSprite" type="Sprite2D" parent="."]
