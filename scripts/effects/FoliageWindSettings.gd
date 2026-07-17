@@ -11,17 +11,17 @@ extends Node
 ])
 
 @export_category("Large Vegetation")
-@export_range(0.0, 0.5, 0.005) var large_amplitude := 0.075
-@export_range(0.0, 5.0, 0.05) var large_rotation_strength := 1.0
+@export_range(0.0, 0.5, 0.005) var large_amplitude := 0.10
+@export_range(0.0, 5.0, 0.05) var large_rotation_strength := 1.15
 @export var large_rotation_pivot := Vector2(0.5, 1.0)
 
 @export_category("Small Vegetation")
-@export_range(0.0, 0.5, 0.005) var small_amplitude := 0.12
-@export_range(0.0, 5.0, 0.05) var small_rotation_strength := 1.35
+@export_range(0.0, 0.5, 0.005) var small_amplitude := 0.16
+@export_range(0.0, 5.0, 0.05) var small_rotation_strength := 1.50
 @export var small_rotation_pivot := Vector2(0.5, 1.0)
 
 @export_category("Shared Wind")
-@export_range(0.0, 5.0, 0.01) var time_scale := 0.20
+@export_range(0.0, 5.0, 0.01) var time_scale := 0.28
 @export_range(0.0001, 2.0, 0.0001) var noise_scale := 0.004
 @export var render_noise_debug := false
 @export var noise_texture: Texture2D
