@@ -2,7 +2,7 @@
 extends CanvasLayer
 
 @export_category("Fog Overlay")
-@export var effect_enabled := true:
+@export var effect_enabled := false:
 	set(value):
 		effect_enabled = value
 		_apply_settings()
@@ -38,11 +38,14 @@ func _apply_settings() -> void:
 	visible = effect_enabled
 	if not is_node_ready() or fog_rect == null:
 		return
-	fog_rect.color = fog_color
+	fog_rect.visible = effect_enabled
+	fog_rect.color = Color(0.0, 0.0, 0.0, 0.0)
 	var shader_material := fog_rect.material as ShaderMaterial
 	if shader_material == null or shader_material.shader == null:
+		fog_rect.visible = false
 		return
 	shader_material.set_shader_parameter("enabled", effect_enabled)
 	shader_material.set_shader_parameter("density", density)
 	shader_material.set_shader_parameter("speed", speed)
+	shader_material.set_shader_parameter("fog_color", fog_color)
 	shader_material.set_shader_parameter("noise_texture", noise_texture)
