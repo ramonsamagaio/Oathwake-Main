@@ -1,189 +1,229 @@
 extends RefCounted
 
+const UI_SKIN_PATH := "res://data/ui_skin.json"
 const FALLBACK_UI_TEXTURE: Texture2D = preload("res://assets/generated/ui_fallback_checker.svg")
 
+static var _skin_cache: Dictionary = {}
 static var _texture_cache: Dictionary = {}
 static var _fallback_texture_cache: Dictionary = {}
 
 
-static func make_panel_style(config: Dictionary = {}) -> StyleBox:
-	var texture_path := str(config.get("texture_path", ""))
-	var texture := _load_texture(texture_path)
-	if texture == null:
-		texture = _get_fallback_texture()
-	var stylebox := StyleBoxTexture.new()
-	stylebox.texture = texture
-	stylebox.texture_margin_left = float(config.get("texture_margin_left", 16.0))
-	stylebox.texture_margin_top = float(config.get("texture_margin_top", 16.0))
-	stylebox.texture_margin_right = float(config.get("texture_margin_right", 16.0))
-	stylebox.texture_margin_bottom = float(config.get("texture_margin_bottom", 16.0))
-	stylebox.content_margin_left = float(config.get("content_margin_left", 18.0))
-	stylebox.content_margin_top = float(config.get("content_margin_top", 18.0))
-	stylebox.content_margin_right = float(config.get("content_margin_right", 18.0))
-	stylebox.content_margin_bottom = float(config.get("content_margin_bottom", 18.0))
-	stylebox.axis_stretch_horizontal = TextureRect.STRETCH_TILE
-	stylebox.axis_stretch_vertical = TextureRect.STRETCH_TILE
-	return stylebox
-
-
-static func make_button_style(state: String = "normal", size_key: String = "large", config: Dictionary = {}) -> StyleBox:
-	var resolved_size_key := _resolve_button_size_key(size_key)
-	var normalized_state := state.to_lower().strip_edges()
-	var texture_key := "%s_%s_texture_path" % [resolved_size_key, normalized_state]
-	var fallback_key := "%s_normal_texture_path" % resolved_size_key
-	var texture_path := str(config.get(texture_key, config.get(fallback_key, "")))
-	var texture := _load_texture(texture_path)
-	if texture == null:
-		texture = _get_fallback_texture()
-	var stylebox := StyleBoxTexture.new()
-	stylebox.texture = texture
-	var margins := config.get("%s_margins" % resolved_size_key, {})
-	if margins is Dictionary:
-		stylebox.texture_margin_left = _get_margin_value(margins, "left", 20)
-		stylebox.texture_margin_top = _get_margin_value(margins, "top", 12)
-		stylebox.texture_margin_right = _get_margin_value(margins, "right", 20)
-		stylebox.texture_margin_bottom = _get_margin_value(margins, "bottom", 12)
-	stylebox.content_margin_left = float(config.get("button_content_margin_left", 18.0))
-	stylebox.content_margin_top = float(config.get("button_content_margin_top", 8.0))
-	stylebox.content_margin_right = float(config.get("button_content_margin_right", 18.0))
-	stylebox.content_margin_bottom = float(config.get("button_content_margin_bottom", 8.0))
-	return stylebox
-
-
-static func make_slot_style(variant: String = "normal", config: Dictionary = {}) -> StyleBox:
-	var style_keys := _resolve_slot_style_keys(variant)
-	var texture_path := str(config.get(style_keys.get("texture_key", ""), ""))
-	var texture := _load_texture(texture_path)
-	if texture == null:
-		texture = _get_fallback_texture()
-	var stylebox := StyleBoxTexture.new()
-	stylebox.texture = texture
-	var margin_value := int(config.get("slot_texture_margin", 8))
-	stylebox.texture_margin_left = margin_value
-	stylebox.texture_margin_top = margin_value
-	stylebox.texture_margin_right = margin_value
-	stylebox.texture_margin_bottom = margin_value
-	stylebox.content_margin_left = float(config.get("slot_content_margin", 6.0))
-	stylebox.content_margin_top = float(config.get("slot_content_margin", 6.0))
-	stylebox.content_margin_right = float(config.get("slot_content_margin", 6.0))
-	stylebox.content_margin_bottom = float(config.get("slot_content_margin", 6.0))
-	return stylebox
-
-
-static func apply_button_skin(button: Button, size_key: String = "large", config: Dictionary = {}) -> void:
-	if button == null:
-		return
-	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
-		button.add_theme_stylebox_override(state, make_button_style(state, size_key, config))
-
-
-static func apply_panel_skin(panel: PanelContainer, config: Dictionary = {}) -> void:
-	if panel == null:
-		return
-	panel.add_theme_stylebox_override("panel", make_panel_style(config))
-
-
-static func apply_slot_skin(control: Control, variant: String = "normal", config: Dictionary = {}) -> void:
+static func apply_panel(control: Control, skin_key := "panel") -> void:
 	if control == null:
 		return
-	control.add_theme_stylebox_override("panel", make_slot_style(variant, config))
+	control.add_theme_stylebox_override("panel", _make_stylebox(str(skin_key)))
 
 
-static func apply_label_skin(label: Label, config: Dictionary = {}) -> void:
-	if label == null:
+static func apply_button(button: Button, size_key := "large") -> void:
+	if button == null:
 		return
-	label.add_theme_color_override("font_color", config.get("font_color", Color(0.92, 0.90, 0.84, 1.0)))
-	label.add_theme_color_override("font_shadow_color", config.get("font_shadow_color", Color(0.0, 0.0, 0.0, 0.85)))
-	label.add_theme_constant_override("shadow_offset_x", int(config.get("shadow_offset_x", 1)))
-	label.add_theme_constant_override("shadow_offset_y", int(config.get("shadow_offset_y", 1)))
+	var resolved_size := _resolve_button_size_key(str(size_key))
+	var normal := _make_stylebox("button_%s_normal" % resolved_size)
+	var hover := _make_stylebox("button_%s_hover" % resolved_size)
+	var pressed := _make_stylebox("button_%s_pressed" % resolved_size)
+	var disabled := _make_stylebox("button_%s_disabled" % resolved_size)
+
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", hover if hover != null else normal)
+	button.add_theme_stylebox_override("focus", hover if hover != null else normal)
+	button.add_theme_stylebox_override("pressed", pressed if pressed != null else normal)
+	button.add_theme_stylebox_override("disabled", disabled if disabled != null else normal)
 
 
-static func apply_line_edit_skin(line_edit: LineEdit, config: Dictionary = {}) -> void:
-	if line_edit == null:
+static func apply_slot_button(button: Button, variant := "empty") -> void:
+	if button == null:
 		return
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = config.get("line_edit_background", Color(0.06, 0.07, 0.09, 0.96))
-	normal.border_color = config.get("line_edit_border", Color(0.34, 0.28, 0.22, 1.0))
-	normal.set_border_width_all(int(config.get("line_edit_border_width", 2)))
-	normal.set_corner_radius_all(int(config.get("line_edit_corner_radius", 4)))
-	normal.content_margin_left = 10
-	normal.content_margin_right = 10
-	normal.content_margin_top = 7
-	normal.content_margin_bottom = 7
-	line_edit.add_theme_stylebox_override("normal", normal)
-	line_edit.add_theme_stylebox_override("focus", normal.duplicate())
+
+	var slot_styles := _resolve_slot_style_keys(str(variant))
+	var normal := _make_stylebox(str(slot_styles.get("normal", "item_slot_normal")))
+	var hover := _make_stylebox(str(slot_styles.get("hover", "item_slot_hover")))
+	var pressed := _make_stylebox(str(slot_styles.get("pressed", "item_slot_selected")))
+	var disabled := _make_stylebox(str(slot_styles.get("disabled", "item_slot_blocked")))
+
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", hover if hover != null else normal)
+	button.add_theme_stylebox_override("focus", hover if hover != null else normal)
+	button.add_theme_stylebox_override("pressed", pressed if pressed != null else normal)
+	button.add_theme_stylebox_override("disabled", disabled if disabled != null else normal)
 
 
-static func make_inventory_panel_style(config: Dictionary = {}) -> StyleBox:
-	var stylebox := make_panel_style(config)
-	if stylebox is StyleBoxTexture:
-		var texture_style := stylebox as StyleBoxTexture
-		texture_style.content_margin_left = float(config.get("inventory_content_margin_left", 22.0))
-		texture_style.content_margin_top = float(config.get("inventory_content_margin_top", 22.0))
-		texture_style.content_margin_right = float(config.get("inventory_content_margin_right", 22.0))
-		texture_style.content_margin_bottom = float(config.get("inventory_content_margin_bottom", 22.0))
-	return stylebox
+static func apply_hotbar_slot_button(button: Button, variant := "empty") -> void:
+	apply_slot_button(button, "hotbar_%s" % str(variant))
 
 
-static func make_tooltip_style(config: Dictionary = {}) -> StyleBox:
-	var stylebox := make_panel_style(config)
-	if stylebox is StyleBoxTexture:
-		var texture_style := stylebox as StyleBoxTexture
-		texture_style.content_margin_left = 12
-		texture_style.content_margin_top = 10
-		texture_style.content_margin_right = 12
-		texture_style.content_margin_bottom = 10
-	return stylebox
+static func apply_tooltip(control: Control) -> void:
+	apply_panel(control, "tooltip")
 
 
-static func make_header_style(config: Dictionary = {}) -> StyleBox:
-	var texture_path := str(config.get("header_texture_path", ""))
-	var texture := _load_texture(texture_path)
+static func apply_dialog(control: Control) -> void:
+	apply_panel(control, "dialog")
+
+
+static func apply_inventory_panel(control: Control) -> void:
+	# The inventory_window asset already contains a decorative grid.
+	# Dynamic inventory UI should use a clean frame and draw slots separately.
+	apply_panel(control, "panel")
+
+
+static func apply_hotbar_panel(control: Control) -> void:
+	apply_panel(control, "hotbar_frame")
+
+
+static func make_texture_rect(path: String, stretch_mode := TextureRect.STRETCH_KEEP_ASPECT_CENTERED) -> TextureRect:
+	var texture_rect := TextureRect.new()
+	texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	texture_rect.stretch_mode = stretch_mode
+
+	var texture := _load_texture(path)
 	if texture == null:
 		texture = _get_fallback_texture()
+	texture_rect.texture = texture
+	return texture_rect
+
+
+static func get_skin_data() -> Dictionary:
+	if not _skin_cache.is_empty():
+		return _skin_cache
+
+	if not FileAccess.file_exists(UI_SKIN_PATH):
+		_skin_cache = {}
+		return _skin_cache
+
+	var file := FileAccess.open(UI_SKIN_PATH, FileAccess.READ)
+	if file == null:
+		_skin_cache = {}
+		return _skin_cache
+
+	var json := JSON.new()
+	if json.parse(file.get_as_text()) != OK or not json.data is Dictionary:
+		_skin_cache = {}
+		return _skin_cache
+
+	_skin_cache = json.data
+	return _skin_cache
+
+
+static func _make_stylebox(key: String) -> StyleBox:
+	var skin_data: Dictionary = get_skin_data()
+	var config: Variant = skin_data.get(key, null)
+	var stylebox := _build_stylebox_from_config(config)
+	if stylebox != null:
+		return stylebox
+
+	return _make_fallback_stylebox(key)
+
+
+static func _build_stylebox_from_config(config: Variant) -> StyleBox:
+	if config is String:
+		var texture := _load_texture(str(config))
+		if texture == null:
+			return null
+		return _build_texture_stylebox(texture, {}, {})
+
+	if not config is Dictionary:
+		return null
+
+	var data: Dictionary = config
+	var path := str(data.get("path", ""))
+	var texture_from_path := _load_texture(path)
+	if texture_from_path == null:
+		return null
+
+	var margins: Dictionary = data.get("margins", {}) if data.get("margins", {}) is Dictionary else {}
+	var content_margins: Dictionary = data.get("content_margins", {}) if data.get("content_margins", {}) is Dictionary else {}
+	return _build_texture_stylebox(texture_from_path, margins, content_margins)
+
+
+static func _build_texture_stylebox(texture: Texture2D, margins: Dictionary, content_margins: Dictionary) -> StyleBoxTexture:
 	var stylebox := StyleBoxTexture.new()
 	stylebox.texture = texture
-	stylebox.texture_margin_left = 12
-	stylebox.texture_margin_top = 8
-	stylebox.texture_margin_right = 12
-	stylebox.texture_margin_bottom = 8
-	stylebox.content_margin_left = 18
-	stylebox.content_margin_top = 10
-	stylebox.content_margin_right = 18
-	stylebox.content_margin_bottom = 10
+	stylebox.texture_margin_left = _get_margin_value(margins, "left", 16)
+	stylebox.texture_margin_top = _get_margin_value(margins, "top", 16)
+	stylebox.texture_margin_right = _get_margin_value(margins, "right", 16)
+	stylebox.texture_margin_bottom = _get_margin_value(margins, "bottom", 16)
+	stylebox.content_margin_left = _get_margin_value(content_margins, "left", _get_margin_value(margins, "left", 16))
+	stylebox.content_margin_top = _get_margin_value(content_margins, "top", _get_margin_value(margins, "top", 16))
+	stylebox.content_margin_right = _get_margin_value(content_margins, "right", _get_margin_value(margins, "right", 16))
+	stylebox.content_margin_bottom = _get_margin_value(content_margins, "bottom", _get_margin_value(margins, "bottom", 16))
 	return stylebox
 
 
-static func make_compact_panel_style(config: Dictionary = {}) -> StyleBox:
-	var stylebox := make_panel_style(config)
-	if stylebox is StyleBoxTexture:
-		var texture_style := stylebox as StyleBoxTexture
-		texture_style.content_margin_left = 10
-		texture_style.content_margin_top = 8
-		texture_style.content_margin_right = 10
-		texture_style.content_margin_bottom = 8
-	return stylebox
+static func _make_fallback_stylebox(key: String) -> StyleBoxFlat:
+	var stylebox := StyleBoxFlat.new()
+	var lowered := key.to_lower()
+	var is_button := lowered.begins_with("button_")
+	var is_slot := lowered.begins_with("item_slot_") or lowered.begins_with("save_slot_") or lowered.begins_with("hotbar_slot_")
+	var is_tooltip := lowered == "tooltip"
+	var is_dialog := lowered == "dialog" or lowered == "confirmation_box"
+	var is_hotbar := lowered == "hotbar_frame"
+	var is_inventory := lowered == "inventory_window"
 
+	stylebox.bg_color = Color(0.08, 0.09, 0.11, 0.96)
+	stylebox.border_color = Color(0.28, 0.31, 0.36, 1.0)
+	stylebox.set_border_width_all(2)
+	stylebox.corner_radius_top_left = 10
+	stylebox.corner_radius_top_right = 10
+	stylebox.corner_radius_bottom_left = 10
+	stylebox.corner_radius_bottom_right = 10
+	stylebox.shadow_size = 2
+	stylebox.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
 
-static func make_large_panel_style(config: Dictionary = {}) -> StyleBox:
-	var stylebox := make_panel_style(config)
-	if stylebox is StyleBoxTexture:
-		var texture_style := stylebox as StyleBoxTexture
-		texture_style.content_margin_left = 26
-		texture_style.content_margin_top = 26
-		texture_style.content_margin_right = 26
-		texture_style.content_margin_bottom = 26
-	return stylebox
+	if is_button:
+		stylebox.bg_color = Color(0.12, 0.13, 0.16, 0.96)
+		stylebox.border_color = Color(0.35, 0.37, 0.42, 1.0)
+		stylebox.corner_radius_top_left = 8
+		stylebox.corner_radius_top_right = 8
+		stylebox.corner_radius_bottom_left = 8
+		stylebox.corner_radius_bottom_right = 8
+		stylebox.content_margin_left = 14
+		stylebox.content_margin_top = 10
+		stylebox.content_margin_right = 14
+		stylebox.content_margin_bottom = 10
+	elif is_slot:
+		stylebox.bg_color = Color(0.11, 0.12, 0.14, 0.96)
+		stylebox.border_color = Color(0.33, 0.34, 0.38, 1.0)
+		stylebox.corner_radius_top_left = 6
+		stylebox.corner_radius_top_right = 6
+		stylebox.corner_radius_bottom_left = 6
+		stylebox.corner_radius_bottom_right = 6
+		stylebox.content_margin_left = 10
+		stylebox.content_margin_top = 10
+		stylebox.content_margin_right = 10
+		stylebox.content_margin_bottom = 10
+	elif is_tooltip:
+		stylebox.bg_color = Color(0.06, 0.07, 0.08, 0.96)
+		stylebox.border_color = Color(0.42, 0.38, 0.22, 1.0)
+		stylebox.content_margin_left = 12
+		stylebox.content_margin_top = 12
+		stylebox.content_margin_right = 12
+		stylebox.content_margin_bottom = 12
+	elif is_dialog:
+		stylebox.bg_color = Color(0.09, 0.07, 0.07, 0.96)
+		stylebox.border_color = Color(0.45, 0.28, 0.24, 1.0)
+		stylebox.content_margin_left = 18
+		stylebox.content_margin_top = 18
+		stylebox.content_margin_right = 18
+		stylebox.content_margin_bottom = 18
+	elif is_hotbar:
+		stylebox.bg_color = Color(0.09, 0.10, 0.12, 0.92)
+		stylebox.border_color = Color(0.30, 0.32, 0.36, 1.0)
+		stylebox.content_margin_left = 8
+		stylebox.content_margin_top = 8
+		stylebox.content_margin_right = 8
+		stylebox.content_margin_bottom = 8
+	elif is_inventory:
+		stylebox.bg_color = Color(0.08, 0.09, 0.11, 0.96)
+		stylebox.border_color = Color(0.30, 0.33, 0.37, 1.0)
+		stylebox.content_margin_left = 18
+		stylebox.content_margin_top = 18
+		stylebox.content_margin_right = 18
+		stylebox.content_margin_bottom = 18
+	else:
+		stylebox.content_margin_left = 18
+		stylebox.content_margin_top = 18
+		stylebox.content_margin_right = 18
+		stylebox.content_margin_bottom = 18
 
-
-static func make_dialog_panel_style(config: Dictionary = {}) -> StyleBox:
-	var stylebox := make_panel_style(config)
-	if stylebox is StyleBoxTexture:
-		var texture_style := stylebox as StyleBoxTexture
-		texture_style.content_margin_left = 18
-		texture_style.content_margin_top = 18
-		texture_style.content_margin_right = 18
-		texture_style.content_margin_bottom = 18
 	return stylebox
 
 
@@ -229,5 +269,66 @@ static func _resolve_slot_style_keys(variant: String) -> Dictionary:
 	var lowered := variant.to_lower().strip_edges()
 	if lowered.begins_with("save_"):
 		var save_state := lowered.substr(5, lowered.length() - 5)
-		return {"texture_key": "save_%s_texture_path" % save_state}
-	return {"texture_key": "slot_%s_texture_path" % lowered}
+		var save_normal := "save_slot_empty"
+		var save_hover := "save_slot_filled"
+		var save_pressed := "save_slot_selected"
+		var save_disabled := "save_slot_empty"
+		match save_state:
+			"filled":
+				save_normal = "save_slot_filled"
+				save_hover = "save_slot_selected"
+				save_pressed = "save_slot_selected"
+			"selected":
+				save_normal = "save_slot_selected"
+				save_hover = "save_slot_selected"
+				save_pressed = "save_slot_selected"
+			_:
+				save_normal = "save_slot_empty"
+		return {
+			"normal": save_normal,
+			"hover": save_hover,
+			"pressed": save_pressed,
+			"disabled": save_disabled,
+		}
+
+	if lowered.begins_with("hotbar_"):
+		var hotbar_state := lowered.substr(7, lowered.length() - 7)
+		var hotbar_normal := "hotbar_slot_selected" if hotbar_state == "selected" else "hotbar_slot_empty"
+		var hotbar_hover := "hotbar_slot_selected"
+		var hotbar_pressed := "hotbar_slot_selected"
+		return {
+			"normal": hotbar_normal,
+			"hover": hotbar_hover,
+			"pressed": hotbar_pressed,
+			"disabled": hotbar_normal,
+		}
+
+	match lowered:
+		"hover":
+			return {
+				"normal": "item_slot_hover",
+				"hover": "item_slot_hover",
+				"pressed": "item_slot_selected",
+				"disabled": "item_slot_blocked",
+			}
+		"selected":
+			return {
+				"normal": "item_slot_selected",
+				"hover": "item_slot_selected",
+				"pressed": "item_slot_selected",
+				"disabled": "item_slot_blocked",
+			}
+		"blocked":
+			return {
+				"normal": "item_slot_blocked",
+				"hover": "item_slot_blocked",
+				"pressed": "item_slot_blocked",
+				"disabled": "item_slot_blocked",
+			}
+		_:
+			return {
+				"normal": "item_slot_normal",
+				"hover": "item_slot_hover",
+				"pressed": "item_slot_selected",
+				"disabled": "item_slot_blocked",
+			}
