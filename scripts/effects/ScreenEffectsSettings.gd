@@ -11,7 +11,6 @@ extends Node
 @export_range(0.0, 1.0, 0.01) var dash_mask_edge := 0.72
 @export_range(0.1, 20.0, 0.1) var dash_animation_speed := 7.0
 @export_range(0.02, 1.0, 0.01) var dash_effect_duration := 0.16
-@export var dash_noise_texture: Texture2D
 
 @export_category("Gaussian Glow")
 @export var glow_enabled := true
