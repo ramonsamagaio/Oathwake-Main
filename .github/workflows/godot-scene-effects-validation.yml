@@ -66,6 +66,26 @@ jobs:
             --quit-after 240 \
             --verbose 2>&1 | tee godot-import.log
 
+      - name: Isolate dynamic-image scene sources
+        shell: bash
+        run: |
+          set -o pipefail
+          declare -A scenes=(
+            [glow_overlay]="res://scenes/effects/GlowOverlay.tscn"
+            [content_editor]="res://tools/content_editor/ContentEditor.tscn"
+            [ui_playground]="res://scenes/ui/UIPlayground.tscn"
+            [slime]="res://scenes/enemies/Slime.tscn"
+          )
+          for key in glow_overlay content_editor ui_playground slime; do
+            xvfb-run -a ./godot \
+              --path . \
+              --rendering-method gl_compatibility \
+              --display-driver x11 \
+              --quit-after 45 \
+              "${scenes[$key]}" \
+              --verbose 2>&1 | tee "isolated-${key}.log"
+          done
+
       - name: Render and inspect scene effects
         shell: bash
         run: |
@@ -95,7 +115,7 @@ jobs:
           set -o pipefail
           if grep -E -i \
             'Shader compilation failed|Parameter "version" is null|Using .return. in the .(vertex|fragment). processor|Image width specified \(0 pixels\)|Invalid image: image is empty' \
-            godot-import.log scene-effects-validation.log game-scene-smoke-test.log; then
+            godot-import.log isolated-*.log scene-effects-validation.log game-scene-smoke-test.log; then
             echo "A known shader or empty-image regression was detected."
             exit 1
           fi
@@ -109,6 +129,7 @@ jobs:
             test_artifacts/scene_effects/*.png
             image-construction-sites.log
             godot-import.log
+            isolated-*.log
             scene-effects-validation.log
             game-scene-smoke-test.log
           if-no-files-found: warn
