@@ -27,6 +27,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Inventory dynamic image construction sites
+        shell: bash
+        run: |
+          grep -R -n -E \
+            --include='*.gd' \
+            'Image\.create|ImageTexture\.create_from_image|create_from_image' \
+            . | tee image-construction-sites.log || true
+
       - name: Install software rendering dependencies
         run: |
           sudo apt-get update
@@ -95,6 +103,7 @@ jobs:
           name: scene-effects-render-proof
           path: |
             test_artifacts/scene_effects/*.png
+            image-construction-sites.log
             godot-import.log
             scene-effects-validation.log
             game-scene-smoke-test.log
