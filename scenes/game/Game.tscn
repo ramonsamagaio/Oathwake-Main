@@ -31,6 +31,7 @@ y_sort_enabled = true
 [node name="Player" parent="RuntimeEntities" unique_id=117263621 instance=ExtResource("3_player_scene")]
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=53977041]
+layer = 10
 
 [node name="InventoryUI" parent="UI" unique_id=704599672 instance=ExtResource("4_inventory_ui")]
 

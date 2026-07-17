@@ -20,6 +20,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/WorkbenchUI.tscn" id="19_workbench_ui_scene"]
 [ext_resource type="PackedScene" path="res://scenes/ResourceBush.tscn" id="20_resource_bush_scene"]
 [ext_resource type="PackedScene" path="res://scenes/systems/MonsterSpawnZone.tscn" id="21_monster_spawn_zone_scene"]
+[ext_resource type="PackedScene" path="res://scenes/effects/MapFogOverlay.tscn" id="22_map_fog"]
 
 [node name="Main" type="Node2D" unique_id=1897114741]
 script = ExtResource("5_main_script")
@@ -29,6 +30,8 @@ script = ExtResource("5_main_script")
 [node name="World" type="Node2D" parent="." unique_id=170810274]
 y_sort_enabled = true
 script = ExtResource("2_world_script")
+
+[node name="MapFogOverlay" parent="World" instance=ExtResource("22_map_fog")]
 
 [node name="GroundLayer" type="TileMapLayer" parent="World" unique_id=1809937429]
 z_index = -10
@@ -126,6 +129,7 @@ position = Vector2(-64, 128)
 position = Vector2(0, 0)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=213906278]
+layer = 10
 
 [node name="WoodLabel" type="Label" parent="UI" unique_id=1524620416]
 offset_left = 16.0

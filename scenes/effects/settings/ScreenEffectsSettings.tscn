@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/effects/ScreenEffectsSettings.gd" id="1_settings_script"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_speed_lines"]
+seed = 9127
+noise_type = 1
+frequency = 0.025
+fractal_type = 1
+fractal_octaves = 3
+fractal_gain = 0.55
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_speed_lines"]
+width = 256
+height = 256
+seamless = true
+noise = SubResource("FastNoiseLite_speed_lines")
+
+[node name="ScreenEffectsSettings" type="Node"]
+script = ExtResource("1_settings_script")
+dash_lines_enabled = true
+dash_line_color = Color(0.72, 0.88, 1, 0.12)
+dash_line_count = 0.45
+dash_line_density = 0.18
+dash_line_falloff = 0.2
+dash_mask_size = 0.18
+dash_mask_edge = 0.72
+dash_animation_speed = 7.0
+dash_effect_duration = 0.16
+dash_noise_texture = SubResource("NoiseTexture2D_speed_lines")
+glow_enabled = true
+bloom_threshold = 0.82
+bloom_intensity = 0.38
+blur_iterations = 1
+blur_size = 0.0025
+blur_subdivisions = 8
+glow_mix_amount = 0.28

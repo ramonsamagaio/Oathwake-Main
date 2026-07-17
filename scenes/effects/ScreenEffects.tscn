@@ -1,0 +1,59 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/effects/ScreenEffects.gd" id="1_screen_effects_script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/settings/ScreenEffectsSettings.tscn" id="2_settings_scene"]
+[ext_resource type="Shader" path="res://shaders/gaussian_glow_screen.gdshader" id="3_glow_shader"]
+[ext_resource type="Shader" path="res://shaders/dash_speed_lines.gdshader" id="4_speed_lines_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_glow"]
+resource_local_to_scene = true
+shader = ExtResource("3_glow_shader")
+shader_parameter/enabled = true
+shader_parameter/bloom_threshold = 0.82
+shader_parameter/bloom_intensity = 0.38
+shader_parameter/blur_iterations = 1
+shader_parameter/blur_size = 0.0025
+shader_parameter/blur_subdivisions = 8
+shader_parameter/mix_amount = 0.28
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_speed_lines"]
+resource_local_to_scene = true
+shader = ExtResource("4_speed_lines_shader")
+shader_parameter/enabled = true
+shader_parameter/line_color = Color(0.72, 0.88, 1, 0.12)
+shader_parameter/line_count = 0.45
+shader_parameter/line_density = 0.18
+shader_parameter/line_falloff = 0.2
+shader_parameter/mask_size = 0.18
+shader_parameter/mask_edge = 0.72
+shader_parameter/animation_speed = 7.0
+
+[node name="ScreenEffects" type="CanvasLayer"]
+layer = 5
+script = ExtResource("1_screen_effects_script")
+
+[node name="Settings" parent="." instance=ExtResource("2_settings_scene")]
+
+[node name="BackBufferCopy" type="BackBufferCopy" parent="."]
+copy_mode = 2
+
+[node name="GaussianGlow" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_glow")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
+
+[node name="SpeedLines" type="ColorRect" parent="."]
+visible = false
+material = SubResource("ShaderMaterial_speed_lines")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)

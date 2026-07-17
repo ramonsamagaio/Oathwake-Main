@@ -1,5 +1,5 @@
 ; Map contract root. The older authored scene remains as visual-only content.
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/maps/MapRoot.gd" id="1_map_root"]
 [ext_resource type="PackedScene" path="res://scenes/maps/Start_Area.tscn" id="2_authored_visuals"]
@@ -8,11 +8,14 @@
 [ext_resource type="PackedScene" path="res://scenes/ResourceBush.tscn" id="5_bush"]
 [ext_resource type="PackedScene" path="res://scenes/systems/MonsterSpawnZone.tscn" id="6_spawn_zone"]
 [ext_resource type="PackedScene" path="res://scenes/npcs/NPC.tscn" id="7_npc"]
+[ext_resource type="PackedScene" path="res://scenes/effects/MapFogOverlay.tscn" id="8_map_fog"]
 
 [node name="StartArea" type="Node2D"]
 script = ExtResource("1_map_root")
 map_id = "start_area"
 display_name = "Start Area"
+
+[node name="MapFogOverlay" parent="." instance=ExtResource("8_map_fog")]
 
 [node name="GroundLayer" type="TileMapLayer" parent="."]
 z_index = -10
