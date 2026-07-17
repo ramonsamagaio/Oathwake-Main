@@ -8,13 +8,13 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_glow"]
 resource_local_to_scene = true
 shader = ExtResource("3_glow_shader")
-shader_parameter/enabled = false
-shader_parameter/bloom_threshold = 0.82
-shader_parameter/bloom_intensity = 0.38
+shader_parameter/enabled = true
+shader_parameter/bloom_threshold = 0.68
+shader_parameter/bloom_intensity = 0.78
 shader_parameter/blur_iterations = 1
-shader_parameter/blur_size = 0.0025
+shader_parameter/blur_size = 0.004
 shader_parameter/blur_subdivisions = 8
-shader_parameter/mix_amount = 0.28
+shader_parameter/mix_amount = 0.18
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_speed_lines"]
 resource_local_to_scene = true
@@ -38,7 +38,6 @@ script = ExtResource("1_screen_effects_script")
 copy_mode = 2
 
 [node name="GaussianGlow" type="ColorRect" parent="."]
-visible = false
 material = SubResource("ShaderMaterial_glow")
 anchors_preset = 15
 anchor_right = 1.0
