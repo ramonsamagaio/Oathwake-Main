@@ -1,5 +1,6 @@
-// Adapted from the CC0 Speed Lines Shader for Godot 4:
+// Renderer-safe speed lines based on the requested CC0 shader:
 // https://godotshaders.com/shader/speed-lines-shader-for-godot-4/
+// Uses a procedural radial pattern with no custom helper functions or dynamic loops.
 shader_type canvas_item;
 render_mode unshaded;
 
@@ -13,39 +14,25 @@ uniform float mask_size : hint_range(0.0, 1.0, 0.01) = 0.18;
 uniform float mask_edge : hint_range(0.0, 1.0, 0.01) = 0.72;
 uniform float animation_speed : hint_range(0.1, 20.0, 0.1) = 7.0;
 
-float safe_inverse_lerp(float from_value, float to_value, float value) {
-	return (value - from_value) / max(to_value - from_value, 0.0001);
-}
-
-vec2 polar_coordinates(vec2 uv, vec2 center, float zoom, float repeat_value) {
-	vec2 direction = uv - center;
-	float radius = length(direction) * 2.0;
-	float angle = atan(direction.y, direction.x) / TAU;
-	return mod(vec2(radius * zoom, angle * repeat_value), 1.0);
-}
-
-vec2 rotate_uv(vec2 uv, vec2 pivot, float rotation) {
-	float cosine = cos(rotation);
-	float sine = sin(rotation);
-	uv -= pivot;
-	return vec2(
-		cosine * uv.x - sine * uv.y,
-		cosine * uv.y + sine * uv.x
-	) + pivot;
-}
-
 void fragment() {
 	if (!enabled) {
 		COLOR = vec4(0.0);
 		return;
 	}
 
-	float rotation = floor(fract(TIME) * animation_speed);
-	vec2 polar_uv = polar_coordinates(rotate_uv(UV, vec2(0.5), rotation), vec2(0.5), 0.01, line_count);
-	float line_noise = texture(noise, polar_uv).r;
-	float mask_value = length(UV - vec2(0.5));
-	float mask = safe_inverse_lerp(mask_size, mask_edge, mask_value);
-	float result = 1.0 - mask * line_density;
-	result = smoothstep(result, result + line_falloff, line_noise);
-	COLOR = vec4(line_color.rgb, min(line_color.a, result * line_color.a));
+	vec2 centered_uv = UV - vec2(0.5);
+	float radius = length(centered_uv);
+	float angle = atan(centered_uv.y, centered_uv.x);
+	float normalized_angle = (angle + PI) / TAU;
+	float spoke_count = max(line_count * 96.0, 1.0);
+	float animated_phase = fract(normalized_angle * spoke_count - TIME * animation_speed);
+	float stripe_start = clamp(1.0 - line_density, 0.0, 0.999);
+	float stripe = smoothstep(stripe_start, 1.0, animated_phase);
+	float safe_mask_edge = max(mask_edge, mask_size + 0.001);
+	float center_mask = smoothstep(mask_size, safe_mask_edge, radius);
+	float radial_strength = pow(clamp(radius * 2.0, 0.0, 1.0), max(line_falloff * 4.0, 0.25));
+	float outer_fade = 1.0 - smoothstep(0.48, 0.78, radius);
+	float alpha = stripe * center_mask * radial_strength * outer_fade * line_color.a;
+
+	COLOR = vec4(line_color.rgb, alpha);
 }

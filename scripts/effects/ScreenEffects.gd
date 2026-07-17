@@ -16,9 +16,8 @@ func _ready() -> void:
 		speed_lines.modulate.a = 0.0
 
 
-func _process(_delta: float) -> void:
-	if Engine.is_editor_hint():
-		_sync_settings()
+func refresh_from_settings() -> void:
+	_sync_settings()
 
 
 func play_dash_lines(custom_duration := -1.0) -> void:
@@ -63,7 +62,7 @@ func _sync_speed_lines_material() -> void:
 	if speed_lines == null:
 		return
 	var shader_material := speed_lines.material as ShaderMaterial
-	if shader_material == null:
+	if shader_material == null or shader_material.shader == null:
 		return
 	shader_material.set_shader_parameter("enabled", bool(settings.get("dash_lines_enabled")))
 	shader_material.set_shader_parameter("noise", settings.get("dash_noise_texture"))
@@ -81,7 +80,7 @@ func _sync_glow_material() -> void:
 		return
 	gaussian_glow.visible = bool(settings.get("glow_enabled"))
 	var shader_material := gaussian_glow.material as ShaderMaterial
-	if shader_material == null:
+	if shader_material == null or shader_material.shader == null:
 		return
 	shader_material.set_shader_parameter("enabled", bool(settings.get("glow_enabled")))
 	shader_material.set_shader_parameter("bloom_threshold", float(settings.get("bloom_threshold")))

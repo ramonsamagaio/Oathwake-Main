@@ -30,9 +30,8 @@ func _ready() -> void:
 	_apply_settings()
 
 
-func _process(_delta: float) -> void:
-	if Engine.is_editor_hint():
-		_apply_settings()
+func refresh_from_settings() -> void:
+	_apply_settings()
 
 
 func _apply_settings() -> void:
@@ -41,7 +40,7 @@ func _apply_settings() -> void:
 		return
 	fog_rect.color = fog_color
 	var shader_material := fog_rect.material as ShaderMaterial
-	if shader_material == null:
+	if shader_material == null or shader_material.shader == null:
 		return
 	shader_material.set_shader_parameter("enabled", effect_enabled)
 	shader_material.set_shader_parameter("density", density)
