@@ -6,8 +6,8 @@ render_mode unshaded;
 
 uniform bool enabled = true;
 uniform vec4 outline_color : source_color = vec4(0.08, 0.06, 0.04, 0.95);
-uniform lowp float outline_size : hint_range(0.0, 0.2, 0.001) = 0.018;
-uniform lowp float alpha_threshold : hint_range(0.0, 1.0, 0.05) = 0.5;
+uniform float outline_size : hint_range(0.0, 0.2, 0.001) = 0.018;
+uniform float alpha_threshold : hint_range(0.0, 1.0, 0.05) = 0.5;
 uniform int samples : hint_range(4, 32, 1) = 12;
 
 void fragment() {
