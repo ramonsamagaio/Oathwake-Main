@@ -88,6 +88,12 @@ func refresh() -> void:
 	_set_value("Attack Cooldown", "%.2fs (Total: %.2fs)" % [
 		float(derived.get("attack_cooldown", 0.0)), float(total_derived.get("attack_cooldown", 0.0)),
 	])
+	_set_value("Attack Speed", "%.2f/s (Total: %.2f/s)" % [
+		float(derived.get("attack_speed", 0.0)), float(total_derived.get("attack_speed", 0.0)),
+	])
+	_set_value("Invulnerability", "%.2fs (Total: %.2fs)" % [
+		float(derived.get("invulnerability_duration", 0.0)), float(total_derived.get("invulnerability_duration", 0.0)),
+	])
 
 	for stat_name in ["str", "dex", "agi", "vit", "wis", "int", "luk"]:
 		var base_val := int(base_stats.get(stat_name, 0))
@@ -103,9 +109,9 @@ func _build_ui() -> void:
 	panel.anchor_right = 0.5
 	panel.anchor_bottom = 0.5
 	panel.offset_left = -280.0
-	panel.offset_top = -250.0
+	panel.offset_top = -280.0
 	panel.offset_right = 280.0
-	panel.offset_bottom = 250.0
+	panel.offset_bottom = 280.0
 	add_child(panel)
 
 	var margin := MarginContainer.new()
@@ -135,7 +141,7 @@ func _build_ui() -> void:
 	header.add_child(close_button)
 
 	_add_separator(layout)
-	for field in ["Name", "Level", "XP", "HP", "Tool", "Damage Range", "Crit Chance", "Crit Damage", "Hit", "Flee", "Defense", "Magic Defense", "Max HP Derived", "Physical Attack", "Attack Cooldown"]:
+	for field in ["Name", "Level", "XP", "HP", "Tool", "Damage Range", "Crit Chance", "Crit Damage", "Hit", "Flee", "Defense", "Magic Defense", "Max HP Derived", "Physical Attack", "Attack Cooldown", "Attack Speed", "Invulnerability"]:
 		_add_row(layout, field)
 
 	_add_separator(layout)
@@ -193,7 +199,6 @@ func _add_separator(parent: Node) -> void:
 func _set_value(field_name: String, value: String) -> void:
 	if not value_labels.has(field_name):
 		return
-
 	var label: Label = value_labels[field_name]
 	label.text = value
 
@@ -201,14 +206,12 @@ func _set_value(field_name: String, value: String) -> void:
 func _get_player_combat_data() -> Dictionary:
 	if player != null and player.has_method("get_combat_data"):
 		return player.get_combat_data()
-
 	return {}
 
 
 func _get_held_item_data() -> Dictionary:
 	if player != null and player.has_method("get_current_held_item_data"):
 		return player.get_current_held_item_data()
-
 	return {}
 
 
@@ -230,7 +233,6 @@ func _get_dictionary(data: Dictionary, key: String) -> Dictionary:
 	var value = data.get(key, {})
 	if value is Dictionary:
 		return value
-
 	return {}
 
 
