@@ -1,10 +1,9 @@
 // Renderer-safe screen glow based on the requested CC0 Gaussian Glow shader:
 // https://godotshaders.com/shader/gaussian-glow/
-// Uses fixed taps instead of dynamic nested loops.
 shader_type canvas_item;
 render_mode unshaded;
 
-uniform bool enabled = true;
+uniform bool enabled = false;
 uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_linear;
 uniform float bloom_threshold : hint_range(0.0, 2.0, 0.01) = 0.82;
 uniform float bloom_intensity : hint_range(0.0, 5.0, 0.01) = 0.38;
@@ -18,29 +17,28 @@ vec3 oathwake_bright_pass(vec3 color_value) {
 }
 
 void fragment() {
-	vec4 base = texture(screen_texture, SCREEN_UV);
-	if (!enabled || mix_amount <= 0.0 || bloom_intensity <= 0.0) {
-		COLOR = base;
-		return;
+	vec4 base_color = texture(screen_texture, SCREEN_UV);
+	vec4 output_color = base_color;
+	if (enabled && mix_amount > 0.0 && bloom_intensity > 0.0) {
+		float iteration_scale = 0.75 + float(blur_iterations) * 0.25;
+		float subdivision_scale = 0.75 + float(blur_subdivisions) / 32.0;
+		vec2 sample_offset = SCREEN_PIXEL_SIZE * max(blur_size * 900.0 * iteration_scale, 0.5);
+		vec2 diagonal_offset = sample_offset * 0.70710678;
+
+		vec3 glow_color = oathwake_bright_pass(base_color.rgb);
+		glow_color += oathwake_bright_pass(texture(screen_texture, SCREEN_UV + vec2(sample_offset.x, 0.0)).rgb);
+		glow_color += oathwake_bright_pass(texture(screen_texture, SCREEN_UV - vec2(sample_offset.x, 0.0)).rgb);
+		glow_color += oathwake_bright_pass(texture(screen_texture, SCREEN_UV + vec2(0.0, sample_offset.y)).rgb);
+		glow_color += oathwake_bright_pass(texture(screen_texture, SCREEN_UV - vec2(0.0, sample_offset.y)).rgb);
+		glow_color += oathwake_bright_pass(texture(screen_texture, SCREEN_UV + diagonal_offset).rgb);
+		glow_color += oathwake_bright_pass(texture(screen_texture, SCREEN_UV - diagonal_offset).rgb);
+		glow_color += oathwake_bright_pass(texture(screen_texture, SCREEN_UV + vec2(diagonal_offset.x, -diagonal_offset.y)).rgb);
+		glow_color += oathwake_bright_pass(texture(screen_texture, SCREEN_UV + vec2(-diagonal_offset.x, diagonal_offset.y)).rgb);
+		glow_color = glow_color / 9.0 * subdivision_scale;
+
+		vec3 clamped_glow = clamp(glow_color, vec3(0.0), vec3(1.0));
+		vec3 combined_color = vec3(1.0) - (vec3(1.0) - base_color.rgb) * (vec3(1.0) - clamped_glow);
+		output_color = vec4(mix(base_color.rgb, combined_color, mix_amount), base_color.a);
 	}
-
-	float iteration_scale = 0.75 + float(blur_iterations) * 0.25;
-	float subdivision_scale = 0.75 + float(blur_subdivisions) / 32.0;
-	vec2 sample_offset = SCREEN_PIXEL_SIZE * max(blur_size * 900.0 * iteration_scale, 0.5);
-	vec2 diagonal_offset = sample_offset * 0.70710678;
-
-	vec3 glow = oathwake_bright_pass(base.rgb);
-	glow += oathwake_bright_pass(texture(screen_texture, SCREEN_UV + vec2(sample_offset.x, 0.0)).rgb);
-	glow += oathwake_bright_pass(texture(screen_texture, SCREEN_UV - vec2(sample_offset.x, 0.0)).rgb);
-	glow += oathwake_bright_pass(texture(screen_texture, SCREEN_UV + vec2(0.0, sample_offset.y)).rgb);
-	glow += oathwake_bright_pass(texture(screen_texture, SCREEN_UV - vec2(0.0, sample_offset.y)).rgb);
-	glow += oathwake_bright_pass(texture(screen_texture, SCREEN_UV + diagonal_offset).rgb);
-	glow += oathwake_bright_pass(texture(screen_texture, SCREEN_UV - diagonal_offset).rgb);
-	glow += oathwake_bright_pass(texture(screen_texture, SCREEN_UV + vec2(diagonal_offset.x, -diagonal_offset.y)).rgb);
-	glow += oathwake_bright_pass(texture(screen_texture, SCREEN_UV + vec2(-diagonal_offset.x, diagonal_offset.y)).rgb);
-	glow = glow / 9.0 * subdivision_scale;
-
-	vec3 clamped_glow = clamp(glow, vec3(0.0), vec3(1.0));
-	vec3 combined = vec3(1.0) - (vec3(1.0) - base.rgb) * (vec3(1.0) - clamped_glow);
-	COLOR = vec4(mix(base.rgb, combined, mix_amount), base.a);
+	COLOR = output_color;
 }

@@ -2,7 +2,7 @@
 extends Node
 
 @export_category("Dash Speed Lines")
-@export var dash_lines_enabled := true
+@export var dash_lines_enabled := false
 @export var dash_line_color := Color(0.72, 0.88, 1.0, 0.12)
 @export_range(0.05, 2.0, 0.05) var dash_line_count := 0.45
 @export_range(0.0, 1.0, 0.01) var dash_line_density := 0.18

@@ -18,7 +18,7 @@ noise = SubResource("FastNoiseLite_speed_lines")
 
 [node name="ScreenEffectsSettings" type="Node"]
 script = ExtResource("1_settings_script")
-dash_lines_enabled = true
+dash_lines_enabled = false
 dash_line_color = Color(0.72, 0.88, 1, 0.12)
 dash_line_count = 0.45
 dash_line_density = 0.18
