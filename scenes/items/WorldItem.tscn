@@ -12,21 +12,31 @@ resource_local_to_scene = true
 shader = ExtResource("2_outline_shader")
 shader_parameter/enabled = true
 shader_parameter/outline_color = Color(0.08, 0.06, 0.04, 0.95)
-shader_parameter/outline_size = 0.018
+shader_parameter/outline_size = 0.025
 shader_parameter/alpha_threshold = 0.5
 shader_parameter/samples = 12
 
 [node name="WorldItem" type="Area2D"]
+z_index = 1
 script = ExtResource("1_world_item_script")
 
 [node name="OutlineSettings" parent="." instance=ExtResource("3_outline_settings")]
 
+[node name="GroundShadow" type="Polygon2D" parent="."]
+z_index = 0
+position = Vector2(0, 9)
+color = Color(0, 0, 0, 0.32)
+polygon = PackedVector2Array(-8, 0, -6, -2, -2, -3, 2, -3, 6, -2, 8, 0, 6, 2, 2, 3, -2, 3, -6, 2)
+
 [node name="OutlineSprite" type="Sprite2D" parent="."]
+z_index = 1
 material = SubResource("ShaderMaterial_outline")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+z_index = 2
 
 [node name="AmountLabel" type="Label" parent="."]
+z_index = 3
 offset_left = -16.0
 offset_top = 4.0
 offset_right = 16.0
