@@ -1,16 +1,13 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://scripts/resources/ResourceNodeEnhanced.gd" id="1_resource_script"]
-[ext_resource type="Shader" path="res://shaders/tree_wind.gdshader" id="2_tree_wind_shader"]
+[ext_resource type="Script" path="res://scripts/resources/ResourceNodeShaderSuite.gd" id="1_resource_script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/settings/FoliageWindSettings.tscn" id="2_foliage_settings"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
 radius = 56.0
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_trunk_collision"]
 size = Vector2(22, 20)
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_tree_wind"]
-shader = ExtResource("2_tree_wind_shader")
 
 [node name="Tree" type="Area2D"]
 script = ExtResource("1_resource_script")
@@ -20,8 +17,9 @@ collect_amount = 1
 max_health = 30
 respawn_time_seconds = 60.0
 
+[node name="FoliageWindSettings" parent="." instance=ExtResource("2_foliage_settings")]
+
 [node name="Crown" type="Polygon2D" parent="."]
-material = SubResource("ShaderMaterial_tree_wind")
 color = Color(0.12, 0.42, 0.18, 1)
 polygon = PackedVector2Array(0, -38, 25, -20, 28, 8, 9, 28, -18, 24, -32, 2, -24, -25)
 
