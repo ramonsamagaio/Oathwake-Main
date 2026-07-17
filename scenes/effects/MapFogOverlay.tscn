@@ -24,6 +24,7 @@ shader_parameter/enabled = false
 shader_parameter/noise_texture = SubResource("NoiseTexture2D_fog")
 shader_parameter/density = 0.1
 shader_parameter/speed = Vector2(0.008, 0.004)
+shader_parameter/fog_color = Color(0.62, 0.68, 0.72, 0.28)
 
 [node name="MapFogOverlay" type="CanvasLayer"]
 visible = false
