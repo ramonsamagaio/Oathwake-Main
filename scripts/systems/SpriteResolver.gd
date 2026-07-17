@@ -1,6 +1,6 @@
 extends RefCounted
 
-var placeholder_texture: Texture2D
+const PLACEHOLDER_TEXTURE: Texture2D = preload("res://assets/generated/sprite_placeholder.svg")
 
 
 func get_texture_for_sprite(sprite_id: String) -> Texture2D:
@@ -74,25 +74,7 @@ func get_texture_for_tileset(tileset_id: String) -> Texture2D:
 
 
 func get_placeholder_texture() -> Texture2D:
-	if _is_usable_texture(placeholder_texture):
-		return placeholder_texture
-
-	var image := Image.create(16, 16, false, Image.FORMAT_RGBA8)
-	if image == null or image.is_empty():
-		push_error("SpriteResolver: failed to create the 16x16 placeholder image.")
-		return null
-
-	image.fill(Color(0.16, 0.15, 0.18, 1.0))
-	for y in range(16):
-		for x in range(16):
-			if x == y or x == 15 - y:
-				image.set_pixel(x, y, Color(0.55, 0.52, 0.62, 1.0))
-
-	placeholder_texture = ImageTexture.create_from_image(image)
-	if not _is_usable_texture(placeholder_texture):
-		push_error("SpriteResolver: placeholder texture creation returned an invalid texture.")
-		placeholder_texture = null
-	return placeholder_texture
+	return PLACEHOLDER_TEXTURE if _is_usable_texture(PLACEHOLDER_TEXTURE) else null
 
 
 func _is_usable_texture(texture: Texture2D) -> bool:
