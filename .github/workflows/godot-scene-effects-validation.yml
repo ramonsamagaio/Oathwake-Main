@@ -1,0 +1,101 @@
+name: Godot Scene Effects Validation
+
+on:
+  push:
+    branches:
+      - fix/stable-fog-outline-glow
+  pull_request:
+    paths:
+      - "scenes/effects/**"
+      - "scenes/items/WorldItem.tscn"
+      - "scripts/effects/**"
+      - "scripts/items/WorldItemShaderSuite.gd"
+      - "scripts/test/SceneEffectsRenderValidator.gd"
+      - "shaders/**"
+      - ".github/workflows/godot-scene-effects-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install software rendering dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb unzip libgl1-mesa-dri libglx-mesa0 mesa-utils
+
+      - name: Download official Godot 4.6.3
+        run: |
+          curl --fail --location --retry 4 --retry-delay 3 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+          ./godot --version
+
+      - name: Import project and compile resources
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a ./godot \
+            --editor \
+            --path . \
+            --rendering-method gl_compatibility \
+            --display-driver x11 \
+            --quit-after 240 \
+            --verbose 2>&1 | tee godot-import.log
+
+      - name: Render and inspect scene effects
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a ./godot \
+            --path . \
+            --rendering-method gl_compatibility \
+            --display-driver x11 \
+            --script res://scripts/test/SceneEffectsRenderValidator.gd \
+            --verbose 2>&1 | tee scene-effects-validation.log
+
+      - name: Open the real game scene briefly
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a ./godot \
+            --path . \
+            --rendering-method gl_compatibility \
+            --display-driver x11 \
+            --quit-after 180 \
+            res://scenes/game/Game.tscn \
+            --verbose 2>&1 | tee game-scene-smoke-test.log
+
+      - name: Reject renderer and empty-image regressions
+        shell: bash
+        run: |
+          set -o pipefail
+          if grep -E -i \
+            'Shader compilation failed|Parameter "version" is null|Using .return. in the .(vertex|fragment). processor|Image width specified \(0 pixels\)|Invalid image: image is empty' \
+            godot-import.log scene-effects-validation.log game-scene-smoke-test.log; then
+            echo "A known shader or empty-image regression was detected."
+            exit 1
+          fi
+
+      - name: Upload rendered proof and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scene-effects-render-proof
+          path: |
+            test_artifacts/scene_effects/*.png
+            godot-import.log
+            scene-effects-validation.log
+            game-scene-smoke-test.log
+          if-no-files-found: warn
