@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3]
 
-[ext_resource type="Script" path="res://scripts/ResourceNode.gd" id="1_resource_script"]
+[ext_resource type="Script" path="res://scripts/resources/ResourceNodeEnhanced.gd" id="1_resource_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
 radius = 48.0
@@ -23,12 +23,3 @@ polygon = PackedVector2Array(-20, 5, -12, -18, 10, -22, 24, -6, 18, 16, -6, 23)
 [node name="Highlight" type="Polygon2D" parent="."]
 color = Color(0.58, 0.58, 0.62, 1)
 polygon = PackedVector2Array(-9, -12, 7, -16, 15, -7, -2, -4)
-
-[node name="InteractionShape" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_interaction")
-
-[node name="StaticBody2D" type="StaticBody2D" parent="."]
-position = Vector2(0, 2)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
-shape = SubResource("RectangleShape2D_rock_collision")
