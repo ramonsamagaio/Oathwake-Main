@@ -1,5 +1,5 @@
 ## Data-driven visual fallback used when a monster has no custom scene_path.
-extends "res://scripts/enemies/EnemyBase.gd"
+extends "res://scripts/enemies/EnemyBaseEnhanced.gd"
 
 const AnimationSetLoaderScript := preload("res://scripts/systems/AnimationSetLoader.gd")
 
@@ -20,7 +20,6 @@ func _apply_content_visual() -> void:
 		if not frames.get_animation_names().is_empty():
 			animated_sprite.sprite_frames = frames
 			return
-
 	var sprite_id := str(monster_data.get("sprite_id", ""))
 	if sprite_id.is_empty():
 		return
