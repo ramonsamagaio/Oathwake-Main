@@ -11,6 +11,9 @@ enum ActionState {
 @export var dash_speed: float = 430.0
 @export var dash_duration: float = 0.14
 @export var dash_cooldown: float = 0.34
+@export_range(0.01, 0.20, 0.005) var dash_smoke_interval: float = 0.035
+@export_range(0, 8, 1) var dash_smoke_start_count: int = 2
+@export_range(0, 8, 1) var dash_smoke_end_count: int = 2
 @export var attack_buffer_window: float = 0.32
 @export var invulnerability_blink_interval: float = 0.09
 
@@ -26,6 +29,7 @@ var dash_cooldown_left := 0.0
 var dash_time_left := 0.0
 var dash_direction := Vector2.DOWN
 var dash_glint_timer := 0.0
+var dash_smoke_timer := 0.0
 var dash_buffered := false
 var invulnerability_time_left := 0.0
 var invulnerability_blink_left := 0.0
@@ -41,6 +45,9 @@ func _load_player_tuning() -> void:
 	dash_speed = float(tuning.get("dash_speed", dash_speed))
 	dash_duration = float(tuning.get("dash_duration", dash_duration))
 	dash_cooldown = float(tuning.get("dash_cooldown", dash_cooldown))
+	dash_smoke_interval = maxf(float(tuning.get("dash_smoke_interval", dash_smoke_interval)), 0.01)
+	dash_smoke_start_count = maxi(int(tuning.get("dash_smoke_start_count", dash_smoke_start_count)), 0)
+	dash_smoke_end_count = maxi(int(tuning.get("dash_smoke_end_count", dash_smoke_end_count)), 0)
 	attack_buffer_window = float(tuning.get("attack_buffer_window", attack_buffer_window))
 	invulnerability_blink_interval = float(tuning.get("invulnerability_blink_interval", invulnerability_blink_interval))
 
@@ -228,8 +235,9 @@ func _start_dash(direction: Vector2) -> void:
 	dash_time_left = dash_duration
 	dash_cooldown_left = dash_cooldown
 	dash_glint_timer = 0.0
+	dash_smoke_timer = maxf(dash_smoke_interval, 0.01)
 	velocity = dash_direction * dash_speed
-	_spawn_smoke_puff()
+	_spawn_dash_smoke_burst(dash_smoke_start_count)
 	_spawn_dash_glint()
 	var sfx_manager := get_node_or_null("/root/SFXManager")
 	if sfx_manager != null and sfx_manager.has_method("play_profile"):
@@ -239,18 +247,27 @@ func _start_dash(direction: Vector2) -> void:
 func _update_dash(delta: float) -> void:
 	dash_time_left = maxf(dash_time_left - delta, 0.0)
 	dash_glint_timer -= delta
+	dash_smoke_timer -= delta
 	velocity = dash_direction * dash_speed
 	move_and_slide()
 	if dash_glint_timer <= 0.0:
 		dash_glint_timer = 0.045
 		_spawn_dash_glint()
+	if dash_time_left > 0.0 and dash_smoke_timer <= 0.0:
+		dash_smoke_timer = maxf(dash_smoke_interval, 0.01)
+		_spawn_smoke_puff()
 	if dash_time_left > 0.0:
 		return
 	action_state = ActionState.FREE
 	velocity = dash_direction * minf(run_speed, dash_speed * 0.20)
-	_spawn_smoke_puff()
+	_spawn_dash_smoke_burst(dash_smoke_end_count)
 	if attack_buffer_left > 0.0 and attack_cooldown_left <= 0.0:
 		_start_attack_cycle()
+
+
+func _spawn_dash_smoke_burst(puff_count: int) -> void:
+	for _index in range(maxi(puff_count, 0)):
+		_spawn_smoke_puff()
 
 
 func _get_dash_input_direction() -> Vector2:
