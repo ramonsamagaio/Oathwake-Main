@@ -31,6 +31,19 @@ func calculate_derived_stats(actor_data: Dictionary, held_item_data: Dictionary 
 	var scaling_bonus := _calculate_scaling_bonus(base_stats, _get_dictionary(combat, "stat_scaling"))
 	var base_attack_cooldown := float(base_combat.get("attack_cooldown", actor_data.get("attack_cooldown", 1.0)))
 	var cooldown_modifier: float = max(float(combat.get("attack_cooldown_modifier", 1.0)), 0.01)
+	var attack_speed_bonus := float(base_combat.get("attack_speed_bonus", 0.0))
+	attack_speed_bonus += float(actor_data.get("attack_speed_bonus", 0.0))
+	attack_speed_bonus += float(held_item_data.get("attack_speed_bonus", 0.0))
+	attack_speed_bonus += float(combat.get("attack_speed_bonus", 0.0))
+	var attack_speed_divisor := maxf(1.0 + (agi * 0.01) + attack_speed_bonus, 0.05)
+	var attack_cooldown := maxf((base_attack_cooldown * cooldown_modifier) / attack_speed_divisor, 0.06)
+
+	var invulnerability_duration := float(base_combat.get("base_invulnerability_duration", actor_data.get("invulnerability_duration", 2.0)))
+	invulnerability_duration += float(base_combat.get("invulnerability_duration_bonus", 0.0))
+	invulnerability_duration += float(actor_data.get("invulnerability_duration_bonus", 0.0))
+	invulnerability_duration += float(held_item_data.get("invulnerability_duration_bonus", 0.0))
+	invulnerability_duration += float(combat.get("invulnerability_duration_bonus", 0.0))
+	invulnerability_duration = maxf(invulnerability_duration, 0.0)
 
 	return {
 		"max_hp": base_max_hp + (vit * 10.0) + (level * 5.0),
@@ -41,7 +54,9 @@ func calculate_derived_stats(actor_data: Dictionary, held_item_data: Dictionary 
 		"flee": float(base_combat.get("base_flee", 5.0)) + (agi * 1.1) + (luk * 0.2) + (level * 0.3),
 		"crit_chance": float(base_combat.get("base_crit_chance", 0.03)) + (luk * 0.0025) + float(combat.get("crit_chance_bonus", 0.0)),
 		"crit_damage": float(base_combat.get("base_crit_damage", 1.5)) + (luk * 0.003) + float(combat.get("crit_damage_bonus", 0.0)),
-		"attack_cooldown": max((base_attack_cooldown * cooldown_modifier) / (1.0 + (agi * 0.01)), 0.25),
+		"attack_cooldown": attack_cooldown,
+		"attack_speed": 1.0 / attack_cooldown,
+		"invulnerability_duration": invulnerability_duration,
 	}
 
 

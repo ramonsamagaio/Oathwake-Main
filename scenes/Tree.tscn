@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://scripts/ResourceNode.gd" id="1_resource_script"]
+[ext_resource type="Script" path="res://scripts/resources/ResourceNodeEnhanced.gd" id="1_resource_script"]
 [ext_resource type="Shader" path="res://shaders/tree_wind.gdshader" id="2_tree_wind_shader"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]

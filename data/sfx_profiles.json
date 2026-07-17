@@ -1,0 +1,92 @@
+{
+	"critical_hit": {
+		"display_name": "Critical Hit Accent",
+		"stream_paths": [],
+		"volume_db": 0.0,
+		"pitch_min": 0.98,
+		"pitch_max": 1.02,
+		"max_distance": 720.0,
+		"bus": "Master"
+	},
+	"hit_enemy": {
+		"display_name": "Generic Enemy Hit",
+		"stream_paths": [],
+		"volume_db": -1.0,
+		"pitch_min": 0.94,
+		"pitch_max": 1.06,
+		"max_distance": 640.0,
+		"bus": "Master"
+	},
+	"hit_resource": {
+		"display_name": "Generic Resource Hit",
+		"stream_paths": [],
+		"volume_db": -2.0,
+		"pitch_min": 0.94,
+		"pitch_max": 1.06,
+		"max_distance": 640.0,
+		"bus": "Master"
+	},
+	"hit_skeleton": {
+		"display_name": "Skeleton Hit",
+		"stream_paths": [],
+		"volume_db": -1.0,
+		"pitch_min": 0.94,
+		"pitch_max": 1.06,
+		"max_distance": 640.0,
+		"bus": "Master"
+	},
+	"hit_slime": {
+		"display_name": "Slime Hit",
+		"stream_paths": [],
+		"volume_db": -1.0,
+		"pitch_min": 0.94,
+		"pitch_max": 1.06,
+		"max_distance": 640.0,
+		"bus": "Master"
+	},
+	"hit_stone": {
+		"display_name": "Stone Hit",
+		"stream_paths": [],
+		"volume_db": -1.0,
+		"pitch_min": 0.94,
+		"pitch_max": 1.06,
+		"max_distance": 640.0,
+		"bus": "Master"
+	},
+	"hit_wood": {
+		"display_name": "Wood Hit",
+		"stream_paths": [],
+		"volume_db": -1.0,
+		"pitch_min": 0.94,
+		"pitch_max": 1.06,
+		"max_distance": 640.0,
+		"bus": "Master"
+	},
+	"player_attack_swing": {
+		"display_name": "Player Attack Swing",
+		"stream_paths": [],
+		"volume_db": -2.0,
+		"pitch_min": 0.96,
+		"pitch_max": 1.05,
+		"max_distance": 640.0,
+		"bus": "Master"
+	},
+	"player_dash": {
+		"display_name": "Player Dash",
+		"stream_paths": [],
+		"volume_db": -2.0,
+		"pitch_min": 0.98,
+		"pitch_max": 1.03,
+		"max_distance": 640.0,
+		"bus": "Master"
+	},
+	"player_hit": {
+		"display_name": "Player Takes Damage",
+		"stream_paths": [],
+		"volume_db": 0.0,
+		"pitch_min": 0.97,
+		"pitch_max": 1.03,
+		"max_distance": 640.0,
+		"bus": "Master"
+	}
+}

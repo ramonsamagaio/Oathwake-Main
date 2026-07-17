@@ -6,7 +6,6 @@ const DEFAULT_STATS := {
 }
 
 
-
 func get_base_player_data(player) -> Dictionary:
 	if player == null:
 		return {"base_stats": {}}
@@ -24,6 +23,8 @@ func get_equipment_bonus(equipment_system) -> Dictionary:
 		"flee_bonus": 0,
 		"crit_chance_bonus": 0.0,
 		"crit_damage_bonus": 0.0,
+		"attack_speed_bonus": 0.0,
+		"invulnerability_duration_bonus": 0.0,
 	}
 	if equipment_system == null or not equipment_system.has_method("get_equipment_slots"):
 		return bonus
@@ -59,11 +60,15 @@ func get_equipment_bonus(equipment_system) -> Dictionary:
 		bonus["flee_bonus"] = bonus["flee_bonus"] + int(item_data.get("flee_bonus", 0))
 		bonus["crit_chance_bonus"] = bonus["crit_chance_bonus"] + float(item_data.get("crit_chance_bonus", 0.0))
 		bonus["crit_damage_bonus"] = bonus["crit_damage_bonus"] + float(item_data.get("crit_damage_bonus", 0.0))
+		bonus["attack_speed_bonus"] = bonus["attack_speed_bonus"] + float(item_data.get("attack_speed_bonus", 0.0))
+		bonus["invulnerability_duration_bonus"] = bonus["invulnerability_duration_bonus"] + float(item_data.get("invulnerability_duration_bonus", 0.0))
 
 		var item_combat: Dictionary = item_data.get("combat", {})
 		if item_combat is Dictionary:
 			bonus["crit_chance_bonus"] = bonus["crit_chance_bonus"] + float(item_combat.get("crit_chance_bonus", 0.0))
 			bonus["crit_damage_bonus"] = bonus["crit_damage_bonus"] + float(item_combat.get("crit_damage_bonus", 0.0))
+			bonus["attack_speed_bonus"] = bonus["attack_speed_bonus"] + float(item_combat.get("attack_speed_bonus", 0.0))
+			bonus["invulnerability_duration_bonus"] = bonus["invulnerability_duration_bonus"] + float(item_combat.get("invulnerability_duration_bonus", 0.0))
 
 	return bonus
 
@@ -89,6 +94,8 @@ func get_total_player_data(player, equipment_system) -> Dictionary:
 	var add_flee: int = equip_bonus.get("flee_bonus", 0)
 	var add_crit_chance: float = equip_bonus.get("crit_chance_bonus", 0.0)
 	var add_crit_damage: float = equip_bonus.get("crit_damage_bonus", 0.0)
+	var add_attack_speed: float = equip_bonus.get("attack_speed_bonus", 0.0)
+	var add_invulnerability: float = equip_bonus.get("invulnerability_duration_bonus", 0.0)
 
 	if add_defense != 0:
 		merged_combat["base_defense"] = float(merged_combat.get("base_defense", 0.0)) + add_defense
@@ -102,6 +109,10 @@ func get_total_player_data(player, equipment_system) -> Dictionary:
 		merged_combat["base_crit_chance"] = float(merged_combat.get("base_crit_chance", 0.03)) + add_crit_chance
 	if add_crit_damage != 0.0:
 		merged_combat["base_crit_damage"] = float(merged_combat.get("base_crit_damage", 1.5)) + add_crit_damage
+	if add_attack_speed != 0.0:
+		merged_combat["attack_speed_bonus"] = float(merged_combat.get("attack_speed_bonus", 0.0)) + add_attack_speed
+	if add_invulnerability != 0.0:
+		merged_combat["invulnerability_duration_bonus"] = float(merged_combat.get("invulnerability_duration_bonus", 0.0)) + add_invulnerability
 	result["base_combat"] = merged_combat
 
 	var max_hp_bonus: int = equip_bonus.get("max_hp_bonus", 0)
@@ -117,7 +128,6 @@ func get_equipped_weapon_data(equipment_system) -> Dictionary:
 
 func get_equipped_tool_data(equipment_system) -> Dictionary:
 	return _get_equipped_item_data(equipment_system, "tool")
-
 
 
 func _get_equipped_item_data(equipment_system, slot_id: String) -> Dictionary:

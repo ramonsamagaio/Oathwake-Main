@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://scripts/items/WorldItem.gd" id="1_world_item_script"]
+[ext_resource type="Script" path="res://scripts/items/WorldItemEnhanced.gd" id="1_world_item_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pickup"]
 radius = 12.0
