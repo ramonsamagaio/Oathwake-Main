@@ -1,12 +1,28 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://scripts/items/WorldItemEnhanced.gd" id="1_world_item_script"]
+[ext_resource type="Script" path="res://scripts/items/WorldItemShaderSuite.gd" id="1_world_item_script"]
+[ext_resource type="Shader" path="res://shaders/world_item_outline.gdshader" id="2_outline_shader"]
+[ext_resource type="PackedScene" path="res://scenes/effects/settings/WorldItemOutlineSettings.tscn" id="3_outline_settings"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pickup"]
 radius = 12.0
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
+resource_local_to_scene = true
+shader = ExtResource("2_outline_shader")
+shader_parameter/enabled = true
+shader_parameter/outline_color = Color(0.08, 0.06, 0.04, 0.95)
+shader_parameter/outline_size = 0.018
+shader_parameter/alpha_threshold = 0.5
+shader_parameter/samples = 12
+
 [node name="WorldItem" type="Area2D"]
 script = ExtResource("1_world_item_script")
+
+[node name="OutlineSettings" parent="." instance=ExtResource("3_outline_settings")]
+
+[node name="OutlineSprite" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_outline")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 
