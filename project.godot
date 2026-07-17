@@ -4,7 +4,7 @@
 ;
 ; Format:
 ;   [section] ; section goes between []
-;   param=value ; assign values to parameters
+;   param=value
 
 config_version=5
 
@@ -22,7 +22,6 @@ ContentDB="*res://scripts/systems/ContentDB.gd"
 SaveSlotManager="*res://scripts/systems/SaveSlotManager.gd"
 GameSession="*res://scripts/game/GameSession.gd"
 SettingsManager="*res://scripts/systems/SettingsManager.gd"
-AnimatedCursor="*res://scripts/ui/AnimatedCursor.gd"
 DebugSidePanelRestorer="*res://scripts/ui/DebugSidePanelRestorer.gd"
 PixelVFX="*res://scripts/effects/PixelVFX.gd"
 SFXManager="*res://scripts/audio/SFXManager.gd"
