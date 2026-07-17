@@ -6,7 +6,7 @@
 		"attack_timing_enabled": true,
 		"attack_windup_time": 0.04,
 		"base_combat": {
-			"attack_cooldown": 0.7,
+			"attack_cooldown": 0.34,
 			"attack_speed_bonus": 0.0,
 			"base_attack": 2.0,
 			"base_crit_chance": 0.03,
