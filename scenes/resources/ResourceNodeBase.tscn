@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://scripts/resources/ResourceNodeEnhanced.gd" id="1_resource_script"]
+[ext_resource type="Script" path="res://scripts/resources/ResourceNodeShaderSuite.gd" id="1_resource_script"]
+[ext_resource type="PackedScene" path="res://scenes/effects/settings/FoliageWindSettings.tscn" id="2_foliage_settings"]
 
 [sub_resource type="CircleShape2D" id="1_interaction_shape"]
 radius = 30.0
@@ -10,6 +11,8 @@ radius = 14.0
 
 [node name="ResourceNodeBase" type="Area2D"]
 script = ExtResource("1_resource_script")
+
+[node name="FoliageWindSettings" parent="." instance=ExtResource("2_foliage_settings")]
 
 [node name="VisualRoot" type="Node2D" parent="."]
 
