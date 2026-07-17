@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/ui/WorkbenchUI.gd" id="1_workbench_ui_script"]
+[ext_resource type="Script" path="res://scripts/ui/WorkbenchUISafe.gd" id="1_workbench_ui_script"]
 
 [node name="WorkbenchUI" type="Control"]
 visible = false
