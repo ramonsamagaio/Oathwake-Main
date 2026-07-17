@@ -33,8 +33,9 @@ func play_dash_lines(custom_duration := -1.0) -> void:
 		duration = custom_duration
 	duration = maxf(duration, 0.04)
 
-	if _dash_tween != null and _dash_tween.is_valid():
+	if _dash_tween != null:
 		_dash_tween.kill()
+		_dash_tween = null
 
 	speed_lines.visible = true
 	speed_lines.modulate.a = 0.0
@@ -42,7 +43,13 @@ func play_dash_lines(custom_duration := -1.0) -> void:
 	_dash_tween.tween_property(speed_lines, "modulate:a", 1.0, minf(0.035, duration * 0.25))
 	_dash_tween.tween_interval(maxf(duration - 0.07, 0.0))
 	_dash_tween.tween_property(speed_lines, "modulate:a", 0.0, minf(0.035, duration * 0.25))
-	_dash_tween.tween_callback(func() -> void: speed_lines.visible = false)
+	_dash_tween.tween_callback(_finish_dash_lines)
+
+
+func _finish_dash_lines() -> void:
+	if speed_lines != null:
+		speed_lines.visible = false
+	_dash_tween = null
 
 
 func _sync_settings() -> void:
