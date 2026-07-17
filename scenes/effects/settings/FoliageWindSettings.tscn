@@ -1,0 +1,32 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/effects/FoliageWindSettings.gd" id="1_settings_script"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_foliage"]
+seed = 7331
+noise_type = 1
+frequency = 0.012
+fractal_type = 1
+fractal_octaves = 4
+fractal_gain = 0.48
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_foliage"]
+width = 256
+height = 256
+seamless = true
+noise = SubResource("FastNoiseLite_foliage")
+
+[node name="FoliageWindSettings" type="Node"]
+script = ExtResource("1_settings_script")
+effect_enabled = true
+large_resource_ids = PackedStringArray("tree", "oak_tree", "ash_tree", "maple_tree", "walnut_tree", "ebony_tree", "ironwood_tree")
+small_resource_ids = PackedStringArray("fiber_bush", "herb_bush", "berry_bush")
+large_amplitude = 0.075
+large_rotation_strength = 1.0
+large_rotation_pivot = Vector2(0.5, 1)
+small_amplitude = 0.12
+small_rotation_strength = 1.35
+small_rotation_pivot = Vector2(0.5, 1)
+time_scale = 0.2
+noise_scale = 0.004
+noise_texture = SubResource("NoiseTexture2D_foliage")
