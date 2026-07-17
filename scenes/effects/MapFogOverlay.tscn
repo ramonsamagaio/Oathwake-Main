@@ -1,40 +1,31 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/effects/MapFogOverlay.gd" id="1_fog_script"]
 [ext_resource type="Shader" path="res://shaders/map_fog_overlay_2d.gdshader" id="2_fog_shader"]
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_fog"]
-seed = 4441
-noise_type = 1
-frequency = 0.008
-fractal_type = 1
-fractal_octaves = 5
-fractal_gain = 0.52
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_fog"]
-width = 512
-height = 512
-seamless = true
-noise = SubResource("FastNoiseLite_fog")
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_fog"]
 resource_local_to_scene = true
 shader = ExtResource("2_fog_shader")
-shader_parameter/enabled = false
-shader_parameter/noise_texture = SubResource("NoiseTexture2D_fog")
-shader_parameter/density = 0.1
-shader_parameter/speed = Vector2(0.008, 0.004)
-shader_parameter/fog_color = Color(0.62, 0.68, 0.72, 0.28)
+shader_parameter/enabled = true
+shader_parameter/density = 0.45
+shader_parameter/speed = Vector2(0.018, 0.007)
+shader_parameter/fog_color = Color(0.62, 0.68, 0.72, 0.18)
+shader_parameter/fog_scale = 3.25
+shader_parameter/coverage = 0.48
+shader_parameter/softness = 0.24
+shader_parameter/detail_mix = 0.42
 
 [node name="MapFogOverlay" type="CanvasLayer"]
-visible = false
 layer = 2
 script = ExtResource("1_fog_script")
-effect_enabled = false
-density = 0.1
-speed = Vector2(0.008, 0.004)
-fog_color = Color(0.62, 0.68, 0.72, 0.28)
-noise_texture = SubResource("NoiseTexture2D_fog")
+effect_enabled = true
+density = 0.45
+speed = Vector2(0.018, 0.007)
+fog_color = Color(0.62, 0.68, 0.72, 0.18)
+fog_scale = 3.25
+coverage = 0.48
+softness = 0.24
+detail_mix = 0.42
 
 [node name="FogRect" type="ColorRect" parent="."]
 material = SubResource("ShaderMaterial_fog")
