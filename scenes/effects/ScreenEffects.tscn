@@ -19,7 +19,7 @@ shader_parameter/mix_amount = 0.28
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_speed_lines"]
 resource_local_to_scene = true
 shader = ExtResource("4_speed_lines_shader")
-shader_parameter/enabled = true
+shader_parameter/enabled = false
 shader_parameter/line_color = Color(0.72, 0.88, 1, 0.12)
 shader_parameter/line_count = 0.45
 shader_parameter/line_density = 0.18
