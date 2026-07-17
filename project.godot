@@ -25,6 +25,7 @@ SettingsManager="*res://scripts/systems/SettingsManager.gd"
 AnimatedCursor="*res://scripts/ui/AnimatedCursor.gd"
 DebugSidePanelRestorer="*res://scripts/ui/DebugSidePanelRestorer.gd"
 PixelVFX="*res://scripts/effects/PixelVFX.gd"
+SFXManager="*res://scripts/audio/SFXManager.gd"
 
 [display]
 
