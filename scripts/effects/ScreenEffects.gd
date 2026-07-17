@@ -68,7 +68,6 @@ func _sync_speed_lines_material() -> void:
 		speed_lines.visible = false
 		return
 	shader_material.set_shader_parameter("enabled", enabled)
-	shader_material.set_shader_parameter("noise", settings.get("dash_noise_texture"))
 	shader_material.set_shader_parameter("line_color", settings.get("dash_line_color"))
 	shader_material.set_shader_parameter("line_count", float(settings.get("dash_line_count")))
 	shader_material.set_shader_parameter("line_density", float(settings.get("dash_line_density")))
