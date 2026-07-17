@@ -14,10 +14,10 @@ extends Node
 @export var dash_noise_texture: Texture2D
 
 @export_category("Gaussian Glow")
-@export var glow_enabled := false
-@export_range(0.0, 2.0, 0.01) var bloom_threshold := 0.82
-@export_range(0.0, 5.0, 0.01) var bloom_intensity := 0.38
+@export var glow_enabled := true
+@export_range(0.0, 2.0, 0.01) var bloom_threshold := 0.68
+@export_range(0.0, 5.0, 0.01) var bloom_intensity := 0.78
 @export_range(1, 4, 1) var blur_iterations := 1
-@export_range(0.0, 0.03, 0.0001) var blur_size := 0.0025
+@export_range(0.0, 0.03, 0.0001) var blur_size := 0.0040
 @export_range(4, 16, 1) var blur_subdivisions := 8
-@export_range(0.0, 1.0, 0.01) var glow_mix_amount := 0.28
+@export_range(0.0, 1.0, 0.01) var glow_mix_amount := 0.18
