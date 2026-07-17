@@ -7,8 +7,8 @@ const GLOW_WINDOW_TEXTURE := "res://assets/sprites/effects/glows/Glow1.png"
 const GLOW_LAMP_TEXTURE := "res://assets/sprites/effects/glows/glow2.png"
 const GLOW_MAGIC_TEXTURE := "res://assets/sprites/effects/glows/glow3.png"
 const PROCEDURAL_SHADER := "res://shaders/effects/glow_procedural.gdshader"
-const PROCEDURAL_BASE_TEXTURE: Texture2D = preload("res://assets/generated/glow_white_96.svg")
-const POINT_LIGHT_TEXTURE: Texture2D = preload("res://assets/generated/glow_radial_96.svg")
+const PROCEDURAL_BASE_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
+const POINT_LIGHT_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
 
 @export_enum("Texture", "Procedural", "Both") var mode: int = Mode.TEXTURE
 @export var glow_texture: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
@@ -174,9 +174,14 @@ func _configure_sprite(sprite: Sprite2D, should_show: bool, sprite_scale: Vector
 func _configure_point_light(current_alpha: float, current_intensity: float, sprite_scale: Vector2) -> void:
 	if _point_light == null:
 		return
-	_point_light.visible = use_point_light
-	_point_light.enabled = use_point_light
+	if not use_point_light:
+		_point_light.visible = false
+		_point_light.enabled = false
+		_point_light.texture = null
+		return
 	_point_light.texture = POINT_LIGHT_TEXTURE
+	_point_light.visible = true
+	_point_light.enabled = true
 	_point_light.color = glow_color
 	_point_light.energy = point_light_energy * current_intensity * current_alpha
 	_point_light.scale = sprite_scale * point_light_scale
