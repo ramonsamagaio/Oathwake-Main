@@ -1,18 +1,20 @@
 {
 	"player": {
 		"animation_set_id": "player_templar_body",
-		"attack_hit_time": 0.0,
-		"attack_recovery_time": 0.0,
-		"attack_timing_enabled": false,
-		"attack_windup_time": 0.0,
+		"attack_hit_time": 0.02,
+		"attack_recovery_time": 0.14,
+		"attack_timing_enabled": true,
+		"attack_windup_time": 0.04,
 		"base_combat": {
 			"attack_cooldown": 0.7,
+			"attack_speed_bonus": 0.0,
 			"base_attack": 2.0,
 			"base_crit_chance": 0.03,
 			"base_crit_damage": 1.5,
 			"base_defense": 1.0,
 			"base_flee": 5.0,
 			"base_hit": 75.0,
+			"base_invulnerability_duration": 2.0,
 			"base_magic_defense": 1.0
 		},
 		"base_stats": {
