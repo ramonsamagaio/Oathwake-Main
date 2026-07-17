@@ -31,13 +31,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Inventory dynamic image construction sites
+      - name: Inventory dynamic texture generators
         shell: bash
         run: |
           grep -R -n -E \
             --include='*.gd' \
             'Image\.create|ImageTexture\.create_from_image|create_from_image' \
             . | tee image-construction-sites.log || true
+          grep -R -n -E \
+            --include='*.tscn' --include='*.tres' \
+            'NoiseTexture2D|GradientTexture2D|CurveTexture|ImageTexture' \
+            . | tee generated-texture-resources.log || true
 
       - name: Install software rendering dependencies
         run: |
@@ -75,13 +79,17 @@ jobs:
             [content_editor]="res://tools/content_editor/ContentEditor.tscn"
             [ui_playground]="res://scenes/ui/UIPlayground.tscn"
             [slime]="res://scenes/enemies/Slime.tscn"
+            [player]="res://scenes/Player.tscn"
+            [start_area]="res://scenes/maps/StartArea.tscn"
+            [monster_spawn_zone]="res://scenes/systems/MonsterSpawnZone.tscn"
+            [legacy_main]="res://scenes/Main.tscn"
           )
-          for key in glow_overlay content_editor ui_playground slime; do
+          for key in glow_overlay content_editor ui_playground slime player start_area monster_spawn_zone legacy_main; do
             xvfb-run -a ./godot \
               --path . \
               --rendering-method gl_compatibility \
               --display-driver x11 \
-              --quit-after 45 \
+              --quit-after 60 \
               "${scenes[$key]}" \
               --verbose 2>&1 | tee "isolated-${key}.log"
           done
@@ -128,6 +136,7 @@ jobs:
           path: |
             test_artifacts/scene_effects/*.png
             image-construction-sites.log
+            generated-texture-resources.log
             godot-import.log
             isolated-*.log
             scene-effects-validation.log
