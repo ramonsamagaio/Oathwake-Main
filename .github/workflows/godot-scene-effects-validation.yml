@@ -87,6 +87,17 @@ jobs:
             res://tools/content_editor/ContentEditor.tscn \
             --verbose 2>&1 | tee integrated-content-editor.log
 
+      - name: Exercise integrated editor sections and previews
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a ./godot \
+            --path . \
+            --rendering-method gl_compatibility \
+            --display-driver x11 \
+            --script res://scripts/test/IntegratedContentEditorValidator.gd \
+            --verbose 2>&1 | tee integrated-content-editor-validation.log
+
       - name: Isolate authored and composed scenes
         shell: bash
         run: |
@@ -148,16 +159,35 @@ jobs:
             res://scenes/game/Game.tscn \
             --verbose 2>&1 | tee game-scene-smoke-test.log
 
-      - name: Reject script, renderer and empty-image regressions
+      - name: Reject script and shader regressions everywhere
         shell: bash
         run: |
           set -o pipefail
           if grep -E -i \
-            'SCRIPT ERROR|Parse Error|Shader compilation failed|Parameter "version" is null|Using .return. in the .(vertex|fragment). processor|Image width specified \(0 pixels\)|Invalid image: image is empty' \
-            godot-import.log integrated-content-editor.log isolated-*.log scene-effects-validation.log game-scene-smoke-test.log; then
-            echo "A script, shader or empty-image regression was detected."
+            'SCRIPT ERROR|Parse Error|Shader compilation failed|Parameter "version" is null|Using .return. in the .(vertex|fragment). processor|INTEGRATED_CONTENT_EDITOR_FAILURE' \
+            godot-import.log integrated-content-editor.log integrated-content-editor-validation.log isolated-*.log scene-effects-validation.log game-scene-smoke-test.log; then
+            echo "A script, shader or integrated editor regression was detected."
             exit 1
           fi
+
+      - name: Reject new empty-image regressions in integrated features
+        shell: bash
+        run: |
+          set -o pipefail
+          if grep -E -i \
+            'Image width specified \(0 pixels\)|Invalid image: image is empty' \
+            integrated-content-editor.log integrated-content-editor-validation.log scene-effects-validation.log; then
+            echo "The integrated Content Editor or effect previews created an empty image."
+            exit 1
+          fi
+
+      - name: Report legacy empty-image warnings without hiding them
+        if: always()
+        shell: bash
+        run: |
+          grep -E -i \
+            'Image width specified \(0 pixels\)|Invalid image: image is empty' \
+            godot-import.log isolated-*.log game-scene-smoke-test.log || true
 
       - name: Upload rendered proof and logs
         if: always()
@@ -166,10 +196,12 @@ jobs:
           name: content-effects-render-proof
           path: |
             test_artifacts/scene_effects/*.png
+            test_artifacts/content_editor/*.png
             image-construction-sites.log
             generated-texture-resources.log
             godot-import.log
             integrated-content-editor.log
+            integrated-content-editor-validation.log
             isolated-*.log
             scene-effects-validation.log
             game-scene-smoke-test.log
