@@ -1,7 +1,7 @@
 extends Node2D
 
 const TerrainMapScript = preload("res://scripts/world/TerrainMap.gd")
-const SpriteResolverScript = preload("res://scripts/systems/SpriteResolver.gd")
+const LEGACY_WORLD_ATLAS: Texture2D = preload("res://assets/generated/legacy_world_tiles.svg")
 const SOURCE_ID := 0
 const TERRAIN_TYPE_CUSTOM_DATA := "terrain_type"
 const TERRAIN_GRASS := "grass"
@@ -28,7 +28,6 @@ const ROCK_CELLS := [
 @export var tile_size: Vector2i = Vector2i(32, 32)
 
 var terrain_map := TerrainMapScript.new()
-var sprite_resolver := SpriteResolverScript.new()
 
 @onready var ground_layer: TileMapLayer = $GroundLayer
 @onready var obstacle_layer: TileMapLayer = $ObstacleLayer
@@ -46,22 +45,8 @@ func _ready() -> void:
 
 
 func _create_tile_set() -> TileSet:
-	var image := Image.create(tile_size.x * 6, tile_size.y, false, Image.FORMAT_RGBA8)
-	_fill_terrain_tile(image, 0, TERRAIN_GRASS, Color(0.22, 0.45, 0.24))
-	_fill_tile(image, 1, Color(0.36, 0.36, 0.39))
-	_fill_tile(image, 2, Color(0.50, 0.32, 0.18))
-	_fill_tile(image, 3, Color(0.88, 0.34, 0.10))
-	_fill_tile(image, 4, Color(0.44, 0.28, 0.14))
-	_fill_tile(image, 5, Color(0.42, 0.34, 0.62))
-	_draw_tile_border(image, 1, Color(0.24, 0.24, 0.27))
-	_draw_tile_border(image, 2, Color(0.30, 0.18, 0.10))
-	_draw_tile_border(image, 3, Color(0.45, 0.14, 0.04))
-	_draw_tile_border(image, 4, Color(0.20, 0.12, 0.06))
-	_draw_tile_border(image, 5, Color(0.22, 0.17, 0.36))
-
-	var texture := ImageTexture.create_from_image(image)
 	var atlas_source := TileSetAtlasSource.new()
-	atlas_source.texture = texture
+	atlas_source.texture = LEGACY_WORLD_ATLAS
 	atlas_source.texture_region_size = tile_size
 	atlas_source.create_tile(GROUND_TILE)
 	atlas_source.create_tile(ROCK_TILE)
@@ -132,47 +117,3 @@ func _place_rocks() -> void:
 
 func get_tile_type_at_position(global_position: Vector2) -> String:
 	return terrain_map.get_tile_type_at_position(ground_layer, global_position)
-
-
-func _fill_tile(image: Image, tile_index: int, color: Color) -> void:
-	var start_x := tile_index * tile_size.x
-
-	for x in range(start_x, start_x + tile_size.x):
-		for y in range(tile_size.y):
-			image.set_pixel(x, y, color)
-
-
-func _fill_terrain_tile(image: Image, tile_index: int, terrain_type_id: String, fallback_color: Color) -> void:
-	var terrain_texture := sprite_resolver.get_texture_for_terrain_type(terrain_type_id)
-	if terrain_texture == null:
-		_fill_tile(image, tile_index, fallback_color)
-		_draw_tile_border(image, tile_index, fallback_color.darkened(0.2))
-		return
-
-	var terrain_image: Image = terrain_texture.get_image()
-	if terrain_image == null:
-		_fill_tile(image, tile_index, fallback_color)
-		_draw_tile_border(image, tile_index, fallback_color.darkened(0.2))
-		return
-
-	var tile_image: Image = terrain_image.duplicate()
-	tile_image.convert(Image.FORMAT_RGBA8)
-	if tile_image.get_size() != tile_size:
-		tile_image.resize(tile_size.x, tile_size.y, Image.INTERPOLATE_NEAREST)
-
-	var destination := Vector2i(tile_index * tile_size.x, 0)
-	image.blit_rect(tile_image, Rect2i(Vector2i.ZERO, tile_size), destination)
-
-
-func _draw_tile_border(image: Image, tile_index: int, color: Color) -> void:
-	var start_x := tile_index * tile_size.x
-	var end_x := start_x + tile_size.x - 1
-	var end_y := tile_size.y - 1
-
-	for x in range(start_x, start_x + tile_size.x):
-		image.set_pixel(x, 0, color)
-		image.set_pixel(x, end_y, color)
-
-	for y in range(tile_size.y):
-		image.set_pixel(start_x, y, color)
-		image.set_pixel(end_x, y, color)

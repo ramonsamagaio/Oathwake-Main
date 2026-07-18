@@ -111,43 +111,43 @@ func _build_animation_frames(animation_def: Dictionary) -> Array[Texture2D]:
 	if texture_path.is_empty() or not ResourceLoader.exists(texture_path):
 		return frames
 
-	var texture := ResourceLoader.load(texture_path)
-	if not texture is Texture2D:
+	var texture := ResourceLoader.load(texture_path) as Texture2D
+	if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
 		return frames
 
 	var frame_width := int(animation_def.get("frame_width", 0))
 	var frame_height := int(animation_def.get("frame_height", 0))
 	if frame_width <= 0 or frame_height <= 0:
-		frames.append(texture as Texture2D)
+		frames.append(texture)
 		return frames
 
-	var image := (texture as Texture2D).get_image()
-	if image == null:
-		frames.append(texture as Texture2D)
+	var texture_width := texture.get_width()
+	var texture_height := texture.get_height()
+	if frame_width > texture_width or frame_height > texture_height:
+		frames.append(texture)
 		return frames
 
 	var total_frames := int(animation_def.get("frames", 0))
 	if total_frames <= 0:
-		total_frames = maxi(1, image.get_width() / frame_width)
+		total_frames = maxi(1, texture_width / frame_width)
 
 	for index in range(total_frames):
 		var x := index * frame_width
-		if x + frame_width > image.get_width() or frame_height > image.get_height():
+		if x + frame_width > texture_width:
 			break
-		var region := image.get_region(Rect2i(x, 0, frame_width, frame_height))
-		if region.is_empty():
-			continue
-		frames.append(ImageTexture.create_from_image(region))
+		var frame_texture := AtlasTexture.new()
+		frame_texture.atlas = texture
+		frame_texture.region = Rect2(x, 0, frame_width, frame_height)
+		frames.append(frame_texture)
 
 	if frames.is_empty():
-		frames.append(texture as Texture2D)
+		frames.append(texture)
 	return frames
 
 
 func _resolve_animation_name(state: String, facing_direction: String) -> Dictionary:
 	if _sprite_frames == null:
 		return {}
-
 	var candidates: Array = []
 	candidates.append({"name": state, "flip_h": false, "flip_v": false})
 
@@ -166,7 +166,6 @@ func _resolve_animation_name(state: String, facing_direction: String) -> Diction
 		var animation_name := str(candidate.get("name", ""))
 		if not animation_name.is_empty() and _sprite_frames.has_animation(animation_name):
 			return candidate
-
 	return {}
 
 

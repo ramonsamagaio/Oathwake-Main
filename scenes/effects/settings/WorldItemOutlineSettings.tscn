@@ -1,11 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/effects/WorldItemOutlineSettings.gd" id="1_settings_script"]
 
-[node name="WorldItemOutlineSettings" type="Node"]
+[node name="WorldItemOutlineSettings" type="Node" unique_id=1217132115]
 script = ExtResource("1_settings_script")
-effect_enabled = true
-outline_color = Color(0.08, 0.06, 0.04, 0.95)
-outline_size = 0.025
-alpha_threshold = 0.5
-samples = 12
+outline_color = Color(1, 1, 1, 0.9490196)
+outline_size = 0.012

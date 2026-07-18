@@ -24,7 +24,6 @@ extends Node
 @export_range(0.0, 5.0, 0.01) var time_scale := 0.28
 @export_range(0.0001, 2.0, 0.0001) var noise_scale := 0.004
 @export var render_noise_debug := false
-@export var noise_texture: Texture2D
 
 
 func get_size_class(resource_type_id: String) -> String:

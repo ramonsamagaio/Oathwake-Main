@@ -2,6 +2,7 @@
 extends CanvasLayer
 
 @onready var settings: Node = $Settings
+@onready var back_buffer_copy: BackBufferCopy = $BackBufferCopy
 @onready var gaussian_glow: ColorRect = $GaussianGlow
 @onready var speed_lines: ColorRect = $SpeedLines
 
@@ -61,11 +62,12 @@ func _sync_settings() -> void:
 func _sync_speed_lines_material() -> void:
 	if speed_lines == null:
 		return
+	var enabled := bool(settings.get("dash_lines_enabled"))
 	var shader_material := speed_lines.material as ShaderMaterial
 	if shader_material == null or shader_material.shader == null:
+		speed_lines.visible = false
 		return
-	shader_material.set_shader_parameter("enabled", bool(settings.get("dash_lines_enabled")))
-	shader_material.set_shader_parameter("noise", settings.get("dash_noise_texture"))
+	shader_material.set_shader_parameter("enabled", enabled)
 	shader_material.set_shader_parameter("line_color", settings.get("dash_line_color"))
 	shader_material.set_shader_parameter("line_count", float(settings.get("dash_line_count")))
 	shader_material.set_shader_parameter("line_density", float(settings.get("dash_line_density")))
@@ -73,16 +75,25 @@ func _sync_speed_lines_material() -> void:
 	shader_material.set_shader_parameter("mask_size", float(settings.get("dash_mask_size")))
 	shader_material.set_shader_parameter("mask_edge", float(settings.get("dash_mask_edge")))
 	shader_material.set_shader_parameter("animation_speed", float(settings.get("dash_animation_speed")))
+	if not enabled:
+		speed_lines.visible = false
 
 
 func _sync_glow_material() -> void:
 	if gaussian_glow == null:
 		return
-	gaussian_glow.visible = bool(settings.get("glow_enabled"))
+	gaussian_glow.color = Color(0.0, 0.0, 0.0, 0.0)
+	var glow_enabled := bool(settings.get("glow_enabled"))
 	var shader_material := gaussian_glow.material as ShaderMaterial
 	if shader_material == null or shader_material.shader == null:
+		gaussian_glow.visible = false
+		if back_buffer_copy != null:
+			back_buffer_copy.copy_mode = BackBufferCopy.COPY_MODE_DISABLED
 		return
-	shader_material.set_shader_parameter("enabled", bool(settings.get("glow_enabled")))
+	if back_buffer_copy != null:
+		back_buffer_copy.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT if glow_enabled else BackBufferCopy.COPY_MODE_DISABLED
+	gaussian_glow.visible = glow_enabled
+	shader_material.set_shader_parameter("enabled", glow_enabled)
 	shader_material.set_shader_parameter("bloom_threshold", float(settings.get("bloom_threshold")))
 	shader_material.set_shader_parameter("bloom_intensity", float(settings.get("bloom_intensity")))
 	shader_material.set_shader_parameter("blur_iterations", int(settings.get("blur_iterations")))

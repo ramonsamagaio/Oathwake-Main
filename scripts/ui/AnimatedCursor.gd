@@ -9,6 +9,7 @@ const CURSOR_FRAMES := [
 
 const CURSOR_SEQUENCE := [0, 1, 2, 3, 2, 1]
 const CURSOR_INTERVAL := 0.1
+const MAX_CURSOR_DIMENSION := 64
 
 var _frames: Array[Texture2D] = []
 var _sequence: Array[int] = []
@@ -30,15 +31,16 @@ func _exit_tree() -> void:
 
 func _load_frames() -> void:
 	_frames.clear()
-	for path in CURSOR_FRAMES:
+	for path_value in CURSOR_FRAMES:
+		var path := str(path_value)
 		if not ResourceLoader.exists(path):
 			continue
-		var resource := ResourceLoader.load(path)
-		if not resource is Texture2D:
+		var texture := ResourceLoader.load(path) as Texture2D
+		if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
+			push_warning("AnimatedCursor: ignored invalid cursor texture '%s'." % path)
 			continue
-		var texture := resource as Texture2D
-		if texture.get_width() <= 0 or texture.get_height() <= 0:
-			push_warning("AnimatedCursor: ignored zero-sized cursor texture '%s'." % path)
+		if texture.get_width() > MAX_CURSOR_DIMENSION or texture.get_height() > MAX_CURSOR_DIMENSION:
+			push_warning("AnimatedCursor: cursor texture '%s' exceeds %d pixels and was ignored." % [path, MAX_CURSOR_DIMENSION])
 			continue
 		_frames.append(texture)
 

@@ -1,6 +1,7 @@
 extends RefCounted
 
 const UI_SKIN_PATH := "res://data/ui_skin.json"
+const FALLBACK_UI_TEXTURE: Texture2D = preload("res://assets/generated/ui_fallback_checker.svg")
 
 static var _skin_cache: Dictionary = {}
 static var _texture_cache: Dictionary = {}
@@ -248,18 +249,8 @@ static func _get_fallback_texture() -> Texture2D:
 	var cache_key := "fallback"
 	if _fallback_texture_cache.has(cache_key):
 		return _fallback_texture_cache[cache_key]
-
-	var image := Image.create(32, 32, false, Image.FORMAT_RGBA8)
-	for y in range(32):
-		for x in range(32):
-			var checker := (x / 4 + y / 4) % 2
-			var color := Color(0.14, 0.15, 0.17, 1.0) if checker == 0 else Color(0.10, 0.11, 0.13, 1.0)
-			if x == 0 or y == 0 or x == 31 or y == 31:
-				color = Color(0.22, 0.24, 0.28, 1.0)
-			image.set_pixel(x, y, color)
-	var texture := ImageTexture.create_from_image(image)
-	_fallback_texture_cache[cache_key] = texture
-	return texture
+	_fallback_texture_cache[cache_key] = FALLBACK_UI_TEXTURE
+	return FALLBACK_UI_TEXTURE
 
 
 static func _get_margin_value(source: Dictionary, key: String, fallback: int) -> int:

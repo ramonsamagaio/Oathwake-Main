@@ -7,6 +7,8 @@ const GLOW_WINDOW_TEXTURE := "res://assets/sprites/effects/glows/Glow1.png"
 const GLOW_LAMP_TEXTURE := "res://assets/sprites/effects/glows/glow2.png"
 const GLOW_MAGIC_TEXTURE := "res://assets/sprites/effects/glows/glow3.png"
 const PROCEDURAL_SHADER := "res://shaders/effects/glow_procedural.gdshader"
+const PROCEDURAL_BASE_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
+const POINT_LIGHT_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
 
 @export_enum("Texture", "Procedural", "Both") var mode: int = Mode.TEXTURE
 @export var glow_texture: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
@@ -31,13 +33,11 @@ var _time: float = 0.0
 var _phase: float = 0.0
 var _additive_material: CanvasItemMaterial
 var _procedural_material: ShaderMaterial
-var _white_texture: Texture2D
-var _light_texture: Texture2D
 
 
 func _ready() -> void:
 	_phase = randf() * TAU
-	_ensure_materials()
+	_ensure_additive_material()
 	_update_visuals(1.0)
 	set_process(true)
 
@@ -118,27 +118,38 @@ func apply_soft_fire_preset() -> void:
 	_update_visuals(1.0)
 
 
-func _ensure_materials() -> void:
-	if _additive_material == null:
-		_additive_material = CanvasItemMaterial.new()
-		_additive_material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+func _ensure_additive_material() -> void:
+	if _additive_material != null:
+		return
+	_additive_material = CanvasItemMaterial.new()
+	_additive_material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 
-	if _procedural_material == null:
-		_procedural_material = ShaderMaterial.new()
-		if ResourceLoader.exists(PROCEDURAL_SHADER):
-			_procedural_material.shader = load(PROCEDURAL_SHADER) as Shader
 
-	if _white_texture == null:
-		_white_texture = _make_solid_texture(96, 96, Color.WHITE)
+func _ensure_procedural_material() -> ShaderMaterial:
+	if _procedural_material != null:
+		return _procedural_material
+	if not ResourceLoader.exists(PROCEDURAL_SHADER):
+		return null
+	var shader := ResourceLoader.load(PROCEDURAL_SHADER) as Shader
+	if shader == null:
+		return null
+	_procedural_material = ShaderMaterial.new()
+	_procedural_material.shader = shader
+	return _procedural_material
 
-	if _light_texture == null:
-		_light_texture = _make_radial_texture(96)
+
+func _release_hidden_procedural_resources() -> void:
+	if _procedural_glow != null:
+		_procedural_glow.visible = false
+		_procedural_glow.texture = null
+		_procedural_glow.material = null
+	_procedural_material = null
 
 
 func _update_visuals(flicker_value: float) -> void:
 	if not is_inside_tree():
 		return
-	_ensure_materials()
+	_ensure_additive_material()
 
 	var current_alpha := clampf(alpha * flicker_value, 0.0, 1.0)
 	var current_intensity := maxf(0.0, intensity * flicker_value)
@@ -146,43 +157,65 @@ func _update_visuals(flicker_value: float) -> void:
 	if flicker_enabled:
 		current_scale *= 1.0 + ((flicker_value - 1.0) * 0.35)
 
-	_configure_sprite(_texture_glow, mode == Mode.TEXTURE or mode == Mode.BOTH, current_scale, current_alpha, current_intensity)
-	_configure_sprite(_procedural_glow, mode == Mode.PROCEDURAL or mode == Mode.BOTH, current_scale, current_alpha, current_intensity)
+	var texture_enabled := mode == Mode.TEXTURE or mode == Mode.BOTH
+	var procedural_enabled := mode == Mode.PROCEDURAL or mode == Mode.BOTH
+	_configure_texture_sprite(texture_enabled, current_scale, current_alpha, current_intensity)
+	_configure_procedural_sprite(procedural_enabled, current_scale, current_alpha, current_intensity)
 	_configure_point_light(current_alpha, current_intensity, current_scale)
 
 
-func _configure_sprite(sprite: Sprite2D, should_show: bool, sprite_scale: Vector2, current_alpha: float, current_intensity: float) -> void:
-	if sprite == null:
+func _configure_texture_sprite(should_show: bool, sprite_scale: Vector2, current_alpha: float, current_intensity: float) -> void:
+	if _texture_glow == null:
 		return
-	sprite.visible = should_show
-	sprite.z_index = z_index_value
-	sprite.scale = sprite_scale
-	sprite.material = _additive_material
-	sprite.modulate = Color(
+	_texture_glow.visible = should_show
+	if not should_show:
+		_texture_glow.material = null
+		return
+	_texture_glow.z_index = z_index_value
+	_texture_glow.scale = sprite_scale
+	_texture_glow.material = _additive_material
+	_texture_glow.texture = glow_texture
+	_texture_glow.modulate = Color(
 		glow_color.r * current_intensity,
 		glow_color.g * current_intensity,
 		glow_color.b * current_intensity,
 		current_alpha
 	)
 
-	if sprite == _texture_glow:
-		sprite.texture = glow_texture
-	elif sprite == _procedural_glow:
-		sprite.texture = _white_texture
-		sprite.material = _procedural_material
-		if _procedural_material != null:
-			_procedural_material.set_shader_parameter("glow_color", glow_color)
-			_procedural_material.set_shader_parameter("intensity", current_intensity)
-			_procedural_material.set_shader_parameter("alpha", current_alpha)
-			_procedural_material.set_shader_parameter("stretch", stretch)
+
+func _configure_procedural_sprite(should_show: bool, sprite_scale: Vector2, current_alpha: float, current_intensity: float) -> void:
+	if _procedural_glow == null:
+		return
+	if not should_show:
+		_release_hidden_procedural_resources()
+		return
+	var procedural_material := _ensure_procedural_material()
+	if procedural_material == null:
+		_procedural_glow.visible = false
+		return
+	_procedural_glow.visible = true
+	_procedural_glow.z_index = z_index_value
+	_procedural_glow.scale = sprite_scale
+	_procedural_glow.texture = PROCEDURAL_BASE_TEXTURE
+	_procedural_glow.material = procedural_material
+	_procedural_glow.modulate = Color.WHITE
+	procedural_material.set_shader_parameter("glow_color", glow_color)
+	procedural_material.set_shader_parameter("intensity", current_intensity)
+	procedural_material.set_shader_parameter("alpha", current_alpha)
+	procedural_material.set_shader_parameter("stretch", stretch)
 
 
 func _configure_point_light(current_alpha: float, current_intensity: float, sprite_scale: Vector2) -> void:
 	if _point_light == null:
 		return
-	_point_light.visible = use_point_light
-	_point_light.enabled = use_point_light
-	_point_light.texture = _light_texture
+	if not use_point_light:
+		_point_light.visible = false
+		_point_light.enabled = false
+		_point_light.texture = null
+		return
+	_point_light.texture = POINT_LIGHT_TEXTURE
+	_point_light.visible = true
+	_point_light.enabled = true
 	_point_light.color = glow_color
 	_point_light.energy = point_light_energy * current_intensity * current_alpha
 	_point_light.scale = sprite_scale * point_light_scale
@@ -193,22 +226,3 @@ func _load_texture(path: String) -> Texture2D:
 	if not ResourceLoader.exists(path):
 		return glow_texture
 	return ResourceLoader.load(path) as Texture2D
-
-
-func _make_solid_texture(width: int, height: int, color: Color) -> Texture2D:
-	var image := Image.create(width, height, false, Image.FORMAT_RGBA8)
-	image.fill(color)
-	return ImageTexture.create_from_image(image)
-
-
-func _make_radial_texture(size: int) -> Texture2D:
-	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	var center := Vector2(float(size) * 0.5, float(size) * 0.5)
-	var radius := float(size) * 0.5
-	for y in range(size):
-		for x in range(size):
-			var distance_ratio := center.distance_to(Vector2(float(x), float(y))) / radius
-			var pixel_alpha := clampf(1.0 - distance_ratio, 0.0, 1.0)
-			pixel_alpha = pixel_alpha * pixel_alpha
-			image.set_pixel(x, y, Color(1.0, 1.0, 1.0, pixel_alpha))
-	return ImageTexture.create_from_image(image)

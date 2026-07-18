@@ -2,6 +2,8 @@
 class_name MapRoot
 extends Node2D
 
+const FUNCTIONAL_GROUND_TEXTURE := preload("res://assets/generated/functional_ground_tile.svg")
+
 @export var map_id: String = ""
 @export var display_name: String = ""
 @export var default_spawn_point_name: String = "PlayerSpawn"
@@ -71,14 +73,13 @@ func _ready() -> void:
 
 func _ensure_functional_ground() -> void:
 	# Authored visuals can remain independent while this layer supplies buildable cells.
+	# The texture is a committed resource rather than an ImageTexture created during
+	# scene startup, preventing zero-sized image construction on threaded map loads.
 	if _ground_layer.tile_set == null:
-		var image := Image.create(192, 32, false, Image.FORMAT_RGBA8)
-		image.fill(Color(0.16, 0.30, 0.18, 0.20))
 		var source := TileSetAtlasSource.new()
-		source.texture = ImageTexture.create_from_image(image)
+		source.texture = FUNCTIONAL_GROUND_TEXTURE
 		source.texture_region_size = Vector2i(32, 32)
-		for atlas_x in range(6):
-			source.create_tile(Vector2i(atlas_x, 0))
+		source.create_tile(Vector2i.ZERO)
 		var tile_set := TileSet.new()
 		tile_set.tile_size = Vector2i(32, 32)
 		tile_set.add_source(source, 0)
