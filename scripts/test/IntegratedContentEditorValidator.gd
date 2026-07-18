@@ -5,6 +5,7 @@ const ARTIFACT_DIR := "res://test_artifacts/content_editor"
 const SOUND_SECTION := "__sound_effects"
 const EFFECT_SECTION := "__scene_shader_effects"
 const AUDIO_MIX_RECORD := "__audio_mix"
+const SAMPLE_SOUND_EVENT := "player_dash"
 const EFFECT_IDS := ["outline", "foliage", "glow", "fog"]
 
 var _failures: Array[String] = []
@@ -39,6 +40,16 @@ func _run() -> void:
 	_expect(mix_fields.has("overworld_volume_db"), "Overworld volume control is missing.")
 	_expect(mix_fields.has("ambience_volume_db"), "Ambience volume control is missing.")
 	_capture_root("sound_audio_mixer")
+
+	editor.call("_load_integrated_record", SAMPLE_SOUND_EVENT)
+	for _frame in range(4):
+		await process_frame
+	var sfx_fields: Dictionary = editor.get("sfx_fields")
+	_expect(sfx_fields.has("volume_db"), "Gameplay sound event volume control is missing.")
+	_expect(sfx_fields.has("pitch_min") and sfx_fields.has("pitch_max"), "Gameplay sound event pitch controls are missing.")
+	_expect(sfx_fields.has("max_distance"), "Gameplay sound event distance control is missing.")
+	_capture_root("sound_event_player_dash")
+	_validate_no_visible_popup_windows(editor, "gameplay sound event")
 
 	editor.call("_open_scene_shader_editor")
 	for _frame in range(8):
