@@ -15,7 +15,7 @@
 [ext_resource type="Script" uid="uid://cqwakesixyo7t" path="res://scripts/systems/SettlementManager.gd" id="13_settlement_manager"]
 [ext_resource type="Script" uid="uid://bi04wraoxj1fh" path="res://scripts/world/DayNightCycle.gd" id="14_day_night"]
 [ext_resource type="Script" uid="uid://bq6u7sqiptlbl" path="res://scripts/enemies/NightEnemySpawner.gd" id="15_night_spawner"]
-[ext_resource type="PackedScene" path="res://scenes/enemies/Slime.tscn" id="16_slime"]
+[ext_resource type="PackedScene" uid="uid://c3wm4u4aeb7c4" path="res://scenes/enemies/Slime.tscn" id="16_slime"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUDStatusUI.tscn" id="17_hud_status"]
 
 [node name="Game" type="Node2D" unique_id=2133599417]

@@ -1,22 +1,9 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/effects/ScreenEffectsSettings.gd" id="1_settings_script"]
 
-[node name="ScreenEffectsSettings" type="Node"]
+[node name="ScreenEffectsSettings" type="Node" unique_id=2120687030]
 script = ExtResource("1_settings_script")
-dash_lines_enabled = false
-dash_line_color = Color(0.72, 0.88, 1, 0.12)
-dash_line_count = 0.45
-dash_line_density = 0.18
-dash_line_falloff = 0.2
-dash_mask_size = 0.18
-dash_mask_edge = 0.72
-dash_animation_speed = 7.0
-dash_effect_duration = 0.16
-glow_enabled = true
-bloom_threshold = 0.68
-bloom_intensity = 0.78
-blur_iterations = 1
-blur_size = 0.004
-blur_subdivisions = 8
-glow_mix_amount = 0.18
+dash_line_color = Color(1, 1, 1, 0.5294118)
+bloom_threshold = 0.1
+bloom_intensity = 5.0
