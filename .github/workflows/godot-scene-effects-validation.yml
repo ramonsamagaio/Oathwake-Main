@@ -1,22 +1,27 @@
-name: Godot Scene Effects Validation
+name: Godot Content Effects Validation
 
 on:
   push:
     branches:
       - fix/stable-fog-outline-glow
+      - feature/content-editor-effects-previews-audio-mixer
   pull_request:
     paths:
+      - "tools/content_editor/**"
       - "scenes/effects/**"
       - "scenes/items/WorldItem.tscn"
       - "scripts/effects/**"
       - "scripts/items/WorldItemShaderSuite.gd"
+      - "scripts/audio/**"
+      - "scripts/game/GameplayAudioController.gd"
       - "scripts/test/**"
       - "shaders/**"
+      - "data/audio_mix.json"
       - ".github/workflows/godot-scene-effects-validation.yml"
   workflow_dispatch:
 
 concurrency:
-  group: godot-scene-effects-${{ github.ref }}
+  group: godot-content-effects-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -70,13 +75,24 @@ jobs:
             --quit-after 240 \
             --verbose 2>&1 | tee godot-import.log
 
+      - name: Open integrated Content Editor
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a ./godot \
+            --path . \
+            --rendering-method gl_compatibility \
+            --display-driver x11 \
+            --quit-after 180 \
+            res://tools/content_editor/ContentEditor.tscn \
+            --verbose 2>&1 | tee integrated-content-editor.log
+
       - name: Isolate authored and composed scenes
         shell: bash
         run: |
           set -o pipefail
           declare -A scenes=(
             [glow_overlay]="res://scenes/effects/GlowOverlay.tscn"
-            [content_editor]="res://tools/content_editor/ContentEditor.tscn"
             [ui_playground]="res://scenes/ui/UIPlayground.tscn"
             [slime]="res://scenes/enemies/Slime.tscn"
             [player]="res://scenes/Player.tscn"
@@ -85,7 +101,7 @@ jobs:
             [monster_spawn_zone]="res://scenes/systems/MonsterSpawnZone.tscn"
             [legacy_main]="res://scenes/Main.tscn"
           )
-          for key in glow_overlay content_editor ui_playground slime player authored_start_area start_area monster_spawn_zone legacy_main; do
+          for key in glow_overlay ui_playground slime player authored_start_area start_area monster_spawn_zone legacy_main; do
             xvfb-run -a ./godot \
               --path . \
               --rendering-method gl_compatibility \
@@ -132,14 +148,14 @@ jobs:
             res://scenes/game/Game.tscn \
             --verbose 2>&1 | tee game-scene-smoke-test.log
 
-      - name: Reject renderer and empty-image regressions
+      - name: Reject script, renderer and empty-image regressions
         shell: bash
         run: |
           set -o pipefail
           if grep -E -i \
-            'Shader compilation failed|Parameter "version" is null|Using .return. in the .(vertex|fragment). processor|Image width specified \(0 pixels\)|Invalid image: image is empty' \
-            godot-import.log isolated-*.log scene-effects-validation.log game-scene-smoke-test.log; then
-            echo "A known shader or empty-image regression was detected."
+            'SCRIPT ERROR|Parse Error|Shader compilation failed|Parameter "version" is null|Using .return. in the .(vertex|fragment). processor|Image width specified \(0 pixels\)|Invalid image: image is empty' \
+            godot-import.log integrated-content-editor.log isolated-*.log scene-effects-validation.log game-scene-smoke-test.log; then
+            echo "A script, shader or empty-image regression was detected."
             exit 1
           fi
 
@@ -147,12 +163,13 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: scene-effects-render-proof
+          name: content-effects-render-proof
           path: |
             test_artifacts/scene_effects/*.png
             image-construction-sites.log
             generated-texture-resources.log
             godot-import.log
+            integrated-content-editor.log
             isolated-*.log
             scene-effects-validation.log
             game-scene-smoke-test.log
