@@ -1,8 +1,17 @@
 extends Node
 
 const DATA_PATH := "res://data/sfx_profiles.json"
+const MIX_DATA_PATH := "res://data/audio_mix.json"
+const DEFAULT_AUDIO_MIX := {
+	"master_volume_db": 0.0,
+	"sfx_volume_db": 0.0,
+	"overworld_volume_db": -8.0,
+	"ambience_volume_db": -22.0,
+	"ambience_inactive_volume_db": -80.0,
+}
 
 var profiles: Dictionary = {}
+var audio_mix: Dictionary = DEFAULT_AUDIO_MIX.duplicate(true)
 var _last_stream_index: Dictionary = {}
 
 
@@ -12,6 +21,7 @@ func _ready() -> void:
 
 func reload_profiles() -> void:
 	profiles = {}
+	_reload_audio_mix()
 	if not FileAccess.file_exists(DATA_PATH):
 		push_warning("SFXManager could not find %s" % DATA_PATH)
 		return
@@ -28,6 +38,10 @@ func reload_profiles() -> void:
 
 func get_profiles() -> Dictionary:
 	return profiles.duplicate(true)
+
+
+func get_audio_mix() -> Dictionary:
+	return audio_mix.duplicate(true)
 
 
 func has_profile(profile_id: String) -> bool:
@@ -59,7 +73,7 @@ func play_profile(profile_id: String, world_position := Vector2.ZERO, parent: No
 	player.name = "SFX_%s" % profile_id
 	player.stream = stream
 	player.bus = str(profile.get("bus", "Master"))
-	player.volume_db = float(profile.get("volume_db", 0.0))
+	player.volume_db = float(profile.get("volume_db", 0.0)) + float(audio_mix.get("sfx_volume_db", 0.0))
 	var pitch_min := float(profile.get("pitch_min", 0.96))
 	var pitch_max := float(profile.get("pitch_max", 1.04))
 	if pitch_max < pitch_min:
@@ -113,6 +127,26 @@ func _resolve_hit_profile(target: Node) -> String:
 			return "hit_stone"
 		return "hit_resource"
 	return ""
+
+
+func _reload_audio_mix() -> void:
+	audio_mix = DEFAULT_AUDIO_MIX.duplicate(true)
+	if FileAccess.file_exists(MIX_DATA_PATH):
+		var file := FileAccess.open(MIX_DATA_PATH, FileAccess.READ)
+		if file != null:
+			var json := JSON.new()
+			if json.parse(file.get_as_text()) == OK and json.data is Dictionary:
+				for key in DEFAULT_AUDIO_MIX.keys():
+					if json.data.has(key):
+						audio_mix[key] = float(json.data[key])
+	_apply_master_volume()
+
+
+func _apply_master_volume() -> void:
+	var master_bus_index := AudioServer.get_bus_index("Master")
+	if master_bus_index < 0:
+		return
+	AudioServer.set_bus_volume_db(master_bus_index, float(audio_mix.get("master_volume_db", 0.0)))
 
 
 func _get_profile(profile_id: String) -> Dictionary:

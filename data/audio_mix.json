@@ -1,0 +1,7 @@
+{
+	"master_volume_db": 0.0,
+	"sfx_volume_db": 0.0,
+	"overworld_volume_db": -8.0,
+	"ambience_volume_db": -22.0,
+	"ambience_inactive_volume_db": -80.0
+}
