@@ -20,3 +20,4 @@ extends Node
 @export_range(0.0, 0.03, 0.0001) var blur_size := 0.0040
 @export_range(4, 16, 1) var blur_subdivisions := 8
 @export_range(0.0, 1.0, 0.01) var glow_mix_amount := 0.18
+@export_range(0.0, 1.0, 0.01) var colored_glow_boost := 0.12
