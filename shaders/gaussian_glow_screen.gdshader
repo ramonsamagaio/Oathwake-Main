@@ -13,11 +13,21 @@ uniform int blur_iterations : hint_range(1, 4, 1) = 1;
 uniform float blur_size : hint_range(0.0, 0.03, 0.0001) = 0.0040;
 uniform int blur_subdivisions : hint_range(4, 16, 1) = 8;
 uniform float mix_amount : hint_range(0.0, 1.0, 0.01) = 0.18;
+uniform float colored_glow_boost : hint_range(0.0, 1.0, 0.01) = 0.12;
 
 vec3 glow_bright_pass(vec3 color_value) {
 	float brightest_channel = max(max(color_value.r, color_value.g), color_value.b);
+	float darkest_channel = min(min(color_value.r, color_value.g), color_value.b);
+	float saturation = brightest_channel - darkest_channel;
 	float threshold_gate = smoothstep(bloom_threshold, bloom_threshold + 0.16, brightest_channel);
-	return max(color_value - vec3(bloom_threshold), vec3(0.0)) * threshold_gate;
+	vec3 hard_bloom = max(color_value - vec3(bloom_threshold), vec3(0.0)) * threshold_gate;
+
+	// Dark fantasy characters often use saturated but low-value colors. This
+	// secondary gate lets those colors contribute a controlled halo without
+	// lowering the global threshold enough to make every grass pixel bloom.
+	float color_gate = smoothstep(0.08, 0.48, brightest_channel) * smoothstep(0.035, 0.32, saturation);
+	vec3 colored_bloom = color_value * color_gate * colored_glow_boost;
+	return hard_bloom + colored_bloom;
 }
 
 void fragment() {
