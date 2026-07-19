@@ -10,7 +10,7 @@
 		],
 		"volume_db": 0.0
 	},
-	"hit_enemy": {
+	"generic_enemy_hit": {
 		"bus": "Master",
 		"display_name": "Generic Enemy Hit",
 		"max_distance": 640.0,
