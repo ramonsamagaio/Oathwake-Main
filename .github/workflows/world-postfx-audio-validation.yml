@@ -1,0 +1,99 @@
+name: World PostFX Audio Validation
+
+on:
+  pull_request:
+    paths:
+      - "scenes/Player.tscn"
+      - "scenes/game/Game.tscn"
+      - "scenes/maps/**"
+      - "scenes/effects/MapFogOverlay.tscn"
+      - "scenes/items/WorldItem.tscn"
+      - "scripts/player/PlayerWorldFeedbackSuite.gd"
+      - "scripts/items/WorldItemFeedbackSuite.gd"
+      - "scripts/effects/MapFogOverlay.gd"
+      - "scripts/audio/SFXManager.gd"
+      - "scripts/test/WorldPostFxAudioValidator.gd"
+      - "shaders/map_fog_overlay_2d.gdshader"
+      - "data/sfx_profiles.json"
+      - ".github/workflows/world-postfx-audio-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install rendering dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb unzip libgl1-mesa-dri libglx-mesa0 mesa-utils
+
+      - name: Download Godot 4.6.3
+        run: |
+          curl --fail --location --retry 4 --retry-delay 3 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+          ./godot --version
+
+      - name: Import and compile project
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a ./godot \
+            --editor \
+            --path . \
+            --rendering-method gl_compatibility \
+            --display-driver x11 \
+            --quit-after 240 \
+            --verbose 2>&1 | tee import.log
+
+      - name: Validate layers shadows fog and audio
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a ./godot \
+            --path . \
+            --rendering-method gl_compatibility \
+            --display-driver x11 \
+            --script res://scripts/test/WorldPostFxAudioValidator.gd \
+            --verbose 2>&1 | tee validator.log
+
+      - name: Open real game scene
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a ./godot \
+            --path . \
+            --rendering-method gl_compatibility \
+            --display-driver x11 \
+            --quit-after 180 \
+            res://scenes/game/Game.tscn \
+            --verbose 2>&1 | tee game.log
+
+      - name: Reject script shader and renderer regressions
+        shell: bash
+        run: |
+          if grep -E -i \
+            'Parse Error|SCRIPT ERROR|Shader compilation failed|Parameter "version" is null|Using .return. in the .(vertex|fragment). processor' \
+            import.log validator.log game.log; then
+            exit 1
+          fi
+
+      - name: Upload validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: world-postfx-audio-validation
+          path: |
+            import.log
+            validator.log
+            game.log
+          if-no-files-found: warn
