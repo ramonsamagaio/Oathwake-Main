@@ -1,29 +1,6 @@
 extends "res://scripts/player/PlayerShaderSuite.gd"
 
 
-func _ready() -> void:
-	super._ready()
-	call_deferred("_promote_screen_effects")
-
-
-func _promote_screen_effects() -> void:
-	var screen_effects := get_node_or_null("ScreenEffects") as CanvasLayer
-	var scene_root := get_tree().current_scene if get_tree() != null else null
-	if screen_effects == null or scene_root == null:
-		return
-	var target_parent := scene_root.get_node_or_null("WorldPostEffects")
-	if target_parent == null:
-		target_parent = scene_root
-	if screen_effects.get_parent() == target_parent:
-		return
-	var existing := target_parent.get_node_or_null("ScreenEffects")
-	if existing != null and existing != screen_effects:
-		screen_effects.queue_free()
-		return
-	screen_effects.reparent(target_parent)
-	screen_effects.name = "ScreenEffects"
-
-
 func _start_attack_cycle() -> void:
 	_refresh_attack_substats()
 	action_state = ActionState.ATTACKING
