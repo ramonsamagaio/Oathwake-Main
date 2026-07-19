@@ -1,26 +1,15 @@
-[gd_scene load_steps=10 format=3 uid="uid://c3wm4u4aeb7c4"]
+[gd_scene load_steps=7 format=3 uid="uid://c3wm4u4aeb7c4"]
 
 [ext_resource type="Script" path="res://scripts/enemies/SlimeVisualSuite.gd" id="1_slime_script"]
 [ext_resource type="Texture2D" uid="uid://buvg1est7ky8p" path="res://assets/sprites/monsters/Slime_Animate/slime_idle1.png" id="2_slime_idle1"]
 [ext_resource type="Texture2D" uid="uid://dehyclqgcpv42" path="res://assets/sprites/monsters/Slime_Animate/slime_idle2.png" id="3_slime_idle2"]
 [ext_resource type="Texture2D" uid="uid://ccqilfx1fiyhk" path="res://assets/sprites/monsters/Slime_Animate/slime_idle3.png" id="4_slime_idle3"]
-[ext_resource type="Texture2D" path="res://resources/effects/textures/soft_light_radial.tres" id="5_glow_texture"]
-[ext_resource type="Shader" path="res://shaders/effects/slime_aura.gdshader" id="6_glow_shader"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_slime_collision"]
 radius = 14.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_damage_area"]
 radius = 18.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_slime_glow"]
-resource_local_to_scene = true
-shader = ExtResource("6_glow_shader")
-shader_parameter/enabled = true
-shader_parameter/glow_color = Color(0.28, 1, 0.48, 0.42)
-shader_parameter/intensity = 1.15
-shader_parameter/pulse_speed = 2.2
-shader_parameter/pulse_strength = 0.12
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_slime_idle"]
 animations = [{
@@ -44,8 +33,6 @@ animations = [{
 
 [node name="Slime" type="CharacterBody2D" unique_id=762227340]
 script = ExtResource("1_slime_script")
-ground_shadow_enabled = true
-glow_enabled = true
 
 [node name="GroundShadow" type="Polygon2D" parent="." unique_id=2081917180]
 show_behind_parent = true
@@ -53,13 +40,6 @@ position = Vector2(0, 11)
 scale = Vector2(0.92, 0.34)
 color = Color(0.01, 0.008, 0.015, 0.46)
 polygon = PackedVector2Array(-13, -3, -10, -5, -4, -6, 4, -6, 10, -5, 13, -3, 14, 0, 13, 3, 10, 5, 4, 6, -4, 6, -10, 5, -13, 3, -14, 0)
-
-[node name="SlimeGlow" type="Sprite2D" parent="."]
-z_index = 1
-position = Vector2(0, -3)
-scale = Vector2(0.28, 0.28)
-texture = ExtResource("5_glow_texture")
-material = SubResource("ShaderMaterial_slime_glow")
 
 [node name="Body" type="Polygon2D" parent="." unique_id=1699815125]
 visible = false
@@ -82,7 +62,7 @@ shape = SubResource("CircleShape2D_slime_collision")
 shape = SubResource("CircleShape2D_damage_area")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=45494934]
-z_index = 2
+z_index = 20
 position = Vector2(0, -4)
 scale = Vector2(0.5, 0.5)
 sprite_frames = SubResource("SpriteFrames_slime_idle")
