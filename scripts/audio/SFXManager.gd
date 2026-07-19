@@ -106,25 +106,8 @@ func _resolve_hit_profile(target: Node) -> String:
 	if target.is_in_group("player"):
 		return "player_hit"
 	if target.is_in_group("enemy"):
-		var monster_id := _get_string_property(target, "monster_id")
-		if not monster_id.is_empty() and has_profile("hit_%s" % monster_id):
-			return "hit_%s" % monster_id
-		return "hit_enemy"
+		return "generic_enemy_hit"
 	if target.is_in_group("resource_node"):
-		var resource_type := ""
-		if target.has_method("get_resource_type_id"):
-			resource_type = str(target.call("get_resource_type_id")).to_lower()
-		var drop_item := ""
-		if target.has_method("get_drop_item_id"):
-			drop_item = str(target.call("get_drop_item_id")).to_lower()
-		var resource_name := ""
-		if target.has_method("get_resource_name"):
-			resource_name = str(target.call("get_resource_name")).to_lower()
-		var identity := "%s %s %s" % [resource_type, drop_item, resource_name]
-		if identity.contains("tree") or identity.contains("wood"):
-			return "hit_wood"
-		if identity.contains("rock") or identity.contains("stone") or identity.contains("ore") or identity.contains("coal"):
-			return "hit_stone"
 		return "hit_resource"
 	return ""
 

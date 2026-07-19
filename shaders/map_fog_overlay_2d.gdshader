@@ -1,7 +1,5 @@
-// Procedural adaptation of the requested CC0 2D Fog Overlay shader:
+// Procedural world-anchored adaptation of the requested CC0 2D Fog Overlay shader:
 // https://godotshaders.com/shader/2d-fog-overlay-2/
-// The fog is generated entirely in the shader so it never depends on an
-// asynchronously-created NoiseTexture2D or an image with zero dimensions.
 shader_type canvas_item;
 render_mode unshaded, blend_mix;
 
@@ -13,6 +11,8 @@ uniform float fog_scale : hint_range(0.25, 12.0, 0.05) = 3.25;
 uniform float coverage : hint_range(0.0, 1.0, 0.01) = 0.48;
 uniform float softness : hint_range(0.01, 0.75, 0.01) = 0.24;
 uniform float detail_mix : hint_range(0.0, 1.0, 0.01) = 0.42;
+uniform vec2 camera_offset = vec2(0.0);
+uniform float world_anchor_strength : hint_range(0.0, 2.0, 0.01) = 1.0;
 
 float fog_hash(vec2 point) {
 	vec3 point3 = fract(vec3(point.xyx) * 0.1031);
@@ -48,8 +48,9 @@ void fragment() {
 	vec4 output_color = vec4(0.0);
 	if (enabled && density > 0.0 && fog_color.a > 0.0) {
 		vec2 drift = TIME * speed;
-		vec2 primary_position = UV * fog_scale + drift;
-		vec2 secondary_position = UV * (fog_scale * 1.73) - drift * 0.63 + vec2(4.7, 8.1);
+		vec2 anchored_uv = UV + camera_offset * world_anchor_strength;
+		vec2 primary_position = anchored_uv * fog_scale + drift;
+		vec2 secondary_position = anchored_uv * (fog_scale * 1.73) - drift * 0.63 + vec2(4.7, 8.1);
 		float primary_noise = fog_fbm(primary_position);
 		float secondary_noise = fog_fbm(secondary_position);
 		float combined_noise = mix(primary_noise, secondary_noise, detail_mix);

@@ -14,9 +14,11 @@ shader_parameter/fog_scale = 3.25
 shader_parameter/coverage = 0.48
 shader_parameter/softness = 0.24
 shader_parameter/detail_mix = 0.42
+shader_parameter/camera_offset = Vector2(0, 0)
+shader_parameter/world_anchor_strength = 1.0
 
 [node name="MapFogOverlay" type="CanvasLayer" unique_id=369330018]
-layer = 2
+layer = 4
 script = ExtResource("1_fog_script")
 density = 1.0
 
