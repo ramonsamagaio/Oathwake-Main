@@ -2,13 +2,6 @@ extends RefCounted
 
 const GlowOverlayScene: PackedScene = preload("res://scenes/effects/GlowOverlay.tscn")
 
-const DEFAULT_SHADOW_POLYGON := PackedVector2Array([
-	Vector2(-13, -3), Vector2(-10, -5), Vector2(-4, -6), Vector2(4, -6),
-	Vector2(10, -5), Vector2(13, -3), Vector2(14, 0), Vector2(13, 3),
-	Vector2(10, 5), Vector2(4, 6), Vector2(-4, 6), Vector2(-10, 5),
-	Vector2(-13, 3), Vector2(-14, 0),
-])
-
 
 static func apply_content_effects(target: Node2D, record: Dictionary, default_glow_z := 24) -> void:
 	if target == null:
@@ -66,7 +59,7 @@ static func apply_shadow(target: Node2D, config: Dictionary) -> Polygon2D:
 	if shadow == null and enabled:
 		shadow = Polygon2D.new()
 		shadow.name = "GroundShadow"
-		shadow.polygon = DEFAULT_SHADOW_POLYGON
+		shadow.polygon = _make_default_shadow_polygon()
 		target.add_child(shadow)
 		shadow.add_to_group("persistent_content_visual")
 	if shadow == null:
@@ -82,6 +75,15 @@ static func apply_shadow(target: Node2D, config: Dictionary) -> Polygon2D:
 	if not shadow.is_in_group("persistent_content_visual"):
 		shadow.add_to_group("persistent_content_visual")
 	return shadow
+
+
+static func _make_default_shadow_polygon() -> PackedVector2Array:
+	return PackedVector2Array([
+		Vector2(-13, -3), Vector2(-10, -5), Vector2(-4, -6), Vector2(4, -6),
+		Vector2(10, -5), Vector2(13, -3), Vector2(14, 0), Vector2(13, 3),
+		Vector2(10, 5), Vector2(4, 6), Vector2(-4, 6), Vector2(-10, 5),
+		Vector2(-13, 3), Vector2(-14, 0),
+	])
 
 
 static func _visual_mode_to_int(mode_name: String) -> int:
