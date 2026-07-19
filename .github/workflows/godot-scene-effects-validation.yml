@@ -195,6 +195,7 @@ jobs:
         with:
           name: content-effects-render-proof
           path: |
+            tools/content_editor/ContentEditorShaderSuite.gd
             test_artifacts/scene_effects/*.png
             test_artifacts/content_editor/*.png
             image-construction-sites.log
