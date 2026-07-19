@@ -32,11 +32,11 @@ y_sort_enabled = true
 
 [node name="Player" parent="RuntimeEntities" unique_id=117263621 instance=ExtResource("3_player_scene")]
 
-[node name="WorldPostEffects" type="Node" parent="."]
+[node name="WorldPostEffects" type="Node" parent="." unique_id=128443278]
 
-[node name="MapFogOverlay" parent="WorldPostEffects" instance=ExtResource("18_map_fog")]
+[node name="MapFogOverlay" parent="WorldPostEffects" unique_id=38958819 instance=ExtResource("18_map_fog")]
 
-[node name="ScreenEffects" parent="WorldPostEffects" instance=ExtResource("19_screen_effects")]
+[node name="ScreenEffects" parent="WorldPostEffects" unique_id=1165169849 instance=ExtResource("19_screen_effects")]
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=53977041]
 layer = 10
