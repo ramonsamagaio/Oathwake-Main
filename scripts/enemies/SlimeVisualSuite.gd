@@ -11,7 +11,7 @@ extends "res://scripts/enemies/Slime.gd"
 @export var glow_color := Color(0.28, 1.0, 0.48, 0.42)
 @export_range(0.0, 4.0, 0.01) var glow_intensity := 1.15
 @export var glow_offset := Vector2(0.0, -3.0)
-@export var glow_scale := Vector2(0.92, 0.92)
+@export var glow_scale := Vector2(0.28, 0.28)
 @export_range(0.0, 12.0, 0.01) var glow_pulse_speed := 2.2
 @export_range(0.0, 0.8, 0.01) var glow_pulse_strength := 0.12
 
