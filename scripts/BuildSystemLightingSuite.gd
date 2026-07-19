@@ -35,7 +35,7 @@ func _set_build_mode_enabled(is_enabled: bool) -> void:
 
 
 func select_building(building_id: String) -> void:
-	var normalized := _normalize_building_type(building_id)
+	var normalized: String = _normalize_building_type(building_id)
 	if not _is_known_building_type(normalized):
 		return
 	selected_build_type = normalized
@@ -57,7 +57,7 @@ func get_build_catalog() -> Array:
 	var catalog: Array = []
 	for building_id_value in _get_building_ui_order():
 		var building_id := str(building_id_value)
-		var data := _get_building_data(building_id)
+		var data: Dictionary = _get_building_data(building_id)
 		catalog.append({
 			"id": building_id,
 			"display_name": _get_building_display_name(building_id),
@@ -69,13 +69,13 @@ func get_build_catalog() -> Array:
 
 func _spawn_building_scene(tile_position: Vector2i, building_type: String) -> void:
 	super._spawn_building_scene(tile_position, building_type)
-	var cell_key := _cell_key(tile_position)
+	var cell_key: String = _cell_key(tile_position)
 	if not building_scene_by_cell.has(cell_key):
 		return
 	var building_node := building_scene_by_cell[cell_key] as Node2D
 	if building_node == null:
 		return
-	var building_data := _get_building_data(building_type)
+	var building_data: Dictionary = _get_building_data(building_type)
 	var glow_value: Variant = building_data.get("glow", {})
 	ContentGlowRuntime.apply_glow(building_node, glow_value if glow_value is Dictionary else {}, 24)
 
@@ -84,7 +84,7 @@ func _install_build_menu() -> void:
 	if build_menu != null and is_instance_valid(build_menu):
 		_refresh_build_menu()
 		return
-	var controller := main
+	var controller: Node = main
 	if controller == null:
 		controller = get_tree().get_first_node_in_group("main")
 	var ui_root: Node = null
@@ -125,11 +125,11 @@ func _on_build_content_reloaded() -> void:
 		var building_node := building_scene_by_cell.get(cell_key) as Node2D
 		if building_node == null:
 			continue
-		var metadata := building_metadata_by_cell.get(cell_key, {})
-		var building_id := str(metadata.get("type", "")) if metadata is Dictionary else ""
+		var metadata_value: Variant = building_metadata_by_cell.get(cell_key, {})
+		var building_id := str(metadata_value.get("type", "")) if metadata_value is Dictionary else ""
 		if building_id.is_empty():
 			continue
-		var data := _get_building_data(building_id)
+		var data: Dictionary = _get_building_data(building_id)
 		var glow_value: Variant = data.get("glow", {})
 		ContentGlowRuntime.apply_glow(building_node, glow_value if glow_value is Dictionary else {}, 24)
 	_refresh_build_menu()
