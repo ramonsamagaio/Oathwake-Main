@@ -1,0 +1,21 @@
+name: Export Content Editor Hotfix Source
+
+on:
+  push:
+    branches:
+      - hotfix/effect-preview-type-cache
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: content-editor-hotfix-source
+          path: tools/content_editor/ContentEditorShaderSuite.gd
+          if-no-files-found: error
