@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" uid="uid://c3wm4u4aeb7c4" path="res://scenes/enemies/Slime.tscn" id="16_slime"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUDStatusUI.tscn" id="17_hud_status"]
 [ext_resource type="PackedScene" path="res://scenes/effects/MapFogOverlay.tscn" id="18_map_fog"]
+[ext_resource type="PackedScene" path="res://scenes/effects/ScreenEffects.tscn" id="19_screen_effects"]
 
 [node name="Game" type="Node2D" unique_id=2133599417]
 script = ExtResource("1_game_script")
@@ -34,6 +35,8 @@ y_sort_enabled = true
 [node name="WorldPostEffects" type="Node" parent="."]
 
 [node name="MapFogOverlay" parent="WorldPostEffects" instance=ExtResource("18_map_fog")]
+
+[node name="ScreenEffects" parent="WorldPostEffects" instance=ExtResource("19_screen_effects")]
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=53977041]
 layer = 10
