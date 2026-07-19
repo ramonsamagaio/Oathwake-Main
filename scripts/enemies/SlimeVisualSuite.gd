@@ -24,6 +24,15 @@ func _ready() -> void:
 	_apply_visual_options()
 
 
+func _get_fallback_visual_nodes() -> Array:
+	var fallback_nodes := super._get_fallback_visual_nodes()
+	# MonsterAnimator hides fallback art whenever an AnimatedSprite2D is active.
+	# The shadow and aura are persistent support visuals, not fallback bodies.
+	fallback_nodes.erase(get_node_or_null("GroundShadow"))
+	fallback_nodes.erase(get_node_or_null("SlimeGlow"))
+	return fallback_nodes
+
+
 func refresh_visual_options() -> void:
 	_apply_visual_options()
 
