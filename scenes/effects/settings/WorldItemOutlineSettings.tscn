@@ -5,4 +5,4 @@
 [node name="WorldItemOutlineSettings" type="Node" unique_id=1217132115]
 script = ExtResource("1_settings_script")
 outline_color = Color(1, 1, 1, 0.9490196)
-outline_size = 0.012
+outline_size = 0.02

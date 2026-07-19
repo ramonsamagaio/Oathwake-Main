@@ -1,92 +1,104 @@
 {
 	"critical_hit": {
+		"bus": "Master",
 		"display_name": "Critical Hit Accent",
-		"stream_paths": [],
-		"volume_db": 0.0,
-		"pitch_min": 0.98,
-		"pitch_max": 1.02,
 		"max_distance": 720.0,
-		"bus": "Master"
+		"pitch_max": 1.2,
+		"pitch_min": 0.8,
+		"stream_paths": [
+			"res://assets/audio/sfx/Batalha/Critico01.mp3"
+		],
+		"volume_db": 0.0
 	},
 	"hit_enemy": {
+		"bus": "Master",
 		"display_name": "Generic Enemy Hit",
-		"stream_paths": [],
-		"volume_db": -1.0,
-		"pitch_min": 0.94,
-		"pitch_max": 1.06,
 		"max_distance": 640.0,
-		"bus": "Master"
+		"pitch_max": 1.1,
+		"pitch_min": 0.85,
+		"stream_paths": [
+			"res://assets/audio/sfx/Batalha/HitDoPlayer1.mp3"
+		],
+		"volume_db": -1.0
 	},
 	"hit_resource": {
+		"bus": "Master",
 		"display_name": "Generic Resource Hit",
-		"stream_paths": [],
-		"volume_db": -2.0,
-		"pitch_min": 0.94,
-		"pitch_max": 1.06,
 		"max_distance": 640.0,
-		"bus": "Master"
+		"pitch_max": 1.06,
+		"pitch_min": 0.94,
+		"stream_paths": [
+			"res://assets/audio/sfx/Batalha/HitDoPlayer2.mp3"
+		],
+		"volume_db": -2.0
 	},
 	"hit_skeleton": {
+		"bus": "Master",
 		"display_name": "Skeleton Hit",
-		"stream_paths": [],
-		"volume_db": -1.0,
-		"pitch_min": 0.94,
-		"pitch_max": 1.06,
 		"max_distance": 640.0,
-		"bus": "Master"
+		"pitch_max": 1.06,
+		"pitch_min": 0.94,
+		"stream_paths": [],
+		"volume_db": -1.0
 	},
 	"hit_slime": {
+		"bus": "Master",
 		"display_name": "Slime Hit",
-		"stream_paths": [],
-		"volume_db": -1.0,
-		"pitch_min": 0.94,
-		"pitch_max": 1.06,
 		"max_distance": 640.0,
-		"bus": "Master"
+		"pitch_max": 1.06,
+		"pitch_min": 0.94,
+		"stream_paths": [],
+		"volume_db": -1.0
 	},
 	"hit_stone": {
+		"bus": "Master",
 		"display_name": "Stone Hit",
-		"stream_paths": [],
-		"volume_db": -1.0,
-		"pitch_min": 0.94,
-		"pitch_max": 1.06,
 		"max_distance": 640.0,
-		"bus": "Master"
+		"pitch_max": 1.06,
+		"pitch_min": 0.94,
+		"stream_paths": [],
+		"volume_db": -1.0
 	},
 	"hit_wood": {
+		"bus": "Master",
 		"display_name": "Wood Hit",
-		"stream_paths": [],
-		"volume_db": -1.0,
-		"pitch_min": 0.94,
-		"pitch_max": 1.06,
 		"max_distance": 640.0,
-		"bus": "Master"
+		"pitch_max": 1.06,
+		"pitch_min": 0.94,
+		"stream_paths": [],
+		"volume_db": -1.0
 	},
 	"player_attack_swing": {
+		"bus": "Master",
 		"display_name": "Player Attack Swing",
-		"stream_paths": [],
-		"volume_db": -2.0,
-		"pitch_min": 0.96,
-		"pitch_max": 1.05,
 		"max_distance": 640.0,
-		"bus": "Master"
+		"pitch_max": 1.2,
+		"pitch_min": 0.8,
+		"stream_paths": [
+			"res://assets/audio/sfx/Batalha/SwordVazio.mp3"
+		],
+		"volume_db": -2.0
 	},
 	"player_dash": {
+		"bus": "Master",
 		"display_name": "Player Dash",
-		"stream_paths": [],
-		"volume_db": -2.0,
-		"pitch_min": 0.98,
-		"pitch_max": 1.03,
 		"max_distance": 640.0,
-		"bus": "Master"
+		"pitch_max": 1.2,
+		"pitch_min": 0.8,
+		"stream_paths": [
+			"res://assets/audio/sfx/Batalha/Dash.mp3"
+		],
+		"volume_db": -2.0
 	},
 	"player_hit": {
+		"bus": "Master",
 		"display_name": "Player Takes Damage",
-		"stream_paths": [],
-		"volume_db": 0.0,
-		"pitch_min": 0.97,
-		"pitch_max": 1.03,
 		"max_distance": 640.0,
-		"bus": "Master"
+		"pitch_max": 0.9,
+		"pitch_min": 0.8,
+		"stream_paths": [
+			"res://assets/audio/sfx/Batalha/HitDoAlvo.mp3"
+		],
+		"volume_db": 0.0
 	}
 }

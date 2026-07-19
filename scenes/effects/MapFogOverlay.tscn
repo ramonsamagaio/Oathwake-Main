@@ -1,9 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/effects/MapFogOverlay.gd" id="1_fog_script"]
 [ext_resource type="Shader" path="res://shaders/map_fog_overlay_2d.gdshader" id="2_fog_shader"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_fog"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_qn07h"]
 resource_local_to_scene = true
 shader = ExtResource("2_fog_shader")
 shader_parameter/enabled = true
@@ -15,20 +15,13 @@ shader_parameter/coverage = 0.48
 shader_parameter/softness = 0.24
 shader_parameter/detail_mix = 0.42
 
-[node name="MapFogOverlay" type="CanvasLayer"]
+[node name="MapFogOverlay" type="CanvasLayer" unique_id=369330018]
 layer = 2
 script = ExtResource("1_fog_script")
-effect_enabled = true
-density = 0.45
-speed = Vector2(0.018, 0.007)
-fog_color = Color(0.62, 0.68, 0.72, 0.18)
-fog_scale = 3.25
-coverage = 0.48
-softness = 0.24
-detail_mix = 0.42
+density = 1.0
 
-[node name="FogRect" type="ColorRect" parent="."]
-material = SubResource("ShaderMaterial_fog")
+[node name="FogRect" type="ColorRect" parent="." unique_id=706969132]
+material = SubResource("ShaderMaterial_qn07h")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
