@@ -1,0 +1,48 @@
+name: Apply Effect Preview Type Hotfix
+
+on:
+  push:
+    branches:
+      - hotfix/effect-preview-type-resolution
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[skip effect-preview-hotfix]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hotfix/effect-preview-type-resolution
+          fetch-depth: 0
+
+      - name: Remove fragile global class type references
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/content_editor/ContentEditorShaderSuite.gd')
+          text = path.read_text(encoding='utf-8')
+          old_decl = 'var effect_preview: EffectPreviewPanel'
+          old_cast = 'effect_preview = EffectPreviewPanelScript.new() as EffectPreviewPanel'
+          assert old_decl in text, 'effect_preview declaration was not found'
+          assert old_cast in text, 'effect_preview cast was not found'
+          text = text.replace(old_decl, 'var effect_preview: SubViewportContainer', 1)
+          text = text.replace(old_cast, 'effect_preview = EffectPreviewPanelScript.new() as SubViewportContainer', 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit patch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/content_editor/ContentEditorShaderSuite.gd
+          if git diff --cached --quiet; then
+            echo "Patch already applied."
+            exit 0
+          fi
+          git commit -m "Fix EffectPreviewPanel type resolution [skip effect-preview-hotfix]"
+          git push origin HEAD:hotfix/effect-preview-type-resolution
