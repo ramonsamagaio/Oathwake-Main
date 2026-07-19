@@ -25,6 +25,15 @@ func _process(delta: float) -> void:
 	_shadow.modulate = Color.WHITE
 
 
+func _try_collect() -> void:
+	var was_collected := collected
+	super._try_collect()
+	if not was_collected and collected:
+		var sfx_manager := get_node_or_null("/root/SFXManager")
+		if sfx_manager != null and sfx_manager.has_method("play_profile"):
+			sfx_manager.play_profile("item_pickup", global_position)
+
+
 func _sync_outline_visual() -> void:
 	super._sync_outline_visual()
 	_configure_drop_shadow()
