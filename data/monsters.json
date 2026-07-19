@@ -3,7 +3,7 @@
 		"attack_cooldown": 1.35,
 		"attack_hit_time": 0.04,
 		"attack_recovery_time": 0.12,
-		"attack_windup_time": 0.10,
+		"attack_windup_time": 0.1,
 		"base_combat": {
 			"attack_cooldown": 1.35,
 			"base_attack": 7,
@@ -34,6 +34,34 @@
 		},
 		"animations": {},
 		"animation_set_id": "",
+		"glow": {
+			"enabled": false,
+			"visual_enabled": true,
+			"visual_mode": "texture",
+			"blend_mode": "additive",
+			"color": "#B8D8FFFF",
+			"intensity": 0.8,
+			"alpha": 0.55,
+			"scale": 0.3,
+			"stretch": {"x": 1.0, "y": 1.0},
+			"offset": {"x": 0.0, "y": -4.0},
+			"flicker_enabled": false,
+			"flicker_amount": 0.05,
+			"flicker_speed": 2.0,
+			"overlay_z": 24,
+			"light_enabled": true,
+			"light_energy": 0.65,
+			"light_scale": 1.4,
+			"day_multiplier": 0.15,
+			"night_multiplier": 1.0
+		},
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.42,
+			"offset": {"x": 0.0, "y": 12.0},
+			"scale": {"x": 0.95, "y": 0.34},
+			"z_index": 0
+		},
 		"loot_table": [
 			{
 				"chance": 1.0,
@@ -47,9 +75,7 @@
 		"sprite_id": "",
 		"xp_reward": 18,
 		"move_speed": 40,
-		"spawn_tiles": [
-			"grass"
-		],
+		"spawn_tiles": ["grass"],
 		"spawn_time_seconds": 25
 	},
 	"slime": {
@@ -88,11 +114,39 @@
 			"land_time": 0.08,
 			"move_speed": 42,
 			"pause_time": 0.18,
-			"prepare_time": 0.10,
-			"recover_time": 0.10
+			"prepare_time": 0.1,
+			"recover_time": 0.1
 		},
 		"animations": {},
 		"animation_set_id": "",
+		"glow": {
+			"enabled": true,
+			"visual_enabled": true,
+			"visual_mode": "texture",
+			"blend_mode": "additive",
+			"color": "#47FF7ACC",
+			"intensity": 1.15,
+			"alpha": 0.58,
+			"scale": 0.3,
+			"stretch": {"x": 1.0, "y": 1.0},
+			"offset": {"x": 0.0, "y": -4.0},
+			"flicker_enabled": true,
+			"flicker_amount": 0.12,
+			"flicker_speed": 2.2,
+			"overlay_z": 24,
+			"light_enabled": true,
+			"light_energy": 0.95,
+			"light_scale": 1.65,
+			"day_multiplier": 0.2,
+			"night_multiplier": 1.0
+		},
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.46,
+			"offset": {"x": 0.0, "y": 11.0},
+			"scale": {"x": 0.92, "y": 0.34},
+			"z_index": 0
+		},
 		"loot_table": [
 			{
 				"chance": 1.0,
@@ -106,9 +160,7 @@
 		"sprite_id": "",
 		"xp_reward": 8,
 		"move_speed": 42,
-		"spawn_tiles": [
-			"grass"
-		],
+		"spawn_tiles": ["grass"],
 		"spawn_time_seconds": 20
 	}
 }
