@@ -32,6 +32,17 @@
 		],
 		"volume_db": -2.0
 	},
+	"item_pickup": {
+		"bus": "Master",
+		"display_name": "Item Pickup",
+		"max_distance": 420.0,
+		"pitch_max": 1.18,
+		"pitch_min": 1.05,
+		"stream_paths": [
+			"res://assets/intro/Start.mp3"
+		],
+		"volume_db": -8.0
+	},
 	"hit_skeleton": {
 		"bus": "Master",
 		"display_name": "Skeleton Hit",
