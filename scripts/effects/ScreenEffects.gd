@@ -100,3 +100,4 @@ func _sync_glow_material() -> void:
 	shader_material.set_shader_parameter("blur_size", float(settings.get("blur_size")))
 	shader_material.set_shader_parameter("blur_subdivisions", int(settings.get("blur_subdivisions")))
 	shader_material.set_shader_parameter("mix_amount", float(settings.get("glow_mix_amount")))
+	shader_material.set_shader_parameter("colored_glow_boost", float(settings.get("colored_glow_boost")))
