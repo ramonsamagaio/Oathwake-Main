@@ -29,7 +29,7 @@ const EFFECT_RECORDS := [
 
 var shader_fields: Dictionary = {}
 var shader_status_label: Label
-var effect_preview: EffectPreviewPanel
+var effect_preview: SubViewportContainer
 var foliage_resource_picker: OptionButton
 var foliage_large_list: ItemList
 var foliage_small_list: ItemList
@@ -646,7 +646,7 @@ func _add_effect_preview(mode_name: String, title_text: String) -> void:
 	var frame := PanelContainer.new()
 	frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	form_container.add_child(frame)
-	effect_preview = EffectPreviewPanelScript.new() as EffectPreviewPanel
+	effect_preview = EffectPreviewPanelScript.new() as SubViewportContainer
 	frame.add_child(effect_preview)
 	effect_preview.setup_mode(mode_name)
 
