@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://scripts/items/WorldItemShaderSuite.gd" id="1_world_item_script"]
+[ext_resource type="Script" path="res://scripts/items/WorldItemFeedbackSuite.gd" id="1_world_item_script"]
 [ext_resource type="Shader" path="res://shaders/world_item_outline.gdshader" id="2_outline_shader"]
 [ext_resource type="PackedScene" path="res://scenes/effects/settings/WorldItemOutlineSettings.tscn" id="3_outline_settings"]
 
@@ -23,10 +23,10 @@ script = ExtResource("1_world_item_script")
 [node name="OutlineSettings" parent="." instance=ExtResource("3_outline_settings")]
 
 [node name="GroundShadow" type="Polygon2D" parent="."]
-z_index = 0
+show_behind_parent = true
+z_index = -1
 position = Vector2(0, 9)
-modulate = Color(1, 1, 1, 0.32)
-color = Color(0, 0, 0, 1)
+color = Color(0.012, 0.009, 0.016, 0.38)
 polygon = PackedVector2Array(-8, 0, -6, -2, -2, -3, 2, -3, 6, -2, 8, 0, 6, 2, 2, 3, -2, 3, -6, 2)
 
 [node name="OutlineSprite" type="Sprite2D" parent="."]
