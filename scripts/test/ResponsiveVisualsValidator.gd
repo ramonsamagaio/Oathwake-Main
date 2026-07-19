@@ -11,7 +11,7 @@ func _run() -> void:
 	_validate_responsive_project_settings()
 	await _validate_slime_visuals()
 	_validate_world_item_shadow_and_pickup()
-	_validate_global_glow()
+	await _validate_global_glow()
 	_validate_pickup_profile()
 
 	if failures.is_empty():
@@ -54,13 +54,13 @@ func _validate_slime_visuals() -> void:
 		failures.append("Slime ground shadow is too far below the sprite.")
 	if glow == null or not glow.visible:
 		failures.append("Slime glow option is not visible in the authored scene.")
-	elif not glow.material is ShaderMaterial:
+	elif not (glow.material is ShaderMaterial):
 		failures.append("Slime glow is missing its local ShaderMaterial.")
 	else:
 		var glow_material := glow.material as ShaderMaterial
 		if glow_material.shader == null or not glow_material.shader.resource_path.ends_with("slime_aura.gdshader"):
 			failures.append("Slime glow still depends on the old screen-reading overlay.")
-	if sprite == null or sprite.z_index <= shadow.z_index:
+	if sprite == null or shadow == null or sprite.z_index <= shadow.z_index:
 		failures.append("Slime sprite must render above its ground shadow.")
 	if not _has_property(slime, "glow_enabled") or not _has_property(slime, "ground_shadow_enabled"):
 		failures.append("Slime glow and shadow controls are not exposed on the scene root.")
@@ -78,7 +78,7 @@ func _validate_world_item_shadow_and_pickup() -> void:
 	var sprite := item.get_node_or_null("Sprite2D") as Sprite2D
 	if shadow == null or shadow.z_index != 0 or shadow.color.a < 0.40:
 		failures.append("Dropped item shadow is not authored above the map floor with visible opacity.")
-	if sprite == null or sprite.z_index <= shadow.z_index:
+	if sprite == null or shadow == null or sprite.z_index <= shadow.z_index:
 		failures.append("Dropped item sprite must remain above its shadow.")
 	if not _has_property(item, "drop_shadow_enabled"):
 		failures.append("Dropped item shadow toggle is not exposed.")
@@ -107,7 +107,7 @@ func _validate_global_glow() -> void:
 		failures.append("Colored Glow Boost is not exposed in screen effect settings.")
 	elif float(settings.get("colored_glow_boost")) <= 0.0:
 		failures.append("Colored Glow Boost is disabled, so dark player colors cannot feed bloom.")
-	if glow_rect == null or not glow_rect.material is ShaderMaterial:
+	if glow_rect == null or not (glow_rect.material is ShaderMaterial):
 		failures.append("Global Gaussian glow material is missing.")
 	else:
 		var material := glow_rect.material as ShaderMaterial
@@ -123,11 +123,11 @@ func _validate_pickup_profile() -> void:
 		failures.append("SFX profile file could not be opened.")
 		return
 	var parsed := JSON.parse_string(file.get_as_text())
-	if not parsed is Dictionary:
+	if not (parsed is Dictionary):
 		failures.append("SFX profile JSON is invalid.")
 		return
 	var profiles := parsed as Dictionary
-	if not profiles.has("item_pickup") or not profiles["item_pickup"] is Dictionary:
+	if not profiles.has("item_pickup") or not (profiles["item_pickup"] is Dictionary):
 		failures.append("item_pickup SFX profile is missing.")
 		return
 	var profile := profiles["item_pickup"] as Dictionary
