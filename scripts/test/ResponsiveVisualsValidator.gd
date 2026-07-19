@@ -122,7 +122,7 @@ func _validate_pickup_profile() -> void:
 	if file == null:
 		failures.append("SFX profile file could not be opened.")
 		return
-	var parsed := JSON.parse_string(file.get_as_text())
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
 	if not (parsed is Dictionary):
 		failures.append("SFX profile JSON is invalid.")
 		return
