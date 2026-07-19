@@ -60,11 +60,11 @@ func _validate_world_item_shadow() -> void:
 		_failures.append("WorldItem GroundShadow is missing.")
 	elif not shadow.show_behind_parent or shadow.z_index >= 0 or shadow.color.a <= 0.0:
 		_failures.append("WorldItem GroundShadow is not configured as a visible behind-item shadow.")
-	item.queue_free()
+	item.free()
 
 
 func _validate_audio_routing() -> void:
-	var manager := get_node_or_null("/root/SFXManager")
+	var manager := root.get_node_or_null("SFXManager")
 	if manager == null:
 		_failures.append("SFXManager autoload is missing.")
 		return
