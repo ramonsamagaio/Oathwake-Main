@@ -79,7 +79,7 @@ offset_top = -240.0
 offset_right = 180.0
 offset_bottom = 240.0
 
-[node name="TitleLabel" type="Label" parent="UI/MonsterSpawnPanel" unique_id=147265225]
+[node name="TitleLabel" type="Label" parent="UI/MonsterSpawnPanel" unique_id=147263225]
 layout_mode = 0
 offset_left = 12.0
 offset_top = 10.0
@@ -87,7 +87,7 @@ offset_right = 178.0
 offset_bottom = 33.0
 text = "Spawn"
 
-[node name="CloseButton" type="Button" parent="UI/MonsterSpawnPanel" unique_id=833840812]
+[node name="CloseButton" type="Button" parent="UI/MonsterSpawnPanel" unique_id=833240812]
 layout_mode = 0
 offset_left = 318.0
 offset_top = 8.0
