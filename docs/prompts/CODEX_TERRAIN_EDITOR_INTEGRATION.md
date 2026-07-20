@@ -81,6 +81,7 @@ Importe o projeto e confirme, sem presumir:
 - todas as referências `res://` estão resolvidas;
 - `OathwakeTerrainLayer.gd` compila como `@tool` e não gera warnings repetitivos indevidos;
 - o shader compila no renderer utilizado pelo projeto;
+- o shader permanece compatível com CanvasModulate, ciclo dia/noite e PointLight2D; não aceite uma solução `unshaded` que deixe o chão luminoso à noite;
 - `terrain_grass_dirt_tileset.tres` possui tile size 64×64;
 - o Terrain Set 0 aparece em modo Match Corners;
 - o terrain `Grass over Dirt` aparece no painel de Terrains;
@@ -131,7 +132,8 @@ Inspecione no editor e ao executar apenas a cena de laboratório:
 - não existem linhas pretas, bleeding entre regiões do atlas, blur ou antialias;
 - a borda mantém leitura de pixel art handmade;
 - mover a camada pelo mundo não faz a textura “grudar na tela”;
-- zoom e iluminação atuais do projeto não exigem alterar a escala `(1, 1)` da camada.
+- zoom e iluminação atuais do projeto não exigem alterar a escala `(1, 1)` da camada;
+- CanvasModulate e PointLight2D alteram o terreno como alteram o restante do mundo, sem apagar a leitura da textura.
 
 Se houver bleeding entre células do atlas, resolva no recurso/import/shader de forma robusta. Não esconda o problema com escala, blur ou margens arbitrárias no mapa.
 

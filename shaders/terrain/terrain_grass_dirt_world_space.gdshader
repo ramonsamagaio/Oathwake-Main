@@ -1,5 +1,4 @@
 shader_type canvas_item;
-render_mode unshaded;
 
 uniform sampler2D grass_texture : source_color, filter_nearest, repeat_disable;
 uniform sampler2D dirt_texture : source_color, filter_nearest, repeat_disable;

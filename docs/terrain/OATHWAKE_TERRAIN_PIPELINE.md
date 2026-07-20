@@ -19,6 +19,7 @@ Isso preserva a técnica reduzida dos vídeos e combina com o padrão que o pró
 3. A repetição das superfícies é espelhada em world-space, evitando costura sem reiniciar a textura a cada tile de 64 pixels.
 4. Um atlas transparente pareado devolve graminhas, musgo e pequenas pedras desenhadas sobre a borda da terra.
 5. O Terrain Connect do Godot escolhe automaticamente uma das 16 combinações de corners.
+6. O shader não usa `unshaded`: CanvasModulate, ciclo dia/noite e PointLight2D continuam podendo afetar o terreno.
 
 O atlas de detalhes não é uma imagem de apresentação. Ele é amostrado pelo shader e é necessário para o visual aprovado.
 
