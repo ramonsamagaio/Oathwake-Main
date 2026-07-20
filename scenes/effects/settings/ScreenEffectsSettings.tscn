@@ -6,7 +6,7 @@
 script = ExtResource("1_settings_script")
 dash_line_color = Color(1, 1, 1, 0.5294118)
 bloom_threshold = 0.25
-bloom_intensity = 5.0
+bloom_intensity = 2.0
 blur_size = 0.0028
 glow_mix_amount = 0.79
 colored_glow_boost = 0.14
