@@ -1,0 +1,20 @@
+{
+  "status": "static-pass",
+  "validated": [
+    "mask and edge-overlay PNG dimensions and RGBA mode",
+    "256x256 grass/dirt dimensions and indexed pixel-art palettes",
+    "mirrored world-space UV continuity is encoded in the shader",
+    "16 dual-grid corner truth table",
+    "handmade edge overlay exists for every transition and is empty for pure grass/dirt",
+    "canonical 4x4 mask and edge-overlay dimensions match",
+    "optional Webtyler 12x4 mask and edge-overlay dimensions match",
+    "all res:// references in new text resources resolve within the staged commit"
+  ],
+  "runtime_validation_required": [
+    "Godot 4.6.x resource import",
+    "shader compilation in the project renderer",
+    "Terrain Connect painting with the 4x4 Match Corners Terrain Set",
+    "saved tile_map_data in TerrainAuthoringLab.tscn"
+  ],
+  "note": "The commit intentionally does not modify Main, Player, Game, project.godot or any autoload."
+}

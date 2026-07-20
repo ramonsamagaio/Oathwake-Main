@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/labs/TerrainTechniqueLab.gd" id="1_script"]
+[ext_resource type="TileSet" path="res://tilesets/terrain/terrain_grass_dirt_tileset.tres" id="2_tileset"]
+[ext_resource type="Material" path="res://materials/terrain/terrain_grass_dirt_material.tres" id="3_material"]
+
+[node name="TerrainTechniqueLab" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_left = -800.0
+offset_top = -450.0
+offset_right = 800.0
+offset_bottom = 450.0
+color = Color(0.04, 0.04, 0.035, 1)
+mouse_filter = 2
+z_index = -100
+
+[node name="DualGridPreview" type="TileMapLayer" parent="."]
+position = Vector2(-512, -320)
+texture_filter = 1
+tile_set = ExtResource("2_tileset")
+material = ExtResource("3_material")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="Label" type="Label" parent="."]
+offset_left = -760.0
+offset_top = -420.0
+offset_right = 760.0
+offset_bottom = -360.0
+text = "OATHWAKE TERRAIN TECHNIQUE LAB · isolated preview, not part of game bootstrap"
+theme_override_font_sizes/font_size = 20
