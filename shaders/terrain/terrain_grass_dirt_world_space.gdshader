@@ -11,9 +11,11 @@ uniform float edge_shadow_strength : hint_range(0.0, 1.0) = 0.40;
 uniform float edge_highlight_strength : hint_range(0.0, 1.0) = 0.08;
 
 varying vec2 world_position;
+varying vec4 vertex_tint;
 
 void vertex() {
     world_position = (MODEL_MATRIX * vec4(VERTEX, 0.0, 1.0)).xy;
+    vertex_tint = COLOR;
 }
 
 vec2 mirrored_world_uv(vec2 world_pixels, vec2 repeat_pixels) {
@@ -40,6 +42,5 @@ void fragment() {
     final_color += tile_data.b * edge_highlight_strength;
     final_color = mix(final_color, detail.rgb, detail.a);
 
-    vec4 tint = COLOR;
-    COLOR = vec4(final_color, tile_data.a) * tint;
+    COLOR = vec4(final_color, 1.0) * vertex_tint;
 }
