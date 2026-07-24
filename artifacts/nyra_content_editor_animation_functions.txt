@@ -1,0 +1,1926 @@
+# lines 127-153
+func _process(delta: float) -> void:
+	if not animation_preview_playing:
+		return
+	if current_section != ContentEditorData.SECTION_ANIMATION_SETS and current_section != ContentEditorData.SECTION_CHARACTERS:
+		return
+
+	var frames: Array = _get_current_preview_frames()
+	if frames.is_empty():
+		return
+
+	var fps: float = max(_get_current_preview_fps(), 0.01)
+	animation_preview_elapsed += delta
+	if animation_preview_elapsed < 1.0 / fps:
+		return
+
+	animation_preview_elapsed = 0.0
+	animation_preview_frame_index += 1
+	if animation_preview_frame_index >= frames.size():
+		if _get_current_preview_loop():
+			animation_preview_frame_index = 0
+		else:
+			animation_preview_frame_index = frames.size() - 1
+			animation_preview_playing = false
+
+	_update_current_preview_frame()
+
+
+
+# lines 365-416
+func _select_section(section: String, force := false) -> void:
+	if not force and has_unsaved_changes:
+		_set_status("Save or Revert before changing section.", true)
+		_sync_sidebar_buttons()
+		return
+
+	current_section = section
+	current_id = ""
+	current_original_id = ""
+	current_record = {}
+	has_unsaved_changes = false
+	selected_drop_item_id = ""
+	drop_item_filter = ""
+	item_resource_damage_rows.clear()
+	selected_workstation_id = ""
+	workstation_filter = ""
+	production_rows.clear()
+	selected_sprite_id = ""
+	sprite_filter = ""
+	selected_sprite_sheet_id = ""
+	sprite_sheet_filter = ""
+	selected_animation_set_id = ""
+	animation_set_filter = ""
+	selected_animation_name = ""
+	active_character_animation_name = ""
+	animation_preview_playing = false
+	if section != ContentEditorData.SECTION_SPRITES:
+		sprite_category_filter = "all"
+
+	is_refreshing_list = true
+	search_line_edit.text = ""
+	is_refreshing_list = false
+
+	section_title_label.text = data_store.get_section_label(current_section)
+	current_file_label.text = "File: %s" % data_store.get_section_path(current_section)
+	_update_sprite_category_filter_visibility()
+	_sync_sidebar_buttons()
+	_refresh_record_list()
+	if current_section == ContentEditorData.SECTION_COMBAT_PREVIEW:
+		_build_combat_preview_form()
+	elif current_section == ContentEditorData.SECTION_PLAYER_TUNING and data_store.has_record(ContentEditorData.SECTION_PLAYER_TUNING, "default"):
+		_load_record("default")
+		return
+	elif current_section == ContentEditorData.SECTION_VFX_PROFILES and data_store.has_record(ContentEditorData.SECTION_VFX_PROFILES, "default"):
+		_load_record("default")
+		return
+	else:
+		_show_empty_form()
+	_update_action_buttons()
+	_set_status("Selected %s" % data_store.get_section_label(current_section))
+
+
+
+# lines 484-496
+func _record_matches_search(record: Dictionary, query: String) -> bool:
+	if query.is_empty():
+		return true
+
+	var record_id := str(record.get("id", "")).to_lower()
+	var display_name := str(record.get("display_name", "")).to_lower()
+	var role := str(record.get("role", "")).to_lower()
+	var category := str(record.get("category", "")).to_lower()
+	var sprite_sheet_id := str(record.get("sprite_sheet_id", "")).to_lower()
+	var tags := _join_string_array(record.get("tags", []), " ").to_lower()
+	return record_id.contains(query) or display_name.contains(query) or role.contains(query) or category.contains(query) or sprite_sheet_id.contains(query) or tags.contains(query)
+
+
+
+# lines 533-558
+func _load_record(record_id: String) -> void:
+	current_original_id = record_id
+	current_id = record_id
+	current_record = data_store.get_record(current_section, record_id)
+	has_unsaved_changes = false
+	selected_drop_item_id = str(current_record.get("drop_item_id", ""))
+	drop_item_filter = ""
+	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
+	workstation_filter = ""
+	selected_sprite_id = str(current_record.get("sprite_id", ""))
+	sprite_filter = ""
+	selected_sprite_sheet_id = str(current_record.get("sprite_sheet_id", ""))
+	sprite_sheet_filter = ""
+	selected_animation_set_id = str(current_record.get("animation_set_id", ""))
+	animation_set_filter = ""
+	selected_animation_name = _get_first_animation_name(current_record)
+	active_character_animation_name = ""
+	animation_preview_playing = false
+	var loaded_production = current_record.get("production", [])
+	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
+
+	_build_form_for_current_record()
+	_update_action_buttons()
+	_set_status("Loaded %s" % record_id)
+
+
+
+# lines 568-608
+func _build_form_for_current_record() -> void:
+	_clear_form()
+	is_building_form = true
+
+	match current_section:
+		ContentEditorData.SECTION_ITEMS:
+			_build_item_form()
+		ContentEditorData.SECTION_RESOURCES:
+			_build_resource_form()
+		ContentEditorData.SECTION_BUILDINGS:
+			_build_building_form()
+		ContentEditorData.SECTION_MONSTERS:
+			_build_monster_form()
+		ContentEditorData.SECTION_RECIPES:
+			_build_recipe_form()
+		ContentEditorData.SECTION_TERRAIN_TYPES:
+			_build_terrain_type_form()
+		ContentEditorData.SECTION_NPCS:
+			_build_npc_form()
+		ContentEditorData.SECTION_SPRITES:
+			_build_sprite_form()
+		ContentEditorData.SECTION_ANIMATION_SETS:
+			_build_animation_set_form()
+		ContentEditorData.SECTION_CHARACTERS:
+			_build_character_form()
+		ContentEditorData.SECTION_TIERS:
+			_build_tier_form()
+		ContentEditorData.SECTION_PLAYER_TUNING:
+			_build_player_tuning_form()
+		ContentEditorData.SECTION_FONT_PROFILES:
+			_build_font_profile_form()
+		ContentEditorData.SECTION_VFX_PROFILES:
+			_build_vfx_profile_form()
+		ContentEditorData.SECTION_COMBAT_PREVIEW:
+			_build_combat_preview_form()
+		_:
+			_build_read_only_preview_form()
+
+	is_building_form = false
+
+
+
+# lines 809-827
+func _build_monster_form() -> void:
+	form_title_label.text = "Monster: %s" % str(current_record.get("id", ""))
+	_add_line_edit("ID", "id", str(current_record.get("id", "")))
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_spin_box("Level", "level", int(current_record.get("level", 1)), 1, 999999, 1)
+	_add_sprite_picker(str(current_record.get("sprite_id", "")))
+	_add_animation_set_picker(str(current_record.get("animation_set_id", "")))
+	_add_spin_box("Max Health", "max_health", int(current_record.get("max_health", 20)), 1, 999999, 1)
+	_add_spin_box("Move Speed", "move_speed", int(current_record.get("move_speed", 40)), 0, 999999, 1)
+	_add_spin_box("Damage", "damage", int(current_record.get("damage", 5)), 0, 999999, 1)
+	_add_float_spin_box("Attack Cooldown", "attack_cooldown", float(current_record.get("attack_cooldown", 1.0)), 0.0, 999999.0, 0.01)
+	_add_spin_box("XP Reward", "xp_reward", int(current_record.get("xp_reward", 0)), 0, 999999, 1)
+	_add_line_edit("Scene Path", "scene_path", str(current_record.get("scene_path", "")))
+	_add_string_option_button("Behavior", "behavior", ["aggressive_contact_chaser", "passive", "stationary"], str(current_record.get("behavior", "aggressive_contact_chaser")))
+	_add_spin_box("Spawn Time Seconds", "spawn_time_seconds", int(current_record.get("spawn_time_seconds", 20)), 0, 999999, 1)
+	_add_line_edit("Spawn Tiles", "spawn_tiles", _join_string_array(current_record.get("spawn_tiles", []), ", "))
+	_add_read_only_value("Loot Table", _stringify_value(current_record.get("loot_table", [])))
+
+
+
+# lines 897-914
+func _build_animation_set_form() -> void:
+	form_title_label.text = "Animation Set: %s" % str(current_record.get("id", ""))
+	_add_line_edit("ID", "id", str(current_record.get("id", "")))
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_sprite_sheet_picker(str(current_record.get("sprite_sheet_id", "")))
+
+	var anchor = current_record.get("anchor", {})
+	if not anchor is Dictionary:
+		anchor = {}
+	_add_spin_box("Anchor X", "anchor_x", int(anchor.get("x", 32)), 0, 999999, 1)
+	_add_spin_box("Anchor Y", "anchor_y", int(anchor.get("y", 44)), 0, 999999, 1)
+
+	_add_animation_list_editor()
+	_add_animation_detail_editor()
+	_add_animation_grid_editor()
+	_add_mapping_helper()
+
+
+
+# lines 915-934
+func _build_character_form() -> void:
+	form_title_label.text = "Character: %s" % str(current_record.get("id", ""))
+	_add_line_edit("ID", "id", str(current_record.get("id", "")))
+	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
+	_add_sprite_sheet_picker(str(current_record.get("sprite_sheet_id", _get_default_sprite_sheet_id())))
+	_add_animation_set_picker(str(current_record.get("animation_set_id", _get_default_character_animation_set_id())))
+
+	var update_button := Button.new()
+	update_button.text = "Create/Update Animation Set From Character"
+	update_button.pressed.connect(_on_create_or_update_character_animation_set_pressed)
+	form_container.add_child(update_button)
+
+	var required_button := Button.new()
+	required_button.text = "Create Required 4-Direction Animations"
+	required_button.pressed.connect(_on_create_required_character_animations_pressed)
+	form_container.add_child(required_button)
+
+	_add_character_animation_setup()
+
+
+
+# lines 1423-1439
+func _add_sprite_sheet_picker(initial_sprite_sheet_id: String) -> void:
+	selected_sprite_sheet_id = initial_sprite_sheet_id
+
+	var search := LineEdit.new()
+	search.placeholder_text = "Search sprite sheet by id, display name, or tag"
+	search.text = sprite_sheet_filter
+	search.text_changed.connect(_on_sprite_sheet_filter_changed)
+	_add_form_row("Sprite Sheet Search", search)
+	field_controls["sprite_sheet_search"] = search
+
+	var option_button := OptionButton.new()
+	option_button.item_selected.connect(_on_sprite_sheet_selected)
+	_add_form_row("Sprite Sheet", option_button)
+	field_controls["sprite_sheet_id"] = option_button
+	_refresh_sprite_sheet_options()
+
+
+
+# lines 1440-1456
+func _add_animation_set_picker(initial_animation_set_id: String) -> void:
+	selected_animation_set_id = initial_animation_set_id
+
+	var search := LineEdit.new()
+	search.placeholder_text = "Search animation set by id or display name"
+	search.text = animation_set_filter
+	search.text_changed.connect(_on_animation_set_filter_changed)
+	_add_form_row("Animation Set Search", search)
+	field_controls["animation_set_search"] = search
+
+	var option_button := OptionButton.new()
+	option_button.item_selected.connect(_on_animation_set_selected)
+	_add_form_row("Animation Set", option_button)
+	field_controls["animation_set_id"] = option_button
+	_refresh_animation_set_options()
+
+
+
+# lines 1523-1567
+func _add_animation_grid_editor() -> void:
+	var sheet_record := _get_selected_sprite_sheet_record()
+	_add_read_only_value("Selected Sheet", _get_sprite_sheet_summary(sheet_record))
+	_add_preview_zoom_option("animation_grid_zoom", _on_animation_grid_zoom_selected)
+
+	animation_grid_preview = SpriteSheetPreviewScript.new()
+	animation_grid_preview.custom_minimum_size = Vector2(320, 320)
+	animation_grid_preview.set_fit_minimum_size(Vector2(320, 320))
+	animation_grid_preview.set_zoom_scale(_get_preview_zoom_scale("animation_grid_zoom"))
+	animation_grid_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	animation_grid_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	animation_grid_preview.frame_clicked.connect(_on_animation_grid_frame_clicked)
+	_add_scrollable_preview_row("Frame Grid", animation_grid_preview)
+	_update_animation_grid_preview()
+
+	animation_preview_rect = TextureRect.new()
+	animation_preview_rect.custom_minimum_size = Vector2(180, 180)
+	animation_preview_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_add_form_row("Animation Preview", animation_preview_rect)
+	_update_animation_preview_frame()
+
+	var row := HBoxContainer.new()
+	form_container.add_child(row)
+
+	var play_button := Button.new()
+	play_button.text = "Play Preview"
+	play_button.pressed.connect(_on_play_animation_preview_pressed)
+	row.add_child(play_button)
+
+	var stop_button := Button.new()
+	stop_button.text = "Stop"
+	stop_button.pressed.connect(_on_stop_animation_preview_pressed)
+	row.add_child(stop_button)
+
+	var previous_button := Button.new()
+	previous_button.text = "Previous Frame"
+	previous_button.pressed.connect(_on_previous_animation_frame_pressed)
+	row.add_child(previous_button)
+
+	var next_button := Button.new()
+	next_button.text = "Next Frame"
+	next_button.pressed.connect(_on_next_animation_frame_pressed)
+	row.add_child(next_button)
+
+
+
+# lines 1608-1641
+func _add_character_animation_setup() -> void:
+	var title := Label.new()
+	title.text = "Character Animation Setup"
+	form_container.add_child(title)
+
+	_add_character_direction_mode_option()
+
+	var validate_button := Button.new()
+	validate_button.text = "Validate Character Animations"
+	validate_button.pressed.connect(_on_validate_character_animations_pressed)
+	form_container.add_child(validate_button)
+
+	_add_character_animation_tools()
+
+	for animation_name in _get_character_animation_slot_names():
+		_add_character_animation_slot(animation_name)
+
+	_add_preview_zoom_option("character_grid_zoom", _on_character_grid_zoom_selected)
+	animation_grid_preview = SpriteSheetPreviewScript.new()
+	animation_grid_preview.custom_minimum_size = Vector2(320, 320)
+	animation_grid_preview.set_fit_minimum_size(Vector2(320, 320))
+	animation_grid_preview.set_zoom_scale(_get_preview_zoom_scale("character_grid_zoom"))
+	animation_grid_preview.frame_clicked.connect(_on_character_grid_frame_clicked)
+	_add_scrollable_preview_row("Character Frame Grid", animation_grid_preview)
+	_update_character_grid_preview()
+
+	animation_preview_rect = TextureRect.new()
+	animation_preview_rect.custom_minimum_size = Vector2(180, 180)
+	animation_preview_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_add_form_row("Character Preview", animation_preview_rect)
+	_update_character_preview_frame()
+	_add_character_preview_controls()
+
+
+
+# lines 2091-2111
+func _add_sprite_type_option_button(initial_type: String) -> void:
+	var option_button := OptionButton.new()
+	var types := [
+		"single_sprite",
+		"sprite_sheet",
+	]
+	var selected_index := 0
+
+	for sprite_type in types:
+		var index := option_button.item_count
+		option_button.add_item(sprite_type)
+		option_button.set_item_metadata(index, sprite_type)
+		if sprite_type == initial_type:
+			selected_index = index
+
+	option_button.select(selected_index)
+	option_button.item_selected.connect(_on_sprite_type_selected)
+	_add_form_row("Type", option_button)
+	field_controls["type"] = option_button
+
+
+
+# lines 2359-2363
+func _on_sprite_sheet_filter_changed(new_text: String) -> void:
+	sprite_sheet_filter = new_text
+	_refresh_sprite_sheet_options()
+
+
+
+# lines 2364-2392
+func _refresh_sprite_sheet_options() -> void:
+	if not field_controls.has("sprite_sheet_id"):
+		return
+
+	var option_button: OptionButton = field_controls["sprite_sheet_id"]
+	option_button.clear()
+
+	var query := sprite_sheet_filter.strip_edges().to_lower()
+	var selected_index := -1
+
+	for sprite_record in data_store.get_records(ContentEditorData.SECTION_SPRITES):
+		if str(sprite_record.get("type", "single_sprite")) != "sprite_sheet":
+			continue
+		if not _sprite_record_matches_search(sprite_record, query):
+			continue
+
+		var sprite_id := str(sprite_record.get("id", ""))
+		if sprite_id == selected_sprite_sheet_id:
+			selected_index = option_button.item_count
+
+		_add_sprite_option(option_button, sprite_record)
+
+	if selected_index >= 0:
+		option_button.select(selected_index)
+	elif option_button.item_count > 0:
+		option_button.select(0)
+		selected_sprite_sheet_id = str(option_button.get_item_metadata(0))
+
+
+
+# lines 2393-2411
+func _on_sprite_sheet_selected(index: int) -> void:
+	if not field_controls.has("sprite_sheet_id"):
+		return
+
+	_sync_animation_detail_to_record()
+	var option_button: OptionButton = field_controls["sprite_sheet_id"]
+	selected_sprite_sheet_id = str(option_button.get_item_metadata(index))
+	if current_section == ContentEditorData.SECTION_CHARACTERS:
+		current_record["sprite_sheet_id"] = selected_sprite_sheet_id
+		_update_character_grid_preview()
+		_update_character_preview_frame()
+		_mark_dirty()
+		return
+
+	_update_animation_grid_preview()
+	_update_animation_preview_frame()
+	_mark_dirty()
+
+
+
+# lines 2412-2416
+func _on_animation_set_filter_changed(new_text: String) -> void:
+	animation_set_filter = new_text
+	_refresh_animation_set_options()
+
+
+
+# lines 2417-2449
+func _refresh_animation_set_options() -> void:
+	if not field_controls.has("animation_set_id"):
+		return
+
+	var option_button: OptionButton = field_controls["animation_set_id"]
+	option_button.clear()
+	var query := animation_set_filter.strip_edges().to_lower()
+	var selected_index := -1
+
+	for animation_set_record in data_store.get_records(ContentEditorData.SECTION_ANIMATION_SETS):
+		if not _record_matches_search(animation_set_record, query):
+			continue
+
+		var animation_set_id := str(animation_set_record.get("id", ""))
+		if animation_set_id == selected_animation_set_id:
+			selected_index = option_button.item_count
+
+		var label := animation_set_id
+		var display_name := str(animation_set_record.get("display_name", ""))
+		if not display_name.is_empty():
+			label = "%s - %s" % [animation_set_id, display_name]
+
+		var index := option_button.item_count
+		option_button.add_item(label)
+		option_button.set_item_metadata(index, animation_set_id)
+
+	if selected_index >= 0:
+		option_button.select(selected_index)
+	elif option_button.item_count > 0:
+		option_button.select(0)
+		selected_animation_set_id = str(option_button.get_item_metadata(0))
+
+
+
+# lines 2450-2461
+func _on_animation_set_selected(index: int) -> void:
+	if not field_controls.has("animation_set_id"):
+		return
+
+	var option_button: OptionButton = field_controls["animation_set_id"]
+	selected_animation_set_id = str(option_button.get_item_metadata(index))
+	current_record["animation_set_id"] = selected_animation_set_id
+	_update_character_grid_preview()
+	_update_character_preview_frame()
+	_mark_dirty()
+
+
+
+# lines 2473-2482
+func _on_add_animation_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var animations := _get_animation_set_animations()
+	var animation_name := _create_unique_animation_name("new_animation")
+	animations[animation_name] = _make_animation_data([], _get_default_animation_fps(animation_name), true)
+	selected_animation_name = animation_name
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+
+# lines 2483-2496
+func _on_duplicate_animation_pressed() -> void:
+	_sync_animation_detail_to_record()
+	if selected_animation_name.is_empty():
+		_set_status("Select an animation before duplicating.", true)
+		return
+
+	var animations := _get_animation_set_animations()
+	var animation_name := _create_unique_animation_name("%s_copy" % selected_animation_name)
+	animations[animation_name] = _get_selected_animation_data().duplicate(true)
+	selected_animation_name = animation_name
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+
+# lines 2497-2508
+func _on_delete_animation_pressed() -> void:
+	_sync_animation_detail_to_record()
+	if selected_animation_name.is_empty():
+		return
+
+	var animations := _get_animation_set_animations()
+	animations.erase(selected_animation_name)
+	selected_animation_name = _get_first_animation_name(current_record)
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+
+# lines 2518-2532
+func _on_create_standard_animations_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var animations := _get_animation_set_animations()
+	for animation_name in _get_standard_character_animation_names():
+		if animations.has(animation_name):
+			continue
+		animations[animation_name] = _make_animation_data([], _get_default_animation_fps(animation_name), _get_default_animation_loop(animation_name))
+
+	if selected_animation_name.is_empty() and not animations.is_empty():
+		selected_animation_name = _get_first_animation_name(current_record)
+
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+
+# lines 2586-2592
+func _on_create_or_update_character_animation_set_pressed() -> void:
+	_ensure_character_animation_set()
+	_build_form_for_current_record()
+	_mark_dirty()
+	_set_status("Animation set ready for character.")
+
+
+
+# lines 2593-2609
+func _on_create_required_character_animations_pressed() -> void:
+	_ensure_character_animation_set()
+	var animations := _get_character_animation_set_animations()
+	for animation_name in _get_character_animation_slot_names():
+		if animations.has(animation_name):
+			continue
+
+		_set_character_animation_data(animation_name, _make_character_animation_data(animation_name, []))
+
+	if active_character_animation_name.is_empty():
+		active_character_animation_name = "idle_down"
+
+	_build_form_for_current_record()
+	_mark_dirty()
+	_set_status("Created missing character animation slots.")
+
+
+
+# lines 2645-2656
+func _on_reset_character_fps_defaults_pressed() -> void:
+	_ensure_character_animation_set()
+	for animation_name in _get_character_animation_slot_names():
+		var animation_data := _get_character_animation_data(animation_name)
+		animation_data["fps"] = _get_default_animation_fps(animation_name)
+		_set_character_animation_data(animation_name, animation_data)
+
+	_build_form_for_current_record()
+	_mark_dirty()
+	_set_status("Reset character FPS defaults.")
+
+
+
+# lines 2657-2668
+func _on_reset_character_frame_count_defaults_pressed() -> void:
+	_ensure_character_animation_set()
+	for animation_name in _get_character_animation_slot_names():
+		var animation_data := _get_character_animation_data(animation_name)
+		animation_data["frame_count"] = _get_default_character_frame_count(animation_name)
+		_set_character_animation_data(animation_name, animation_data)
+
+	_build_form_for_current_record()
+	_mark_dirty()
+	_set_status("Reset character frame count defaults.")
+
+
+
+# lines 2684-2705
+func _on_add_character_row_frames_pressed() -> void:
+	if active_character_animation_name.is_empty():
+		_set_status("Select a target animation first.", true)
+		return
+
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var columns := int(sheet_record.get("columns", 0))
+	if columns < 1:
+		_set_status("Sprite Sheet columns must be valid.", true)
+		return
+
+	var row_index := _get_spin_box_int("character_row_index")
+	var start_column := _get_spin_box_int("character_row_start_column")
+	var end_column := _get_spin_box_int("character_row_end_column")
+	var frames := []
+	for column in range(min(start_column, end_column), max(start_column, end_column) + 1):
+		frames.append((row_index * columns) + column)
+
+	_apply_character_frames_to_active(frames)
+	_set_status("Added row frames to %s." % active_character_animation_name)
+
+
+
+# lines 2728-2737
+func _on_clear_character_animation_pressed(animation_name: String) -> void:
+	_ensure_character_animation_set()
+	var animation_data := _get_character_animation_data(animation_name)
+	animation_data["frames"] = []
+	_set_character_animation_data(animation_name, animation_data)
+	active_character_animation_name = animation_name
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+
+# lines 2746-2756
+func _on_character_slot_spin_value_changed(new_value: float, animation_name: String, property_name: String) -> void:
+	_ensure_character_animation_set()
+	var animation_data := _get_character_animation_data(animation_name)
+	animation_data[property_name] = int(new_value)
+	_set_character_animation_data(animation_name, animation_data)
+	active_character_animation_name = animation_name
+	_update_character_grid_preview()
+	_update_character_preview_frame()
+	_mark_dirty()
+
+
+
+# lines 2757-2765
+func _on_character_slot_loop_changed(is_pressed: bool, animation_name: String) -> void:
+	_ensure_character_animation_set()
+	var animation_data := _get_character_animation_data(animation_name)
+	animation_data["loop"] = is_pressed
+	_set_character_animation_data(animation_name, animation_data)
+	active_character_animation_name = animation_name
+	_mark_dirty()
+
+
+
+# lines 2924-2953
+func _on_character_grid_frame_clicked(frame_index: int, mouse_button: int) -> void:
+	if active_character_animation_name.is_empty():
+		_set_status("Click Select Frames on an animation slot first.", true)
+		return
+
+	_ensure_character_animation_set()
+	var animation_data := _get_character_animation_data(active_character_animation_name)
+	var frames = animation_data.get("frames", [])
+	if not frames is Array:
+		frames = []
+
+	if mouse_button == MOUSE_BUTTON_RIGHT:
+		for index in range(frames.size() - 1, -1, -1):
+			if int(frames[index]) == frame_index:
+				frames.remove_at(index)
+				break
+	else:
+		var frame_count := int(animation_data.get("frame_count", _get_default_character_frame_count(active_character_animation_name)))
+		if frames.size() >= frame_count:
+			_set_status("%s already has %d frames. Increase Frame Count or clear frames first." % [active_character_animation_name, frame_count], true)
+			return
+
+		frames.append(frame_index)
+
+	animation_data["frames"] = frames
+	_set_character_animation_data(active_character_animation_name, animation_data)
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+
+# lines 3034-3052
+func _on_helper_add_row_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var columns := int(sheet_record.get("columns", 0))
+	var rows := int(sheet_record.get("rows", 0))
+	var row := _get_spin_box_int("helper_row")
+	var start_column := _get_spin_box_int("helper_start_column")
+	var end_column := _get_spin_box_int("helper_end_column")
+	if row < 0 or row >= rows or start_column < 0 or end_column >= columns or start_column > end_column:
+		_set_status("Row helper values are outside the selected sprite sheet grid.", true)
+		return
+
+	var frames := []
+	for column in range(start_column, end_column + 1):
+		frames.append((row * columns) + column)
+
+	_apply_helper_frames(frames)
+
+
+
+# lines 3053-3071
+func _on_helper_add_column_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var columns := int(sheet_record.get("columns", 0))
+	var rows := int(sheet_record.get("rows", 0))
+	var column := _get_spin_box_int("helper_column")
+	var start_row := _get_spin_box_int("helper_start_row")
+	var end_row := _get_spin_box_int("helper_end_row")
+	if column < 0 or column >= columns or start_row < 0 or end_row >= rows or start_row > end_row:
+		_set_status("Column helper values are outside the selected sprite sheet grid.", true)
+		return
+
+	var frames := []
+	for row in range(start_row, end_row + 1):
+		frames.append((row * columns) + column)
+
+	_apply_helper_frames(frames)
+
+
+
+# lines 3072-3088
+func _on_helper_add_range_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var total_frames := int(sheet_record.get("total_frames", 0))
+	var start_frame := _get_spin_box_int("helper_start_frame")
+	var end_frame := _get_spin_box_int("helper_end_frame")
+	if start_frame < 0 or end_frame >= total_frames or start_frame > end_frame:
+		_set_status("Range helper values are outside the selected sprite sheet frames.", true)
+		return
+
+	var frames := []
+	for frame_index in range(start_frame, end_frame + 1):
+		frames.append(frame_index)
+
+	_apply_helper_frames(frames)
+
+
+
+# lines 3089-3110
+func _on_helper_duplicate_direction_pressed() -> void:
+	_sync_animation_detail_to_record()
+	var source_animation := _get_option_button_metadata("copy_source_animation")
+	var destination_animation := _get_line_edit_text("helper_animation_name")
+	if source_animation.is_empty() or destination_animation.is_empty():
+		_set_status("Choose a source animation and destination name before duplicating.", true)
+		return
+
+	var animations := _get_animation_set_animations()
+	if not animations.has(source_animation):
+		_set_status("Source animation does not exist.", true)
+		return
+
+	var source_data: Dictionary = animations[source_animation]
+	var frames := []
+	var source_frames = source_data.get("frames", [])
+	if source_frames is Array:
+		frames = source_frames.duplicate()
+
+	_apply_helper_frames(frames, destination_animation, int(source_data.get("fps", 8)), bool(source_data.get("loop", true)))
+
+
+
+# lines 3118-3134
+func _on_texture_file_selected(path: String) -> void:
+	_set_line_edit_text("texture_path", path)
+	if current_section == ContentEditorData.SECTION_SPRITES:
+		var preview_record := current_record.duplicate(true)
+		preview_record["texture_path"] = path
+		preview_record["type"] = _get_option_button_metadata("type")
+		preview_record["frame_width"] = _get_spin_box_int("frame_w")
+		preview_record["frame_height"] = _get_spin_box_int("frame_h")
+		preview_record["columns"] = _get_spin_box_int("columns")
+		preview_record["rows"] = _get_spin_box_int("rows")
+		if str(preview_record.get("type", "single_sprite")) == "sprite_sheet":
+			_set_sprite_sheet_preview(preview_record)
+		else:
+			_set_texture_preview(sprite_preview_rect, preview_record)
+	_mark_dirty()
+
+
+
+# lines 3145-3189
+func _on_detect_grid_pressed() -> void:
+	var texture_path := _get_line_edit_text("texture_path")
+	if texture_path.is_empty():
+		_set_status("Choose a Texture Path before detecting a sprite sheet grid.", true)
+		return
+
+	var texture := _load_texture(texture_path)
+	if texture == null:
+		_set_status("Texture Path must point to a valid Texture2D.", true)
+		return
+
+	var frame_width := _get_spin_box_int("frame_w")
+	var frame_height := _get_spin_box_int("frame_h")
+	if frame_width < 1 or frame_height < 1:
+		_set_status("Frame Width and Frame Height must be greater than zero.", true)
+		return
+
+	var texture_size := texture.get_size()
+	var texture_width := int(texture_size.x)
+	var texture_height := int(texture_size.y)
+	if texture_width % frame_width != 0:
+		_set_status("Texture width %d is not divisible by Frame Width %d." % [texture_width, frame_width], true)
+		return
+	if texture_height % frame_height != 0:
+		_set_status("Texture height %d is not divisible by Frame Height %d." % [texture_height, frame_height], true)
+		return
+
+	var columns := int(texture_width / frame_width)
+	var rows := int(texture_height / frame_height)
+	var total_frames := columns * rows
+	_set_spin_box_value("columns", columns)
+	_set_spin_box_value("rows", rows)
+	_set_spin_box_value("total_frames", total_frames)
+	_set_option_button_by_metadata("type", "sprite_sheet")
+
+	var preview_record := _get_sprite_form_record()
+	if sprite_sheet_preview == null:
+		current_record = preview_record
+		_build_form_for_current_record()
+		preview_record = _get_sprite_form_record()
+	_set_sprite_sheet_preview(preview_record)
+	_mark_dirty()
+	_set_status("Detected grid: %d columns, %d rows, %d frames." % [columns, rows, total_frames])
+
+
+
+# lines 3190-3196
+func _on_sheet_preview_zoom_selected(_index: int) -> void:
+	if sprite_sheet_preview == null:
+		return
+
+	sprite_sheet_preview.set_zoom_scale(_get_preview_zoom_scale("sheet_preview_zoom"))
+
+
+
+# lines 3224-3245
+func _add_sprite_preview_for_record(sprite_record: Dictionary) -> void:
+	var sprite_type := str(sprite_record.get("type", "single_sprite"))
+	if sprite_type == "sprite_sheet":
+		sprite_preview_rect = null
+		sprite_sheet_preview = SpriteSheetPreviewScript.new()
+		sprite_sheet_preview.custom_minimum_size = Vector2(320, 320)
+		sprite_sheet_preview.set_fit_minimum_size(Vector2(320, 320))
+		sprite_sheet_preview.set_zoom_scale(_get_preview_zoom_scale("sheet_preview_zoom"))
+		sprite_sheet_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sprite_sheet_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_add_scrollable_preview_row("Sheet Preview", sprite_sheet_preview)
+		_set_sprite_sheet_preview(sprite_record)
+		return
+
+	sprite_sheet_preview = null
+	sprite_preview_rect = TextureRect.new()
+	sprite_preview_rect.custom_minimum_size = Vector2(96, 96)
+	sprite_preview_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_add_form_row("Preview", sprite_preview_rect)
+	_set_texture_preview(sprite_preview_rect, sprite_record)
+
+
+
+# lines 3274-3302
+func _set_sprite_sheet_preview(sprite_record: Dictionary) -> void:
+	if sprite_sheet_preview == null:
+		return
+
+	var texture_path := str(sprite_record.get("texture_path", ""))
+	var texture := _load_texture(texture_path)
+	if texture == null:
+		sprite_sheet_preview.clear_preview()
+		return
+
+	var columns := int(sprite_record.get("columns", 0))
+	var rows := int(sprite_record.get("rows", 0))
+	if columns < 1 or rows < 1:
+		var frame_width := int(sprite_record.get("frame_width", 0))
+		var frame_height := int(sprite_record.get("frame_height", 0))
+		if frame_width < 1 or frame_height < 1:
+			var frame_size = sprite_record.get("frame_size", {})
+			if frame_size is Dictionary:
+				frame_width = int(frame_size.get("w", 0))
+				frame_height = int(frame_size.get("h", 0))
+
+		var texture_size := texture.get_size()
+		if frame_width > 0 and frame_height > 0:
+			columns = int(int(texture_size.x) / frame_width)
+			rows = int(int(texture_size.y) / frame_height)
+
+	sprite_sheet_preview.set_preview_data(texture, columns, rows)
+
+
+
+# lines 3793-3822
+func _on_new_pressed() -> void:
+	if has_unsaved_changes:
+		_set_status("Save or Revert before creating a new record.", true)
+		return
+
+	match current_section:
+		ContentEditorData.SECTION_ITEMS:
+			_create_new_item()
+		ContentEditorData.SECTION_RESOURCES:
+			_create_new_resource()
+		ContentEditorData.SECTION_MONSTERS:
+			_create_new_monster()
+		ContentEditorData.SECTION_RECIPES:
+			_create_new_recipe()
+		ContentEditorData.SECTION_TERRAIN_TYPES:
+			_create_new_terrain_type()
+		ContentEditorData.SECTION_NPCS:
+			_create_new_npc()
+		ContentEditorData.SECTION_SPRITES:
+			_create_new_sprite()
+		ContentEditorData.SECTION_ANIMATION_SETS:
+			_create_new_animation_set()
+		ContentEditorData.SECTION_CHARACTERS:
+			_create_new_character()
+		ContentEditorData.SECTION_TIERS:
+			_create_new_tier()
+		_:
+			_set_status("New is available for visual content sections.", true)
+
+
+
+# lines 3979-4001
+func _create_new_animation_set() -> void:
+	var new_id := data_store.create_unique_id(ContentEditorData.SECTION_ANIMATION_SETS, "new_animation_set")
+	current_id = new_id
+	current_original_id = ""
+	current_record = {
+		"id": new_id,
+		"display_name": "New Animation Set",
+		"sprite_sheet_id": _get_default_sprite_sheet_id(),
+		"anchor": {
+			"x": 32,
+			"y": 44,
+		},
+		"animations": {},
+	}
+	selected_sprite_sheet_id = str(current_record.get("sprite_sheet_id", ""))
+	selected_animation_name = ""
+	has_unsaved_changes = true
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_set_status("Created new unsaved animation set.")
+
+
+
+# lines 4002-4021
+func _create_new_character() -> void:
+	var new_id := data_store.create_unique_id(ContentEditorData.SECTION_CHARACTERS, "new_character")
+	current_id = new_id
+	current_original_id = ""
+	current_record = {
+		"id": new_id,
+		"display_name": "New Character",
+		"sprite_sheet_id": _get_default_sprite_sheet_id(),
+		"animation_set_id": "",
+	}
+	selected_sprite_sheet_id = str(current_record.get("sprite_sheet_id", ""))
+	selected_animation_set_id = ""
+	active_character_animation_name = ""
+	has_unsaved_changes = true
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_set_status("Created new unsaved character.")
+
+
+
+# lines 4045-4078
+func _on_duplicate_pressed() -> void:
+	if has_unsaved_changes:
+		_set_status("Save or Revert before duplicating a record.", true)
+		return
+
+	if current_original_id.is_empty():
+		_set_status("Select a record to duplicate.", true)
+		return
+
+	match current_section:
+		ContentEditorData.SECTION_ITEMS:
+			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_RESOURCES:
+			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_MONSTERS:
+			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_RECIPES:
+			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_TERRAIN_TYPES:
+			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_NPCS:
+			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_SPRITES:
+			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_ANIMATION_SETS:
+			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_CHARACTERS:
+			_duplicate_current_record("_copy")
+		ContentEditorData.SECTION_TIERS:
+			_duplicate_current_record("_copy")
+		_:
+			_set_status("Duplicate is available for visual content sections.", true)
+
+
+
+# lines 4079-4107
+func _duplicate_current_record(suffix: String) -> void:
+	var source_record := data_store.get_record(current_section, current_original_id)
+	if source_record.is_empty():
+		_set_status("Could not duplicate missing record.", true)
+		return
+
+	var new_id := data_store.create_unique_id(current_section, "%s%s" % [current_original_id, suffix])
+	source_record["id"] = new_id
+	source_record["display_name"] = "%s Copy" % str(source_record.get("display_name", current_original_id))
+
+	current_id = new_id
+	current_original_id = ""
+	current_record = source_record
+	has_unsaved_changes = true
+	selected_drop_item_id = str(current_record.get("drop_item_id", ""))
+	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
+	selected_sprite_id = str(current_record.get("sprite_id", ""))
+	selected_sprite_sheet_id = str(current_record.get("sprite_sheet_id", ""))
+	selected_animation_name = _get_first_animation_name(current_record)
+	selected_animation_set_id = str(current_record.get("animation_set_id", ""))
+	active_character_animation_name = ""
+	var loaded_production = current_record.get("production", [])
+	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_set_status("Duplicated record. Click Save to write it.")
+
+
+
+# lines 4108-4149
+func _on_delete_pressed() -> void:
+	if current_id.is_empty():
+		_set_status("Select a record to delete.", true)
+		return
+
+	if has_unsaved_changes:
+		if current_original_id.is_empty():
+			_discard_unsaved_new_record()
+			return
+
+		_set_status("Save or Revert before deleting this record.", true)
+		return
+
+	match current_section:
+		ContentEditorData.SECTION_ITEMS:
+			_delete_current_item()
+		ContentEditorData.SECTION_RESOURCES:
+			_set_status("Resource delete is blocked for now to avoid breaking scene references.", true)
+		ContentEditorData.SECTION_MONSTERS:
+			_delete_current_monster()
+		ContentEditorData.SECTION_RECIPES:
+			_delete_current_recipe()
+		ContentEditorData.SECTION_TERRAIN_TYPES:
+			_delete_current_terrain_type()
+		ContentEditorData.SECTION_NPCS:
+			_delete_current_npc()
+		ContentEditorData.SECTION_SPRITES:
+			_delete_current_sprite()
+		ContentEditorData.SECTION_ANIMATION_SETS:
+			_delete_current_animation_set()
+		ContentEditorData.SECTION_CHARACTERS:
+			_delete_current_character()
+		ContentEditorData.SECTION_TIERS:
+			_set_status("Tier delete is blocked for now to preserve the Early Access progression.", true)
+		ContentEditorData.SECTION_PLAYER_TUNING:
+			_set_status("Player Tuning keeps a single default record.", true)
+		ContentEditorData.SECTION_FONT_PROFILES:
+			_set_status("Core font profiles should be edited, not deleted.", true)
+		_:
+			_set_status("Delete is available for visual content sections.", true)
+
+
+
+# lines 4284-4307
+func _delete_current_animation_set() -> void:
+	var usages := data_store.find_animation_set_usages(current_original_id)
+	if not usages.is_empty():
+		_set_status("Cannot delete animation set. It is used by: %s" % _join_strings(usages, ", "), true)
+		return
+
+	data_store.delete_record(current_section, current_original_id)
+	var error := data_store.save_section(current_section)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_reload_content_db()
+	current_id = ""
+	current_original_id = ""
+	current_record = {}
+	has_unsaved_changes = false
+	selected_animation_name = ""
+	_refresh_record_list()
+	_show_empty_form()
+	_update_action_buttons()
+	_set_status("Deleted animation set.")
+
+
+
+# lines 4327-4364
+func _on_save_pressed() -> void:
+	if current_record.is_empty():
+		_set_status("Select or create a record before saving.", true)
+		return
+
+	match current_section:
+		ContentEditorData.SECTION_ITEMS:
+			_save_item()
+		ContentEditorData.SECTION_RESOURCES:
+			_save_resource()
+		ContentEditorData.SECTION_BUILDINGS:
+			_save_building()
+		ContentEditorData.SECTION_MONSTERS:
+			_save_monster()
+		ContentEditorData.SECTION_RECIPES:
+			_save_recipe()
+		ContentEditorData.SECTION_TERRAIN_TYPES:
+			_save_terrain_type()
+		ContentEditorData.SECTION_NPCS:
+			_save_npc()
+		ContentEditorData.SECTION_SPRITES:
+			_save_sprite()
+		ContentEditorData.SECTION_ANIMATION_SETS:
+			_save_animation_set()
+		ContentEditorData.SECTION_CHARACTERS:
+			_save_character()
+		ContentEditorData.SECTION_TIERS:
+			_save_tier()
+		ContentEditorData.SECTION_PLAYER_TUNING:
+			_save_player_tuning()
+		ContentEditorData.SECTION_FONT_PROFILES:
+			_save_font_profile()
+		ContentEditorData.SECTION_VFX_PROFILES:
+			_save_vfx_profile()
+		_:
+			_set_status("Visual saving for this section will come in a later step.", true)
+
+
+
+# lines 4477-4491
+func _save_animation_set() -> void:
+	_sync_animation_detail_to_record()
+	var record := _get_animation_set_form_record()
+	var record_id := data_store.sanitize_id(str(record.get("id", "")))
+	record["id"] = record_id
+	_set_line_edit_text("id", record_id)
+
+	var error := data_store.validate_animation_set(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
+
+# lines 4492-4511
+func _save_character() -> void:
+	_ensure_character_animation_set()
+	var record := _get_character_form_record()
+	var record_id := data_store.sanitize_id(str(record.get("id", "")))
+	record["id"] = record_id
+	_set_line_edit_text("id", record_id)
+
+	var error := data_store.validate_character(record_id, current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	var animation_save_error := data_store.save_section(ContentEditorData.SECTION_ANIMATION_SETS)
+	if not animation_save_error.is_empty():
+		_set_status(animation_save_error, true)
+		return
+
+	_save_current_record(record_id, record)
+
+
+
+# lines 4568-4596
+func _save_current_record(record_id: String, record: Dictionary) -> void:
+	_cleanup_optional_fields(record)
+	data_store.set_record(current_section, current_original_id, record_id, record)
+
+	var error := data_store.save_section(current_section)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_reload_content_db()
+	current_id = record_id
+	current_original_id = record_id
+	current_record = data_store.get_record(current_section, record_id)
+	has_unsaved_changes = false
+	selected_drop_item_id = str(current_record.get("drop_item_id", ""))
+	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
+	selected_sprite_id = str(current_record.get("sprite_id", ""))
+	selected_sprite_sheet_id = str(current_record.get("sprite_sheet_id", ""))
+	selected_animation_name = _get_first_animation_name(current_record)
+	selected_animation_set_id = str(current_record.get("animation_set_id", ""))
+	active_character_animation_name = ""
+	var loaded_production = current_record.get("production", [])
+	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_set_status("Saved %s. ContentDB refreshed." % record_id)
+
+
+
+# lines 4597-4633
+func _on_revert_pressed() -> void:
+	if current_record.is_empty():
+		return
+
+	if current_original_id.is_empty():
+		_discard_unsaved_new_record()
+		return
+
+	var error := data_store.load_all()
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	current_id = current_original_id
+	current_record = data_store.get_record(current_section, current_original_id)
+	has_unsaved_changes = false
+	selected_drop_item_id = str(current_record.get("drop_item_id", ""))
+	drop_item_filter = ""
+	selected_workstation_id = str(current_record.get("preferred_workstation", ""))
+	workstation_filter = ""
+	selected_sprite_id = str(current_record.get("sprite_id", ""))
+	sprite_filter = ""
+	selected_sprite_sheet_id = str(current_record.get("sprite_sheet_id", ""))
+	sprite_sheet_filter = ""
+	selected_animation_set_id = str(current_record.get("animation_set_id", ""))
+	animation_set_filter = ""
+	active_character_animation_name = ""
+	selected_animation_name = _get_first_animation_name(current_record)
+	animation_preview_playing = false
+	var loaded_production = current_record.get("production", [])
+	production_rows = loaded_production.duplicate(true) if loaded_production is Array else []
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_set_status("Reverted %s." % current_id)
+
+
+
+# lines 4659-4683
+func _discard_unsaved_new_record() -> void:
+	current_id = ""
+	current_original_id = ""
+	current_record = {}
+	has_unsaved_changes = false
+	selected_drop_item_id = ""
+	drop_item_filter = ""
+	selected_workstation_id = ""
+	workstation_filter = ""
+	selected_sprite_id = ""
+	sprite_filter = ""
+	selected_sprite_sheet_id = ""
+	sprite_sheet_filter = ""
+	selected_animation_set_id = ""
+	animation_set_filter = ""
+	selected_animation_name = ""
+	active_character_animation_name = ""
+	animation_preview_playing = false
+	production_rows.clear()
+	_refresh_record_list()
+	_show_empty_form()
+	_update_action_buttons()
+	_set_status("Discarded unsaved record.")
+
+
+
+# lines 4684-4750
+func _get_item_form_record() -> Dictionary:
+	var record := current_record.duplicate(true)
+	record["id"] = _get_line_edit_text("id")
+	record["display_name"] = _get_line_edit_text("display_name")
+	record["description"] = _get_text_edit_text("description")
+	record["stack_size"] = _get_spin_box_int("stack_size")
+	record["sprite_id"] = selected_sprite_id
+	record["animation_set_id"] = selected_animation_set_id
+	record["item_type"] = _get_option_button_metadata("item_type")
+	record["tier"] = _get_spin_box_int("tier")
+	record["material_family"] = _get_option_button_metadata("material_family")
+	record["tags"] = _parse_tags(_get_line_edit_text("tags"))
+
+	var item_type := str(record.get("item_type", "material"))
+	var is_equippable := item_type == "weapon" or item_type == "tool" or item_type == "armor" or item_type == "accessory"
+
+	if is_equippable:
+		record["equipment_slot"] = _get_option_button_metadata("equipment_slot")
+		record["stats_bonus"] = _get_equipment_stats_bonus_record()
+
+	if item_type == "weapon" or item_type == "tool":
+		record["tool_type"] = _get_option_button_metadata("tool_type")
+		record["tool_tier"] = _get_spin_box_int("tool_tier")
+		record["tool_damage"] = _get_spin_box_int("tool_damage")
+		record["tool_speed"] = _get_spin_box_value("tool_speed")
+		record["durability"] = _get_spin_box_int("durability")
+		record["repair_cost_multiplier"] = _get_spin_box_value("repair_cost_multiplier")
+		record["can_repair"] = _get_check_box_pressed("can_repair")
+		record["crit_chance"] = _get_spin_box_value("crit_chance")
+		record["crit_power"] = _get_spin_box_value("crit_power")
+		var combat: Dictionary = _get_record_dictionary(record, "combat")
+		combat["attack_power"] = _get_spin_box_int("combat_attack_power")
+		combat["attack_variance"] = _get_spin_box_value("combat_attack_variance")
+		combat["damage_type"] = _get_option_button_metadata("combat_damage_type")
+		combat["crit_chance_bonus"] = _get_spin_box_value("combat_crit_chance_bonus")
+		combat["crit_damage_bonus"] = _get_spin_box_value("combat_crit_damage_bonus")
+		combat["attack_cooldown_modifier"] = _get_spin_box_value("combat_attack_cooldown_modifier")
+		combat["can_hit_monsters"] = _get_check_box_pressed("combat_can_hit_monsters")
+		combat["can_hit_resources"] = _get_check_box_pressed("combat_can_hit_resources")
+		combat["stat_scaling"] = _get_item_stat_scaling_record()
+		if item_type == "tool":
+			combat["resource_damage"] = _get_resource_damage_record()
+		record["combat"] = combat
+
+	if item_type == "armor":
+		record["defense"] = _get_spin_box_int("defense")
+		record["magic_defense"] = _get_spin_box_int("magic_defense")
+		record["max_hp_bonus"] = _get_spin_box_int("max_hp_bonus")
+		record["flee_bonus"] = _get_spin_box_int("flee_bonus")
+		record["hit_bonus"] = _get_spin_box_int("hit_bonus")
+		record["durability"] = _get_spin_box_int("durability")
+		record["repair_cost_multiplier"] = _get_spin_box_value("armor_repair_cost_multiplier")
+		record["can_repair"] = _get_check_box_pressed("armor_can_repair")
+
+	if item_type == "accessory":
+		record["crit_chance_bonus"] = _get_spin_box_value("accessory_crit_chance")
+		record["crit_damage_bonus"] = _get_spin_box_value("accessory_crit_damage")
+		record["hit_bonus"] = _get_spin_box_int("acc_hit_bonus")
+		record["flee_bonus"] = _get_spin_box_int("acc_flee_bonus")
+		record["max_hp_bonus"] = _get_spin_box_int("acc_max_hp_bonus")
+		record["durability"] = _get_spin_box_int("acc_durability")
+		record["repair_cost_multiplier"] = _get_spin_box_value("acc_repair_cost_multiplier")
+		record["can_repair"] = _get_check_box_pressed("acc_can_repair")
+
+	return record
+
+
+
+# lines 4833-4853
+func _get_monster_form_record() -> Dictionary:
+	var record := current_record.duplicate(true)
+	record["id"] = _get_line_edit_text("id")
+	record["display_name"] = _get_line_edit_text("display_name")
+	record["level"] = _get_spin_box_int("level")
+	record["sprite_id"] = selected_sprite_id
+	record["animation_set_id"] = selected_animation_set_id
+	record["max_health"] = _get_spin_box_int("max_health")
+	record["move_speed"] = _get_spin_box_int("move_speed")
+	record["damage"] = _get_spin_box_int("damage")
+	record["attack_cooldown"] = _get_spin_box_value("attack_cooldown")
+	record["xp_reward"] = _get_spin_box_int("xp_reward")
+	record["scene_path"] = _get_line_edit_text("scene_path")
+	record["behavior"] = _get_option_button_metadata("behavior")
+	record["spawn_time_seconds"] = _get_spin_box_int("spawn_time_seconds")
+	record["spawn_tiles"] = _parse_tags(_get_line_edit_text("spawn_tiles"))
+	if not record.has("loot_table"):
+		record["loot_table"] = []
+	return record
+
+
+
+# lines 4925-4938
+func _get_animation_set_form_record() -> Dictionary:
+	return {
+		"id": _get_line_edit_text("id"),
+		"display_name": _get_line_edit_text("display_name"),
+		"sprite_sheet_id": selected_sprite_sheet_id,
+		"anchor": {
+			"x": _get_spin_box_int("anchor_x"),
+			"y": _get_spin_box_int("anchor_y"),
+		},
+		"direction_mode": str(current_record.get("direction_mode", "4dir")),
+		"animations": _get_animation_set_animations().duplicate(true),
+	}
+
+
+
+# lines 4939-4947
+func _get_character_form_record() -> Dictionary:
+	var record := current_record.duplicate(true)
+	record["id"] = _get_line_edit_text("id")
+	record["display_name"] = _get_line_edit_text("display_name")
+	record["sprite_sheet_id"] = selected_sprite_sheet_id
+	record["animation_set_id"] = selected_animation_set_id
+	return record
+
+
+
+# lines 5268-5285
+func _update_action_buttons() -> void:
+	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES or current_section == ContentEditorData.SECTION_ANIMATION_SETS or current_section == ContentEditorData.SECTION_CHARACTERS or current_section == ContentEditorData.SECTION_TIERS or current_section == ContentEditorData.SECTION_PLAYER_TUNING or current_section == ContentEditorData.SECTION_FONT_PROFILES or current_section == ContentEditorData.SECTION_VFX_PROFILES
+	var is_singleton_section := current_section == ContentEditorData.SECTION_PLAYER_TUNING or current_section == ContentEditorData.SECTION_FONT_PROFILES or current_section == ContentEditorData.SECTION_VFX_PROFILES
+	var has_record := not current_record.is_empty()
+
+	new_button.disabled = not supports_visual_editing or has_unsaved_changes or is_singleton_section
+	duplicate_button.disabled = not supports_visual_editing or has_unsaved_changes or current_original_id.is_empty() or is_singleton_section
+	delete_button.disabled = not supports_visual_editing or current_id.is_empty() or is_singleton_section
+	save_button.disabled = not supports_visual_editing or not has_record
+	revert_button.disabled = not supports_visual_editing or not has_record
+	reload_current_button.disabled = current_section.is_empty()
+	refresh_content_db_button.disabled = false
+
+	if batch_static_sprite_button != null:
+		batch_static_sprite_button.visible = current_section == ContentEditorData.SECTION_SPRITES
+		batch_static_sprite_button.disabled = current_section != ContentEditorData.SECTION_SPRITES or has_unsaved_changes
+
+
+
+# lines 5292-5298
+func _get_animation_set_animations() -> Dictionary:
+	if not current_record.has("animations") or not current_record["animations"] is Dictionary:
+		current_record["animations"] = {}
+
+	return current_record["animations"] as Dictionary
+
+
+
+# lines 5299-5326
+func _ensure_character_animation_set() -> void:
+	if selected_animation_set_id.is_empty():
+		selected_animation_set_id = _get_default_character_animation_set_id()
+	if selected_animation_set_id.is_empty():
+		selected_animation_set_id = data_store.create_unique_id(ContentEditorData.SECTION_ANIMATION_SETS, "%s_animations" % _get_line_edit_text("id"))
+
+	current_record["animation_set_id"] = selected_animation_set_id
+	current_record["sprite_sheet_id"] = selected_sprite_sheet_id
+
+	if not data_store.has_record(ContentEditorData.SECTION_ANIMATION_SETS, selected_animation_set_id):
+		var animation_set_record := {
+			"id": selected_animation_set_id,
+			"display_name": "%s Animations" % _get_line_edit_text("display_name"),
+			"sprite_sheet_id": selected_sprite_sheet_id,
+			"anchor": {
+				"x": 32,
+				"y": 44,
+			},
+			"direction_mode": "4dir",
+			"animations": {},
+		}
+		data_store.set_record(ContentEditorData.SECTION_ANIMATION_SETS, "", selected_animation_set_id, animation_set_record)
+	else:
+		var animation_set_record := data_store.get_record(ContentEditorData.SECTION_ANIMATION_SETS, selected_animation_set_id)
+		animation_set_record["sprite_sheet_id"] = selected_sprite_sheet_id
+		data_store.set_record(ContentEditorData.SECTION_ANIMATION_SETS, selected_animation_set_id, selected_animation_set_id, animation_set_record)
+
+
+
+# lines 5327-5333
+func _get_character_animation_set_record() -> Dictionary:
+	if selected_animation_set_id.is_empty() or not data_store.has_record(ContentEditorData.SECTION_ANIMATION_SETS, selected_animation_set_id):
+		return {}
+
+	return data_store.get_record(ContentEditorData.SECTION_ANIMATION_SETS, selected_animation_set_id)
+
+
+
+# lines 5334-5345
+func _get_character_animation_set_animations() -> Dictionary:
+	var animation_set_record := _get_character_animation_set_record()
+	if animation_set_record.is_empty():
+		return {}
+
+	var animations = animation_set_record.get("animations", {})
+	if not animations is Dictionary:
+		animations = {}
+
+	return animations
+
+
+
+# lines 5346-5361
+func _get_character_animation_data(animation_name: String) -> Dictionary:
+	var animations := _get_character_animation_set_animations()
+	if animations.has(animation_name) and animations[animation_name] is Dictionary:
+		var animation_data: Dictionary = animations[animation_name]
+		var copied_data := animation_data.duplicate(true)
+		if not copied_data.has("frame_count"):
+			var frames = copied_data.get("frames", [])
+			var frame_count_from_frames: int = 1
+			if frames is Array:
+				frame_count_from_frames = frames.size()
+			copied_data["frame_count"] = max(_get_default_character_frame_count(animation_name), int(frame_count_from_frames))
+		return copied_data
+
+	return _make_character_animation_data(animation_name, [])
+
+
+
+# lines 5362-5376
+func _set_character_animation_data(animation_name: String, animation_data: Dictionary) -> void:
+	_ensure_character_animation_set()
+	var animation_set_record := _get_character_animation_set_record()
+	if animation_set_record.is_empty():
+		return
+
+	var animations = animation_set_record.get("animations", {})
+	if not animations is Dictionary:
+		animations = {}
+
+	animations[animation_name] = animation_data
+	animation_set_record["animations"] = animations
+	data_store.set_record(ContentEditorData.SECTION_ANIMATION_SETS, selected_animation_set_id, selected_animation_set_id, animation_set_record)
+
+
+
+# lines 5377-5381
+func _get_character_direction_mode() -> String:
+	var animation_set_record := _get_character_animation_set_record()
+	return str(animation_set_record.get("direction_mode", "4dir")) if not animation_set_record.is_empty() else "4dir"
+
+
+
+# lines 5382-5391
+func _set_character_direction_mode(direction_mode: String) -> void:
+	_ensure_character_animation_set()
+	var animation_set_record := _get_character_animation_set_record()
+	if animation_set_record.is_empty():
+		return
+
+	animation_set_record["direction_mode"] = direction_mode if direction_mode == "8dir" else "4dir"
+	data_store.set_record(ContentEditorData.SECTION_ANIMATION_SETS, selected_animation_set_id, selected_animation_set_id, animation_set_record)
+
+
+
+# lines 5392-5413
+func _apply_character_frames_to_active(frames: Array) -> void:
+	_ensure_character_animation_set()
+	var animation_data := _get_character_animation_data(active_character_animation_name)
+	var mode := _get_option_button_metadata("character_apply_mode")
+	if mode == "append":
+		var existing_frames = animation_data.get("frames", [])
+		if not existing_frames is Array:
+			existing_frames = []
+		for frame in frames:
+			existing_frames.append(int(frame))
+		animation_data["frames"] = existing_frames
+	else:
+		var clean_frames := []
+		for frame in frames:
+			clean_frames.append(int(frame))
+		animation_data["frames"] = clean_frames
+
+	_set_character_animation_data(active_character_animation_name, animation_data)
+	_build_form_for_current_record()
+	_mark_dirty()
+
+
+
+# lines 5423-5428
+func _get_animation_names() -> Array:
+	var names := _get_animation_set_animations().keys()
+	names.sort()
+	return names
+
+
+
+# lines 5448-5459
+func _get_selected_animation_data() -> Dictionary:
+	var animations := _get_animation_set_animations()
+	if selected_animation_name.is_empty() or not animations.has(selected_animation_name):
+		return _make_animation_data([], _get_default_animation_fps(selected_animation_name), true)
+
+	var animation_data = animations[selected_animation_name]
+	if not animation_data is Dictionary:
+		return _make_animation_data([], _get_default_animation_fps(selected_animation_name), true)
+
+	return (animation_data as Dictionary).duplicate(true)
+
+
+
+# lines 5460-5467
+func _set_selected_animation_data(animation_data: Dictionary) -> void:
+	if selected_animation_name.is_empty():
+		return
+
+	var animations := _get_animation_set_animations()
+	animations[selected_animation_name] = animation_data
+
+
+
+# lines 5487-5511
+func _sync_animation_detail_to_record() -> void:
+	if current_section != ContentEditorData.SECTION_ANIMATION_SETS:
+		return
+	if selected_animation_name.is_empty() or not field_controls.has("animation_name"):
+		return
+
+	var old_name := selected_animation_name
+	var new_name := data_store.sanitize_id(_get_line_edit_text("animation_name"))
+	if new_name.is_empty():
+		new_name = old_name
+
+	var animations := _get_animation_set_animations()
+	var animation_data := _make_animation_data(
+		_parse_frame_list(_get_line_edit_text("animation_frames")),
+		int(_get_spin_box_value("animation_fps")),
+		_get_check_box_pressed("animation_loop")
+	)
+
+	if new_name != old_name:
+		animations.erase(old_name)
+
+	animations[new_name] = animation_data
+	selected_animation_name = new_name
+
+
+
+# lines 5512-5525
+func _update_animation_grid_preview() -> void:
+	if animation_grid_preview == null:
+		return
+
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var texture := _load_texture(str(sheet_record.get("texture_path", "")))
+	if texture == null:
+		animation_grid_preview.clear_preview()
+		return
+
+	animation_grid_preview.set_preview_data(texture, int(sheet_record.get("columns", 0)), int(sheet_record.get("rows", 0)))
+	animation_grid_preview.set_selected_frames(_get_selected_animation_frames())
+
+
+
+# lines 5539-5555
+func _update_character_grid_preview() -> void:
+	if animation_grid_preview == null:
+		return
+
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var texture := _load_texture(str(sheet_record.get("texture_path", "")))
+	if texture == null:
+		animation_grid_preview.clear_preview()
+		return
+
+	animation_grid_preview.set_preview_data(texture, int(sheet_record.get("columns", 0)), int(sheet_record.get("rows", 0)))
+	if active_character_animation_name.is_empty():
+		animation_grid_preview.set_selected_frames([])
+	else:
+		animation_grid_preview.set_selected_frames(_get_character_animation_frames(active_character_animation_name))
+
+
+
+# lines 5609-5627
+func _update_character_preview_info(extra_message := "") -> void:
+	if character_preview_info_label == null:
+		return
+
+	var animation_data := _get_character_animation_data(active_character_animation_name)
+	var lines := [
+		"animation_set_id: %s" % selected_animation_set_id,
+		"sprite_sheet_id: %s" % selected_sprite_sheet_id,
+		"current_animation: %s" % active_character_animation_name,
+		"current_frame_index: %d" % animation_preview_frame_index,
+		"fps: %s" % str(animation_data.get("fps", "-")),
+		"loop: %s" % str(animation_data.get("loop", "-")),
+	]
+	if not extra_message.is_empty():
+		lines.append(extra_message)
+
+	character_preview_info_label.text = "\n".join(lines)
+
+
+
+# lines 5641-5660
+func _make_frame_texture(frame_index: int) -> Texture2D:
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var texture := _load_texture(str(sheet_record.get("texture_path", "")))
+	if texture == null:
+		return null
+
+	var columns := int(sheet_record.get("columns", 0))
+	var frame_width := int(sheet_record.get("frame_width", 0))
+	var frame_height := int(sheet_record.get("frame_height", 0))
+	if columns < 1 or frame_width < 1 or frame_height < 1:
+		return null
+
+	var column := frame_index % columns
+	var row := int(frame_index / columns)
+	var atlas_texture := AtlasTexture.new()
+	atlas_texture.atlas = texture
+	atlas_texture.region = Rect2(column * frame_width, row * frame_height, frame_width, frame_height)
+	return atlas_texture
+
+
+
+# lines 5661-5669
+func _get_selected_sprite_sheet_record() -> Dictionary:
+	if selected_sprite_sheet_id.is_empty():
+		return {}
+	if not data_store.has_record(ContentEditorData.SECTION_SPRITES, selected_sprite_sheet_id):
+		return {}
+
+	return data_store.get_record(ContentEditorData.SECTION_SPRITES, selected_sprite_sheet_id)
+
+
+
+# lines 5670-5681
+func _get_sprite_sheet_summary(sprite_record: Dictionary) -> String:
+	if sprite_record.is_empty():
+		return "None"
+
+	return "%s | columns %d | rows %d | total %d" % [
+		str(sprite_record.get("id", "")),
+		int(sprite_record.get("columns", 0)),
+		int(sprite_record.get("rows", 0)),
+		int(sprite_record.get("total_frames", 0)),
+	]
+
+
+
+# lines 5682-5708
+func _apply_helper_frames(frames: Array, animation_name := "", fps := -1, loop := true) -> void:
+	var target_name := data_store.sanitize_id(animation_name if not animation_name.is_empty() else _get_line_edit_text("helper_animation_name"))
+	if target_name.is_empty():
+		_set_status("Helper Animation Name cannot be empty.", true)
+		return
+
+	var animations := _get_animation_set_animations()
+	var mode := _get_option_button_metadata("helper_apply_mode")
+	var animation_data := _make_animation_data([], fps if fps > 0 else _get_spin_box_int("helper_fps"), loop if fps > 0 else _get_check_box_pressed("helper_loop"))
+	if animations.has(target_name) and mode == "append":
+		animation_data = animations[target_name].duplicate(true)
+		var existing_frames = animation_data.get("frames", [])
+		if not existing_frames is Array:
+			existing_frames = []
+		for frame in frames:
+			existing_frames.append(int(frame))
+		animation_data["frames"] = existing_frames
+	else:
+		animation_data["frames"] = frames
+
+	animations[target_name] = animation_data
+	selected_animation_name = target_name
+	_build_form_for_current_record()
+	_mark_dirty()
+	_set_status("Applied helper frames to %s." % target_name)
+
+
+
+# lines 5754-5768
+func _create_unique_animation_name(base_name: String) -> String:
+	var animations := _get_animation_set_animations()
+	var clean_base := data_store.sanitize_id(base_name)
+	if clean_base.is_empty():
+		clean_base = "animation"
+	if not animations.has(clean_base):
+		return clean_base
+
+	var index := 2
+	while animations.has("%s_%d" % [clean_base, index]):
+		index += 1
+
+	return "%s_%d" % [clean_base, index]
+
+
+
+# lines 5832-5842
+func _get_character_available_animation_names() -> Array:
+	var names := _get_character_animation_slot_names()
+	var animations := _get_character_animation_set_animations()
+	for animation_name in animations.keys():
+		var clean_name := str(animation_name)
+		if not names.has(clean_name):
+			names.append(clean_name)
+	names.sort()
+	return names
+
+
+
+# lines 5887-5899
+func _has_invalid_character_frame(frames: Array) -> bool:
+	var total_frames := _get_selected_sprite_sheet_total_frames()
+	if total_frames < 1:
+		return false
+
+	for frame in frames:
+		var frame_index := int(frame)
+		if frame_index < 0 or frame_index >= total_frames:
+			return true
+
+	return false
+
+
+
+# lines 5900-5908
+func _get_selected_sprite_sheet_total_frames() -> int:
+	var sheet_record := _get_selected_sprite_sheet_record()
+	var total_frames := int(sheet_record.get("total_frames", 0))
+	if total_frames > 0:
+		return total_frames
+
+	return int(sheet_record.get("columns", 0)) * int(sheet_record.get("rows", 0))
+
+
+
+# lines 5909-5979
+func _validate_character_animations() -> Array:
+	var results := []
+	var character_id := _get_line_edit_text("id")
+	if character_id.is_empty():
+		results.append("ERROR: Character id is empty.")
+
+	if selected_sprite_sheet_id.is_empty():
+		results.append("ERROR: Character has no sprite_sheet_id.")
+	elif not data_store.has_record(ContentEditorData.SECTION_SPRITES, selected_sprite_sheet_id):
+		results.append("ERROR: Sprite Sheet does not exist: %s" % selected_sprite_sheet_id)
+
+	if selected_animation_set_id.is_empty():
+		results.append("ERROR: Character has no animation_set_id.")
+	elif not data_store.has_record(ContentEditorData.SECTION_ANIMATION_SETS, selected_animation_set_id):
+		results.append("ERROR: Animation Set does not exist: %s" % selected_animation_set_id)
+
+	var sheet_record := _get_selected_sprite_sheet_record()
+	if not sheet_record.is_empty():
+		if int(sheet_record.get("frame_width", 0)) < 1:
+			results.append("ERROR: Sprite Sheet frame_width must be valid.")
+		if int(sheet_record.get("frame_height", 0)) < 1:
+			results.append("ERROR: Sprite Sheet frame_height must be valid.")
+		if int(sheet_record.get("columns", 0)) < 1:
+			results.append("ERROR: Sprite Sheet columns must be valid.")
+		if int(sheet_record.get("rows", 0)) < 1:
+			results.append("ERROR: Sprite Sheet rows must be valid.")
+
+	var animations := _get_character_animation_set_animations()
+	var total_frames := _get_selected_sprite_sheet_total_frames()
+	for animation_name in _get_character_animation_slot_names():
+		if not animations.has(animation_name):
+			results.append("ERROR: Missing required animation: %s" % animation_name)
+			continue
+
+		var animation_data = animations[animation_name]
+		if not animation_data is Dictionary:
+			results.append("ERROR: Animation %s data is invalid." % animation_name)
+			continue
+
+		var frame_count := int(animation_data.get("frame_count", 0))
+		if frame_count < 1:
+			results.append("ERROR: %s frame_count must be >= 1." % animation_name)
+		if float(animation_data.get("fps", 0.0)) <= 0.0:
+			results.append("ERROR: %s fps must be > 0." % animation_name)
+		if not animation_data.has("loop"):
+			results.append("WARNING: %s loop is not defined." % animation_name)
+
+		var frames = animation_data.get("frames", [])
+		if not frames is Array:
+			results.append("ERROR: %s frames must be a list." % animation_name)
+			continue
+
+		if frames.is_empty():
+			results.append("WARNING: %s has no frames." % animation_name)
+		elif frames.size() < frame_count:
+			results.append("WARNING: %s has %d/%d frames." % [animation_name, frames.size(), frame_count])
+
+		if animation_name.begins_with("walk") and frames.size() == 1:
+			results.append("WARNING: %s has only 1 frame." % animation_name)
+
+		for frame in frames:
+			var frame_index := int(frame)
+			if frame_index < 0 or (total_frames > 0 and frame_index >= total_frames):
+				results.append("ERROR: %s has frame outside range: %d." % [animation_name, frame_index])
+
+	if results.is_empty():
+		results.append("OK: Character animations are valid.")
+
+	return results
+
+
+
+# lines 6119-6126
+func _get_default_sprite_sheet_id() -> String:
+	for sprite_record in data_store.get_records(ContentEditorData.SECTION_SPRITES):
+		if str(sprite_record.get("type", "single_sprite")) == "sprite_sheet":
+			return str(sprite_record.get("id", ""))
+
+	return ""
+
+
+
+# lines 6127-6137
+func _get_default_character_animation_set_id() -> String:
+	if data_store.has_record(ContentEditorData.SECTION_ANIMATION_SETS, "player_base_body"):
+		return "player_base_body"
+
+	var records := data_store.get_records(ContentEditorData.SECTION_ANIMATION_SETS)
+	if records.is_empty():
+		return ""
+
+	return str(records[0].get("id", ""))
+
+
