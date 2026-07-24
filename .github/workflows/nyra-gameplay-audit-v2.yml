@@ -1,9 +1,9 @@
 name: Nyra Gameplay Audit V2
 
 on:
-  push:
+  pull_request:
     branches:
-      - feature/build-craft-door-monsters-v2
+      - main
     paths:
       - ".github/workflows/nyra-gameplay-audit-v2.yml"
 
