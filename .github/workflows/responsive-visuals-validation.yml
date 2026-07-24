@@ -7,6 +7,10 @@ on:
       - "data/monsters.json"
       - "data/buildings.json"
       - "data/sfx_profiles.json"
+      - "data/sprites.json"
+      - "data/animation_sets.json"
+      - "data/characters.json"
+      - "assets/sprites/characters/**"
       - "scenes/Player.tscn"
       - "scenes/game/Game.tscn"
       - "scenes/enemies/**"
@@ -22,6 +26,7 @@ on:
       - "scripts/BuildSystemLightingSuite.gd"
       - "scripts/ui/BuildMenuUI.gd"
       - "scripts/test/ResponsiveVisualsValidator.gd"
+      - "scripts/test/CharacterContentValidator.gd"
       - "tools/content_editor/ContentEditorLightingSuite.gd"
       - "tools/content_editor/ContentEditor.tscn"
       - "shaders/effects/**"
@@ -77,6 +82,17 @@ jobs:
             --script res://scripts/test/ResponsiveVisualsValidator.gd \
             --verbose 2>&1 | tee validator.log
 
+      - name: Validate character content records
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a ./godot \
+            --path . \
+            --rendering-method gl_compatibility \
+            --display-driver x11 \
+            --script res://scripts/test/CharacterContentValidator.gd \
+            --verbose 2>&1 | tee character-content-validator.log
+
       - name: Open intro at base resolution
         shell: bash
         run: |
@@ -108,7 +124,7 @@ jobs:
         run: |
           if grep -E -i \
             'Parse Error|SCRIPT ERROR|Shader compilation failed|Parameter "version" is null|Using .return. in the .(vertex|fragment). processor' \
-            import.log validator.log intro-base.log game-large.log; then
+            import.log validator.log character-content-validator.log intro-base.log game-large.log; then
             exit 1
           fi
 
@@ -120,6 +136,7 @@ jobs:
           path: |
             import.log
             validator.log
+            character-content-validator.log
             intro-base.log
             game-large.log
           if-no-files-found: warn
