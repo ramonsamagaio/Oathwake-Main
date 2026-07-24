@@ -2,12 +2,12 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://0gxlu2rmiw6l"
+uid="uid://burvgks7c1io5"
 valid=false
 
 [deps]
 
-source_file="res://assets/sprites/tilesets/terrain/grass_dirt/terrain_grass_dirt_native_47_edge_overlay.png"
+source_file="res://assets/sprites/tilesets/terrain/grass_dirt/terrain_grass_dirt_webtyler_input_mask_4x4.png"
 
 [params]
 

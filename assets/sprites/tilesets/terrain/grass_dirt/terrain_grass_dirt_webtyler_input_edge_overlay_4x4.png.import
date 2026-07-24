@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://0gxlu2rmiw6l"
-valid=false
+uid="uid://5agocl33xae2"
+path="res://.godot/imported/terrain_grass_dirt_webtyler_input_edge_overlay_4x4.png-673948b29ed13c42c236033b9999b3b5.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
-source_file="res://assets/sprites/tilesets/terrain/grass_dirt/terrain_grass_dirt_native_47_edge_overlay.png"
+source_file="res://assets/sprites/tilesets/terrain/grass_dirt/terrain_grass_dirt_webtyler_input_edge_overlay_4x4.png"
+dest_files=["res://.godot/imported/terrain_grass_dirt_webtyler_input_edge_overlay_4x4.png-673948b29ed13c42c236033b9999b3b5.ctex"]
 
 [params]
 
