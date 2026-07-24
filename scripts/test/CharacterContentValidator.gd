@@ -94,14 +94,10 @@ func _validate_animation_sets(sprites: Dictionary, animation_sets: Dictionary) -
 			failures.append("Animation set %s is not a dictionary record." % animation_set_id)
 			continue
 		var animation_set := value as Dictionary
-		var sprite_id := str(animation_set.get("sprite_sheet_id", ""))
-		if not sprites.has(sprite_id) or not (sprites[sprite_id] is Dictionary):
-			failures.append("Animation set %s references missing sprite %s." % [animation_set_id, sprite_id])
-			continue
-		var sprite := sprites[sprite_id] as Dictionary
-		var total_frames := int(sprite.get("total_frames", 0))
-		if total_frames <= 0:
-			total_frames = int(sprite.get("columns", 1)) * int(sprite.get("rows", 1))
+		var fallback_sprite_id := str(animation_set.get("sprite_sheet_id", ""))
+		if not _has_sprite_record(sprites, fallback_sprite_id):
+			failures.append("Animation set %s references missing fallback sprite %s." % [animation_set_id, fallback_sprite_id])
+
 		var animations_value: Variant = animation_set.get("animations", {})
 		if not (animations_value is Dictionary):
 			failures.append("Animation set %s has no animation dictionary." % animation_set_id)
@@ -113,12 +109,20 @@ func _validate_animation_sets(sprites: Dictionary, animation_sets: Dictionary) -
 			if not (animation_value is Dictionary):
 				failures.append("Animation %s/%s is not a dictionary record." % [animation_set_id, animation_name])
 				continue
-			var frames_value: Variant = (animation_value as Dictionary).get("frames", [])
+			var animation := animation_value as Dictionary
+			var sprite_id := str(animation.get("sprite_sheet_id", fallback_sprite_id))
+			if not _has_sprite_record(sprites, sprite_id):
+				failures.append("Animation %s/%s references missing sprite %s." % [animation_set_id, animation_name, sprite_id])
+				continue
+			var sprite := sprites[sprite_id] as Dictionary
+			var total_frames := int(sprite.get("total_frames", 0))
+			if total_frames <= 0:
+				total_frames = int(sprite.get("columns", 1)) * int(sprite.get("rows", 1))
+			var frames_value: Variant = animation.get("frames", [])
 			if not (frames_value is Array):
 				failures.append("Animation %s/%s has no frame array." % [animation_set_id, animation_name])
 				continue
-			var frames := frames_value as Array
-			for frame_value in frames:
+			for frame_value in frames_value as Array:
 				var frame_index := int(frame_value)
 				if frame_index < 0 or frame_index >= total_frames:
 					failures.append(
@@ -142,7 +146,7 @@ func _validate_characters(sprites: Dictionary, animation_sets: Dictionary, chara
 		var character := value as Dictionary
 		var sprite_id := str(character.get("sprite_sheet_id", ""))
 		var animation_set_id := str(character.get("animation_set_id", ""))
-		if not sprites.has(sprite_id):
+		if not _has_sprite_record(sprites, sprite_id):
 			failures.append("Character %s references missing sprite %s." % [character_id, sprite_id])
 		if not animation_sets.has(animation_set_id) or not (animation_sets[animation_set_id] is Dictionary):
 			failures.append("Character %s references missing animation set %s." % [character_id, animation_set_id])
@@ -150,13 +154,17 @@ func _validate_characters(sprites: Dictionary, animation_sets: Dictionary, chara
 		var animation_sprite_id := str((animation_sets[animation_set_id] as Dictionary).get("sprite_sheet_id", ""))
 		if animation_sprite_id != sprite_id:
 			failures.append(
-				"Character %s uses sprite %s but animation set %s uses %s." % [
+				"Character %s uses sprite %s but animation set %s fallback uses %s." % [
 					character_id,
 					sprite_id,
 					animation_set_id,
 					animation_sprite_id,
 				]
 			)
+
+
+func _has_sprite_record(sprites: Dictionary, sprite_id: String) -> bool:
+	return sprites.has(sprite_id) and sprites[sprite_id] is Dictionary
 
 
 func _frame_size_value(sprite: Dictionary, axis: String) -> int:
