@@ -104,11 +104,11 @@ func _play_attack_animation() -> void:
 
 func _next_attack_animation_name() -> String:
 	var candidates: Array[String] = []
-	var configured := _attack_animation_variants.duplicate()
+	var configured: Array[String] = _attack_animation_variants.duplicate()
 	if configured.is_empty():
 		configured.append("attack_{direction}")
-	for variant in configured:
-		var resolved := variant.replace("{direction}", last_direction)
+	for variant: String in configured:
+		var resolved: String = variant.replace("{direction}", last_direction)
 		if _has_player_animation(resolved) and not candidates.has(resolved):
 			candidates.append(resolved)
 	var canonical := "attack_%s" % last_direction

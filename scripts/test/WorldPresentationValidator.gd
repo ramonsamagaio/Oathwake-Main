@@ -32,11 +32,12 @@ func _run() -> void:
 
 
 func _validate_screen_space_hit_motion() -> void:
-	var canvas_transform := Transform2D.IDENTITY.scaled(Vector2(2.0, 2.0)).translated(Vector2(120.0, 80.0))
-	for start in [Vector2(-140.0, -220.0), Vector2(420.0, 680.0)]:
-		var target := FloatingCombatTextScript.calculate_world_target_for_screen_rise(start, canvas_transform, 30.0)
-		var screen_start := canvas_transform * start
-		var screen_target := canvas_transform * target
+	var canvas_transform: Transform2D = Transform2D.IDENTITY.scaled(Vector2(2.0, 2.0)).translated(Vector2(120.0, 80.0))
+	for start_value in [Vector2(-140.0, -220.0), Vector2(420.0, 680.0)]:
+		var start: Vector2 = start_value
+		var target: Vector2 = FloatingCombatTextScript.calculate_world_target_for_screen_rise(start, canvas_transform, 30.0)
+		var screen_start: Vector2 = canvas_transform * start
+		var screen_target: Vector2 = canvas_transform * target
 		if screen_target.y >= screen_start.y:
 			failures.append("Floating hit text does not move upward in screen space from %s." % start)
 

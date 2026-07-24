@@ -126,7 +126,7 @@ static func _find_largest_visual(target: Node) -> CanvasItem:
 	var best_area := 0.0
 	var queue: Array[Node] = [target]
 	while not queue.is_empty():
-		var node := queue.pop_front()
+		var node: Node = queue.pop_front() as Node
 		for child in node.get_children():
 			if child is CanvasItem and (child as CanvasItem).is_in_group("persistent_content_visual"):
 				continue
