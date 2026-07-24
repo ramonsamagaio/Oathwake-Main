@@ -1,0 +1,157 @@
++		var variants_value: Variant = character_data.get("attack_animation_variants", [])
++		if variants_value is Array:
++			for variant in variants_value as Array:
++				var clean_variant := str(variant).strip_edges()
++				if not clean_variant.is_empty():
++					_attack_animation_variants.append(clean_variant)
+ 
+ 
+ func _setup_character_visual() -> void:
+ 	super._setup_character_visual()
+ 	_apply_player_visual_tuning()
++	_apply_player_directional_shadow()
++	_update_world_depth()
++
++
++func _physics_process(delta: float) -> void:
++	super._physics_process(delta)
++	_update_world_depth()
+ 
+ 
+ func _apply_player_visual_tuning() -> void:
+@@ -40,6 +69,71 @@ func _apply_player_visual_tuning() -> void:
+ 		body_node.position = _content_visual_offset
+ 
+ 
++func _apply_player_directional_shadow() -> void:
++	var visual_size := DirectionalShadowRuntime.estimate_target_visual_size(self)
++	var foot_offset := DirectionalShadowRuntime.estimate_target_foot_offset(self)
++	if animated_sprite != null and animated_sprite.visible:
++		visual_size = WorldDepthRuntime.get_animated_sprite_visual_size(animated_sprite)
++		foot_offset = WorldDepthRuntime.get_animated_sprite_foot_offset(animated_sprite)
++	var config := _content_shadow_config.duplicate(true)
++	if not config.has("enabled"):
++		config["enabled"] = true
++	DirectionalShadowRuntime.apply_to_target(self, config, visual_size, foot_offset)
++
++
++func _update_world_depth() -> void:
++	WorldDepthRuntime.apply_node_depth(self, _content_depth_offset_y)
++
++
++func _play_attack_animation() -> void:
++	if not animation_controller.has_any_valid_animation():
++		return
++	var animation_name := _next_attack_animation_name()
++	if animation_name.is_empty() or not animation_controller.play_if_available(animation_name):
++		return
++	_last_attack_animation = animation_name
++	if animated_sprite == null or animated_sprite.sprite_frames == null:
++		return
++	var frame_count := animated_sprite.sprite_frames.get_frame_count(animation_name)
++	var fps := animated_sprite.sprite_frames.get_animation_speed(animation_name)
++	if frame_count <= 0 or fps <= 0.0:
++		return
++	var native_duration := float(frame_count) / fps
++	animated_sprite.speed_scale = clampf(native_duration / maxf(current_attack_cooldown, 0.05), 0.20, 8.0)
++
++
++func _next_attack_animation_name() -> String:
++	var candidates: Array[String] = []
++	var configured := _attack_animation_variants.duplicate()
++	if configured.is_empty():
++		configured.append("attack_{direction}")
++	for variant in configured:
++		var resolved := variant.replace("{direction}", last_direction)
++		if _has_player_animation(resolved) and not candidates.has(resolved):
++			candidates.append(resolved)
++	var canonical := "attack_%s" % last_direction
++	if candidates.is_empty() and _has_player_animation(canonical):
++		candidates.append(canonical)
++	if candidates.is_empty():
++		return ""
++
++	var valid_bag: Array[String] = []
++	for candidate in _attack_variant_bag:
++		if candidates.has(candidate):
++			valid_bag.append(candidate)
++	_attack_variant_bag = valid_bag
++	if _attack_variant_bag.is_empty():
++		_attack_variant_bag = candidates.duplicate()
++		_attack_variant_bag.shuffle()
++		if _avoid_immediate_attack_repeat and _attack_variant_bag.size() > 1 and _attack_variant_bag.back() == _last_attack_animation:
++			var last_index := _attack_variant_bag.size() - 1
++			var replacement_index := 0
++			var temporary := _attack_variant_bag[replacement_index]
++			_attack_variant_bag[replacement_index] = _attack_variant_bag[last_index]
++			_attack_variant_bag[last_index] = temporary
++	return _attack_variant_bag.pop_back()
++
++
+ func _start_attack_cycle() -> void:
+ 	_refresh_attack_substats()
+ 	action_state = ActionState.ATTACKING
+diff --git a/scripts/ui/FloatingCombatText.gd b/scripts/ui/FloatingCombatText.gd
+index 970ad10..6b41ad0 100644
+--- a/scripts/ui/FloatingCombatText.gd
++++ b/scripts/ui/FloatingCombatText.gd
+@@ -17,18 +17,25 @@ var font_profile_id := "damage_number"
+ 
+ 
+ func _ready() -> void:
+-	var jitter: float = randf_range(-horizontal_jitter, horizontal_jitter)
+-	position.x += jitter
++	top_level = true
++	z_as_relative = false
++	z_index = 4090
+ 	_apply_vfx_profile()
+ 	_apply_label_style()
+ 
+ 	var active_duration := critical_duration if is_critical else duration
+ 	var active_rise_distance := critical_rise_distance if is_critical else rise_distance
++	var canvas_transform := get_viewport().get_canvas_transform()
++	var screen_start := canvas_transform * global_position
++	screen_start.x += randf_range(-horizontal_jitter, horizontal_jitter)
++	global_position = canvas_transform.affine_inverse() * screen_start
++	var target_world := calculate_world_target_for_screen_rise(global_position, canvas_transform, active_rise_distance)
++
+ 	var tween := create_tween()
+ 	tween.set_trans(Tween.TRANS_SINE)
+ 	tween.set_ease(Tween.EASE_OUT)
+ 	tween.set_parallel(true)
+-	tween.tween_property(self, "position:y", position.y - active_rise_distance, active_duration)
++	tween.tween_property(self, "global_position", target_world, active_duration)
+ 	tween.tween_property(self, "modulate:a", 0.0, active_duration)
+ 	if is_critical:
+ 		scale = Vector2(1.12, 1.12)
+@@ -37,6 +44,12 @@ func _ready() -> void:
+ 	tween.tween_callback(queue_free)
+ 
+ 
++static func calculate_world_target_for_screen_rise(world_start: Vector2, canvas_transform: Transform2D, screen_distance: float) -> Vector2:
++	var screen_start := canvas_transform * world_start
++	var screen_target := screen_start + Vector2.UP * maxf(screen_distance, 0.0)
++	return canvas_transform.affine_inverse() * screen_target
++
++
+ func setup(new_text: String, color: Color, critical := false, new_profile_id := "") -> void:
+ 	text = new_text
+ 	text_color = color
+diff --git a/scripts/ui/FloatingCombatTextSpawner.gd b/scripts/ui/FloatingCombatTextSpawner.gd
+index bef890e..76d63b4 100644
+--- a/scripts/ui/FloatingCombatTextSpawner.gd
++++ b/scripts/ui/FloatingCombatTextSpawner.gd
+@@ -58,6 +58,9 @@ static func _spawn(text: String, world_position: Vector2, color: Color, is_criti
+ 		return
+ 
+ 	var floating_text := FloatingCombatTextScene.instantiate()
++	floating_text.top_level = true
++	floating_text.z_as_relative = false
++	floating_text.z_index = 4090
+ 	tree.current_scene.add_child(floating_text)
+ 	floating_text.global_position = world_position
+ 	floating_text.setup(text, color, is_critical, profile_id)
+@@ -69,6 +72,9 @@ static func _spawn_hit_impact(world_position: Vector2, is_critical: bool) -> voi
+ 		return
+ 
+ 	var hit_impact := HitImpactScene.instantiate()
