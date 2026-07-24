@@ -1,0 +1,150 @@
++		WorldDepthRuntime.apply_node_depth(self, float(depth_config.get("offset_y", 0.0)))
++
++	var shadow_value: Variant = building_data.get("shadow", {})
++	var shadow_config: Dictionary = (shadow_value as Dictionary).duplicate(true) if shadow_value is Dictionary else {}
++	if not shadow_config.has("enabled"):
++		shadow_config["enabled"] = true
++	var visual_size := DirectionalShadowRuntime.estimate_target_visual_size(self)
++	var foot_offset := DirectionalShadowRuntime.estimate_target_foot_offset(self)
++	DirectionalShadowRuntime.apply_to_target(self, shadow_config, visual_size, foot_offset)
+diff --git a/scripts/effects/ContentGlowRuntime.gd b/scripts/effects/ContentGlowRuntime.gd
+index a60734f..6779fb1 100644
+--- a/scripts/effects/ContentGlowRuntime.gd
++++ b/scripts/effects/ContentGlowRuntime.gd
+@@ -1,6 +1,7 @@
+ extends RefCounted
+ 
+ const GlowOverlayScene: PackedScene = preload("res://scenes/effects/GlowOverlay.tscn")
++const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
+ 
+ 
+ static func apply_content_effects(target: Node2D, record: Dictionary, default_glow_z := 24) -> void:
+@@ -54,36 +55,12 @@ static func apply_glow(target: Node2D, config: Dictionary, default_glow_z := 24)
+ static func apply_shadow(target: Node2D, config: Dictionary) -> Polygon2D:
+ 	if target == null:
+ 		return null
+-	var shadow := target.get_node_or_null("GroundShadow") as Polygon2D
+-	var enabled := bool(config.get("enabled", false))
+-	if shadow == null and enabled:
+-		shadow = Polygon2D.new()
+-		shadow.name = "GroundShadow"
+-		shadow.polygon = _make_default_shadow_polygon()
+-		target.add_child(shadow)
+-		shadow.add_to_group("persistent_content_visual")
+-	if shadow == null:
+-		return null
+-
+-	shadow.visible = enabled
+-	shadow.show_behind_parent = true
+-	shadow.position = _vector_from_value(config.get("offset", {}), Vector2(0.0, 12.0))
+-	shadow.scale = _vector_from_value(config.get("scale", {}), Vector2(0.9, 0.34))
+-	shadow.z_index = int(config.get("z_index", 0))
+-	shadow.color = Color(0.01, 0.008, 0.015, clampf(float(config.get("opacity", 0.42)), 0.0, 1.0))
+-	shadow.modulate = Color.WHITE
+-	if not shadow.is_in_group("persistent_content_visual"):
+-		shadow.add_to_group("persistent_content_visual")
+-	return shadow
+-
+-
+-static func _make_default_shadow_polygon() -> PackedVector2Array:
+-	return PackedVector2Array([
+-		Vector2(-13, -3), Vector2(-10, -5), Vector2(-4, -6), Vector2(4, -6),
+-		Vector2(10, -5), Vector2(13, -3), Vector2(14, 0), Vector2(13, 3),
+-		Vector2(10, 5), Vector2(4, 6), Vector2(-4, 6), Vector2(-10, 5),
+-		Vector2(-13, 3), Vector2(-14, 0),
+-	])
++	var resolved_config := config.duplicate(true)
++	if not resolved_config.has("enabled"):
++		resolved_config["enabled"] = false
++	var visual_size := DirectionalShadowRuntime.estimate_target_visual_size(target)
++	var foot_offset := DirectionalShadowRuntime.estimate_target_foot_offset(target)
++	return DirectionalShadowRuntime.apply_to_target(target, resolved_config, visual_size, foot_offset)
+ 
+ 
+ static func _visual_mode_to_int(mode_name: String) -> int:
+diff --git a/scripts/effects/PixelVFX.gd b/scripts/effects/PixelVFX.gd
+index 3dbb128..4da1db8 100644
+--- a/scripts/effects/PixelVFX.gd
++++ b/scripts/effects/PixelVFX.gd
+@@ -26,9 +26,11 @@ func spawn_world_hit_sparks(world_position: Vector2, is_critical := false) -> vo
+ 
+ 	for _i in range(count):
+ 		var particle := PixelParticle2D.new()
++		particle.top_level = true
++		particle.z_as_relative = false
++		particle.z_index = 4089
+ 		parent.add_child(particle)
+ 		particle.global_position = world_position + Vector2(randf_range(-jitter_radius, jitter_radius), randf_range(-jitter_radius, jitter_radius))
+-		particle.z_index = 999
+ 		var distance_scale := distance / maxf(speed_max * lifetime, 0.01)
+ 		var x_speed := randf_range(-speed_max * horizontal_bias, speed_max * horizontal_bias) * distance_scale
+ 		var y_speed := -randf_range(speed_min * upward_bias, speed_max * upward_bias) * distance_scale
+diff --git a/scripts/enemies/EnemyBaseEnhanced.gd b/scripts/enemies/EnemyBaseEnhanced.gd
+index 3a60861..55c1a7e 100644
+--- a/scripts/enemies/EnemyBaseEnhanced.gd
++++ b/scripts/enemies/EnemyBaseEnhanced.gd
+@@ -2,14 +2,21 @@ extends "res://scripts/enemies/EnemyBase.gd"
+ 
+ const HitFlashOverlayScript := preload("res://scripts/effects/HitFlashOverlay.gd")
+ const ContentGlowRuntime := preload("res://scripts/effects/ContentGlowRuntime.gd")
++const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
+ 
+ 
+ func _ready() -> void:
+ 	super._ready()
+ 	_apply_content_visual_effects()
++	_update_world_depth()
+ 	_connect_content_visual_reload()
+ 
+ 
++func _physics_process(delta: float) -> void:
++	super._physics_process(delta)
++	_update_world_depth()
++
++
+ func _get_fallback_visual_nodes() -> Array:
+ 	var fallback_nodes := super._get_fallback_visual_nodes()
+ 	var filtered: Array = []
+@@ -42,6 +49,13 @@ func _on_content_visuals_reloaded() -> void:
+ 	if content_db != null and content_db.has_method("has_monster") and content_db.has_monster(monster_id):
+ 		monster_data = content_db.get_monster(monster_id)
+ 	_apply_content_visual_effects()
++	_update_world_depth()
++
++
++func _update_world_depth() -> void:
++	var depth_config_value: Variant = monster_data.get("depth_sort", {})
++	var depth_config := depth_config_value as Dictionary if depth_config_value is Dictionary else {}
++	WorldDepthRuntime.apply_node_depth(self, float(depth_config.get("offset_y", 0.0)))
+ 
+ 
+ func _play_hit_feedback(is_critical: bool) -> void:
+diff --git a/scripts/enemies/MonsterAnimator.gd b/scripts/enemies/MonsterAnimator.gd
+index 0e5278c..db2e958 100644
+--- a/scripts/enemies/MonsterAnimator.gd
++++ b/scripts/enemies/MonsterAnimator.gd
+@@ -72,13 +72,13 @@ func _ensure_sprite() -> void:
+ 			sprite = existing
+ 			_sprite.centered = true
+ 			_sprite.position = _visual_offset
+-			_sprite.z_index = 20
++			_sprite.z_index = 2
+ 			return
+ 	_sprite = AnimatedSprite2D.new()
+ 	_sprite.name = "MonsterSprite"
+ 	_sprite.centered = true
+ 	_sprite.position = _visual_offset
+-	_sprite.z_index = 20
++	_sprite.z_index = 2
+ 	_sprite.visible = false
+ 	add_child(_sprite)
+ 
+diff --git a/scripts/items/WorldItemFeedbackSuite.gd b/scripts/items/WorldItemFeedbackSuite.gd
+index c200155..e2a02da 100644
+--- a/scripts/items/WorldItemFeedbackSuite.gd
++++ b/scripts/items/WorldItemFeedbackSuite.gd
+@@ -1,5 +1,7 @@
+ extends "res://scripts/items/WorldItemShaderSuite.gd"
+ 
++const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
++
