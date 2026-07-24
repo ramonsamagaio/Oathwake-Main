@@ -1,0 +1,25 @@
+name: Nyra Character Snapshot
+
+on:
+  push:
+    branches:
+      - fix/responsive-ui-slime-drop-glow-pickup
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oathwake-character-snapshot
+          include-hidden-files: true
+          retention-days: 1
+          path: |
+            assets/sprites/characters/**
+            data/sprites.json
+            data/animation_sets.json
+            data/characters.json
