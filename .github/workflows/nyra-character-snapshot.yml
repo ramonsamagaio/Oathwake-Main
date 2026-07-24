@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build PNG manifest
+      - name: Build asset and editor reports
         shell: python
         run: |
           import json
@@ -52,17 +52,36 @@ jobs:
                   "total_frames": columns * rows_count,
               })
 
-          output = Path("artifacts/nyra_character_manifest.json")
-          output.parent.mkdir(parents=True, exist_ok=True)
-          output.write_text(json.dumps(rows, indent=2) + "\n", encoding="utf-8")
+          artifacts = Path("artifacts")
+          artifacts.mkdir(parents=True, exist_ok=True)
+          (artifacts / "nyra_character_manifest.json").write_text(
+              json.dumps(rows, indent=2) + "\n", encoding="utf-8"
+          )
 
-      - name: Commit manifest
+          source_path = Path("tools/content_editor/ContentEditor.gd")
+          lines = source_path.read_text(encoding="utf-8").splitlines()
+          functions = []
+          starts = [index for index, line in enumerate(lines) if line.startswith("func ")]
+          starts.append(len(lines))
+          for offset in range(len(starts) - 1):
+              start = starts[offset]
+              end = starts[offset + 1]
+              block = "\n".join(lines[start:end])
+              header = lines[start]
+              lowered = block.lower()
+              if "animation_set" in lowered or "sprite_sheet" in lowered or "character_form" in lowered:
+                  functions.append(f"# lines {start + 1}-{end}\n{block}")
+          (artifacts / "nyra_content_editor_animation_functions.txt").write_text(
+              "\n\n".join(functions) + "\n", encoding="utf-8"
+          )
+
+      - name: Commit reports
         run: |
           git config user.name "Nyra Automation"
           git config user.email "actions@users.noreply.github.com"
-          git add artifacts/nyra_character_manifest.json
+          git add artifacts/nyra_character_manifest.json artifacts/nyra_content_editor_animation_functions.txt
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "Inventory test character sprite sheets"
+          git commit -m "Inspect test character content editor integration"
           git push
