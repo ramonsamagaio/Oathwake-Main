@@ -19,10 +19,20 @@ jobs:
         with:
           ref: feature/build-craft-door-monsters-v2
       - name: Extract prepared files
+        shell: python
         run: |
-          base64 --decode .github/nyra/build-craft-monsters-v2.b64 > /tmp/changes.tar.gz
-          tar -xzf /tmp/changes.tar.gz
-          rm .github/nyra/build-craft-monsters-v2.b64
+          from pathlib import Path
+          import base64, tarfile
+
+          payload_path = Path('.github/nyra/build-craft-monsters-v2.b64')
+          payload = ''.join(payload_path.read_text(encoding='utf-8').split())
+          print(f'payload_chars={len(payload)}')
+          archive_path = Path('/tmp/changes.tar.gz')
+          archive_path.write_bytes(base64.b64decode(payload, validate=True))
+          print(f'archive_bytes={archive_path.stat().st_size}')
+          with tarfile.open(archive_path, 'r:gz') as archive:
+              archive.extractall('.')
+          payload_path.unlink()
       - name: Commit gameplay systems
         run: |
           git config user.name "Nyra Automation"
