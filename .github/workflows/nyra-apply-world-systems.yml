@@ -1,9 +1,9 @@
 name: Nyra Apply World Systems
 
 on:
-  push:
+  pull_request:
     branches:
-      - feature/world-depth-shadows-hit-attacks
+      - main
     paths:
       - ".github/nyra/world-systems.ready"
 
@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: feature/world-depth-shadows-hit-attacks
       - name: Assemble and apply reviewed patch
         run: |
           cat .github/nyra/world-systems.part* > /tmp/world-systems.patch
@@ -29,4 +31,4 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add -A
           git commit -m "Fix world depth shadows hit motion and attack variety"
-          git push
+          git push origin HEAD:feature/world-depth-shadows-hit-attacks
