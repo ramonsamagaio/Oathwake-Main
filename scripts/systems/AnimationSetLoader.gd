@@ -42,32 +42,61 @@ func load_from_animation_set_id(animation_set_id: String) -> SpriteFrames:
 		push_warning("AnimationSetLoader could not find animation_set_id: %s" % animation_set_id)
 		return sprite_frames
 
-	var sprite_sheet_id := str(animation_set_data.get("sprite_sheet_id", ""))
-	if content_db.has_method("has_sprite") and not content_db.has_sprite(sprite_sheet_id):
-		push_warning("AnimationSetLoader could not find sprite_sheet_id: %s" % sprite_sheet_id)
+	var fallback_sprite_sheet_id := str(animation_set_data.get("sprite_sheet_id", ""))
+	var animations_value: Variant = animation_set_data.get("animations", {})
+	if not (animations_value is Dictionary):
 		return sprite_frames
+
+	var sheet_cache: Dictionary = {}
+	for animation_key in (animations_value as Dictionary).keys():
+		var animation_name := str(animation_key)
+		var animation_value: Variant = (animations_value as Dictionary)[animation_key]
+		if not (animation_value is Dictionary):
+			continue
+
+		var animation_data := animation_value as Dictionary
+		var sprite_sheet_id := str(animation_data.get("sprite_sheet_id", fallback_sprite_sheet_id))
+		var sheet_bundle := _get_sheet_bundle(content_db, sprite_sheet_id, sheet_cache)
+		if sheet_bundle.is_empty():
+			push_warning("AnimationSetLoader skipped %s because sprite sheet %s is invalid." % [animation_name, sprite_sheet_id])
+			continue
+
+		_add_animation_if_valid(
+			sprite_frames,
+			animation_name,
+			animation_data,
+			sheet_bundle.get("data", {}) as Dictionary,
+			sheet_bundle.get("texture") as Texture2D
+		)
+
+	return sprite_frames
+
+
+func _get_sheet_bundle(content_db: Node, sprite_sheet_id: String, cache: Dictionary) -> Dictionary:
+	if sprite_sheet_id.is_empty():
+		return {}
+	if cache.has(sprite_sheet_id):
+		var cached: Variant = cache[sprite_sheet_id]
+		return cached as Dictionary if cached is Dictionary else {}
+	if content_db.has_method("has_sprite") and not content_db.has_sprite(sprite_sheet_id):
+		cache[sprite_sheet_id] = {}
+		return {}
 
 	var sprite_sheet_data: Dictionary = content_db.get_sprite(sprite_sheet_id)
 	if sprite_sheet_data.is_empty():
-		push_warning("AnimationSetLoader could not find sprite_sheet_id: %s" % sprite_sheet_id)
-		return sprite_frames
-
+		cache[sprite_sheet_id] = {}
+		return {}
 	var texture := _load_sheet_texture(sprite_sheet_data)
 	if texture == null:
-		return sprite_frames
+		cache[sprite_sheet_id] = {}
+		return {}
 
-	var animations = animation_set_data.get("animations", {})
-	if not animations is Dictionary:
-		return sprite_frames
-
-	for animation_name in animations.keys():
-		var animation_data = animations[animation_name]
-		if not animation_data is Dictionary:
-			continue
-
-		_add_animation_if_valid(sprite_frames, str(animation_name), animation_data, sprite_sheet_data, texture)
-
-	return sprite_frames
+	var bundle := {
+		"data": sprite_sheet_data,
+		"texture": texture,
+	}
+	cache[sprite_sheet_id] = bundle
+	return bundle
 
 
 func _add_animation_if_valid(sprite_frames: SpriteFrames, animation_name: String, animation_data: Dictionary, sprite_sheet_data: Dictionary, texture: Texture2D) -> void:
@@ -84,8 +113,8 @@ func _add_animation_if_valid(sprite_frames: SpriteFrames, animation_name: String
 
 
 func _get_valid_frame_indices(animation_data: Dictionary, sprite_sheet_data: Dictionary) -> Array:
-	var frames = animation_data.get("frames", [])
-	if not frames is Array:
+	var frames_value: Variant = animation_data.get("frames", [])
+	if not (frames_value is Array):
 		return []
 
 	var total_frames := int(sprite_sheet_data.get("total_frames", 0))
@@ -93,11 +122,10 @@ func _get_valid_frame_indices(animation_data: Dictionary, sprite_sheet_data: Dic
 		total_frames = int(sprite_sheet_data.get("columns", 0)) * int(sprite_sheet_data.get("rows", 0))
 
 	var valid_frames := []
-	for frame in frames:
-		var frame_index := int(frame)
+	for frame_value in frames_value as Array:
+		var frame_index := int(frame_value)
 		if frame_index < 0 or frame_index >= total_frames:
 			continue
-
 		valid_frames.append(frame_index)
 
 	return valid_frames
