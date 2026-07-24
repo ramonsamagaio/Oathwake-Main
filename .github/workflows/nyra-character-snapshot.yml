@@ -1,6 +1,9 @@
 name: Nyra Character Snapshot
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - fix/responsive-ui-slime-drop-glow-pickup
