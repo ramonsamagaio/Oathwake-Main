@@ -3,6 +3,8 @@ extends SceneTree
 const SPRITES_PATH := "res://data/sprites.json"
 const ANIMATION_SETS_PATH := "res://data/animation_sets.json"
 const CHARACTERS_PATH := "res://data/characters.json"
+const PLAYER_TUNING_PATH := "res://data/player_tuning.json"
+const AnimationSetLoaderScript := preload("res://scripts/systems/AnimationSetLoader.gd")
 
 var failures: Array[String] = []
 
@@ -15,11 +17,14 @@ func _run() -> void:
 	var sprites := _load_dictionary(SPRITES_PATH)
 	var animation_sets := _load_dictionary(ANIMATION_SETS_PATH)
 	var characters := _load_dictionary(CHARACTERS_PATH)
+	var player_tuning := _load_dictionary(PLAYER_TUNING_PATH)
 
 	if failures.is_empty():
 		_validate_sprite_records(sprites)
 		_validate_animation_sets(sprites, animation_sets)
 		_validate_characters(sprites, animation_sets, characters)
+		_validate_active_character_selection(characters, player_tuning)
+		_validate_multi_sheet_runtime()
 
 	if failures.is_empty():
 		print("CHARACTER_CONTENT_VALIDATION_PASS")
@@ -161,6 +166,48 @@ func _validate_characters(sprites: Dictionary, animation_sets: Dictionary, chara
 					animation_sprite_id,
 				]
 			)
+
+
+func _validate_active_character_selection(characters: Dictionary, player_tuning: Dictionary) -> void:
+	var default_value: Variant = player_tuning.get("default", {})
+	if not (default_value is Dictionary):
+		failures.append("Player tuning default record is missing.")
+		return
+	var active_character_id := str((default_value as Dictionary).get("character_id", "player"))
+	if not characters.has(active_character_id):
+		failures.append("Player tuning references missing active character %s." % active_character_id)
+	if active_character_id == "test_template_player":
+		var character_value: Variant = characters.get(active_character_id, {})
+		if not (character_value is Dictionary) or str((character_value as Dictionary).get("orientation_mode", "")) != "side_view":
+			failures.append("Test template player must be registered as side_view content.")
+
+
+func _validate_multi_sheet_runtime() -> void:
+	var loader = AnimationSetLoaderScript.new()
+	var sprite_frames: SpriteFrames = loader.load_from_animation_set_id("test_template_character")
+	_validate_loaded_animation(sprite_frames, "idle_down", 10, Vector2i(48, 48))
+	_validate_loaded_animation(sprite_frames, "walk_right", 8, Vector2i(48, 48))
+	_validate_loaded_animation(sprite_frames, "attack_down", 6, Vector2i(64, 64))
+	_validate_loaded_animation(sprite_frames, "dash_left", 9, Vector2i(48, 48))
+	_validate_loaded_animation(sprite_frames, "sword_stab", 7, Vector2i(96, 48))
+	_validate_loaded_animation(sprite_frames, "katana_attack_sheathe", 10, Vector2i(80, 64))
+
+
+func _validate_loaded_animation(sprite_frames: SpriteFrames, animation_name: String, expected_count: int, expected_size: Vector2i) -> void:
+	if not sprite_frames.has_animation(animation_name):
+		failures.append("Runtime loader did not create animation %s." % animation_name)
+		return
+	var actual_count := sprite_frames.get_frame_count(animation_name)
+	if actual_count != expected_count:
+		failures.append("Runtime animation %s has %d frames; expected %d." % [animation_name, actual_count, expected_count])
+		return
+	var texture := sprite_frames.get_frame_texture(animation_name, 0)
+	if texture == null:
+		failures.append("Runtime animation %s has no first texture." % animation_name)
+		return
+	var actual_size := Vector2i(texture.get_size())
+	if actual_size != expected_size:
+		failures.append("Runtime animation %s frame size is %s; expected %s." % [animation_name, actual_size, expected_size])
 
 
 func _has_sprite_record(sprites: Dictionary, sprite_id: String) -> bool:
