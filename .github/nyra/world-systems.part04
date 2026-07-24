@@ -1,0 +1,168 @@
+ @export_category("Dropped Item Shadow")
+ @export var drop_shadow_enabled := true
+ @export_range(0.20, 0.80, 0.01) var drop_shadow_width_factor := 0.46
+@@ -10,6 +12,7 @@ var _drop_shadow_base_scale := Vector2.ONE
+ 
+ func _process(delta: float) -> void:
+ 	super._process(delta)
++	WorldDepthRuntime.apply_node_depth(self)
+ 	if _shadow == null or collected:
+ 		return
+ 	_shadow.visible = drop_shadow_enabled
+diff --git a/scripts/maps/MapRoot.gd b/scripts/maps/MapRoot.gd
+index 9f136c3..c1d7737 100644
+--- a/scripts/maps/MapRoot.gd
++++ b/scripts/maps/MapRoot.gd
+@@ -3,6 +3,8 @@ class_name MapRoot
+ extends Node2D
+ 
+ const FUNCTIONAL_GROUND_TEXTURE := preload("res://assets/generated/functional_ground_tile.svg")
++const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
++const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
+ 
+ @export var map_id: String = ""
+ @export var display_name: String = ""
+@@ -69,6 +71,61 @@ func get_tile_type_at_position(_global_position: Vector2) -> String:
+ 
+ func _ready() -> void:
+ 	_ensure_functional_ground()
++	call_deferred("_configure_authored_prop_presentation")
++
++
++func _configure_authored_prop_presentation() -> void:
++	if _props_root == null:
++		return
++	var prop_sprites: Array[Sprite2D] = []
++	_collect_authored_prop_sprites(_props_root, prop_sprites)
++	for sprite in prop_sprites:
++		if not _is_depth_sorted_authored_prop(sprite):
++			continue
++		var line_ratio := _get_authored_prop_depth_ratio(sprite)
++		WorldDepthRuntime.apply_sprite_depth(sprite, line_ratio)
++		sprite.set_meta("authored_depth_line_ratio", line_ratio)
++		var shadow_config := {
++			"enabled": _authored_prop_casts_shadow(sprite),
++			"opacity": 0.28,
++			"z_index": -1,
++		}
++		DirectionalShadowRuntime.apply_to_sprite(sprite, shadow_config)
++
++
++func _collect_authored_prop_sprites(node: Node, output: Array[Sprite2D]) -> void:
++	for child in node.get_children():
++		if child is Sprite2D:
++			output.append(child as Sprite2D)
++		if child is Node and not (child as Node).is_in_group("persistent_content_visual"):
++			_collect_authored_prop_sprites(child, output)
++
++
++func _is_depth_sorted_authored_prop(sprite: Sprite2D) -> bool:
++	if sprite == null or sprite.texture == null or not sprite.visible:
++		return false
++	var name_text := str(sprite.name).to_lower()
++	for token in ["tree", "arbusto", "shrub", "log", "stone", "casa", "house", "crate", "sign", "lamp", "curral", "fence", "post", "barrel", "campfire", "stump", "sapling"]:
++		if name_text.contains(token):
++			return true
++	return false
++
++
++func _authored_prop_casts_shadow(sprite: Sprite2D) -> bool:
++	var name_text := str(sprite.name).to_lower()
++	for token in ["tree", "arbusto", "shrub", "log", "stone", "casa", "house", "crate", "sign", "lamp", "curral", "fence", "post", "barrel", "campfire", "stump", "sapling"]:
++		if name_text.contains(token):
++			return true
++	return false
++
++
++func _get_authored_prop_depth_ratio(sprite: Sprite2D) -> float:
++	var name_text := str(sprite.name).to_lower()
++	if name_text.contains("tree") or name_text.contains("sapling"):
++		return 0.58
++	if name_text.contains("casa") or name_text.contains("house") or name_text.contains("lamp") or name_text.contains("sign"):
++		return 0.68
++	return 0.62
+ 
+ 
+ func _ensure_functional_ground() -> void:
+diff --git a/scripts/npcs/NPC.gd b/scripts/npcs/NPC.gd
+index 9533185..c1abdaa 100644
+--- a/scripts/npcs/NPC.gd
++++ b/scripts/npcs/NPC.gd
+@@ -1,6 +1,8 @@
+ extends CharacterBody2D
+ 
+ const NPCDataScript = preload("res://scripts/npcs/NPCData.gd")
++const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
++const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
+ 
+ @export var npc_id: String = "villager_basic"
+ @export var npc_instance_id: String = "npc_001"
+@@ -27,6 +29,7 @@ func _ready() -> void:
+ 	collision_layer = 0
+ 	collision_mask = 0
+ 	_load_npc_data()
++	_apply_world_presentation()
+ 
+ 
+ func _process(delta: float) -> void:
+@@ -35,6 +38,22 @@ func _process(delta: float) -> void:
+ 
+ func _physics_process(_delta: float) -> void:
+ 	velocity = Vector2.ZERO
++	WorldDepthRuntime.apply_node_depth(self)
++
++
++func _apply_world_presentation() -> void:
++	WorldDepthRuntime.apply_node_depth(self)
++	var shadow_config := {
++		"enabled": true,
++		"opacity": 0.30,
++		"z_index": -1,
++	}
++	DirectionalShadowRuntime.apply_to_target(
++		self,
++		shadow_config,
++		DirectionalShadowRuntime.estimate_target_visual_size(self),
++		DirectionalShadowRuntime.estimate_target_foot_offset(self)
++	)
+ 
+ 
+ func try_interact_with_player(player_node: Node2D) -> bool:
+diff --git a/scripts/player/PlayerWorldFeedbackSuite.gd b/scripts/player/PlayerWorldFeedbackSuite.gd
+index 5422abe..87ab5ca 100644
+--- a/scripts/player/PlayerWorldFeedbackSuite.gd
++++ b/scripts/player/PlayerWorldFeedbackSuite.gd
+@@ -1,9 +1,18 @@
+ extends "res://scripts/player/PlayerShaderSuite.gd"
+ 
++const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
++const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
++
+ 
+ var _content_character_side_view := false
+ var _content_visual_scale := 1.0
+ var _content_visual_offset := Vector2.ZERO
++var _content_depth_offset_y := 0.0
++var _content_shadow_config: Dictionary = {}
++var _attack_animation_variants: Array[String] = []
++var _attack_variant_bag: Array[String] = []
++var _last_attack_animation := ""
++var _avoid_immediate_attack_repeat := true
+ 
+ 
+ func _load_player_tuning() -> void:
+@@ -18,15 +27,35 @@ func _load_player_tuning() -> void:
+ 		float(tuning.get("visual_offset_x", 0.0)),
+ 		float(tuning.get("visual_offset_y", 0.0))
+ 	)
++	_content_depth_offset_y = float(tuning.get("depth_sort_offset_y", 0.0))
++	var shadow_value: Variant = tuning.get("shadow", {})
++	_content_shadow_config = (shadow_value as Dictionary).duplicate(true) if shadow_value is Dictionary else {}
+ 	_content_character_side_view = false
++	_attack_animation_variants.clear()
++	_attack_variant_bag.clear()
++	_last_attack_animation = ""
+ 	if content_db.has_method("has_character") and content_db.has_character(character_id):
+ 		var character_data: Dictionary = content_db.get_character(character_id)
+ 		_content_character_side_view = str(character_data.get("orientation_mode", "top_down")) == "side_view"
++		_avoid_immediate_attack_repeat = bool(character_data.get("avoid_immediate_attack_repeat", true))
