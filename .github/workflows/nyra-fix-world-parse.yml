@@ -1,0 +1,51 @@
+name: Nyra Fix World Parse
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/nyra/world-parse.ready"
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/world-depth-shadows-hit-attacks
+      - name: Apply strict GDScript types
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("scripts/effects/DirectionalShadowRuntime.gd")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace("\t\tvar node := queue.pop_front()\n", "\t\tvar node: Node = queue.pop_front() as Node\n")
+          path.write_text(text, encoding="utf-8")
+
+          path = Path("scripts/player/PlayerWorldFeedbackSuite.gd")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace("\tvar configured := _attack_animation_variants.duplicate()\n", "\tvar configured: Array[String] = _attack_animation_variants.duplicate()\n")
+          text = text.replace("\tfor variant in configured:\n\t\tvar resolved := variant.replace(\"{direction}\", last_direction)\n", "\tfor variant: String in configured:\n\t\tvar resolved: String = variant.replace(\"{direction}\", last_direction)\n")
+          path.write_text(text, encoding="utf-8")
+
+          path = Path("scripts/test/WorldPresentationValidator.gd")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace(
+              "\tvar canvas_transform := Transform2D.IDENTITY.scaled(Vector2(2.0, 2.0)).translated(Vector2(120.0, 80.0))\n\tfor start in [Vector2(-140.0, -220.0), Vector2(420.0, 680.0)]:\n\t\tvar target := FloatingCombatTextScript.calculate_world_target_for_screen_rise(start, canvas_transform, 30.0)\n\t\tvar screen_start := canvas_transform * start\n\t\tvar screen_target := canvas_transform * target\n",
+              "\tvar canvas_transform: Transform2D = Transform2D.IDENTITY.scaled(Vector2(2.0, 2.0)).translated(Vector2(120.0, 80.0))\n\tfor start_value in [Vector2(-140.0, -220.0), Vector2(420.0, 680.0)]:\n\t\tvar start: Vector2 = start_value\n\t\tvar target: Vector2 = FloatingCombatTextScript.calculate_world_target_for_screen_rise(start, canvas_transform, 30.0)\n\t\tvar screen_start: Vector2 = canvas_transform * start\n\t\tvar screen_target: Vector2 = canvas_transform * target\n"
+          )
+          path.write_text(text, encoding="utf-8")
+
+          Path(".github/nyra/world-parse.ready").unlink(missing_ok=True)
+      - name: Commit fixes
+        run: |
+          git config user.name "Nyra Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add scripts/effects/DirectionalShadowRuntime.gd scripts/player/PlayerWorldFeedbackSuite.gd scripts/test/WorldPresentationValidator.gd .github/nyra/world-parse.ready
+          git commit -m "Fix strict typing in world presentation systems"
+          git push origin HEAD:feature/world-depth-shadows-hit-attacks
