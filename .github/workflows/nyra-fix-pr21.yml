@@ -1,0 +1,59 @@
+name: Nyra Fix PR21
+
+on:
+  pull_request:
+    types: [reopened]
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/build-craft-door-monsters-v2
+      - name: Apply strict fixes
+        shell: python
+        run: |
+          from pathlib import Path
+
+          replacements = {
+              "scripts/enemies/MonsterAnimator.gd": [
+                  ("\telse:\n\t\t\t_build_sprite_frames(animations_data)\n\t\t_uses_scene_sprite = false",
+                   "\telse:\n\t\t_build_sprite_frames(animations_data)\n\t\t_uses_scene_sprite = false"),
+              ],
+              "scripts/enemies/EnemyBase.gd": [
+                  ("\tvar duration := _monster_animator.get_animation_duration(animation_name)",
+                   "\tvar duration: float = float(_monster_animator.get_animation_duration(animation_name))"),
+              ],
+              "scripts/test/BuildCraftMonsterValidator.gd": [
+                  ("\tif light == null or not bool(light.get(\"visual_enabled\")): failures.append(\"Player small light is disabled\")",
+                   "\tif light == null or not bool(light.get(\"use_point_light\")) or float(light.get(\"point_light_energy\")) <= 0.0:\n\t\tfailures.append(\"Player small point light is disabled\")\n\telif bool(light.get(\"visual_enabled\")):\n\t\tfailures.append(\"Player light must not draw a visible aura sprite\")"),
+                  ("\t\tvar monster := scene.instantiate()",
+                   "\t\tvar monster: Node = scene.instantiate()"),
+              ],
+              "scenes/Player.tscn": [
+                  ("visual_enabled = true", "visual_enabled = false"),
+              ],
+          }
+
+          for file_name, file_replacements in replacements.items():
+              path = Path(file_name)
+              text = path.read_text(encoding="utf-8")
+              for old, new in file_replacements:
+                  count = text.count(old)
+                  if count != 1:
+                      raise RuntimeError(f"{file_name}: expected one exact match, found {count}: {old!r}")
+                  text = text.replace(old, new, 1)
+              path.write_text(text, encoding="utf-8")
+      - name: Commit fixes
+        run: |
+          git config user.name "Nyra Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add scripts scenes
+          git commit -m "Fix monster parsing and player point light"
+          git push origin HEAD:feature/build-craft-door-monsters-v2
