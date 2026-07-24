@@ -2,6 +2,7 @@
 	"default": {
 		"acceleration": 600.0,
 		"attack_buffer_window": 0.32,
+		"character_id": "test_template_player",
 		"dash_cooldown": 0.34,
 		"dash_duration": 0.14,
 		"dash_smoke_end_count": 2,
@@ -15,7 +16,9 @@
 		"run_stop_slide_time": 0.18,
 		"smoke_puff_cooldown": 0.28,
 		"smoke_puff_enabled": true,
-		"walk_speed": 70.0,
-		"character_id": "test_template_player"
+		"visual_offset_x": 0.0,
+		"visual_offset_y": -8.0,
+		"visual_scale": 1.55,
+		"walk_speed": 70.0
 	}
 }
