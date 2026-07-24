@@ -2,6 +2,8 @@ extends "res://scripts/player/PlayerShaderSuite.gd"
 
 
 var _content_character_side_view := false
+var _content_visual_scale := 1.0
+var _content_visual_offset := Vector2.ZERO
 
 
 func _load_player_tuning() -> void:
@@ -11,10 +13,31 @@ func _load_player_tuning() -> void:
 		return
 	var tuning: Dictionary = content_db.get_player_tuning("default")
 	character_id = str(tuning.get("character_id", character_id))
+	_content_visual_scale = clampf(float(tuning.get("visual_scale", 1.0)), 0.1, 8.0)
+	_content_visual_offset = Vector2(
+		float(tuning.get("visual_offset_x", 0.0)),
+		float(tuning.get("visual_offset_y", 0.0))
+	)
 	_content_character_side_view = false
 	if content_db.has_method("has_character") and content_db.has_character(character_id):
 		var character_data: Dictionary = content_db.get_character(character_id)
 		_content_character_side_view = str(character_data.get("orientation_mode", "top_down")) == "side_view"
+
+
+func _setup_character_visual() -> void:
+	super._setup_character_visual()
+	_apply_player_visual_tuning()
+
+
+func _apply_player_visual_tuning() -> void:
+	var tuned_scale := Vector2.ONE * _content_visual_scale
+	if animated_sprite != null:
+		animated_sprite.scale = tuned_scale
+		animated_sprite.position = _content_visual_offset
+	if body_visual is Node2D:
+		var body_node := body_visual as Node2D
+		body_node.scale = tuned_scale
+		body_node.position = _content_visual_offset
 
 
 func _start_attack_cycle() -> void:
