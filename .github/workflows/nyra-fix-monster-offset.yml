@@ -1,0 +1,58 @@
+name: Nyra Fix Monster Offset
+
+on:
+  pull_request:
+    types: [reopened]
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/build-craft-door-monsters-v2
+      - name: Preserve authored monster offset
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("scripts/enemies/MonsterAnimator.gd")
+          text = path.read_text(encoding="utf-8")
+
+          old = "var _visual_offset := Vector2.ZERO"
+          new = "var _visual_offset := Vector2.ZERO\nvar _motion_visual_offset := Vector2.ZERO"
+          if text.count(old) != 1:
+              raise RuntimeError("MonsterAnimator base offset declaration mismatch")
+          text = text.replace(old, new, 1)
+
+          old = "func set_visual_offset(offset: Vector2) -> void:\n\t_visual_offset = offset\n\tif _sprite != null:\n\t\t_sprite.position = _visual_offset"
+          new = "func set_visual_offset(offset: Vector2) -> void:\n\t_motion_visual_offset = offset\n\tif _sprite != null:\n\t\t_sprite.position = _visual_offset + _motion_visual_offset"
+          if text.count(old) != 1:
+              raise RuntimeError("MonsterAnimator motion offset function mismatch")
+          text = text.replace(old, new, 1)
+
+          remaining = text.count("_sprite.position = _visual_offset")
+          if remaining != 4:
+              raise RuntimeError(f"Expected four remaining sprite offset assignments, found {remaining}")
+          text = text.replace("_sprite.position = _visual_offset", "_sprite.position = _visual_offset + _motion_visual_offset")
+          path.write_text(text, encoding="utf-8")
+
+          slime_path = Path("scripts/enemies/Slime.gd")
+          slime_text = slime_path.read_text(encoding="utf-8")
+          old_slime = "extends \"res://scripts/enemies/EnemyBaseEnhanced.gd\"\n\n\nfunc _ready() -> void:\n\tsuper._ready()\n\tvar sprite := get_node_or_null(\"AnimatedSprite2D\") as AnimatedSprite2D\n\tif sprite != null:\n\t\tsprite.play(\"idle\")\n"
+          new_slime = "extends \"res://scripts/enemies/EnemyBaseEnhanced.gd\"\n\n\nfunc _ready() -> void:\n\tsuper._ready()\n"
+          if slime_text != old_slime:
+              raise RuntimeError("Slime.gd exact content mismatch")
+          slime_path.write_text(new_slime, encoding="utf-8")
+      - name: Commit fixes
+        run: |
+          git config user.name "Nyra Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add scripts/enemies
+          git commit -m "Preserve monster asset offsets during locomotion"
+          git push origin HEAD:feature/build-craft-door-monsters-v2
