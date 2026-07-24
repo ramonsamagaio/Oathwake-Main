@@ -1,87 +1,48 @@
-name: Nyra Character Manifest
+name: Nyra Clean Character Branch
 
 on:
   push:
     branches:
       - fix/responsive-ui-slime-drop-glow-pickup
     paths:
-      - "assets/sprites/characters/2D-Pixel-Art-Character-Template/**"
       - ".github/workflows/nyra-character-snapshot.yml"
 
 permissions:
   contents: write
 
 jobs:
-  manifest:
+  transplant:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Build asset and editor reports
-        shell: python
+      - name: Collect game-ready character images
         run: |
-          import json
-          import re
-          import struct
-          from pathlib import Path
+          SOURCE="assets/sprites/characters/2D-Pixel-Art-Character-Template"
+          TARGET="/tmp/2D-Pixel-Art-Character-Template"
+          mkdir -p "$TARGET"
+          rsync -a \
+            --include='*/' \
+            --include='*.png' \
+            --include='*.png.import' \
+            --exclude='*' \
+            "$SOURCE/" "$TARGET/"
+          rm -rf "$TARGET/Tilemap (Super Basic)"
+          rm -rf "$TARGET/Climb (facing side of player)/old climb"
+          find "$TARGET" -type d -empty -delete
 
-          root = Path("assets/sprites/characters/2D-Pixel-Art-Character-Template")
-          rows = []
-          for path in sorted(root.rglob("*.png")):
-              with path.open("rb") as handle:
-                  signature = handle.read(24)
-              if signature[:8] != b"\x89PNG\r\n\x1a\n":
-                  continue
-              width, height = struct.unpack(">II", signature[16:24])
-              match = re.search(r"(\d+)x(\d+)", path.name, re.IGNORECASE)
-              nominal_w = int(match.group(1)) if match else height
-              nominal_h = int(match.group(2)) if match else height
-              frame_w = nominal_w if width % nominal_w == 0 else height
-              frame_h = nominal_h if height % nominal_h == 0 else height
-              columns = width // frame_w if frame_w > 0 and width % frame_w == 0 else 1
-              rows_count = height // frame_h if frame_h > 0 and height % frame_h == 0 else 1
-              rows.append({
-                  "folder": path.parent.name,
-                  "path": "res://" + path.as_posix(),
-                  "width": width,
-                  "height": height,
-                  "frame_width": frame_w,
-                  "frame_height": frame_h,
-                  "columns": columns,
-                  "rows": rows_count,
-                  "total_frames": columns * rows_count,
-              })
-
-          artifacts = Path("artifacts")
-          artifacts.mkdir(parents=True, exist_ok=True)
-          (artifacts / "nyra_character_manifest.json").write_text(
-              json.dumps(rows, indent=2) + "\n", encoding="utf-8"
-          )
-
-          source_path = Path("tools/content_editor/ContentEditor.gd")
-          lines = source_path.read_text(encoding="utf-8").splitlines()
-          functions = []
-          starts = [index for index, line in enumerate(lines) if line.startswith("func ")]
-          starts.append(len(lines))
-          for offset in range(len(starts) - 1):
-              start = starts[offset]
-              end = starts[offset + 1]
-              block = "\n".join(lines[start:end])
-              header = lines[start]
-              lowered = block.lower()
-              if "animation_set" in lowered or "sprite_sheet" in lowered or "character_form" in lowered:
-                  functions.append(f"# lines {start + 1}-{end}\n{block}")
-          (artifacts / "nyra_content_editor_animation_functions.txt").write_text(
-              "\n\n".join(functions) + "\n", encoding="utf-8"
-          )
-
-      - name: Commit reports
+      - name: Create clean branch from main
         run: |
           git config user.name "Nyra Automation"
           git config user.email "actions@users.noreply.github.com"
-          git add artifacts/nyra_character_manifest.json artifacts/nyra_content_editor_animation_functions.txt
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          git commit -m "Inspect test character content editor integration"
-          git push
+          git fetch origin main
+          git switch -C feature/test-character-content origin/main
+          DEST="assets/sprites/characters/2D-Pixel-Art-Character-Template"
+          rm -rf "$DEST"
+          mkdir -p "$DEST"
+          rsync -a "/tmp/2D-Pixel-Art-Character-Template/" "$DEST/"
+          git add "$DEST"
+          git commit -m "Add expanded test character sprite pack"
+          git push --force origin feature/test-character-content
