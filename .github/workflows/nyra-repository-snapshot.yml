@@ -1,0 +1,27 @@
+name: Nyra Repository Snapshot
+
+on:
+  push:
+    branches:
+      - fix/responsive-ui-slime-drop-glow-pickup
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Upload repository snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: oathwake-repository-snapshot
+          include-hidden-files: true
+          retention-days: 1
+          path: |
+            .
+            !.git/**
+            !.godot/**
