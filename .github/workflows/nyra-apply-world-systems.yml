@@ -5,7 +5,7 @@ on:
     branches:
       - feature/world-depth-shadows-hit-attacks
     paths:
-      - ".github/nyra/world-systems.patch"
+      - ".github/nyra/world-systems.ready"
 
 permissions:
   contents: write
@@ -15,11 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Apply reviewed patch
+      - name: Assemble and apply reviewed patch
         run: |
-          git apply --check .github/nyra/world-systems.patch
-          git apply .github/nyra/world-systems.patch
-          rm -f .github/nyra/world-systems.patch
+          cat .github/nyra/world-systems.part* > /tmp/world-systems.patch
+          git apply --check /tmp/world-systems.patch
+          git apply /tmp/world-systems.patch
+          rm -f .github/nyra/world-systems.part*
+          rm -f .github/nyra/world-systems.ready
           rm -f .github/workflows/nyra-apply-world-systems.yml
       - name: Commit changes
         run: |
