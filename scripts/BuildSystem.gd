@@ -1244,6 +1244,8 @@ func _spawn_building_scene(tile_position: Vector2i, building_type: String) -> vo
 	var storage_slots: Variant = metadata.get("storage_slots", [])
 	if storage_slots is Array and building_scene.has_method("set_storage_slots"):
 		building_scene.set_storage_slots(storage_slots)
+	if building_scene.has_method("set_open"):
+		building_scene.set_open(bool(metadata.get("is_open", false)))
 
 	building_scene_by_cell[cell_key] = building_scene
 
@@ -1277,6 +1279,8 @@ func _sync_building_metadata(tile_position: Vector2i) -> void:
 		metadata["storage_slot_count"] = int(building_scene.get_slot_count())
 	if building_scene.has_method("get_storage_id"):
 		metadata["storage_id"] = str(building_scene.get_storage_id())
+	if building_scene.has_method("get_open"):
+		metadata["is_open"] = bool(building_scene.get_open())
 	if building_scene.has_method("get_storage_slots"):
 		metadata["storage_slots"] = building_scene.get_storage_slots()
 	building_metadata_by_cell[cell_key] = metadata

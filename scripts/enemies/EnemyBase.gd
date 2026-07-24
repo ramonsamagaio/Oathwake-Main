@@ -30,6 +30,9 @@ var player_in_contact := false
 var damage_timer := 0.0
 var health: int = 30
 var is_dead := false
+var forced_animation_time := 0.0
+var separation_distance := 26.0
+var contact_stop_distance := 27.0
 var display_name := "Slime"
 var behavior := "aggressive_contact_chaser"
 var spawn_time_seconds := 20.0
@@ -76,8 +79,11 @@ func _physics_process(delta: float) -> void:
 	velocity = motion.get("velocity", Vector2.ZERO)
 	facing_direction = str(motion.get("facing_direction", facing_direction))
 	_motion_state = str(motion.get("state", _motion_state))
-	_update_motion_animation(motion.get("visual_offset", Vector2.ZERO), _motion_state)
+	forced_animation_time = maxf(forced_animation_time - delta, 0.0)
+	if forced_animation_time <= 0.0:
+		_update_motion_animation(motion.get("visual_offset", Vector2.ZERO), _motion_state)
 	move_and_slide()
+	_resolve_player_overlap()
 	_update_damage(delta)
 
 
@@ -95,6 +101,7 @@ func _attack_player() -> void:
 		return
 
 	_attack_in_progress = true
+	_play_forced_animation("attack")
 	attack_started.emit()
 	_play_attack_tell()
 	await _wait_attack_step(attack_windup_time)
@@ -123,6 +130,7 @@ func take_damage(amount: int) -> void:
 	_show_nameplate_after_damage()
 	FloatingCombatTextSpawner.show_hit_impact(global_position + Vector2(0, -18), false)
 	_play_hit_feedback(false)
+	_play_forced_animation("hurt")
 	if show_floating_damage:
 		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), false, "enemy")
 
@@ -149,6 +157,7 @@ func apply_combat_result(combat_result: Dictionary) -> void:
 	var is_critical := bool(combat_result.get("is_critical", false))
 	FloatingCombatTextSpawner.show_hit_impact(global_position + Vector2(0, -18), is_critical)
 	_play_hit_feedback(is_critical)
+	_play_forced_animation("hurt")
 	if show_floating_damage:
 		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), is_critical, "enemy")
 
@@ -162,6 +171,9 @@ func _die() -> void:
 	_drop_loot()
 	damage_area.monitoring = false
 	set_physics_process(false)
+	var death_duration := _play_forced_animation("death")
+	if death_duration > 0.0:
+		await get_tree().create_timer(death_duration).timeout
 	var tween := create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(self, "modulate:a", 0.0, 0.18)
@@ -233,6 +245,8 @@ func _load_monster_data() -> void:
 	var loaded_locomotion = monster_data.get("locomotion", locomotion_data)
 	if loaded_locomotion is Dictionary:
 		locomotion_data = loaded_locomotion.duplicate(true)
+	separation_distance = float(locomotion_data.get("separation_distance", separation_distance))
+	contact_stop_distance = float(locomotion_data.get("contact_stop_distance", contact_stop_distance))
 	if locomotion_data.has("move_speed"):
 		speed = float(locomotion_data.get("move_speed", speed))
 	elif monster_data.has("move_speed"):
@@ -369,6 +383,30 @@ func _play_attack_tell() -> void:
 	tell_tween.tween_property(self, "scale", original_scale, 0.06)
 	tell_tween.tween_property(self, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.01)
 
+
+func _play_forced_animation(state_name: String) -> float:
+	if _monster_animator == null:
+		return 0.0
+	var animation_name := "%s_%s" % [state_name, facing_direction]
+	if not _monster_animator.has_animation(animation_name):
+		animation_name = state_name
+	if not _monster_animator.has_animation(animation_name):
+		return 0.0
+	var duration := _monster_animator.get_animation_duration(animation_name)
+	forced_animation_time = maxf(forced_animation_time, duration)
+	_monster_animator.play_state(state_name, facing_direction)
+	return duration
+
+func _resolve_player_overlap() -> void:
+	if player == null or not is_instance_valid(player):
+		return
+	var delta := global_position - player.global_position
+	var distance := delta.length()
+	if distance >= separation_distance:
+		return
+	var direction := delta.normalized() if distance > 0.001 else Vector2.RIGHT.rotated(randf() * TAU)
+	global_position += direction * (separation_distance - distance + 0.5)
+	velocity = velocity.slide(direction)
 
 func get_combat_data() -> Dictionary:
 	var combat_data: Dictionary = monster_data.duplicate(true) if monster_data is Dictionary else {}

@@ -430,5 +430,16 @@
 		"tier": 1.0,
 		"type": "building",
 		"workstation": "basic"
+	},
+	"door": {
+		"cost": {
+			"wood": 2.0
+		},
+		"display_name": "Door",
+		"output_amount": 1,
+		"output_item_id": "door",
+		"tier": 1,
+		"type": "building",
+		"workstation": "basic"
 	}
 }

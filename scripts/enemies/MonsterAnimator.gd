@@ -21,8 +21,9 @@ func configure(owner: Node2D, monster_data: Dictionary, animations_data: Diction
 		_sprite_frames = _sprite.sprite_frames
 		_uses_scene_sprite = true
 	else:
-		_build_sprite_frames(animations_data)
+			_build_sprite_frames(animations_data)
 		_uses_scene_sprite = false
+	_apply_visual_config(monster_data)
 	_set_fallback_visible(_sprite_frames == null or _sprite_frames.get_animation_names().is_empty())
 
 
@@ -131,13 +132,18 @@ func _build_animation_frames(animation_def: Dictionary) -> Array[Texture2D]:
 	if total_frames <= 0:
 		total_frames = maxi(1, texture_width / frame_width)
 
+	var frame_start := maxi(int(animation_def.get("frame_start", 0)), 0)
+	var row := maxi(int(animation_def.get("row", 0)), 0)
+	var y := row * frame_height
+	if y + frame_height > texture_height:
+		return frames
 	for index in range(total_frames):
-		var x := index * frame_width
+		var x := (frame_start + index) * frame_width
 		if x + frame_width > texture_width:
 			break
 		var frame_texture := AtlasTexture.new()
 		frame_texture.atlas = texture
-		frame_texture.region = Rect2(x, 0, frame_width, frame_height)
+		frame_texture.region = Rect2(x, y, frame_width, frame_height)
 		frames.append(frame_texture)
 
 	if frames.is_empty():
@@ -173,3 +179,22 @@ func _set_fallback_visible(visible_state: bool) -> void:
 	for node in _fallback_nodes:
 		if node is CanvasItem and is_instance_valid(node):
 			(node as CanvasItem).visible = visible_state
+
+func _apply_visual_config(monster_data: Dictionary) -> void:
+	if _sprite == null:
+		return
+	var scale_value := maxf(float(monster_data.get("visual_scale", 1.0)), 0.01)
+	_sprite.scale = Vector2.ONE * scale_value
+	var offset_value: Variant = monster_data.get("visual_offset", {})
+	if offset_value is Dictionary:
+		_visual_offset = Vector2(float(offset_value.get("x", 0.0)), float(offset_value.get("y", 0.0)))
+	_sprite.position = _visual_offset
+
+func has_animation(animation_name: String) -> bool:
+	return _sprite_frames != null and _sprite_frames.has_animation(animation_name)
+
+func get_animation_duration(animation_name: String) -> float:
+	if not has_animation(animation_name):
+		return 0.0
+	var fps := _sprite_frames.get_animation_speed(animation_name)
+	return float(_sprite_frames.get_frame_count(animation_name)) / maxf(fps, 0.01)

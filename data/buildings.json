@@ -1,31 +1,52 @@
 {
 	"anvil": {
 		"building_type": "workstation",
-		"collision": {"enabled": true, "shape": "rectangle", "size": {"h": 24, "w": 28}},
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 24,
+				"w": 28
+			}
+		},
 		"destroy_vfx_profile": "building_destroy_puff",
 		"display_name": "Anvil",
-		"placement_cost": {"stone": 8, "wood": 4},
+		"placement_cost": {
+			"stone": 8,
+			"wood": 4
+		},
 		"scene_path": "res://scenes/buildings/Building.tscn",
 		"sprite_id": "",
-		"tags": ["crafting"],
+		"tags": [
+			"crafting"
+		],
 		"workstation_id": "anvil"
 	},
 	"bed": {
 		"build_key": "4",
 		"building_type": "bed",
-		"collision": {"enabled": false},
+		"collision": {
+			"enabled": false
+		},
 		"destroy_vfx_profile": "building_destroy_puff",
 		"display_name": "Bed",
-		"placement_cost": {"gel": 2, "wood": 6},
+		"placement_cost": {
+			"gel": 2,
+			"wood": 6
+		},
 		"scene_path": "res://scenes/buildings/Building.tscn",
 		"sprite_id": "",
-		"tags": ["housing"],
+		"tags": [
+			"housing"
+		],
 		"workstation_id": ""
 	},
 	"campfire": {
 		"build_key": "2",
 		"building_type": "light",
-		"collision": {"enabled": false},
+		"collision": {
+			"enabled": false
+		},
 		"destroy_vfx_profile": "building_destroy_puff",
 		"display_name": "Campfire",
 		"glow": {
@@ -37,8 +58,14 @@
 			"intensity": 1.35,
 			"alpha": 0.72,
 			"scale": 0.38,
-			"stretch": {"x": 1.1, "y": 0.95},
-			"offset": {"x": 0.0, "y": -5.0},
+			"stretch": {
+				"x": 1.1,
+				"y": 0.95
+			},
+			"offset": {
+				"x": 0.0,
+				"y": -5.0
+			},
 			"flicker_enabled": true,
 			"flicker_amount": 0.12,
 			"flicker_speed": 4.2,
@@ -49,96 +76,194 @@
 			"day_multiplier": 0.24,
 			"night_multiplier": 1.0
 		},
-		"placement_cost": {"stone": 1, "wood": 3},
+		"placement_cost": {
+			"stone": 1,
+			"wood": 3
+		},
 		"scene_path": "res://scenes/buildings/Building.tscn",
 		"sprite_id": "campfire",
-		"tags": ["safe_radius", "light"],
+		"tags": [
+			"safe_radius",
+			"light"
+		],
 		"workstation_id": ""
 	},
 	"chest": {
 		"build_key": "5",
 		"building_type": "storage",
-		"collision": {"enabled": true, "shape": "rectangle", "size": {"h": 24, "w": 28}},
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 24,
+				"w": 28
+			}
+		},
 		"destroy_vfx_profile": "building_destroy_puff",
 		"display_name": "Chest",
-		"placement_cost": {"chest": 1},
+		"placement_cost": {
+			"chest": 1
+		},
 		"scene_path": "res://scenes/buildings/Chest.tscn",
 		"sprite_id": "",
-		"storage": {"slot_count": 20},
-		"tags": ["storage"],
+		"storage": {
+			"slot_count": 20
+		},
+		"tags": [
+			"storage"
+		],
 		"workstation_id": ""
 	},
 	"iron_workbench": {
 		"building_type": "workstation",
-		"collision": {"enabled": true, "shape": "rectangle", "size": {"h": 24, "w": 28}},
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 24,
+				"w": 28
+			}
+		},
 		"destroy_vfx_profile": "building_destroy_puff",
 		"display_name": "Iron Workbench",
-		"placement_cost": {"iron_ingot": 4, "wood": 8},
+		"placement_cost": {
+			"iron_ingot": 4,
+			"wood": 8
+		},
 		"scene_path": "res://scenes/buildings/Building.tscn",
 		"sprite_id": "",
-		"tags": ["crafting"],
+		"tags": [
+			"crafting"
+		],
 		"workstation_id": "iron_workbench"
 	},
 	"laboratory": {
 		"building_type": "workstation",
-		"collision": {"enabled": true, "shape": "rectangle", "size": {"h": 24, "w": 28}},
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 24,
+				"w": 28
+			}
+		},
 		"destroy_vfx_profile": "building_destroy_puff",
 		"display_name": "Laboratory",
-		"placement_cost": {"basic_gem": 2, "iron_ingot": 6, "wood": 10},
+		"placement_cost": {
+			"basic_gem": 2,
+			"iron_ingot": 6,
+			"wood": 10
+		},
 		"scene_path": "res://scenes/buildings/Building.tscn",
 		"sprite_id": "",
-		"tags": ["crafting"],
+		"tags": [
+			"crafting"
+		],
 		"workstation_id": "laboratory"
 	},
 	"steel_workbench": {
 		"building_type": "workstation",
-		"collision": {"enabled": true, "shape": "rectangle", "size": {"h": 24, "w": 28}},
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 24,
+				"w": 28
+			}
+		},
 		"destroy_vfx_profile": "building_destroy_puff",
 		"display_name": "Steel Workbench",
-		"placement_cost": {"steel_ingot": 4, "wood": 10},
+		"placement_cost": {
+			"steel_ingot": 4,
+			"wood": 10
+		},
 		"scene_path": "res://scenes/buildings/Building.tscn",
 		"sprite_id": "",
-		"tags": ["crafting"],
+		"tags": [
+			"crafting"
+		],
 		"workstation_id": "steel_workbench"
 	},
 	"wall": {
 		"build_key": "1",
 		"building_type": "wall",
-		"collision": {"enabled": true, "shape": "rectangle", "size": {"h": 32, "w": 32}},
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 32,
+				"w": 32
+			}
+		},
 		"destroy_vfx_profile": "building_destroy_puff",
 		"display_name": "Wall",
-		"placement_cost": {"wood": 1},
+		"placement_cost": {
+			"wood": 1
+		},
 		"scene_path": "res://scenes/buildings/Building.tscn",
 		"sprite_id": "",
-		"tags": ["wall"],
+		"tags": [
+			"wall"
+		],
 		"workstation_id": ""
 	},
 	"workbench": {
 		"build_key": "3",
 		"building_type": "workstation",
-		"collision": {"enabled": true, "shape": "rectangle", "size": {"h": 24, "w": 28}},
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 24,
+				"w": 28
+			}
+		},
 		"destroy_vfx_profile": "building_destroy_puff",
 		"display_name": "Workbench",
-		"placement_cost": {"stone": 2, "wood": 5},
+		"placement_cost": {
+			"stone": 2,
+			"wood": 5
+		},
 		"scene_path": "res://scenes/buildings/Building.tscn",
 		"sprite_id": "",
-		"tags": ["crafting"],
+		"tags": [
+			"crafting"
+		],
 		"workstation_id": "workbench"
 	},
 	"door": {
 		"build_key": "6",
 		"building_type": "door",
-		"collision": {"enabled": true, "shape": "rectangle", "size": {"h": 30, "w": 12}},
+		"collision": {
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"h": 30,
+				"w": 12
+			}
+		},
 		"destroy_vfx_profile": "building_destroy_puff",
 		"display_name": "Door",
-		"placement_cost": {"wood": 2},
+		"placement_cost": {
+			"wood": 2
+		},
 		"scene_path": "res://scenes/buildings/Door.tscn",
 		"sprite_id": "",
-		"tags": ["door", "interactable"],
+		"tags": [
+			"door",
+			"interactable"
+		],
 		"workstation_id": "",
 		"closed_color": "#6B4028FF",
 		"open_color": "#3C7650FF",
 		"interaction_range": 64.0,
-		"shadow": {"enabled": true, "opacity": 0.28, "length": 22.0, "width": 12.0, "fade_power": 1.5, "z_index": -1}
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.28,
+			"length": 22.0,
+			"width": 12.0,
+			"fade_power": 1.5,
+			"z_index": -1
+		}
 	}
 }

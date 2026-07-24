@@ -13,10 +13,12 @@ script = ExtResource("1_skeleton_script")
 monster_id = "skeleton"
 
 [node name="Body" type="Polygon2D" parent="."]
+visible = false
 color = Color(0.78, 0.76, 0.70, 1)
 polygon = PackedVector2Array(-14, 7, -10, -9, -2, -15, 8, -15, 15, -8, 18, 4, 10, 16, -6, 16)
 
 [node name="Highlight" type="Polygon2D" parent="."]
+visible = false
 color = Color(0.95, 0.94, 0.90, 1)
 polygon = PackedVector2Array(-4, -8, 2, -12, 8, -8, 1, -4)
 

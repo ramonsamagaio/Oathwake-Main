@@ -1,7 +1,128 @@
 {
 	"skeleton": {
-		"animation_set_id": "player_base_body",
-		"animations": {},
+		"animation_set_id": "",
+		"animations": {
+			"idle_down": {
+				"texture_path": "res://assets/sprites/monsters/Skeleton_Placeholder/skeleton_sprite_sheet_RGBA.png",
+				"frame_width": 221,
+				"frame_height": 221,
+				"frames": 1,
+				"frame_start": 7,
+				"row": 0,
+				"fps": 1,
+				"loop": true
+			},
+			"walk_down": {
+				"texture_path": "res://assets/sprites/monsters/Skeleton_Placeholder/skeleton_sprite_sheet_RGBA.png",
+				"frame_width": 221,
+				"frame_height": 221,
+				"frames": 4,
+				"frame_start": 0,
+				"row": 0,
+				"fps": 7,
+				"loop": true
+			},
+			"attack_down": {
+				"texture_path": "res://assets/sprites/monsters/Skeleton_Placeholder/skeleton_sprite_sheet_RGBA.png",
+				"frame_width": 221,
+				"frame_height": 221,
+				"frames": 3,
+				"frame_start": 4,
+				"row": 0,
+				"fps": 9,
+				"loop": false
+			},
+			"idle_up": {
+				"texture_path": "res://assets/sprites/monsters/Skeleton_Placeholder/skeleton_sprite_sheet_RGBA.png",
+				"frame_width": 221,
+				"frame_height": 221,
+				"frames": 1,
+				"frame_start": 7,
+				"row": 1,
+				"fps": 1,
+				"loop": true
+			},
+			"walk_up": {
+				"texture_path": "res://assets/sprites/monsters/Skeleton_Placeholder/skeleton_sprite_sheet_RGBA.png",
+				"frame_width": 221,
+				"frame_height": 221,
+				"frames": 4,
+				"frame_start": 0,
+				"row": 1,
+				"fps": 7,
+				"loop": true
+			},
+			"attack_up": {
+				"texture_path": "res://assets/sprites/monsters/Skeleton_Placeholder/skeleton_sprite_sheet_RGBA.png",
+				"frame_width": 221,
+				"frame_height": 221,
+				"frames": 3,
+				"frame_start": 4,
+				"row": 1,
+				"fps": 9,
+				"loop": false
+			},
+			"idle_right": {
+				"texture_path": "res://assets/sprites/monsters/Skeleton_Placeholder/skeleton_sprite_sheet_RGBA.png",
+				"frame_width": 221,
+				"frame_height": 221,
+				"frames": 1,
+				"frame_start": 7,
+				"row": 2,
+				"fps": 1,
+				"loop": true
+			},
+			"walk_right": {
+				"texture_path": "res://assets/sprites/monsters/Skeleton_Placeholder/skeleton_sprite_sheet_RGBA.png",
+				"frame_width": 221,
+				"frame_height": 221,
+				"frames": 4,
+				"frame_start": 0,
+				"row": 2,
+				"fps": 7,
+				"loop": true
+			},
+			"attack_right": {
+				"texture_path": "res://assets/sprites/monsters/Skeleton_Placeholder/skeleton_sprite_sheet_RGBA.png",
+				"frame_width": 221,
+				"frame_height": 221,
+				"frames": 3,
+				"frame_start": 4,
+				"row": 2,
+				"fps": 9,
+				"loop": false
+			},
+			"idle_left": {
+				"texture_path": "res://assets/sprites/monsters/Skeleton_Placeholder/skeleton_sprite_sheet_RGBA.png",
+				"frame_width": 221,
+				"frame_height": 221,
+				"frames": 1,
+				"frame_start": 7,
+				"row": 3,
+				"fps": 1,
+				"loop": true
+			},
+			"walk_left": {
+				"texture_path": "res://assets/sprites/monsters/Skeleton_Placeholder/skeleton_sprite_sheet_RGBA.png",
+				"frame_width": 221,
+				"frame_height": 221,
+				"frames": 4,
+				"frame_start": 0,
+				"row": 3,
+				"fps": 7,
+				"loop": true
+			},
+			"attack_left": {
+				"texture_path": "res://assets/sprites/monsters/Skeleton_Placeholder/skeleton_sprite_sheet_RGBA.png",
+				"frame_width": 221,
+				"frame_height": 221,
+				"frames": 3,
+				"frame_start": 4,
+				"row": 3,
+				"fps": 9,
+				"loop": false
+			}
+		},
 		"attack_cooldown": 1.35,
 		"attack_hit_time": 0.04,
 		"attack_recovery_time": 0.12,
@@ -58,7 +179,9 @@
 		},
 		"level": 2,
 		"locomotion": {
-			"move_speed": 40.0
+			"move_speed": 40.0,
+			"contact_stop_distance": 29.0,
+			"separation_distance": 28.0
 		},
 		"loot_table": [
 			{
@@ -91,11 +214,233 @@
 		"xp_reward": 18,
 		"depth_sort": {
 			"offset_y": 0.0
+		},
+		"visual_scale": 0.3,
+		"visual_offset": {
+			"x": 0.0,
+			"y": -33.0
 		}
 	},
 	"slime": {
 		"animation_set_id": "player_base_body",
-		"animations": {},
+		"animations": {
+			"idle_down": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Idle/Slime1_Idle_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 6,
+				"row": 0,
+				"fps": 7,
+				"loop": true
+			},
+			"idle_up": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Idle/Slime1_Idle_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 6,
+				"row": 1,
+				"fps": 7,
+				"loop": true
+			},
+			"idle_right": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Idle/Slime1_Idle_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 6,
+				"row": 2,
+				"fps": 7,
+				"loop": true
+			},
+			"idle_left": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Idle/Slime1_Idle_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 6,
+				"row": 3,
+				"fps": 7,
+				"loop": true
+			},
+			"walk_down": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Walk/Slime1_Walk_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 8,
+				"row": 0,
+				"fps": 10,
+				"loop": true
+			},
+			"walk_up": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Walk/Slime1_Walk_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 8,
+				"row": 1,
+				"fps": 10,
+				"loop": true
+			},
+			"walk_right": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Walk/Slime1_Walk_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 8,
+				"row": 2,
+				"fps": 10,
+				"loop": true
+			},
+			"walk_left": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Walk/Slime1_Walk_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 8,
+				"row": 3,
+				"fps": 10,
+				"loop": true
+			},
+			"run_down": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Run/Slime1_Run_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 8,
+				"row": 0,
+				"fps": 12,
+				"loop": true
+			},
+			"run_up": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Run/Slime1_Run_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 8,
+				"row": 1,
+				"fps": 12,
+				"loop": true
+			},
+			"run_right": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Run/Slime1_Run_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 8,
+				"row": 2,
+				"fps": 12,
+				"loop": true
+			},
+			"run_left": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Run/Slime1_Run_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 8,
+				"row": 3,
+				"fps": 12,
+				"loop": true
+			},
+			"attack_down": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Attack/Slime1_Attack_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 10,
+				"row": 0,
+				"fps": 13,
+				"loop": false
+			},
+			"attack_up": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Attack/Slime1_Attack_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 10,
+				"row": 1,
+				"fps": 13,
+				"loop": false
+			},
+			"attack_right": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Attack/Slime1_Attack_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 10,
+				"row": 2,
+				"fps": 13,
+				"loop": false
+			},
+			"attack_left": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Attack/Slime1_Attack_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 10,
+				"row": 3,
+				"fps": 13,
+				"loop": false
+			},
+			"hurt_down": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Hurt/Slime1_Hurt_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 5,
+				"row": 0,
+				"fps": 12,
+				"loop": false
+			},
+			"hurt_up": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Hurt/Slime1_Hurt_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 5,
+				"row": 1,
+				"fps": 12,
+				"loop": false
+			},
+			"hurt_right": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Hurt/Slime1_Hurt_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 5,
+				"row": 2,
+				"fps": 12,
+				"loop": false
+			},
+			"hurt_left": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Hurt/Slime1_Hurt_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 5,
+				"row": 3,
+				"fps": 12,
+				"loop": false
+			},
+			"death_down": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Death/Slime1_Death_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 10,
+				"row": 0,
+				"fps": 10,
+				"loop": false
+			},
+			"death_up": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Death/Slime1_Death_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 10,
+				"row": 1,
+				"fps": 10,
+				"loop": false
+			},
+			"death_right": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Death/Slime1_Death_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 10,
+				"row": 2,
+				"fps": 10,
+				"loop": false
+			},
+			"death_left": {
+				"texture_path": "res://assets/sprites/monsters/Slime_FreeAsset/PNG/Slime1/Death/Slime1_Death_full.png",
+				"frame_width": 64,
+				"frame_height": 64,
+				"frames": 10,
+				"row": 3,
+				"fps": 10,
+				"loop": false
+			}
+		},
 		"attack_cooldown": 1.25,
 		"attack_hit_time": 0.03,
 		"attack_recovery_time": 0.08,
@@ -121,7 +466,7 @@
 		},
 		"behavior": "aggressive_contact_chaser",
 		"damage": 4,
-		"direction_mode": "single",
+		"direction_mode": "4dir",
 		"display_name": "Gosma",
 		"glow": {
 			"alpha": 0.58,
@@ -152,13 +497,9 @@
 		},
 		"level": 1,
 		"locomotion": {
-			"air_time": 0.22,
-			"arc_height": 10.0,
-			"land_time": 0.08,
-			"move_speed": 42.0,
-			"pause_time": 0.18,
-			"prepare_time": 0.1,
-			"recover_time": 0.1
+			"move_speed": 38.0,
+			"contact_stop_distance": 27.0,
+			"separation_distance": 26.0
 		},
 		"loot_table": [
 			{
@@ -170,7 +511,7 @@
 		],
 		"max_health": 40,
 		"move_speed": 42,
-		"movement_mode": "hop",
+		"movement_mode": "walk",
 		"scene_path": "res://scenes/enemies/Slime.tscn",
 		"shadow": {
 			"enabled": true,
@@ -191,6 +532,11 @@
 		"xp_reward": 8,
 		"depth_sort": {
 			"offset_y": 0.0
+		},
+		"visual_scale": 0.78,
+		"visual_offset": {
+			"x": 0.0,
+			"y": -12.0
 		}
 	}
 }
