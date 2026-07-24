@@ -273,5 +273,920 @@
 		"direction_mode": "4dir",
 		"display_name": "Player Templar Body",
 		"sprite_sheet_id": "player_templar"
+	},
+	"test_template_character": {
+		"anchor": {
+			"x": 24,
+			"y": 42
+		},
+		"animations": {
+			"air_spin": {
+				"fps": 14,
+				"frame_count": 6,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_air_spin"
+			},
+			"attack_down": {
+				"fps": 12,
+				"frame_count": 6,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_sword_attack"
+			},
+			"attack_left": {
+				"fps": 12,
+				"frame_count": 6,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_sword_attack"
+			},
+			"attack_right": {
+				"fps": 12,
+				"frame_count": 6,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_sword_attack"
+			},
+			"attack_up": {
+				"fps": 12,
+				"frame_count": 6,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_sword_attack"
+			},
+			"climb_back": {
+				"fps": 8,
+				"frame_count": 4,
+				"frames": [
+					0,
+					1,
+					2,
+					3
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_climb_back"
+			},
+			"climb_side": {
+				"fps": 8,
+				"frame_count": 4,
+				"frames": [
+					0,
+					1,
+					2,
+					3
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_climb_side"
+			},
+			"crouch_idle": {
+				"fps": 8,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_crouch_idle"
+			},
+			"crouch_walk": {
+				"fps": 10,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_crouch_walk"
+			},
+			"dash_down": {
+				"fps": 16,
+				"frame_count": 9,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_dash"
+			},
+			"dash_left": {
+				"fps": 16,
+				"frame_count": 9,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_dash"
+			},
+			"dash_right": {
+				"fps": 16,
+				"frame_count": 9,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_dash"
+			},
+			"dash_up": {
+				"fps": 16,
+				"frame_count": 9,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_dash"
+			},
+			"death": {
+				"fps": 10,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_death"
+			},
+			"hurt": {
+				"fps": 12,
+				"frame_count": 4,
+				"frames": [
+					0,
+					1,
+					2,
+					3
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_hurt"
+			},
+			"idle_down": {
+				"fps": 8,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_idle"
+			},
+			"idle_left": {
+				"fps": 8,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_idle"
+			},
+			"idle_right": {
+				"fps": 8,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_idle"
+			},
+			"idle_up": {
+				"fps": 8,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_idle"
+			},
+			"interact_down": {
+				"fps": 10,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_push"
+			},
+			"interact_left": {
+				"fps": 10,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_push"
+			},
+			"interact_right": {
+				"fps": 10,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_push"
+			},
+			"interact_up": {
+				"fps": 10,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_push"
+			},
+			"jump": {
+				"fps": 12,
+				"frame_count": 6,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_jump"
+			},
+			"katana_attack_sheathe": {
+				"fps": 14,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_katana_attack_sheathe"
+			},
+			"katana_continuous_attack": {
+				"fps": 14,
+				"frame_count": 9,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_katana_continuous_attack"
+			},
+			"katana_run": {
+				"fps": 12,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_katana_run"
+			},
+			"katana_walk": {
+				"fps": 10,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_katana_walk"
+			},
+			"land": {
+				"fps": 14,
+				"frame_count": 9,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_land"
+			},
+			"ledge_climb": {
+				"fps": 10,
+				"frame_count": 5,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_ledge_climb"
+			},
+			"pull": {
+				"fps": 10,
+				"frame_count": 6,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_pull"
+			},
+			"punch": {
+				"fps": 14,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_punch"
+			},
+			"punch_cross": {
+				"fps": 14,
+				"frame_count": 7,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_punch_cross"
+			},
+			"punch_jab": {
+				"fps": 14,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_punch_jab"
+			},
+			"push": {
+				"fps": 10,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_push"
+			},
+			"push_idle": {
+				"fps": 8,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_push_idle"
+			},
+			"roll": {
+				"fps": 14,
+				"frame_count": 7,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_roll"
+			},
+			"run_aim": {
+				"fps": 12,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_run_aim"
+			},
+			"run_down": {
+				"fps": 12,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_run"
+			},
+			"run_left": {
+				"fps": 12,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_run"
+			},
+			"run_right": {
+				"fps": 12,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_run"
+			},
+			"run_shoot": {
+				"fps": 12,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_run_shoot"
+			},
+			"run_up": {
+				"fps": 12,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_run"
+			},
+			"shoot_two_handed": {
+				"fps": 14,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_shoot_two_handed"
+			},
+			"slide": {
+				"fps": 14,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_slide"
+			},
+			"sword_attack": {
+				"fps": 12,
+				"frame_count": 6,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_sword_attack"
+			},
+			"sword_idle": {
+				"fps": 8,
+				"frame_count": 10,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+					8,
+					9
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_sword_idle"
+			},
+			"sword_run": {
+				"fps": 12,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_sword_run"
+			},
+			"sword_stab": {
+				"fps": 14,
+				"frame_count": 7,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_sword_stab"
+			},
+			"walk_down": {
+				"fps": 10,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_walk"
+			},
+			"walk_left": {
+				"fps": 10,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_walk"
+			},
+			"walk_right": {
+				"fps": 10,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_walk"
+			},
+			"walk_up": {
+				"fps": 10,
+				"frame_count": 8,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_walk"
+			},
+			"wall_land_left": {
+				"fps": 12,
+				"frame_count": 6,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_wall_land_left"
+			},
+			"wall_land_right": {
+				"fps": 12,
+				"frame_count": 6,
+				"frames": [
+					0,
+					1,
+					2,
+					3,
+					4,
+					5
+				],
+				"loop": false,
+				"sprite_sheet_id": "test_template_wall_land_right"
+			},
+			"wall_slide_left": {
+				"fps": 8,
+				"frame_count": 3,
+				"frames": [
+					0,
+					1,
+					2
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_wall_slide_left"
+			},
+			"wall_slide_right": {
+				"fps": 8,
+				"frame_count": 3,
+				"frames": [
+					0,
+					1,
+					2
+				],
+				"loop": true,
+				"sprite_sheet_id": "test_template_wall_slide_right"
+			}
+		},
+		"direction_mode": "4dir",
+		"display_name": "Test Template Character Animations",
+		"sprite_sheet_id": "test_template_idle"
 	}
 }

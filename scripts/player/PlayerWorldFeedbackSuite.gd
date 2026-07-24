@@ -1,6 +1,22 @@
 extends "res://scripts/player/PlayerShaderSuite.gd"
 
 
+var _content_character_side_view := false
+
+
+func _load_player_tuning() -> void:
+	super._load_player_tuning()
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("get_player_tuning"):
+		return
+	var tuning: Dictionary = content_db.get_player_tuning("default")
+	character_id = str(tuning.get("character_id", character_id))
+	_content_character_side_view = false
+	if content_db.has_method("has_character") and content_db.has_character(character_id):
+		var character_data: Dictionary = content_db.get_character(character_id)
+		_content_character_side_view = str(character_data.get("orientation_mode", "top_down")) == "side_view"
+
+
 func _start_attack_cycle() -> void:
 	_refresh_attack_substats()
 	action_state = ActionState.ATTACKING
@@ -14,6 +30,62 @@ func _start_attack_cycle() -> void:
 	attack_started.emit()
 	_play_attack_feedback()
 	_play_attack_animation()
+	_apply_content_character_flip()
+
+
+func _start_dash(direction: Vector2) -> void:
+	super._start_dash(direction)
+	var animation_name := "dash_%s" % last_direction
+	if _has_player_animation(animation_name):
+		animation_controller.play_if_available(animation_name)
+	_apply_content_character_flip()
+
+
+func _update_movement_animation(input_direction: Vector2) -> void:
+	if action_state == ActionState.ATTACKING:
+		return
+	if input_direction != Vector2.ZERO:
+		_update_last_direction(input_direction)
+	_apply_content_character_flip()
+
+	if action_state == ActionState.DASHING:
+		var dash_name := "dash_%s" % last_direction
+		if _has_player_animation(dash_name):
+			animation_controller.play_if_available(dash_name)
+			return
+		animation_controller.play_if_available("walk_%s" % last_direction)
+		return
+
+	if input_direction != Vector2.ZERO:
+		var locomotion_name := "run_%s" % last_direction if is_running else "walk_%s" % last_direction
+		if _has_player_animation(locomotion_name):
+			animation_controller.play_if_available(locomotion_name)
+			return
+		animation_controller.play_if_available("walk_%s" % last_direction)
+		return
+
+	animation_controller.play_if_available("idle_%s" % last_direction)
+
+
+func _has_player_animation(animation_name: String) -> bool:
+	return (
+		animated_sprite != null
+		and animated_sprite.sprite_frames != null
+		and animated_sprite.sprite_frames.has_animation(animation_name)
+		and animated_sprite.sprite_frames.get_frame_count(animation_name) > 0
+	)
+
+
+func _apply_content_character_flip() -> void:
+	if animated_sprite == null:
+		return
+	if not _content_character_side_view:
+		animated_sprite.flip_h = false
+		return
+	if last_direction == "left":
+		animated_sprite.flip_h = true
+	elif last_direction == "right":
+		animated_sprite.flip_h = false
 
 
 func _perform_attack_hits() -> void:
