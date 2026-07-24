@@ -332,6 +332,1005 @@
 		"tags": [],
 		"texture_path": "res://assets/sprites/items/testes/stone.png"
 	},
+	"test_template_air_spin": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Test Template • Air Spin",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Air Spin/player air spin 48x48.png",
+		"total_frames": 6,
+		"type": "sprite_sheet"
+	},
+	"test_template_climb_back": {
+		"category": "character",
+		"columns": 4,
+		"display_name": "Test Template • Climb Back",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Climb (facing back of player)/player climb-back 48x48.png",
+		"total_frames": 4,
+		"type": "sprite_sheet"
+	},
+	"test_template_climb_side": {
+		"category": "character",
+		"columns": 4,
+		"display_name": "Test Template • Climb Side",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Climb (facing side of player)/Player Side-Climb 48x48.png",
+		"total_frames": 4,
+		"type": "sprite_sheet"
+	},
+	"test_template_crouch_idle": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Crouch Idle",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Crouch-Idle/Player Crouch-Idle 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_crouch_walk": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Crouch Walk",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Crouch-Walk/player crouch-walk 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_dash": {
+		"category": "character",
+		"columns": 9,
+		"display_name": "Test Template • Dash",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Dash/dash.png",
+		"total_frames": 9,
+		"type": "sprite_sheet"
+	},
+	"test_template_death": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Death",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Death/Player Death 64x64.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_hurt": {
+		"category": "character",
+		"columns": 4,
+		"display_name": "Test Template • Hurt",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Hurt-Damaged/Player Hurt 48x48.png",
+		"total_frames": 4,
+		"type": "sprite_sheet"
+	},
+	"test_template_idle": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Idle",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Idle/Player Idle 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_jump": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Test Template • Jump",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Jump/player new jump 48x48.png",
+		"total_frames": 6,
+		"type": "sprite_sheet"
+	},
+	"test_template_katana_attack_sheathe": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Katana Attack Sheathe",
+		"frame_height": 64,
+		"frame_size": {
+			"h": 64,
+			"w": 80
+		},
+		"frame_width": 80,
+		"region": {
+			"h": 64,
+			"w": 80,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Katana Attack-Sheathe/player katana attack-sheathe 80x64.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_katana_continuous_attack": {
+		"category": "character",
+		"columns": 9,
+		"display_name": "Test Template • Katana Continuous Attack",
+		"frame_height": 64,
+		"frame_size": {
+			"h": 64,
+			"w": 80
+		},
+		"frame_width": 80,
+		"region": {
+			"h": 64,
+			"w": 80,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Katana Continuous Attack/player katana continuous attack 80x64.png",
+		"total_frames": 9,
+		"type": "sprite_sheet"
+	},
+	"test_template_katana_run": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Katana Run",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Katana Run/player katana run 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_katana_walk": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Katana Walk",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Katana walk/katana walk.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_land": {
+		"category": "character",
+		"columns": 9,
+		"display_name": "Test Template • Land",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Land/player land 48x48.png",
+		"total_frames": 9,
+		"type": "sprite_sheet"
+	},
+	"test_template_ledge_climb": {
+		"category": "character",
+		"columns": 5,
+		"display_name": "Test Template • Ledge Grab Climb",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Ledge Grab-Climb/player ledge climb 48x48.png",
+		"total_frames": 5,
+		"type": "sprite_sheet"
+	},
+	"test_template_pull": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Test Template • Pull",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Pull/Player Pull 48x48.png",
+		"total_frames": 6,
+		"type": "sprite_sheet"
+	},
+	"test_template_punch": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Punch",
+		"frame_height": 64,
+		"frame_size": {
+			"h": 64,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 64,
+			"w": 64,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Punch/Player Punch 64x64.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_punch_cross": {
+		"category": "character",
+		"columns": 7,
+		"display_name": "Test Template • Punch Cross",
+		"frame_height": 64,
+		"frame_size": {
+			"h": 64,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 64,
+			"w": 64,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Punch Cross/Player Punch Cross 64x64.png",
+		"total_frames": 7,
+		"type": "sprite_sheet"
+	},
+	"test_template_punch_jab": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Punch Jab",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Punch Jab/Player Jab 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_push": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Push",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Push/player push 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_push_idle": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Push Pull Idle",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/PushPull (idle state)/player push idle 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_roll": {
+		"category": "character",
+		"columns": 7,
+		"display_name": "Test Template • Roll",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Roll/Player Roll 48x48.png",
+		"total_frames": 7,
+		"type": "sprite_sheet"
+	},
+	"test_template_run": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Run",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Run/player run 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_run_aim": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Running Aim",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Shooting (running and aiming)/Player Running Aiming 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_run_shoot": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Running Shoot",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Shooting (running and aiming)/Player Running Shooting 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_shoot_two_handed": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Shoot Two Handed",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Shooting (two-handed)/player shoot 2H 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_slide": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Slide",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Slide/Player Slide 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_sword_attack": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Test Template • Sword Attack",
+		"frame_height": 64,
+		"frame_size": {
+			"h": 64,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 64,
+			"w": 64,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Sword Attack/player sword atk 64x64.png",
+		"total_frames": 6,
+		"type": "sprite_sheet"
+	},
+	"test_template_sword_idle": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Sword Idle",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Sword Idle/Player Sword Idle 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_sword_run": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Sword Run",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Sword Run/Player Sword Run 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_sword_stab": {
+		"category": "character",
+		"columns": 7,
+		"display_name": "Test Template • Sword Stab",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 96
+		},
+		"frame_width": 96,
+		"region": {
+			"h": 48,
+			"w": 96,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Sword Stab/Player Sword Stab 96x48.png",
+		"total_frames": 7,
+		"type": "sprite_sheet"
+	},
+	"test_template_walk": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Walk",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Walk/PlayerWalk 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_wall_land_left": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Test Template • Wall Land Left",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Wall Land/Player Wall Land (left) 48x48.png",
+		"total_frames": 6,
+		"type": "sprite_sheet"
+	},
+	"test_template_wall_land_right": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Test Template • Wall Land Right",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Wall Land/player wall land 48x48.png",
+		"total_frames": 6,
+		"type": "sprite_sheet"
+	},
+	"test_template_wall_slide_left": {
+		"category": "character",
+		"columns": 3,
+		"display_name": "Test Template • Wall Slide Left",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Wall Slide/player wall slide (left) 48x48.png",
+		"total_frames": 3,
+		"type": "sprite_sheet"
+	},
+	"test_template_wall_slide_right": {
+		"category": "character",
+		"columns": 3,
+		"display_name": "Test Template • Wall Slide Right",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Wall Slide/player wall slide 48x48.png",
+		"total_frames": 3,
+		"type": "sprite_sheet"
+	},
 	"tile_dirt": {
 		"category": "item",
 		"columns": 1.0,

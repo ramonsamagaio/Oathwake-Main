@@ -15,6 +15,7 @@
 		"run_stop_slide_time": 0.18,
 		"smoke_puff_cooldown": 0.28,
 		"smoke_puff_enabled": true,
-		"walk_speed": 70.0
+		"walk_speed": 70.0,
+		"character_id": "test_template_player"
 	}
 }
