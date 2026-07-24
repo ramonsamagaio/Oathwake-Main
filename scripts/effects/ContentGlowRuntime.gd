@@ -1,6 +1,7 @@
 extends RefCounted
 
 const GlowOverlayScene: PackedScene = preload("res://scenes/effects/GlowOverlay.tscn")
+const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
 
 
 static func apply_content_effects(target: Node2D, record: Dictionary, default_glow_z := 24) -> void:
@@ -54,36 +55,12 @@ static func apply_glow(target: Node2D, config: Dictionary, default_glow_z := 24)
 static func apply_shadow(target: Node2D, config: Dictionary) -> Polygon2D:
 	if target == null:
 		return null
-	var shadow := target.get_node_or_null("GroundShadow") as Polygon2D
-	var enabled := bool(config.get("enabled", false))
-	if shadow == null and enabled:
-		shadow = Polygon2D.new()
-		shadow.name = "GroundShadow"
-		shadow.polygon = _make_default_shadow_polygon()
-		target.add_child(shadow)
-		shadow.add_to_group("persistent_content_visual")
-	if shadow == null:
-		return null
-
-	shadow.visible = enabled
-	shadow.show_behind_parent = true
-	shadow.position = _vector_from_value(config.get("offset", {}), Vector2(0.0, 12.0))
-	shadow.scale = _vector_from_value(config.get("scale", {}), Vector2(0.9, 0.34))
-	shadow.z_index = int(config.get("z_index", 0))
-	shadow.color = Color(0.01, 0.008, 0.015, clampf(float(config.get("opacity", 0.42)), 0.0, 1.0))
-	shadow.modulate = Color.WHITE
-	if not shadow.is_in_group("persistent_content_visual"):
-		shadow.add_to_group("persistent_content_visual")
-	return shadow
-
-
-static func _make_default_shadow_polygon() -> PackedVector2Array:
-	return PackedVector2Array([
-		Vector2(-13, -3), Vector2(-10, -5), Vector2(-4, -6), Vector2(4, -6),
-		Vector2(10, -5), Vector2(13, -3), Vector2(14, 0), Vector2(13, 3),
-		Vector2(10, 5), Vector2(4, 6), Vector2(-4, 6), Vector2(-10, 5),
-		Vector2(-13, 3), Vector2(-14, 0),
-	])
+	var resolved_config := config.duplicate(true)
+	if not resolved_config.has("enabled"):
+		resolved_config["enabled"] = false
+	var visual_size := DirectionalShadowRuntime.estimate_target_visual_size(target)
+	var foot_offset := DirectionalShadowRuntime.estimate_target_foot_offset(target)
+	return DirectionalShadowRuntime.apply_to_target(target, resolved_config, visual_size, foot_offset)
 
 
 static func _visual_mode_to_int(mode_name: String) -> int:

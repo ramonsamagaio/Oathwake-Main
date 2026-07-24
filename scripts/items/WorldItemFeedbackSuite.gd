@@ -1,5 +1,7 @@
 extends "res://scripts/items/WorldItemShaderSuite.gd"
 
+const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
+
 @export_category("Dropped Item Shadow")
 @export var drop_shadow_enabled := true
 @export_range(0.20, 0.80, 0.01) var drop_shadow_width_factor := 0.46
@@ -10,6 +12,7 @@ var _drop_shadow_base_scale := Vector2.ONE
 
 func _process(delta: float) -> void:
 	super._process(delta)
+	WorldDepthRuntime.apply_node_depth(self)
 	if _shadow == null or collected:
 		return
 	_shadow.visible = drop_shadow_enabled

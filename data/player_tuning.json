@@ -19,6 +19,20 @@
 		"visual_offset_x": 0.0,
 		"visual_offset_y": -8.0,
 		"visual_scale": 1.55,
-		"walk_speed": 70.0
+		"walk_speed": 70.0,
+		"depth_sort_offset_y": 0.0,
+		"shadow": {
+			"enabled": true,
+			"fade_power": 1.6,
+			"length": 34.0,
+			"offset": {
+				"x": 0.0,
+				"y": 0.0
+			},
+			"opacity": 0.3,
+			"tail_width_ratio": 0.18,
+			"width": 22.0,
+			"z_index": -1
+		}
 	}
 }

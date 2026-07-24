@@ -17,24 +17,37 @@ var font_profile_id := "damage_number"
 
 
 func _ready() -> void:
-	var jitter: float = randf_range(-horizontal_jitter, horizontal_jitter)
-	position.x += jitter
+	top_level = true
+	z_as_relative = false
+	z_index = 4090
 	_apply_vfx_profile()
 	_apply_label_style()
 
 	var active_duration := critical_duration if is_critical else duration
 	var active_rise_distance := critical_rise_distance if is_critical else rise_distance
+	var canvas_transform := get_viewport().get_canvas_transform()
+	var screen_start := canvas_transform * global_position
+	screen_start.x += randf_range(-horizontal_jitter, horizontal_jitter)
+	global_position = canvas_transform.affine_inverse() * screen_start
+	var target_world := calculate_world_target_for_screen_rise(global_position, canvas_transform, active_rise_distance)
+
 	var tween := create_tween()
 	tween.set_trans(Tween.TRANS_SINE)
 	tween.set_ease(Tween.EASE_OUT)
 	tween.set_parallel(true)
-	tween.tween_property(self, "position:y", position.y - active_rise_distance, active_duration)
+	tween.tween_property(self, "global_position", target_world, active_duration)
 	tween.tween_property(self, "modulate:a", 0.0, active_duration)
 	if is_critical:
 		scale = Vector2(1.12, 1.12)
 		tween.tween_property(self, "scale", Vector2.ONE, 0.12)
 	tween.set_parallel(false)
 	tween.tween_callback(queue_free)
+
+
+static func calculate_world_target_for_screen_rise(world_start: Vector2, canvas_transform: Transform2D, screen_distance: float) -> Vector2:
+	var screen_start := canvas_transform * world_start
+	var screen_target := screen_start + Vector2.UP * maxf(screen_distance, 0.0)
+	return canvas_transform.affine_inverse() * screen_target
 
 
 func setup(new_text: String, color: Color, critical := false, new_profile_id := "") -> void:

@@ -1,9 +1,7 @@
 {
 	"skeleton": {
 		"animation_set_id": "player_base_body",
-		"animations": {
-
-		},
+		"animations": {},
 		"attack_cooldown": 1.35,
 		"attack_hit_time": 0.04,
 		"attack_recovery_time": 0.12,
@@ -78,26 +76,26 @@
 			"enabled": true,
 			"offset": {
 				"x": 0.0,
-				"y": 12.0
+				"y": 0.0
 			},
-			"opacity": 0.42,
-			"scale": {
-				"x": 0.95,
-				"y": 0.34
-			},
-			"z_index": 0
+			"opacity": 0.32,
+			"z_index": -1,
+			"fade_power": 1.6,
+			"length": 32.0,
+			"width": 20.0
 		},
 		"spawn_tiles": [
 			"grass"
 		],
 		"spawn_time_seconds": 25,
-		"xp_reward": 18
+		"xp_reward": 18,
+		"depth_sort": {
+			"offset_y": 0.0
+		}
 	},
 	"slime": {
 		"animation_set_id": "player_base_body",
-		"animations": {
-
-		},
+		"animations": {},
 		"attack_cooldown": 1.25,
 		"attack_hit_time": 0.03,
 		"attack_recovery_time": 0.08,
@@ -178,19 +176,21 @@
 			"enabled": true,
 			"offset": {
 				"x": 0.0,
-				"y": 11.0
+				"y": 0.0
 			},
-			"opacity": 0.46,
-			"scale": {
-				"x": 0.92,
-				"y": 0.34
-			},
-			"z_index": 0
+			"opacity": 0.34,
+			"z_index": -1,
+			"fade_power": 1.6,
+			"length": 20.0,
+			"width": 18.0
 		},
 		"spawn_tiles": [
 			"grass"
 		],
 		"spawn_time_seconds": 20,
-		"xp_reward": 8
+		"xp_reward": 8,
+		"depth_sort": {
+			"offset_y": 0.0
+		}
 	}
 }

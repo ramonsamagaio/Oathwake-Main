@@ -26,9 +26,11 @@ func spawn_world_hit_sparks(world_position: Vector2, is_critical := false) -> vo
 
 	for _i in range(count):
 		var particle := PixelParticle2D.new()
+		particle.top_level = true
+		particle.z_as_relative = false
+		particle.z_index = 4089
 		parent.add_child(particle)
 		particle.global_position = world_position + Vector2(randf_range(-jitter_radius, jitter_radius), randf_range(-jitter_radius, jitter_radius))
-		particle.z_index = 999
 		var distance_scale := distance / maxf(speed_max * lifetime, 0.01)
 		var x_speed := randf_range(-speed_max * horizontal_bias, speed_max * horizontal_bias) * distance_scale
 		var y_speed := -randf_range(speed_min * upward_bias, speed_max * upward_bias) * distance_scale

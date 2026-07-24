@@ -3,6 +3,8 @@ class_name MapRoot
 extends Node2D
 
 const FUNCTIONAL_GROUND_TEXTURE := preload("res://assets/generated/functional_ground_tile.svg")
+const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
+const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
 
 @export var map_id: String = ""
 @export var display_name: String = ""
@@ -69,6 +71,61 @@ func get_tile_type_at_position(_global_position: Vector2) -> String:
 
 func _ready() -> void:
 	_ensure_functional_ground()
+	call_deferred("_configure_authored_prop_presentation")
+
+
+func _configure_authored_prop_presentation() -> void:
+	if _props_root == null:
+		return
+	var prop_sprites: Array[Sprite2D] = []
+	_collect_authored_prop_sprites(_props_root, prop_sprites)
+	for sprite in prop_sprites:
+		if not _is_depth_sorted_authored_prop(sprite):
+			continue
+		var line_ratio := _get_authored_prop_depth_ratio(sprite)
+		WorldDepthRuntime.apply_sprite_depth(sprite, line_ratio)
+		sprite.set_meta("authored_depth_line_ratio", line_ratio)
+		var shadow_config := {
+			"enabled": _authored_prop_casts_shadow(sprite),
+			"opacity": 0.28,
+			"z_index": -1,
+		}
+		DirectionalShadowRuntime.apply_to_sprite(sprite, shadow_config)
+
+
+func _collect_authored_prop_sprites(node: Node, output: Array[Sprite2D]) -> void:
+	for child in node.get_children():
+		if child is Sprite2D:
+			output.append(child as Sprite2D)
+		if child is Node and not (child as Node).is_in_group("persistent_content_visual"):
+			_collect_authored_prop_sprites(child, output)
+
+
+func _is_depth_sorted_authored_prop(sprite: Sprite2D) -> bool:
+	if sprite == null or sprite.texture == null or not sprite.visible:
+		return false
+	var name_text := str(sprite.name).to_lower()
+	for token in ["tree", "arbusto", "shrub", "log", "stone", "casa", "house", "crate", "sign", "lamp", "curral", "fence", "post", "barrel", "campfire", "stump", "sapling"]:
+		if name_text.contains(token):
+			return true
+	return false
+
+
+func _authored_prop_casts_shadow(sprite: Sprite2D) -> bool:
+	var name_text := str(sprite.name).to_lower()
+	for token in ["tree", "arbusto", "shrub", "log", "stone", "casa", "house", "crate", "sign", "lamp", "curral", "fence", "post", "barrel", "campfire", "stump", "sapling"]:
+		if name_text.contains(token):
+			return true
+	return false
+
+
+func _get_authored_prop_depth_ratio(sprite: Sprite2D) -> float:
+	var name_text := str(sprite.name).to_lower()
+	if name_text.contains("tree") or name_text.contains("sapling"):
+		return 0.58
+	if name_text.contains("casa") or name_text.contains("house") or name_text.contains("lamp") or name_text.contains("sign"):
+		return 0.68
+	return 0.62
 
 
 func _ensure_functional_ground() -> void:

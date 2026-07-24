@@ -58,6 +58,9 @@ static func _spawn(text: String, world_position: Vector2, color: Color, is_criti
 		return
 
 	var floating_text := FloatingCombatTextScene.instantiate()
+	floating_text.top_level = true
+	floating_text.z_as_relative = false
+	floating_text.z_index = 4090
 	tree.current_scene.add_child(floating_text)
 	floating_text.global_position = world_position
 	floating_text.setup(text, color, is_critical, profile_id)
@@ -69,6 +72,9 @@ static func _spawn_hit_impact(world_position: Vector2, is_critical: bool) -> voi
 		return
 
 	var hit_impact := HitImpactScene.instantiate()
+	hit_impact.top_level = true
+	hit_impact.z_as_relative = false
+	hit_impact.z_index = 4088
 	tree.current_scene.add_child(hit_impact)
 	hit_impact.global_position = world_position
 	if hit_impact.has_method("setup"):

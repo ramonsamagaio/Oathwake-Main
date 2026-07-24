@@ -1,9 +1,18 @@
 extends "res://scripts/player/PlayerShaderSuite.gd"
 
+const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
+const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
+
 
 var _content_character_side_view := false
 var _content_visual_scale := 1.0
 var _content_visual_offset := Vector2.ZERO
+var _content_depth_offset_y := 0.0
+var _content_shadow_config: Dictionary = {}
+var _attack_animation_variants: Array[String] = []
+var _attack_variant_bag: Array[String] = []
+var _last_attack_animation := ""
+var _avoid_immediate_attack_repeat := true
 
 
 func _load_player_tuning() -> void:
@@ -18,15 +27,35 @@ func _load_player_tuning() -> void:
 		float(tuning.get("visual_offset_x", 0.0)),
 		float(tuning.get("visual_offset_y", 0.0))
 	)
+	_content_depth_offset_y = float(tuning.get("depth_sort_offset_y", 0.0))
+	var shadow_value: Variant = tuning.get("shadow", {})
+	_content_shadow_config = (shadow_value as Dictionary).duplicate(true) if shadow_value is Dictionary else {}
 	_content_character_side_view = false
+	_attack_animation_variants.clear()
+	_attack_variant_bag.clear()
+	_last_attack_animation = ""
 	if content_db.has_method("has_character") and content_db.has_character(character_id):
 		var character_data: Dictionary = content_db.get_character(character_id)
 		_content_character_side_view = str(character_data.get("orientation_mode", "top_down")) == "side_view"
+		_avoid_immediate_attack_repeat = bool(character_data.get("avoid_immediate_attack_repeat", true))
+		var variants_value: Variant = character_data.get("attack_animation_variants", [])
+		if variants_value is Array:
+			for variant in variants_value as Array:
+				var clean_variant := str(variant).strip_edges()
+				if not clean_variant.is_empty():
+					_attack_animation_variants.append(clean_variant)
 
 
 func _setup_character_visual() -> void:
 	super._setup_character_visual()
 	_apply_player_visual_tuning()
+	_apply_player_directional_shadow()
+	_update_world_depth()
+
+
+func _physics_process(delta: float) -> void:
+	super._physics_process(delta)
+	_update_world_depth()
 
 
 func _apply_player_visual_tuning() -> void:
@@ -38,6 +67,71 @@ func _apply_player_visual_tuning() -> void:
 		var body_node := body_visual as Node2D
 		body_node.scale = tuned_scale
 		body_node.position = _content_visual_offset
+
+
+func _apply_player_directional_shadow() -> void:
+	var visual_size := DirectionalShadowRuntime.estimate_target_visual_size(self)
+	var foot_offset := DirectionalShadowRuntime.estimate_target_foot_offset(self)
+	if animated_sprite != null and animated_sprite.visible:
+		visual_size = WorldDepthRuntime.get_animated_sprite_visual_size(animated_sprite)
+		foot_offset = WorldDepthRuntime.get_animated_sprite_foot_offset(animated_sprite)
+	var config := _content_shadow_config.duplicate(true)
+	if not config.has("enabled"):
+		config["enabled"] = true
+	DirectionalShadowRuntime.apply_to_target(self, config, visual_size, foot_offset)
+
+
+func _update_world_depth() -> void:
+	WorldDepthRuntime.apply_node_depth(self, _content_depth_offset_y)
+
+
+func _play_attack_animation() -> void:
+	if not animation_controller.has_any_valid_animation():
+		return
+	var animation_name := _next_attack_animation_name()
+	if animation_name.is_empty() or not animation_controller.play_if_available(animation_name):
+		return
+	_last_attack_animation = animation_name
+	if animated_sprite == null or animated_sprite.sprite_frames == null:
+		return
+	var frame_count := animated_sprite.sprite_frames.get_frame_count(animation_name)
+	var fps := animated_sprite.sprite_frames.get_animation_speed(animation_name)
+	if frame_count <= 0 or fps <= 0.0:
+		return
+	var native_duration := float(frame_count) / fps
+	animated_sprite.speed_scale = clampf(native_duration / maxf(current_attack_cooldown, 0.05), 0.20, 8.0)
+
+
+func _next_attack_animation_name() -> String:
+	var candidates: Array[String] = []
+	var configured := _attack_animation_variants.duplicate()
+	if configured.is_empty():
+		configured.append("attack_{direction}")
+	for variant in configured:
+		var resolved := variant.replace("{direction}", last_direction)
+		if _has_player_animation(resolved) and not candidates.has(resolved):
+			candidates.append(resolved)
+	var canonical := "attack_%s" % last_direction
+	if candidates.is_empty() and _has_player_animation(canonical):
+		candidates.append(canonical)
+	if candidates.is_empty():
+		return ""
+
+	var valid_bag: Array[String] = []
+	for candidate in _attack_variant_bag:
+		if candidates.has(candidate):
+			valid_bag.append(candidate)
+	_attack_variant_bag = valid_bag
+	if _attack_variant_bag.is_empty():
+		_attack_variant_bag = candidates.duplicate()
+		_attack_variant_bag.shuffle()
+		if _avoid_immediate_attack_repeat and _attack_variant_bag.size() > 1 and _attack_variant_bag.back() == _last_attack_animation:
+			var last_index := _attack_variant_bag.size() - 1
+			var replacement_index := 0
+			var temporary := _attack_variant_bag[replacement_index]
+			_attack_variant_bag[replacement_index] = _attack_variant_bag[last_index]
+			_attack_variant_bag[last_index] = temporary
+	return _attack_variant_bag.pop_back()
 
 
 func _start_attack_cycle() -> void:

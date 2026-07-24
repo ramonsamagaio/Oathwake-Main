@@ -1,6 +1,8 @@
 extends CharacterBody2D
 
 const NPCDataScript = preload("res://scripts/npcs/NPCData.gd")
+const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
+const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
 
 @export var npc_id: String = "villager_basic"
 @export var npc_instance_id: String = "npc_001"
@@ -27,6 +29,7 @@ func _ready() -> void:
 	collision_layer = 0
 	collision_mask = 0
 	_load_npc_data()
+	_apply_world_presentation()
 
 
 func _process(delta: float) -> void:
@@ -35,6 +38,22 @@ func _process(delta: float) -> void:
 
 func _physics_process(_delta: float) -> void:
 	velocity = Vector2.ZERO
+	WorldDepthRuntime.apply_node_depth(self)
+
+
+func _apply_world_presentation() -> void:
+	WorldDepthRuntime.apply_node_depth(self)
+	var shadow_config := {
+		"enabled": true,
+		"opacity": 0.30,
+		"z_index": -1,
+	}
+	DirectionalShadowRuntime.apply_to_target(
+		self,
+		shadow_config,
+		DirectionalShadowRuntime.estimate_target_visual_size(self),
+		DirectionalShadowRuntime.estimate_target_foot_offset(self)
+	)
 
 
 func try_interact_with_player(player_node: Node2D) -> bool:
