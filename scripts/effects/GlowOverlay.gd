@@ -2,6 +2,7 @@
 extends Node2D
 
 enum Mode { TEXTURE, PROCEDURAL, BOTH }
+enum BlendStyle { MIX, ADDITIVE }
 
 const GLOW_WINDOW_TEXTURE := "res://assets/sprites/effects/glows/Glow1.png"
 const GLOW_LAMP_TEXTURE := "res://assets/sprites/effects/glows/glow2.png"
@@ -10,7 +11,9 @@ const PROCEDURAL_SHADER := "res://shaders/effects/glow_procedural.gdshader"
 const PROCEDURAL_BASE_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
 const POINT_LIGHT_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
 
+@export var visual_enabled: bool = true
 @export_enum("Texture", "Procedural", "Both") var mode: int = Mode.TEXTURE
+@export_enum("Mix", "Additive") var blend_style: int = BlendStyle.ADDITIVE
 @export var glow_texture: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
 @export var glow_color: Color = Color(1.0, 0.68, 0.28, 1.0)
 @export_range(0.0, 8.0, 0.05) var intensity: float = 1.0
@@ -20,10 +23,12 @@ const POINT_LIGHT_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glo
 @export var flicker_enabled: bool = false
 @export_range(0.0, 1.0, 0.01) var flicker_amount: float = 0.08
 @export_range(0.05, 12.0, 0.05) var flicker_speed: float = 2.0
-@export var use_point_light: bool = false
-@export_range(0.0, 8.0, 0.05) var point_light_energy: float = 0.65
-@export_range(0.05, 8.0, 0.05) var point_light_scale: float = 1.2
-@export var z_index_value: int = 0
+@export var use_point_light: bool = true
+@export_range(0.0, 8.0, 0.05) var point_light_energy: float = 1.0
+@export_range(0.05, 8.0, 0.05) var point_light_scale: float = 1.8
+@export_range(0.0, 4.0, 0.01) var day_light_multiplier: float = 0.18
+@export_range(0.0, 4.0, 0.01) var night_light_multiplier: float = 1.0
+@export var z_index_value: int = 60
 
 @onready var _texture_glow: Sprite2D = $TextureGlow
 @onready var _procedural_glow: Sprite2D = $ProceduralGlow
@@ -31,13 +36,16 @@ const POINT_LIGHT_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glo
 
 var _time: float = 0.0
 var _phase: float = 0.0
-var _additive_material: CanvasItemMaterial
+var _night_strength: float = 0.0
+var _visual_material: CanvasItemMaterial
 var _procedural_material: ShaderMaterial
 
 
 func _ready() -> void:
+	add_to_group("world_light_emitter")
 	_phase = randf() * TAU
-	_ensure_additive_material()
+	_ensure_visual_material()
+	_sync_initial_day_night_strength()
 	_update_visuals(1.0)
 	set_process(true)
 
@@ -52,8 +60,19 @@ func _process(delta: float) -> void:
 	_update_visuals(flicker_value)
 
 
+func refresh_from_config() -> void:
+	_ensure_visual_material()
+	_update_visuals(1.0)
+
+
+func set_day_night_strength(strength: float) -> void:
+	_night_strength = clampf(strength, 0.0, 1.0)
+	_update_visuals(1.0)
+
+
 func apply_window_preset() -> void:
 	mode = Mode.TEXTURE
+	blend_style = BlendStyle.ADDITIVE
 	glow_texture = _load_texture(GLOW_WINDOW_TEXTURE)
 	glow_color = Color(1.0, 0.55, 0.22, 1.0)
 	intensity = 0.85
@@ -63,12 +82,17 @@ func apply_window_preset() -> void:
 	flicker_enabled = false
 	flicker_amount = 0.03
 	flicker_speed = 1.0
-	use_point_light = false
+	use_point_light = true
+	point_light_energy = 0.75
+	point_light_scale = 1.55
+	day_light_multiplier = 0.14
+	night_light_multiplier = 1.0
 	_update_visuals(1.0)
 
 
 func apply_lamp_preset() -> void:
 	mode = Mode.TEXTURE
+	blend_style = BlendStyle.ADDITIVE
 	glow_texture = _load_texture(GLOW_LAMP_TEXTURE)
 	glow_color = Color(1.0, 0.78, 0.32, 1.0)
 	intensity = 1.15
@@ -79,13 +103,16 @@ func apply_lamp_preset() -> void:
 	flicker_amount = 0.06
 	flicker_speed = 2.0
 	use_point_light = true
-	point_light_energy = 0.55
-	point_light_scale = 1.0
+	point_light_energy = 1.0
+	point_light_scale = 1.8
+	day_light_multiplier = 0.18
+	night_light_multiplier = 1.0
 	_update_visuals(1.0)
 
 
 func apply_magic_preset() -> void:
 	mode = Mode.BOTH
+	blend_style = BlendStyle.ADDITIVE
 	glow_texture = _load_texture(GLOW_MAGIC_TEXTURE)
 	glow_color = Color(0.55, 0.35, 1.0, 1.0)
 	intensity = 1.45
@@ -96,13 +123,16 @@ func apply_magic_preset() -> void:
 	flicker_amount = 0.08
 	flicker_speed = 0.9
 	use_point_light = true
-	point_light_energy = 0.7
-	point_light_scale = 1.35
+	point_light_energy = 1.15
+	point_light_scale = 2.0
+	day_light_multiplier = 0.22
+	night_light_multiplier = 1.0
 	_update_visuals(1.0)
 
 
 func apply_soft_fire_preset() -> void:
 	mode = Mode.TEXTURE
+	blend_style = BlendStyle.ADDITIVE
 	glow_texture = _load_texture(GLOW_LAMP_TEXTURE)
 	glow_color = Color(1.0, 0.36, 0.12, 1.0)
 	intensity = 1.25
@@ -113,16 +143,17 @@ func apply_soft_fire_preset() -> void:
 	flicker_amount = 0.1
 	flicker_speed = 3.0
 	use_point_light = true
-	point_light_energy = 0.6
-	point_light_scale = 1.05
+	point_light_energy = 1.35
+	point_light_scale = 2.25
+	day_light_multiplier = 0.22
+	night_light_multiplier = 1.0
 	_update_visuals(1.0)
 
 
-func _ensure_additive_material() -> void:
-	if _additive_material != null:
-		return
-	_additive_material = CanvasItemMaterial.new()
-	_additive_material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+func _ensure_visual_material() -> void:
+	if _visual_material == null:
+		_visual_material = CanvasItemMaterial.new()
+	_visual_material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD if blend_style == BlendStyle.ADDITIVE else CanvasItemMaterial.BLEND_MODE_MIX
 
 
 func _ensure_procedural_material() -> ShaderMaterial:
@@ -149,7 +180,7 @@ func _release_hidden_procedural_resources() -> void:
 func _update_visuals(flicker_value: float) -> void:
 	if not is_inside_tree():
 		return
-	_ensure_additive_material()
+	_ensure_visual_material()
 
 	var current_alpha := clampf(alpha * flicker_value, 0.0, 1.0)
 	var current_intensity := maxf(0.0, intensity * flicker_value)
@@ -157,8 +188,8 @@ func _update_visuals(flicker_value: float) -> void:
 	if flicker_enabled:
 		current_scale *= 1.0 + ((flicker_value - 1.0) * 0.35)
 
-	var texture_enabled := mode == Mode.TEXTURE or mode == Mode.BOTH
-	var procedural_enabled := mode == Mode.PROCEDURAL or mode == Mode.BOTH
+	var texture_enabled := visual_enabled and (mode == Mode.TEXTURE or mode == Mode.BOTH)
+	var procedural_enabled := visual_enabled and (mode == Mode.PROCEDURAL or mode == Mode.BOTH)
 	_configure_texture_sprite(texture_enabled, current_scale, current_alpha, current_intensity)
 	_configure_procedural_sprite(procedural_enabled, current_scale, current_alpha, current_intensity)
 	_configure_point_light(current_alpha, current_intensity, current_scale)
@@ -173,7 +204,7 @@ func _configure_texture_sprite(should_show: bool, sprite_scale: Vector2, current
 		return
 	_texture_glow.z_index = z_index_value
 	_texture_glow.scale = sprite_scale
-	_texture_glow.material = _additive_material
+	_texture_glow.material = _visual_material
 	_texture_glow.texture = glow_texture
 	_texture_glow.modulate = Color(
 		glow_color.r * current_intensity,
@@ -213,13 +244,29 @@ func _configure_point_light(current_alpha: float, current_intensity: float, spri
 		_point_light.enabled = false
 		_point_light.texture = null
 		return
+	var day_night_multiplier := lerpf(day_light_multiplier, night_light_multiplier, _night_strength)
 	_point_light.texture = POINT_LIGHT_TEXTURE
 	_point_light.visible = true
 	_point_light.enabled = true
 	_point_light.color = glow_color
-	_point_light.energy = point_light_energy * current_intensity * current_alpha
-	_point_light.scale = sprite_scale * point_light_scale
+	_point_light.energy = point_light_energy * current_intensity * current_alpha * day_night_multiplier
+	_point_light.texture_scale = maxf(sprite_scale.x, sprite_scale.y) * point_light_scale
 	_point_light.z_index = z_index_value
+	_set_optional_property(_point_light, "range_z_min", -4096)
+	_set_optional_property(_point_light, "range_z_max", 4096)
+
+
+func _sync_initial_day_night_strength() -> void:
+	var cycle := get_tree().get_first_node_in_group("day_night_cycle")
+	if cycle != null and cycle.has_method("get_night_strength"):
+		_night_strength = clampf(float(cycle.call("get_night_strength")), 0.0, 1.0)
+
+
+func _set_optional_property(target: Object, property_name: StringName, value: Variant) -> void:
+	for property_info in target.get_property_list():
+		if StringName(property_info.get("name", "")) == property_name:
+			target.set(property_name, value)
+			return
 
 
 func _load_texture(path: String) -> Texture2D:

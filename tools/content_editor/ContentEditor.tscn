@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cn6juf8fptk0e"]
 
-[ext_resource type="Script" path="res://tools/content_editor/ContentEditorShaderSuite.gd" id="1_content_editor_script"]
+[ext_resource type="Script" path="res://tools/content_editor/ContentEditorLightingSuite.gd" id="1_content_editor_script"]
 
 [node name="ContentEditor" type="Control" unique_id=47190531]
 custom_minimum_size = Vector2(1280, 800)

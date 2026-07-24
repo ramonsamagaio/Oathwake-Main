@@ -56,10 +56,13 @@ func _validate_world_item_shadow() -> void:
 		return
 	var item := packed.instantiate()
 	var shadow := item.get_node_or_null("GroundShadow") as Polygon2D
+	var sprite := item.get_node_or_null("Sprite2D") as Sprite2D
 	if shadow == null:
 		_failures.append("WorldItem GroundShadow is missing.")
-	elif not shadow.show_behind_parent or shadow.z_index >= 0 or shadow.color.a <= 0.0:
-		_failures.append("WorldItem GroundShadow is not configured as a visible behind-item shadow.")
+	elif not shadow.show_behind_parent or shadow.z_index != 0 or shadow.color.a <= 0.0:
+		_failures.append("WorldItem GroundShadow must sit above the map floor at local z 0.")
+	elif sprite == null or sprite.z_index <= shadow.z_index:
+		_failures.append("WorldItem sprite must remain above its GroundShadow.")
 	item.free()
 
 

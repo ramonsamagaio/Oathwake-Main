@@ -1,6 +1,47 @@
 extends "res://scripts/enemies/EnemyBase.gd"
 
 const HitFlashOverlayScript := preload("res://scripts/effects/HitFlashOverlay.gd")
+const ContentGlowRuntime := preload("res://scripts/effects/ContentGlowRuntime.gd")
+
+
+func _ready() -> void:
+	super._ready()
+	_apply_content_visual_effects()
+	_connect_content_visual_reload()
+
+
+func _get_fallback_visual_nodes() -> Array:
+	var fallback_nodes := super._get_fallback_visual_nodes()
+	var filtered: Array = []
+	for node in fallback_nodes:
+		if node == null or not is_instance_valid(node):
+			continue
+		if node.is_in_group("persistent_content_visual"):
+			continue
+		if str(node.name) in ["GroundShadow", "ContentGlow", "SlimeGlow", "GlowOverlayNative"]:
+			continue
+		filtered.append(node)
+	return filtered
+
+
+func _apply_content_visual_effects() -> void:
+	ContentGlowRuntime.apply_content_effects(self, monster_data, 24)
+
+
+func _connect_content_visual_reload() -> void:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_signal("content_reloaded"):
+		return
+	var callback := Callable(self, "_on_content_visuals_reloaded")
+	if not content_db.content_reloaded.is_connected(callback):
+		content_db.content_reloaded.connect(callback)
+
+
+func _on_content_visuals_reloaded() -> void:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and content_db.has_method("has_monster") and content_db.has_monster(monster_id):
+		monster_data = content_db.get_monster(monster_id)
+	_apply_content_visual_effects()
 
 
 func _play_hit_feedback(is_critical: bool) -> void:

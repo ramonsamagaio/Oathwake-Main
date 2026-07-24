@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/StorageUI.tscn" id="6_storage_ui"]
 [ext_resource type="PackedScene" path="res://scenes/ui/WorkbenchUI.tscn" id="7_workbench_ui"]
 [ext_resource type="PackedScene" path="res://scenes/ui/CharacterStatusUI.tscn" id="8_status_ui"]
-[ext_resource type="Script" uid="uid://jqom0c7djf0e" path="res://scripts/BuildSystem.gd" id="9_build_system"]
+[ext_resource type="Script" uid="uid://ddj3vxrm727j5" path="res://scripts/BuildSystemLightingSuite.gd" id="9_build_system"]
 [ext_resource type="Script" uid="uid://dc2fvcckgxydx" path="res://scripts/save/SaveCoordinator.gd" id="10_save_coordinator"]
 [ext_resource type="Script" uid="uid://bfye71qr66ki3" path="res://scripts/systems/CraftingSystem.gd" id="11_crafting_system"]
 [ext_resource type="Script" uid="uid://b83p4dxpj350s" path="res://scripts/systems/HousingSystem.gd" id="12_housing_system"]

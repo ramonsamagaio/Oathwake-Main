@@ -1,0 +1,17 @@
+[gd_resource type="ShaderMaterial" load_steps=5 format=3]
+
+[ext_resource type="Shader" path="res://shaders/terrain/terrain_grass_dirt_world_space.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tilesets/terrain/grass_dirt/terrain_grass_texture_256.png" id="2_grass"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tilesets/terrain/grass_dirt/terrain_dirt_texture_256.png" id="3_dirt"]
+[ext_resource type="Texture2D" path="res://assets/sprites/tilesets/terrain/grass_dirt/terrain_grass_dirt_dual_edge_overlay_64.png" id="4_edge"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/grass_texture = ExtResource("2_grass")
+shader_parameter/dirt_texture = ExtResource("3_dirt")
+shader_parameter/edge_overlay = ExtResource("4_edge")
+shader_parameter/grass_repeat_pixels = Vector2(256, 256)
+shader_parameter/dirt_repeat_pixels = Vector2(256, 256)
+shader_parameter/world_offset = Vector2(0, 0)
+shader_parameter/edge_shadow_strength = 0.4
+shader_parameter/edge_highlight_strength = 0.08

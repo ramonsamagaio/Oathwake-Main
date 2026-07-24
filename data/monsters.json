@@ -1,114 +1,196 @@
 {
 	"skeleton": {
+		"animation_set_id": "player_base_body",
+		"animations": {
+
+		},
 		"attack_cooldown": 1.35,
 		"attack_hit_time": 0.04,
 		"attack_recovery_time": 0.12,
-		"attack_windup_time": 0.10,
+		"attack_windup_time": 0.1,
 		"base_combat": {
 			"attack_cooldown": 1.35,
-			"base_attack": 7,
+			"base_attack": 7.0,
 			"base_crit_chance": 0.015,
 			"base_crit_damage": 1.45,
-			"base_defense": 2,
-			"base_flee": 4,
-			"base_hit": 70,
-			"base_magic_defense": 0
+			"base_defense": 2.0,
+			"base_flee": 4.0,
+			"base_hit": 70.0,
+			"base_magic_defense": 0.0
 		},
 		"base_stats": {
-			"agi": 4,
-			"dex": 5,
-			"int": 2,
-			"luk": 2,
-			"str": 6,
-			"vit": 6,
-			"wis": 2
+			"agi": 4.0,
+			"dex": 5.0,
+			"int": 2.0,
+			"luk": 2.0,
+			"str": 6.0,
+			"vit": 6.0,
+			"wis": 2.0
 		},
 		"behavior": "aggressive_contact_chaser",
 		"damage": 7,
-		"display_name": "Skeleton",
-		"level": 2,
-		"movement_mode": "walk",
 		"direction_mode": "4dir",
-		"locomotion": {
-			"move_speed": 40
+		"display_name": "Skeleton",
+		"glow": {
+			"alpha": 0.55,
+			"blend_mode": "additive",
+			"color": "#b8d8ffff",
+			"day_multiplier": 0.15,
+			"enabled": false,
+			"flicker_amount": 0.05,
+			"flicker_enabled": false,
+			"flicker_speed": 2.0,
+			"intensity": 0.8,
+			"light_enabled": true,
+			"light_energy": 0.65,
+			"light_scale": 1.4,
+			"night_multiplier": 1.0,
+			"offset": {
+				"x": 0.0,
+				"y": -4.0
+			},
+			"overlay_z": 24,
+			"scale": 0.3,
+			"stretch": {
+				"x": 1.0,
+				"y": 1.0
+			},
+			"visual_enabled": true,
+			"visual_mode": "texture"
 		},
-		"animations": {},
-		"animation_set_id": "",
+		"level": 2,
+		"locomotion": {
+			"move_speed": 40.0
+		},
 		"loot_table": [
 			{
 				"chance": 1.0,
 				"item_id": "gel",
-				"max_amount": 2,
-				"min_amount": 2
+				"max_amount": 2.0,
+				"min_amount": 2.0
 			}
 		],
 		"max_health": 76,
-		"scene_path": "res://scenes/enemies/Skeleton.tscn",
-		"sprite_id": "",
-		"xp_reward": 18,
 		"move_speed": 40,
+		"movement_mode": "walk",
+		"scene_path": "res://scenes/enemies/Skeleton.tscn",
+		"shadow": {
+			"enabled": true,
+			"offset": {
+				"x": 0.0,
+				"y": 12.0
+			},
+			"opacity": 0.42,
+			"scale": {
+				"x": 0.95,
+				"y": 0.34
+			},
+			"z_index": 0
+		},
 		"spawn_tiles": [
 			"grass"
 		],
-		"spawn_time_seconds": 25
+		"spawn_time_seconds": 25,
+		"xp_reward": 18
 	},
 	"slime": {
+		"animation_set_id": "player_base_body",
+		"animations": {
+
+		},
 		"attack_cooldown": 1.25,
 		"attack_hit_time": 0.03,
 		"attack_recovery_time": 0.08,
 		"attack_windup_time": 0.06,
 		"base_combat": {
 			"attack_cooldown": 1.25,
-			"base_attack": 4,
+			"base_attack": 4.0,
 			"base_crit_chance": 0.01,
 			"base_crit_damage": 1.4,
-			"base_defense": 0,
-			"base_flee": 3,
-			"base_hit": 66,
-			"base_magic_defense": 0
+			"base_defense": 0.0,
+			"base_flee": 3.0,
+			"base_hit": 66.0,
+			"base_magic_defense": 0.0
 		},
 		"base_stats": {
-			"agi": 2,
-			"dex": 3,
-			"int": 1,
-			"luk": 1,
-			"str": 3,
-			"vit": 3,
-			"wis": 1
+			"agi": 2.0,
+			"dex": 3.0,
+			"int": 1.0,
+			"luk": 1.0,
+			"str": 3.0,
+			"vit": 3.0,
+			"wis": 1.0
 		},
 		"behavior": "aggressive_contact_chaser",
 		"damage": 4,
-		"display_name": "Gosma",
-		"level": 1,
-		"movement_mode": "hop",
 		"direction_mode": "single",
+		"display_name": "Gosma",
+		"glow": {
+			"alpha": 0.58,
+			"blend_mode": "additive",
+			"color": "#47ff7acc",
+			"day_multiplier": 0.2,
+			"enabled": true,
+			"flicker_amount": 0.12,
+			"flicker_enabled": true,
+			"flicker_speed": 2.2,
+			"intensity": 0.3,
+			"light_enabled": true,
+			"light_energy": 0.95,
+			"light_scale": 1.65,
+			"night_multiplier": 1.0,
+			"offset": {
+				"x": 0.0,
+				"y": -4.0
+			},
+			"overlay_z": 24,
+			"scale": 0.3,
+			"stretch": {
+				"x": 1.0,
+				"y": 1.0
+			},
+			"visual_enabled": true,
+			"visual_mode": "texture"
+		},
+		"level": 1,
 		"locomotion": {
 			"air_time": 0.22,
-			"arc_height": 10,
+			"arc_height": 10.0,
 			"land_time": 0.08,
-			"move_speed": 42,
+			"move_speed": 42.0,
 			"pause_time": 0.18,
-			"prepare_time": 0.10,
-			"recover_time": 0.10
+			"prepare_time": 0.1,
+			"recover_time": 0.1
 		},
-		"animations": {},
-		"animation_set_id": "",
 		"loot_table": [
 			{
 				"chance": 1.0,
 				"item_id": "gel",
-				"max_amount": 1,
-				"min_amount": 1
+				"max_amount": 1.0,
+				"min_amount": 1.0
 			}
 		],
 		"max_health": 40,
-		"scene_path": "res://scenes/enemies/Slime.tscn",
-		"sprite_id": "",
-		"xp_reward": 8,
 		"move_speed": 42,
+		"movement_mode": "hop",
+		"scene_path": "res://scenes/enemies/Slime.tscn",
+		"shadow": {
+			"enabled": true,
+			"offset": {
+				"x": 0.0,
+				"y": 11.0
+			},
+			"opacity": 0.46,
+			"scale": {
+				"x": 0.92,
+				"y": 0.34
+			},
+			"z_index": 0
+		},
 		"spawn_tiles": [
 			"grass"
 		],
-		"spawn_time_seconds": 20
+		"spawn_time_seconds": 20,
+		"xp_reward": 8
 	}
 }

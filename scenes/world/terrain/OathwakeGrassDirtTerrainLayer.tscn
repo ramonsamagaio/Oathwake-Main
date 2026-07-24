@@ -1,0 +1,11 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/terrain/OathwakeTerrainLayer.gd" id="1_script"]
+[ext_resource type="TileSet" path="res://tilesets/terrain/terrain_grass_dirt_tileset.tres" id="2_tileset"]
+[ext_resource type="Material" path="res://materials/terrain/terrain_grass_dirt_material.tres" id="3_material"]
+
+[node name="GrassDirtTerrain" type="TileMapLayer"]
+texture_filter = 1
+tile_set = ExtResource("2_tileset")
+material = ExtResource("3_material")
+script = ExtResource("1_script")

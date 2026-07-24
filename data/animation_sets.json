@@ -92,7 +92,7 @@
 		},
 		"direction_mode": "4dir",
 		"display_name": "Player Animations",
-		"sprite_sheet_id": "player_templar"
+		"sprite_sheet_id": "player_base"
 	},
 	"player_templar_body": {
 		"anchor": {

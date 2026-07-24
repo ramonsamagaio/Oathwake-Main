@@ -15,6 +15,7 @@ shader_parameter/blur_iterations = 1
 shader_parameter/blur_size = 0.004
 shader_parameter/blur_subdivisions = 8
 shader_parameter/mix_amount = 0.18
+shader_parameter/colored_glow_boost = 0.12
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_speed_lines"]
 resource_local_to_scene = true
