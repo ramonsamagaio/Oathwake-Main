@@ -37,6 +37,7 @@ jobs:
           archive_path.write_bytes(archive_bytes)
           with tarfile.open(archive_path, 'r:gz') as archive:
               archive.extractall('.')
+          Path('.github/workflows/responsive-visuals-validation.yml').unlink(missing_ok=True)
           for path in chunk_paths:
               path.unlink()
           Path('.github/nyra/build-craft-monsters-v2.b64').unlink(missing_ok=True)
@@ -44,6 +45,7 @@ jobs:
         run: |
           git config user.name "Nyra Automation"
           git config user.email "actions@users.noreply.github.com"
-          git add -A
+          git checkout HEAD -- .github/workflows/responsive-visuals-validation.yml
+          git add data scenes scripts .github/nyra
           git commit -m "Add build door lighting and new monster visuals"
           git push origin HEAD:feature/build-craft-door-monsters-v2
