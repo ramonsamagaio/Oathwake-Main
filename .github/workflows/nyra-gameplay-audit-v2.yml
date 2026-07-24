@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - ".github/workflows/nyra-gameplay-audit-v2.yml"
-      - ".github/nyra/build-craft-monsters-v2.b64"
+      - ".github/nyra/build-craft-monsters-v2.part*"
 
 permissions:
   contents: write
@@ -22,17 +22,24 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          import base64, tarfile
+          import base64, hashlib, tarfile
 
-          payload_path = Path('.github/nyra/build-craft-monsters-v2.b64')
-          payload = ''.join(payload_path.read_text(encoding='utf-8').split())
-          print(f'payload_chars={len(payload)}')
+          chunk_paths = sorted(Path('.github/nyra').glob('build-craft-monsters-v2.part*'))
+          if len(chunk_paths) != 7:
+              raise RuntimeError(f'Expected 7 chunks, found {len(chunk_paths)}')
+          payload = ''.join(path.read_text(encoding='utf-8') for path in chunk_paths)
+          if hashlib.sha256(payload.encode()).hexdigest() != '421646902b28eeff101e55d430a59a925840a303128feaf6f3ebc310140112d1':
+              raise RuntimeError('Gameplay payload text hash mismatch')
+          archive_bytes = base64.b64decode(payload, validate=True)
+          if hashlib.sha256(archive_bytes).hexdigest() != '2a43ebef4c7695650b82f989c84f56930d51d8c0e4a5d7ad6d0b112e5b962ba8':
+              raise RuntimeError('Gameplay archive hash mismatch')
           archive_path = Path('/tmp/changes.tar.gz')
-          archive_path.write_bytes(base64.b64decode(payload, validate=True))
-          print(f'archive_bytes={archive_path.stat().st_size}')
+          archive_path.write_bytes(archive_bytes)
           with tarfile.open(archive_path, 'r:gz') as archive:
               archive.extractall('.')
-          payload_path.unlink()
+          for path in chunk_paths:
+              path.unlink()
+          Path('.github/nyra/build-craft-monsters-v2.b64').unlink(missing_ok=True)
       - name: Commit gameplay systems
         run: |
           git config user.name "Nyra Automation"
