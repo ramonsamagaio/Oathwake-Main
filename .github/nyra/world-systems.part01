@@ -1,0 +1,166 @@
+index 7952159..1eaa76b 100644
+--- a/data/vfx_profiles.json
++++ b/data/vfx_profiles.json
+@@ -4,20 +4,32 @@
+ 		"critical_hit_flash_duration": 0.14,
+ 		"critical_shake_duration": 0.14,
+ 		"critical_shake_strength": 2.8,
+-		"critical_text_duration": 1.60,
+-		"critical_white_hit_flash_duration": 0.10,
++		"critical_text_duration": 1.6,
++		"critical_white_hit_flash_duration": 0.1,
+ 		"dash_glint_alpha": 0.24,
+ 		"dash_glint_count": 3,
+ 		"dash_glint_lifetime": 0.12,
+ 		"dash_glint_spread": 7.0,
+ 		"floating_text_duration": 1.45,
+ 		"hit_bump_scale": 1.04,
+-		"hit_flash_duration": 0.10,
++		"hit_flash_duration": 0.1,
+ 		"smoke_puff_lifetime": 0.35,
+ 		"smoke_puff_scale": 1.2,
+ 		"tree_wind_speed": 1.2,
+ 		"tree_wind_strength": 1.5,
+-		"white_hit_flash_duration": 0.08
++		"white_hit_flash_duration": 0.08,
++		"directional_shadow": {
++			"color": "#040306FF",
++			"direction": {
++				"x": -1.0,
++				"y": 0.55
++			},
++			"fade_power": 1.6,
++			"length_scale": 1.0,
++			"opacity": 0.32,
++			"tail_width_ratio": 0.18,
++			"width_scale": 1.0
++		}
+ 	},
+ 	"building_destroy_puff": {
+ 		"display_name": "Building Destroy Puff",
+diff --git a/scripts/ResourceNode.gd b/scripts/ResourceNode.gd
+index 9c62e55..a164a81 100644
+--- a/scripts/ResourceNode.gd
++++ b/scripts/ResourceNode.gd
+@@ -6,6 +6,8 @@ const GatheringCalculatorScript := preload("res://scripts/systems/GatheringCalcu
+ const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextSpawner.gd")
+ const WorldItemSpawner := preload("res://scripts/systems/WorldItemSpawner.gd")
+ const TreeWindShader := preload("res://shaders/tree_wind.gdshader")
++const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
++const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
+ 
+ @export var resource_id: String = ""
+ @export var resource_type_id: String = ""
+@@ -24,6 +26,9 @@ var health: int = 30
+ var collected_state := false
+ var respawn_time_left := 0.0
+ var content_sprite: Sprite2D
++var layered_visual_root: Node2D
++var layered_trunk_sprite: Sprite2D
++var layered_canopy_sprite: Sprite2D
+ var gathering_calculator := GatheringCalculatorScript.new()
+ 
+ 
+@@ -37,6 +42,7 @@ func _ready() -> void:
+ 
+ 	_load_resource_data()
+ 	_apply_resource_sprite()
++	_refresh_world_presentation()
+ 	_connect_content_reload()
+ 	health = max_health
+ 
+@@ -190,6 +196,7 @@ func _connect_content_reload() -> void:
+ func _on_content_reloaded() -> void:
+ 	_load_resource_data()
+ 	_apply_resource_sprite()
++	_refresh_world_presentation()
+ 	if not collected_state:
+ 		health = min(health, max_health)
+ 
+@@ -283,28 +290,19 @@ func _show_xp_reward() -> void:
+ 
+ 
+ func _apply_resource_sprite() -> void:
++	if _apply_layered_resource_visual():
++		_set_placeholder_visuals_visible(false)
++		return
++	_hide_layered_resource_visual()
+ 	if sprite_id.is_empty():
+ 		return
+ 
+-	var content_db := get_node_or_null("/root/ContentDB")
+-	if content_db == null or not content_db.has_method("has_sprite") or not content_db.has_sprite(sprite_id):
++	var sprite_record := _get_sprite_record(sprite_id)
++	if sprite_record.is_empty():
+ 		push_warning("ResourceNode %s could not find sprite_id: %s" % [resource_id, sprite_id])
+ 		return
+ 
+-	var sprite_data: Dictionary = content_db.get_sprite(sprite_id)
+-	var texture_path := str(sprite_data.get("texture_path", ""))
+-	if texture_path.is_empty() or not FileAccess.file_exists(texture_path):
+-		push_warning("ResourceNode %s sprite has invalid texture_path: %s" % [resource_id, texture_path])
+-		return
+-
+-	var texture = load(texture_path)
+-	if not texture is Texture2D:
+-		push_warning("ResourceNode %s sprite texture is not Texture2D: %s" % [resource_id, texture_path])
+-		return
+-
+-	var content_sprite_target := get_node_or_null("ContentSpriteTarget") as Node
+-	if content_sprite_target == null:
+-		content_sprite_target = find_child("ContentSpriteTarget", true, false) as Node
++	var content_sprite_target := _get_content_sprite_target()
+ 	if content_sprite == null and content_sprite_target != null:
+ 		content_sprite = content_sprite_target.get_node_or_null("ContentSprite") as Sprite2D
+ 	if content_sprite == null:
+@@ -318,15 +316,161 @@ func _apply_resource_sprite() -> void:
+ 			add_child(content_sprite)
+ 			move_child(content_sprite, 0)
+ 
+-	content_sprite.texture = texture
+-	content_sprite.centered = true
+-	content_sprite.visible = true
+-	_apply_sprite_region(content_sprite, sprite_data)
+-	_apply_sprite_anchor(content_sprite, sprite_data)
++	if not _apply_sprite_record_to_node(content_sprite, sprite_record):
++		return
+ 	_apply_content_sprite_material(content_sprite)
+ 	_set_placeholder_visuals_visible(false)
+ 
+ 
++func _apply_layered_resource_visual() -> bool:
++	var layered_value: Variant = resource_data.get("layered_visual", {})
++	if not (layered_value is Dictionary):
++		return false
++	var layered := layered_value as Dictionary
++	if not bool(layered.get("enabled", false)):
++		return false
++	var trunk_sprite_id := str(layered.get("trunk_sprite_id", ""))
++	var canopy_sprite_id := str(layered.get("canopy_sprite_id", ""))
++	if trunk_sprite_id.is_empty() or canopy_sprite_id.is_empty():
++		push_warning("ResourceNode %s layered visual needs trunk and canopy sprite ids." % resource_id)
++		return false
++	var trunk_record := _get_sprite_record(trunk_sprite_id)
++	var canopy_record := _get_sprite_record(canopy_sprite_id)
++	if trunk_record.is_empty() or canopy_record.is_empty():
++		push_warning("ResourceNode %s layered visual references a missing sprite." % resource_id)
++		return false
++
++	_ensure_layered_resource_nodes()
++	if not _apply_sprite_record_to_node(layered_trunk_sprite, trunk_record):
++		return false
++	if not _apply_sprite_record_to_node(layered_canopy_sprite, canopy_record):
++		return false
++	layered_visual_root.visible = true
++	layered_trunk_sprite.position = _vector_from_value(layered.get("trunk_offset", {}), Vector2.ZERO)
++	layered_canopy_sprite.position = _vector_from_value(layered.get("canopy_offset", {}), Vector2.ZERO)
++	layered_trunk_sprite.z_index = 0
++	layered_canopy_sprite.z_index = int(layered.get("canopy_z_offset", 2))
++	layered_trunk_sprite.material = null
++	if bool(layered.get("canopy_wind_enabled", true)):
++		_apply_content_sprite_material(layered_canopy_sprite)
++	else:
++		layered_canopy_sprite.material = null
++	var old_single := _get_content_sprite_target().get_node_or_null("ContentSprite") as Sprite2D
++	if old_single != null and old_single != layered_trunk_sprite:
++		old_single.visible = false
