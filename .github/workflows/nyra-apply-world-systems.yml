@@ -22,9 +22,10 @@ jobs:
           cat .github/nyra/world-systems.part* > /tmp/world-systems.patch
           git apply --check /tmp/world-systems.patch
           git apply /tmp/world-systems.patch
+          git restore --source=HEAD -- .github/workflows/responsive-visuals-validation.yml
+          git restore --source=HEAD -- .github/workflows/nyra-world-systems-snapshot.yml
           rm -f .github/nyra/world-systems.part*
           rm -f .github/nyra/world-systems.ready
-          rm -f .github/workflows/nyra-apply-world-systems.yml
       - name: Commit changes
         run: |
           git config user.name "Nyra Automation"
