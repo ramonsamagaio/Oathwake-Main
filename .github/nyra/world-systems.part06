@@ -1,0 +1,114 @@
++	hit_impact.top_level = true
++	hit_impact.z_as_relative = false
++	hit_impact.z_index = 4088
+ 	tree.current_scene.add_child(hit_impact)
+ 	hit_impact.global_position = world_position
+ 	if hit_impact.has_method("setup"):
+diff --git a/tools/content_editor/ContentEditorPlayerVisualSuite.gd b/tools/content_editor/ContentEditorPlayerVisualSuite.gd
+index 025fc10..6e3cece 100644
+--- a/tools/content_editor/ContentEditorPlayerVisualSuite.gd
++++ b/tools/content_editor/ContentEditorPlayerVisualSuite.gd
+@@ -5,33 +5,23 @@ func _build_player_tuning_form() -> void:
+ 	super._build_player_tuning_form()
+ 	_add_subsection_title("Player Visual Calibration")
+ 	var note := Label.new()
+-	note.text = "These values affect only the player artwork. Collision, movement speed and world position stay unchanged. Use Offset Y to keep the feet aligned with the ground shadow after scaling."
++	note.text = "These values affect only the player artwork. Collision, movement speed and world position stay unchanged. Depth uses the player's ground line, while the shadow is generated procedurally toward southwest."
+ 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+ 	form_container.add_child(note)
+-	_add_float_spin_box(
+-		"Visual Scale",
+-		"player_visual_scale",
+-		float(current_record.get("visual_scale", 1.0)),
+-		0.10,
+-		8.0,
+-		0.05
+-	)
+-	_add_float_spin_box(
+-		"Visual Offset X",
+-		"player_visual_offset_x",
+-		float(current_record.get("visual_offset_x", 0.0)),
+-		-1024.0,
+-		1024.0,
+-		0.5
+-	)
+-	_add_float_spin_box(
+-		"Visual Offset Y",
+-		"player_visual_offset_y",
+-		float(current_record.get("visual_offset_y", 0.0)),
+-		-1024.0,
+-		1024.0,
+-		0.5
+-	)
++	_add_float_spin_box("Visual Scale", "player_visual_scale", float(current_record.get("visual_scale", 1.0)), 0.10, 8.0, 0.05)
++	_add_float_spin_box("Visual Offset X", "player_visual_offset_x", float(current_record.get("visual_offset_x", 0.0)), -1024.0, 1024.0, 0.5)
++	_add_float_spin_box("Visual Offset Y", "player_visual_offset_y", float(current_record.get("visual_offset_y", 0.0)), -1024.0, 1024.0, 0.5)
++	_add_float_spin_box("Depth Sort Offset Y", "player_depth_sort_offset_y", float(current_record.get("depth_sort_offset_y", 0.0)), -512.0, 512.0, 0.5)
++
++	var shadow := _record_dictionary(current_record, "shadow")
++	_add_subsection_title("Player Directional Shadow")
++	_add_check_box("Shadow Enabled", "player_shadow_enabled", bool(shadow.get("enabled", true)))
++	_add_float_spin_box("Shadow Opacity", "player_shadow_opacity", float(shadow.get("opacity", 0.30)), 0.0, 1.0, 0.01)
++	_add_float_spin_box("Shadow Length", "player_shadow_length", float(shadow.get("length", 34.0)), 1.0, 256.0, 1.0)
++	_add_float_spin_box("Shadow Width", "player_shadow_width", float(shadow.get("width", 22.0)), 1.0, 256.0, 1.0)
++	_add_float_spin_box("Shadow Offset X", "player_shadow_offset_x", _dictionary_vector(shadow, "offset", Vector2.ZERO).x, -512.0, 512.0, 0.5)
++	_add_float_spin_box("Shadow Offset Y", "player_shadow_offset_y", _dictionary_vector(shadow, "offset", Vector2.ZERO).y, -512.0, 512.0, 0.5)
++	_add_float_spin_box("Shadow Fade Power", "player_shadow_fade_power", float(shadow.get("fade_power", 1.6)), 0.1, 8.0, 0.1)
+ 
+ 
+ func _get_player_tuning_form_record() -> Dictionary:
+@@ -39,4 +29,140 @@ func _get_player_tuning_form_record() -> Dictionary:
+ 	record["visual_scale"] = _get_spin_box_value("player_visual_scale")
+ 	record["visual_offset_x"] = _get_spin_box_value("player_visual_offset_x")
+ 	record["visual_offset_y"] = _get_spin_box_value("player_visual_offset_y")
++	record["depth_sort_offset_y"] = _get_spin_box_value("player_depth_sort_offset_y")
++	record["shadow"] = {
++		"enabled": _get_check_box_pressed("player_shadow_enabled"),
++		"opacity": _get_spin_box_value("player_shadow_opacity"),
++		"length": _get_spin_box_value("player_shadow_length"),
++		"width": _get_spin_box_value("player_shadow_width"),
++		"offset": {
++			"x": _get_spin_box_value("player_shadow_offset_x"),
++			"y": _get_spin_box_value("player_shadow_offset_y"),
++		},
++		"fade_power": _get_spin_box_value("player_shadow_fade_power"),
++		"tail_width_ratio": 0.18,
++		"z_index": -1,
++	}
++	return record
++
++
++func _build_character_form() -> void:
++	super._build_character_form()
++	_add_subsection_title("Attack Animation Variation")
++	var note := Label.new()
++	note.text = "Comma-separated animation names. Use {direction} to resolve the current facing direction, for example attack_{direction}. A shuffle bag cycles compatible animations without immediate repetition."
++	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
++	form_container.add_child(note)
++	_add_line_edit("Attack Animation Variants", "character_attack_variants", _join_string_array(current_record.get("attack_animation_variants", []), ", "))
++	_add_check_box("Avoid Immediate Repeat", "character_avoid_attack_repeat", bool(current_record.get("avoid_immediate_attack_repeat", true)))
++
++
++func _get_character_form_record() -> Dictionary:
++	var record := super._get_character_form_record()
++	record["attack_animation_variants"] = _split_string_list(_get_line_edit_text("character_attack_variants"))
++	record["avoid_immediate_attack_repeat"] = _get_check_box_pressed("character_avoid_attack_repeat")
++	return record
++
++
++func _build_resource_form() -> void:
++	super._build_resource_form()
++	var depth := _record_dictionary(current_record, "depth_sort")
++	_add_subsection_title("World Depth Line")
++	var depth_note := Label.new()
++	depth_note.text = "The player changes from behind to in front when the player's feet cross this vertical ratio inside the resource sprite. 0.50 is the exact middle; 0.58 is slightly below it."
++	depth_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
++	form_container.add_child(depth_note)
++	_add_float_spin_box("Depth Line Ratio", "resource_depth_line_ratio", float(depth.get("line_ratio", 0.58)), 0.0, 1.0, 0.01)
++	_add_float_spin_box("Depth Offset Y", "resource_depth_offset_y", float(depth.get("offset_y", 0.0)), -512.0, 512.0, 0.5)
++
++	var shadow := _record_dictionary(current_record, "shadow")
++	_add_subsection_title("Resource Directional Shadow")
++	_add_check_box("Shadow Enabled", "resource_shadow_enabled", bool(shadow.get("enabled", true)))
++	_add_float_spin_box("Shadow Opacity", "resource_shadow_opacity", float(shadow.get("opacity", 0.28)), 0.0, 1.0, 0.01)
++	_add_float_spin_box("Shadow Length", "resource_shadow_length", float(shadow.get("length", 30.0)), 1.0, 256.0, 1.0)
