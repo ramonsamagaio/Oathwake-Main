@@ -1,28 +1,68 @@
-name: Nyra Character Snapshot
+name: Nyra Character Manifest
 
 on:
-  pull_request:
-    branches:
-      - main
   push:
     branches:
       - fix/responsive-ui-slime-drop-glow-pickup
+    paths:
+      - "assets/sprites/characters/2D-Pixel-Art-Character-Template/**"
+      - ".github/workflows/nyra-character-snapshot.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  snapshot:
+  manifest:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/upload-artifact@v4
-        with:
-          name: oathwake-character-snapshot
-          include-hidden-files: true
-          retention-days: 1
-          path: |
-            assets/sprites/characters/**
-            data/sprites.json
-            data/animation_sets.json
-            data/characters.json
+
+      - name: Build PNG manifest
+        shell: python
+        run: |
+          import json
+          import re
+          import struct
+          from pathlib import Path
+
+          root = Path("assets/sprites/characters/2D-Pixel-Art-Character-Template")
+          rows = []
+          for path in sorted(root.rglob("*.png")):
+              with path.open("rb") as handle:
+                  signature = handle.read(24)
+              if signature[:8] != b"\x89PNG\r\n\x1a\n":
+                  continue
+              width, height = struct.unpack(">II", signature[16:24])
+              match = re.search(r"(\d+)x(\d+)", path.name, re.IGNORECASE)
+              nominal_w = int(match.group(1)) if match else height
+              nominal_h = int(match.group(2)) if match else height
+              frame_w = nominal_w if width % nominal_w == 0 else height
+              frame_h = nominal_h if height % nominal_h == 0 else height
+              columns = width // frame_w if frame_w > 0 and width % frame_w == 0 else 1
+              rows_count = height // frame_h if frame_h > 0 and height % frame_h == 0 else 1
+              rows.append({
+                  "folder": path.parent.name,
+                  "path": "res://" + path.as_posix(),
+                  "width": width,
+                  "height": height,
+                  "frame_width": frame_w,
+                  "frame_height": frame_h,
+                  "columns": columns,
+                  "rows": rows_count,
+                  "total_frames": columns * rows_count,
+              })
+
+          output = Path("artifacts/nyra_character_manifest.json")
+          output.parent.mkdir(parents=True, exist_ok=True)
+          output.write_text(json.dumps(rows, indent=2) + "\n", encoding="utf-8")
+
+      - name: Commit manifest
+        run: |
+          git config user.name "Nyra Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add artifacts/nyra_character_manifest.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Inventory test character sprite sheets"
+          git push
