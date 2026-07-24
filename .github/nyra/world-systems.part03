@@ -124,7 +124,7 @@ index 0e5278c..db2e958 100644
 --- a/scripts/enemies/MonsterAnimator.gd
 +++ b/scripts/enemies/MonsterAnimator.gd
 @@ -72,13 +72,13 @@ func _ensure_sprite() -> void:
- 			sprite = existing
+ 			_sprite = existing
  			_sprite.centered = true
  			_sprite.position = _visual_offset
 -			_sprite.z_index = 20
