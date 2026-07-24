@@ -117,7 +117,8 @@ func _validate_animation_sets(sprites: Dictionary, animation_sets: Dictionary) -
 			if not (frames_value is Array):
 				failures.append("Animation %s/%s has no frame array." % [animation_set_id, animation_name])
 				continue
-			for frame_value in frames_value as Array:
+			var frames := frames_value as Array
+			for frame_value in frames:
 				var frame_index := int(frame_value)
 				if frame_index < 0 or frame_index >= total_frames:
 					failures.append(
