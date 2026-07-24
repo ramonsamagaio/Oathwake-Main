@@ -1,26 +1,31 @@
-name: Nyra Gameplay Audit V2
+name: Nyra Apply Gameplay Patch V2
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - feature/build-craft-door-monsters-v2
     paths:
-      - ".github/workflows/nyra-gameplay-audit-v2.yml"
+      - ".github/nyra/build-craft-monsters-v2.b64"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  snapshot:
+  apply:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Package repository
-        run: |
-          zip -qr oathwake-gameplay-audit-v2.zip . \
-            -x '.git/*' '.godot/*' 'oathwake-gameplay-audit-v2.zip'
-      - uses: actions/upload-artifact@v4
         with:
-          name: oathwake-gameplay-audit-v2
-          path: oathwake-gameplay-audit-v2.zip
-          if-no-files-found: error
+          ref: feature/build-craft-door-monsters-v2
+      - name: Extract prepared files
+        run: |
+          base64 --decode .github/nyra/build-craft-monsters-v2.b64 > /tmp/changes.tar.gz
+          tar -xzf /tmp/changes.tar.gz
+          rm .github/nyra/build-craft-monsters-v2.b64
+      - name: Commit gameplay systems
+        run: |
+          git config user.name "Nyra Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Add build door lighting and new monster visuals"
+          git push origin HEAD:feature/build-craft-door-monsters-v2
