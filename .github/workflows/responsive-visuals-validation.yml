@@ -11,6 +11,8 @@ on:
       - "data/animation_sets.json"
       - "data/characters.json"
       - "data/player_tuning.json"
+      - "data/resources.json"
+      - "data/vfx_profiles.json"
       - "assets/sprites/characters/**"
       - "scenes/Player.tscn"
       - "scenes/game/Game.tscn"
@@ -20,8 +22,14 @@ on:
       - "scenes/effects/**"
       - "scenes/ui/BuildMenuUI.tscn"
       - "scripts/enemies/**"
-      - "scripts/buildings/**"
       - "scripts/player/PlayerWorldFeedbackSuite.gd"
+      - "scripts/ResourceNode.gd"
+      - "scripts/resources/**"
+      - "scripts/maps/MapRoot.gd"
+      - "scripts/npcs/NPC.gd"
+      - "scripts/world/**"
+      - "scripts/ui/FloatingCombatText*.gd"
+      - "scripts/buildings/**"
       - "scripts/items/WorldItemFeedbackSuite.gd"
       - "scripts/effects/**"
       - "scripts/world/DayNightCycle.gd"
@@ -29,6 +37,7 @@ on:
       - "scripts/ui/BuildMenuUI.gd"
       - "scripts/test/ResponsiveVisualsValidator.gd"
       - "scripts/test/CharacterContentValidator.gd"
+      - "scripts/test/WorldPresentationValidator.gd"
       - "scripts/test/PlayerVisualTuningValidator.gd"
       - "tools/content_editor/ContentEditorLightingSuite.gd"
       - "tools/content_editor/ContentEditorPlayerVisualSuite.gd"
@@ -108,6 +117,17 @@ jobs:
             --script res://scripts/test/PlayerVisualTuningValidator.gd \
             --verbose 2>&1 | tee player-visual-validator.log
 
+      - name: Validate world depth shadows hit motion and attack variety
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a ./godot \
+            --path . \
+            --rendering-method gl_compatibility \
+            --display-driver x11 \
+            --script res://scripts/test/WorldPresentationValidator.gd \
+            --verbose 2>&1 | tee world-presentation-validator.log
+
       - name: Open intro at base resolution
         shell: bash
         run: |
@@ -139,7 +159,7 @@ jobs:
         run: |
           if grep -E -i \
             'Parse Error|SCRIPT ERROR|Shader compilation failed|Parameter "version" is null|Using .return. in the .(vertex|fragment). processor' \
-            import.log validator.log character-content-validator.log player-visual-validator.log intro-base.log game-large.log; then
+            import.log validator.log character-content-validator.log player-visual-validator.log world-presentation-validator.log intro-base.log game-large.log; then
             exit 1
           fi
 
@@ -153,6 +173,7 @@ jobs:
             validator.log
             character-content-validator.log
             player-visual-validator.log
+            world-presentation-validator.log
             intro-base.log
             game-large.log
           if-no-files-found: warn

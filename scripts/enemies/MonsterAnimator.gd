@@ -72,13 +72,13 @@ func _ensure_sprite() -> void:
 			_sprite = existing
 			_sprite.centered = true
 			_sprite.position = _visual_offset
-			_sprite.z_index = 20
+			_sprite.z_index = 2
 			return
 	_sprite = AnimatedSprite2D.new()
 	_sprite.name = "MonsterSprite"
 	_sprite.centered = true
 	_sprite.position = _visual_offset
-	_sprite.z_index = 20
+	_sprite.z_index = 2
 	_sprite.visible = false
 	add_child(_sprite)
 

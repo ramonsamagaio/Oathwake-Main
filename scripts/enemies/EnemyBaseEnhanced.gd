@@ -2,12 +2,19 @@ extends "res://scripts/enemies/EnemyBase.gd"
 
 const HitFlashOverlayScript := preload("res://scripts/effects/HitFlashOverlay.gd")
 const ContentGlowRuntime := preload("res://scripts/effects/ContentGlowRuntime.gd")
+const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
 
 
 func _ready() -> void:
 	super._ready()
 	_apply_content_visual_effects()
+	_update_world_depth()
 	_connect_content_visual_reload()
+
+
+func _physics_process(delta: float) -> void:
+	super._physics_process(delta)
+	_update_world_depth()
 
 
 func _get_fallback_visual_nodes() -> Array:
@@ -42,6 +49,13 @@ func _on_content_visuals_reloaded() -> void:
 	if content_db != null and content_db.has_method("has_monster") and content_db.has_monster(monster_id):
 		monster_data = content_db.get_monster(monster_id)
 	_apply_content_visual_effects()
+	_update_world_depth()
+
+
+func _update_world_depth() -> void:
+	var depth_config_value: Variant = monster_data.get("depth_sort", {})
+	var depth_config := depth_config_value as Dictionary if depth_config_value is Dictionary else {}
+	WorldDepthRuntime.apply_node_depth(self, float(depth_config.get("offset_y", 0.0)))
 
 
 func _play_hit_feedback(is_critical: bool) -> void:

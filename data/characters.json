@@ -60,6 +60,13 @@
 		"display_name": "Test Template Character",
 		"level": 1.0,
 		"sprite_sheet_id": "test_template_idle",
-		"orientation_mode": "side_view"
+		"orientation_mode": "side_view",
+		"attack_animation_variants": [
+			"attack_{direction}",
+			"sword_stab",
+			"katana_attack_sheathe",
+			"katana_continuous_attack"
+		],
+		"avoid_immediate_attack_repeat": true
 	}
 }
