@@ -124,5 +124,21 @@
 		"sprite_id": "",
 		"tags": ["crafting"],
 		"workstation_id": "workbench"
+	},
+	"door": {
+		"build_key": "6",
+		"building_type": "door",
+		"collision": {"enabled": true, "shape": "rectangle", "size": {"h": 30, "w": 12}},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Door",
+		"placement_cost": {"wood": 2},
+		"scene_path": "res://scenes/buildings/Door.tscn",
+		"sprite_id": "",
+		"tags": ["door", "interactable"],
+		"workstation_id": "",
+		"closed_color": "#6B4028FF",
+		"open_color": "#3C7650FF",
+		"interaction_range": 64.0,
+		"shadow": {"enabled": true, "opacity": 0.28, "length": 22.0, "width": 12.0, "fade_power": 1.5, "z_index": -1}
 	}
 }
