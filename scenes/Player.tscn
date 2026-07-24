@@ -30,7 +30,7 @@ sprite_frames = SubResource("SpriteFrames_empty")
 
 [node name="NightLight" parent="." unique_id=163870048 instance=ExtResource("3_player_light")]
 position = Vector2(0, 6)
-visual_enabled = true
+visual_enabled = false
 glow_color = Color(0.62, 0.76, 1, 1)
 intensity = 0.48
 alpha = 0.34

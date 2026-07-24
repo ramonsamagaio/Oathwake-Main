@@ -21,7 +21,7 @@ func configure(owner: Node2D, monster_data: Dictionary, animations_data: Diction
 		_sprite_frames = _sprite.sprite_frames
 		_uses_scene_sprite = true
 	else:
-			_build_sprite_frames(animations_data)
+		_build_sprite_frames(animations_data)
 		_uses_scene_sprite = false
 	_apply_visual_config(monster_data)
 	_set_fallback_visible(_sprite_frames == null or _sprite_frames.get_animation_names().is_empty())

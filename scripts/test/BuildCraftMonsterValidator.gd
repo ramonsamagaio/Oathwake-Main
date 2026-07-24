@@ -41,7 +41,10 @@ func _validate_runtime() -> void:
 	root.add_child(player)
 	await process_frame
 	var light := player.get_node_or_null("NightLight")
-	if light == null or not bool(light.get("visual_enabled")): failures.append("Player small light is disabled")
+	if light == null or not bool(light.get("use_point_light")) or float(light.get("point_light_energy")) <= 0.0:
+		failures.append("Player small point light is disabled")
+	elif bool(light.get("visual_enabled")):
+		failures.append("Player light must not draw a visible aura sprite")
 
 	var campfire := BUILDING_SCENE.instantiate()
 	root.add_child(campfire)
@@ -61,7 +64,7 @@ func _validate_runtime() -> void:
 	if collision.disabled: failures.append("Closed door collision remains disabled")
 
 	for scene in [SLIME_SCENE, SKELETON_SCENE]:
-		var monster := scene.instantiate()
+		var monster: Node = scene.instantiate()
 		root.add_child(monster)
 		await process_frame
 		var sprite := monster.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D

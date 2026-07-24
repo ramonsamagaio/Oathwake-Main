@@ -392,7 +392,7 @@ func _play_forced_animation(state_name: String) -> float:
 		animation_name = state_name
 	if not _monster_animator.has_animation(animation_name):
 		return 0.0
-	var duration := _monster_animator.get_animation_duration(animation_name)
+	var duration: float = float(_monster_animator.get_animation_duration(animation_name))
 	forced_animation_time = maxf(forced_animation_time, duration)
 	_monster_animator.play_state(state_name, facing_direction)
 	return duration
