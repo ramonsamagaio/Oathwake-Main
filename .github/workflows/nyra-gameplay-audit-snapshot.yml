@@ -1,0 +1,26 @@
+name: Nyra Gameplay Audit Snapshot
+
+on:
+  push:
+    branches:
+      - feature/build-door-monster-visuals
+    paths:
+      - ".github/workflows/nyra-gameplay-audit-snapshot.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package repository
+        run: |
+          zip -qr oathwake-gameplay-audit.zip . \
+            -x '.git/*' '.godot/*' 'oathwake-gameplay-audit.zip'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oathwake-gameplay-audit
+          path: oathwake-gameplay-audit.zip
+          if-no-files-found: error
