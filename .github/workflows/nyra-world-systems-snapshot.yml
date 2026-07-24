@@ -1,11 +1,9 @@
 name: Nyra World Systems Snapshot
 
 on:
-  push:
+  pull_request:
     branches:
-      - feature/world-depth-shadows-hit-attacks
-    paths:
-      - ".github/workflows/nyra-world-systems-snapshot.yml"
+      - main
 
 permissions:
   contents: read
