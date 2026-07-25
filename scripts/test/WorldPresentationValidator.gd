@@ -2,6 +2,7 @@ extends SceneTree
 
 const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
 const FloatingCombatTextScript := preload("res://scripts/ui/FloatingCombatText.gd")
+const FLOATING_COMBAT_TEXT_SCENE := preload("res://scenes/ui/FloatingCombatText.tscn")
 const PLAYER_SCENE := preload("res://scenes/Player.tscn")
 const TREE_SCENE := preload("res://scenes/Tree.tscn")
 const SLIME_SCENE := preload("res://scenes/enemies/Slime.tscn")
@@ -17,6 +18,7 @@ func _init() -> void:
 
 func _run() -> void:
 	_validate_screen_space_hit_motion()
+	await _validate_floating_text_spawn_lifecycle()
 	_validate_attack_content()
 	await _validate_depth_and_directional_shadows()
 	await _validate_layered_tree_backend()
@@ -42,6 +44,24 @@ func _validate_screen_space_hit_motion() -> void:
 			failures.append("Floating hit text does not move upward in screen space from %s." % start)
 
 
+func _validate_floating_text_spawn_lifecycle() -> void:
+	var floating_text := FLOATING_COMBAT_TEXT_SCENE.instantiate()
+	floating_text.set("horizontal_jitter", 0.0)
+	var expected_start := Vector2(420.0, 680.0)
+	floating_text.call("configure_spawn", "10", Color.WHITE, false, "damage_number", expected_start)
+	root.add_child(floating_text)
+	await process_frame
+	var actual_start: Vector2 = floating_text.call("get_motion_world_start")
+	var actual_target: Vector2 = floating_text.call("get_motion_world_target")
+	if not actual_start.is_equal_approx(expected_start):
+		failures.append("Floating hit text started at %s instead of hit position %s." % [actual_start, expected_start])
+	var canvas_transform := floating_text.get_viewport().get_canvas_transform()
+	if (canvas_transform * actual_target).y >= (canvas_transform * actual_start).y:
+		failures.append("Floating hit text lifecycle does not rise upward on screen.")
+	floating_text.queue_free()
+	await process_frame
+
+
 func _validate_attack_content() -> void:
 	var content_db := root.get_node_or_null("ContentDB")
 	if content_db == null or not content_db.has_method("get_character"):
@@ -49,8 +69,9 @@ func _validate_attack_content() -> void:
 		return
 	var character: Dictionary = content_db.get_character("test_template_player")
 	var variants_value: Variant = character.get("attack_animation_variants", [])
-	if not (variants_value is Array) or (variants_value as Array).size() < 3:
-		failures.append("Test player needs at least three configured attack animation variants.")
+	var expected_variants := ["attack_{direction}", "katana_attack_sheathe"]
+	if not (variants_value is Array) or (variants_value as Array) != expected_variants:
+		failures.append("Test player must use only the lateral and overhead slash variants.")
 		return
 	var animation_set: Dictionary = content_db.get_animation_set(str(character.get("animation_set_id", "")))
 	var animations_value: Variant = animation_set.get("animations", {})
@@ -108,8 +129,10 @@ func _validate_depth_and_directional_shadows() -> void:
 		var sprite := player.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 		if sprite != null:
 			observed_attacks[str(sprite.animation)] = true
-	if observed_attacks.size() < 3:
-		failures.append("Player attack shuffle produced only %d unique animations." % observed_attacks.size())
+	if observed_attacks.size() != 2:
+		failures.append("Player attack shuffle produced %d animations instead of the two configured slashes." % observed_attacks.size())
+	if observed_attacks.has("sword_stab") or observed_attacks.has("katana_continuous_attack"):
+		failures.append("Removed stab or continuous double attack still entered the player shuffle.")
 
 	player.queue_free()
 	tree_resource.queue_free()

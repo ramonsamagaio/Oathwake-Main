@@ -33,6 +33,23 @@
 			"tail_width_ratio": 0.18,
 			"width": 22.0,
 			"z_index": -1
+		},
+		"light": {
+			"enabled": true,
+			"visual_aura_enabled": true,
+			"color": "#AFCBFFFF",
+			"aura_intensity": 0.75,
+			"aura_alpha": 0.3,
+			"aura_scale": 0.44,
+			"blur": 1.25,
+			"emission": 0.85,
+			"radius_scale": 1.2,
+			"day_multiplier": 0.28,
+			"night_multiplier": 1.0,
+			"offset": {
+				"x": 0.0,
+				"y": 6.0
+			}
 		}
 	}
 }

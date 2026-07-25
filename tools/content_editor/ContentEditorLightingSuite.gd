@@ -351,6 +351,7 @@ func _add_content_glow_fields(glow: Dictionary, heading: String, default_z: int)
 	_add_float_spin_box("Aura Intensity", "content_glow_intensity", float(glow.get("intensity", 1.0)), 0.0, 8.0, 0.05)
 	_add_float_spin_box("Aura Alpha", "content_glow_alpha", float(glow.get("alpha", 0.75)), 0.0, 1.0, 0.01)
 	_add_float_spin_box("Aura Scale", "content_glow_scale", float(glow.get("scale", 1.0)), 0.01, 8.0, 0.01)
+	_add_float_spin_box("Aura Blur / Softness", "content_glow_blur", float(glow.get("blur", 0.0)), 0.0, 8.0, 0.05)
 	_add_float_spin_box("Stretch X", "content_glow_stretch_x", stretch.x, 0.01, 8.0, 0.01)
 	_add_float_spin_box("Stretch Y", "content_glow_stretch_y", stretch.y, 0.01, 8.0, 0.01)
 	_add_float_spin_box("Glow Offset X", "content_glow_offset_x", offset.x, -1024.0, 1024.0, 0.5)
@@ -376,6 +377,7 @@ func _get_content_glow_record() -> Dictionary:
 		"intensity": _get_spin_box_value("content_glow_intensity"),
 		"alpha": _get_spin_box_value("content_glow_alpha"),
 		"scale": _get_spin_box_value("content_glow_scale"),
+		"blur": _get_spin_box_value("content_glow_blur"),
 		"stretch": {
 			"x": _get_spin_box_value("content_glow_stretch_x"),
 			"y": _get_spin_box_value("content_glow_stretch_y"),

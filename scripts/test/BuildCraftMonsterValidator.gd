@@ -43,8 +43,8 @@ func _validate_runtime() -> void:
 	var light := player.get_node_or_null("NightLight")
 	if light == null or not bool(light.get("use_point_light")) or float(light.get("point_light_energy")) <= 0.0:
 		failures.append("Player small point light is disabled")
-	elif bool(light.get("visual_enabled")):
-		failures.append("Player light must not draw a visible aura sprite")
+	elif not bool(light.get("visual_enabled")):
+		failures.append("Player visible aura is disabled")
 
 	var campfire := BUILDING_SCENE.instantiate()
 	root.add_child(campfire)

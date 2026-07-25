@@ -12,6 +12,10 @@ var text := ""
 var text_color := Color(1.0, 0.95, 0.65, 1.0)
 var is_critical := false
 var font_profile_id := "damage_number"
+var _spawn_world_position := Vector2.ZERO
+var _has_spawn_world_position := false
+var _motion_world_start := Vector2.ZERO
+var _motion_world_target := Vector2.ZERO
 
 @onready var label: Label = $Label
 
@@ -20,6 +24,8 @@ func _ready() -> void:
 	top_level = true
 	z_as_relative = false
 	z_index = 4090
+	if _has_spawn_world_position:
+		global_position = _spawn_world_position
 	_apply_vfx_profile()
 	_apply_label_style()
 
@@ -30,6 +36,8 @@ func _ready() -> void:
 	screen_start.x += randf_range(-horizontal_jitter, horizontal_jitter)
 	global_position = canvas_transform.affine_inverse() * screen_start
 	var target_world := calculate_world_target_for_screen_rise(global_position, canvas_transform, active_rise_distance)
+	_motion_world_start = global_position
+	_motion_world_target = target_world
 
 	var tween := create_tween()
 	tween.set_trans(Tween.TRANS_SINE)
@@ -48,6 +56,20 @@ static func calculate_world_target_for_screen_rise(world_start: Vector2, canvas_
 	var screen_start := canvas_transform * world_start
 	var screen_target := screen_start + Vector2.UP * maxf(screen_distance, 0.0)
 	return canvas_transform.affine_inverse() * screen_target
+
+
+func configure_spawn(new_text: String, color: Color, critical: bool, new_profile_id: String, world_position: Vector2) -> void:
+	_spawn_world_position = world_position
+	_has_spawn_world_position = true
+	setup(new_text, color, critical, new_profile_id)
+
+
+func get_motion_world_start() -> Vector2:
+	return _motion_world_start
+
+
+func get_motion_world_target() -> Vector2:
+	return _motion_world_target
 
 
 func setup(new_text: String, color: Color, critical := false, new_profile_id := "") -> void:

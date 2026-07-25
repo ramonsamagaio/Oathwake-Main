@@ -74,7 +74,8 @@
 			"light_energy": 1.5,
 			"light_scale": 2.5,
 			"day_multiplier": 0.24,
-			"night_multiplier": 1.0
+			"night_multiplier": 1.0,
+			"blur": 1.25
 		},
 		"placement_cost": {
 			"stone": 1,
