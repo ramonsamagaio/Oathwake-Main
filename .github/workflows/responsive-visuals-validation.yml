@@ -50,13 +50,50 @@ on:
       - "shaders/effects/**"
       - "shaders/gaussian_glow_screen.gdshader"
       - ".github/workflows/responsive-visuals-validation.yml"
+      - ".github/workflows/nyra-fix-player-light-hit-text.yml"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  apply-focused-fixes:
+    if: github.event.action == 'reopened' && github.head_ref == 'fix/player-light-attacks-hit-text'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/player-light-attacks-hit-text
+      - name: Execute prepared patch
+        shell: python
+        run: |
+          from pathlib import Path
+
+          workflow_path = Path('.github/workflows/nyra-fix-player-light-hit-text.yml')
+          text = workflow_path.read_text(encoding='utf-8')
+          start_marker = '      - name: Apply focused fixes\n        shell: python\n        run: |\n'
+          end_marker = '\n      - name: Commit focused fixes'
+          if start_marker not in text or end_marker not in text:
+              raise RuntimeError('Prepared patch block was not found')
+          block = text.split(start_marker, 1)[1].split(end_marker, 1)[0]
+          script_lines = []
+          for line in block.splitlines():
+              if line.startswith('          '):
+                  script_lines.append(line[10:])
+              else:
+                  script_lines.append(line)
+          script = '\n'.join(script_lines) + '\n'
+          exec(compile(script, str(workflow_path), 'exec'), {'__name__': '__main__'})
+      - name: Commit focused fixes
+        run: |
+          git config user.name "Nyra Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add data scenes scripts tools
+          git commit -m "Expose player light tuning and fix hit text motion"
+          git push origin HEAD:fix/player-light-attacks-hit-text
+
   validate:
+    if: github.event.action != 'reopened' || github.head_ref != 'fix/player-light-attacks-hit-text'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
