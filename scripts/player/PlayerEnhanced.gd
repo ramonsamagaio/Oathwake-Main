@@ -73,6 +73,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _try_interact_with_nearby_storage():
 			get_viewport().set_input_as_handled()
 			return
+		if _try_interact_with_nearby_building():
+			get_viewport().set_input_as_handled()
+			return
 		if _try_interact_with_nearby_workbench():
 			get_viewport().set_input_as_handled()
 			return
@@ -89,6 +92,20 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		_attack()
 		get_viewport().set_input_as_handled()
+
+
+func _try_interact_with_nearby_building() -> bool:
+	var nearest: Node2D = null
+	var nearest_distance := 64.0
+	for candidate in get_tree().get_nodes_in_group("interactable_building"):
+		if not candidate is Node2D or not candidate.has_method("try_interact_with_player"):
+			continue
+		var node := candidate as Node2D
+		var distance := global_position.distance_to(node.global_position)
+		if distance <= nearest_distance:
+			nearest = node
+			nearest_distance = distance
+	return nearest != null and bool(nearest.call("try_interact_with_player", self))
 
 
 func _physics_process(delta: float) -> void:

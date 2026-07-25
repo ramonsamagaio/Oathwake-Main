@@ -12,6 +12,7 @@ var prepare_time := 0.10
 var air_time := 0.22
 var land_time := 0.08
 var recover_time := 0.10
+var contact_stop_distance := 27.0
 var facing_direction := "down"
 var state := "idle"
 
@@ -41,6 +42,7 @@ func configure(monster_data: Dictionary, fallback_movement_mode := "walk", fallb
 	air_time = float(locomotion_data.get("air_time", 0.22))
 	land_time = float(locomotion_data.get("land_time", 0.08))
 	recover_time = float(locomotion_data.get("recover_time", 0.10))
+	contact_stop_distance = maxf(float(locomotion_data.get("contact_stop_distance", 27.0)), 1.0)
 
 	_reset_hop_cycle()
 
@@ -60,6 +62,9 @@ func update(delta: float, owner: CharacterBody2D, target: CharacterBody2D) -> Di
 
 
 func _update_walk(owner: CharacterBody2D, target: CharacterBody2D) -> Dictionary:
+	if owner.global_position.distance_to(target.global_position) <= contact_stop_distance:
+		state = "idle"
+		return _make_result(Vector2.ZERO, state, facing_direction, Vector2.ZERO)
 	var direction := owner.global_position.direction_to(target.global_position)
 	if direction.length() <= 0.001:
 		state = "idle"
@@ -71,6 +76,9 @@ func _update_walk(owner: CharacterBody2D, target: CharacterBody2D) -> Dictionary
 
 
 func _update_hop(delta: float, owner: CharacterBody2D, target: CharacterBody2D) -> Dictionary:
+	if owner.global_position.distance_to(target.global_position) <= contact_stop_distance and _phase != "air":
+		state = "idle"
+		return _make_result(Vector2.ZERO, state, facing_direction, Vector2.ZERO)
 	if _phase_time_left <= 0.0:
 		_advance_hop_phase(owner, target)
 

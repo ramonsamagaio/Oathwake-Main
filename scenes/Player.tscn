@@ -32,10 +32,14 @@ sprite_frames = SubResource("SpriteFrames_empty")
 position = Vector2(0, 6)
 visual_enabled = false
 glow_color = Color(0.62, 0.76, 1, 1)
-alpha = 1.0
-point_light_energy = 0.42
-point_light_scale = 0.82
-day_light_multiplier = 0.05
+intensity = 0.48
+alpha = 0.34
+scale_multiplier = 0.28
+stretch = Vector2(1, 0.72)
+point_light_energy = 0.34
+point_light_scale = 0.92
+day_light_multiplier = 0.12
+night_light_multiplier = 0.72
 z_index_value = 18
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=499730392]
