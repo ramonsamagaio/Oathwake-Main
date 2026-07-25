@@ -259,12 +259,20 @@ func _perform_attack_hits() -> void:
 	var item_is_broken := _is_current_hotbar_item_broken()
 
 	for target in _find_nearby_attack_targets("enemy"):
-		if _apply_attack_to_enemy(target, item_is_broken):
+		if not _current_item_can_hit("can_hit_monsters", true):
+			continue
+		_attack_enemy(target)
+		if not item_is_broken:
 			hit_any_target = true
 
 	for target in _find_nearby_attack_targets("resource_node"):
-		if _apply_attack_to_resource(target, item_is_broken):
+		if not _current_item_can_hit("can_hit_resources", true):
+			continue
+		_attack_resource(target)
+		if not item_is_broken:
 			hit_any_target = true
 
-	if hit_any_target:
-		_consume_current_item_durability()
+	if not hit_any_target:
+		var sfx_manager := get_node_or_null("/root/SFXManager")
+		if sfx_manager != null and sfx_manager.has_method("play_profile"):
+			sfx_manager.play_profile("player_attack_swing", global_position)
