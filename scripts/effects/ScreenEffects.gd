@@ -41,7 +41,9 @@ func set_day_night_strength(strength: float) -> void:
 
 
 func refresh_from_settings() -> void:
-	_reload_post_processing_config()
+	# Explicit scene/inspector refreshes are allowed to override content defaults.
+	# Normal gameplay startup and ContentDB reloads still use the authored profile.
+	_post_processing_config.clear()
 	_sync_settings()
 
 
