@@ -69,6 +69,33 @@
 				"firefly_color": "#FFE286FF",
 				"leaf_color": "#758B4DFF",
 				"z_index": 3600
+			},
+			"post_processing": {
+				"bloom_enabled": true,
+				"selective_bloom_enabled": true,
+				"bloom_threshold": 0.72,
+				"bloom_intensity": 1.15,
+				"blur_iterations": 1,
+				"blur_size": 0.0036,
+				"blur_subdivisions": 8,
+				"glow_mix_amount": 0.28,
+				"colored_glow_boost": 0.34,
+				"emissive_chroma_threshold": 0.18,
+				"emissive_luminance_threshold": 0.60,
+				"neutral_suppression": 0.88,
+				"warm_emissive_boost": 0.34,
+				"grading_enabled": true,
+				"day_tint": "#FFF8EBFF",
+				"night_tint": "#B8C8FFFF",
+				"day_saturation": 1.04,
+				"night_saturation": 0.84,
+				"day_contrast": 1.03,
+				"night_contrast": 1.10,
+				"day_brightness": 0.012,
+				"night_brightness": -0.018,
+				"warm_light_preservation": 0.82,
+				"night_shadow_lift": 0.045,
+				"night_cool_shadow_strength": 0.34
 			}
 		}
 	},
