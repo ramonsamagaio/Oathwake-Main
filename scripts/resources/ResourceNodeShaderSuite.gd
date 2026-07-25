@@ -13,11 +13,17 @@ func _ready() -> void:
 	_fallback_sway_phase = randf_range(0.0, TAU)
 	super._ready()
 	_cache_fallback_sway_targets()
+	call_deferred("_register_world_visuals")
 
 
 func _process(delta: float) -> void:
 	super._process(delta)
 	_update_fallback_sway(delta)
+
+
+func _on_content_reloaded() -> void:
+	super._on_content_reloaded()
+	call_deferred("_register_world_visuals")
 
 
 func _apply_content_sprite_material(sprite: Sprite2D) -> void:
@@ -45,7 +51,12 @@ func _apply_content_sprite_material(sprite: Sprite2D) -> void:
 		shader_material.set_shader_parameter("rotation_strength", float(foliage_settings.get("small_rotation_strength")))
 		shader_material.set_shader_parameter("rotation_pivot", foliage_settings.get("small_rotation_pivot"))
 
+	var director := _get_world_visual_director()
+	if director != null and director.has_method("configure_foliage_material"):
+		director.call("configure_foliage_material", shader_material, size_class, _fallback_sway_phase)
 	sprite.material = shader_material
+	sprite.add_to_group("world_foliage")
+	sprite.set_meta("world_wind_size_class", size_class)
 
 
 func _get_foliage_size_class() -> String:
@@ -87,9 +98,19 @@ func _update_fallback_sway(delta: float) -> void:
 		_restore_fallback_rotations()
 		return
 
+	var director := _get_world_visual_director()
+	var shared_strength := 1.0
+	var horizontal_direction := 1.0
+	if director != null:
+		if director.has_method("get_wind_strength"):
+			shared_strength = maxf(float(director.call("get_wind_strength")), 0.0)
+		if director.has_method("get_wind_vector"):
+			var wind_vector: Vector2 = director.call("get_wind_vector")
+			if absf(wind_vector.x) > 0.001:
+				horizontal_direction = signf(wind_vector.x)
 	_fallback_sway_phase += delta * maxf(float(foliage_settings.get("time_scale")) * 7.5, 0.05)
 	var amplitude := float(foliage_settings.get("large_amplitude")) if size_class == "large" else float(foliage_settings.get("small_amplitude"))
-	var sway := sin(_fallback_sway_phase + global_position.x * 0.012 + global_position.y * 0.008) * amplitude * 0.42
+	var sway := sin(_fallback_sway_phase + global_position.x * 0.012 + global_position.y * 0.008) * amplitude * 0.42 * shared_strength * horizontal_direction
 	for target in _fallback_sway_targets:
 		target.rotation = float(_fallback_base_rotations.get(target, 0.0)) + sway
 
@@ -97,3 +118,31 @@ func _update_fallback_sway(delta: float) -> void:
 func _restore_fallback_rotations() -> void:
 	for target in _fallback_sway_targets:
 		target.rotation = float(_fallback_base_rotations.get(target, 0.0))
+
+
+func _register_world_visuals() -> void:
+	var director := _get_world_visual_director()
+	if director == null:
+		return
+	var size_class := _get_foliage_size_class()
+	if size_class.is_empty():
+		return
+	var target: CanvasItem = null
+	if layered_canopy_sprite != null and layered_canopy_sprite.visible:
+		target = layered_canopy_sprite
+	elif content_sprite != null and content_sprite.visible:
+		target = content_sprite
+	else:
+		for target_name in ["Crown", "Leaves", "Accent"]:
+			var fallback := get_node_or_null(target_name) as CanvasItem
+			if fallback != null and fallback.visible:
+				target = fallback
+				break
+	if target == null:
+		return
+	if size_class == "large" and director.has_method("register_resource_visual"):
+		director.call("register_resource_visual", self, target, "tree")
+
+
+func _get_world_visual_director() -> Node:
+	return get_tree().get_first_node_in_group("world_visual_director")

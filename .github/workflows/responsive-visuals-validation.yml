@@ -17,6 +17,7 @@ on:
       - "assets/sprites/monsters/**"
       - "scenes/Player.tscn"
       - "scenes/game/Game.tscn"
+      - "scenes/maps/**"
       - "scenes/enemies/**"
       - "scenes/buildings/**"
       - "scenes/items/WorldItem.tscn"
@@ -41,14 +42,14 @@ on:
       - "scripts/test/ResponsiveVisualsValidator.gd"
       - "scripts/test/CharacterContentValidator.gd"
       - "scripts/test/WorldPresentationValidator.gd"
+      - "scripts/test/WorldAtmosphereValidator.gd"
       - "scripts/test/PlayerVisualTuningValidator.gd"
       - "scripts/test/PlayerLifeAnimationValidator.gd"
       - "scripts/test/BuildCraftMonsterValidator.gd"
       - "tools/content_editor/ContentEditorLightingSuite.gd"
       - "tools/content_editor/ContentEditorPlayerVisualSuite.gd"
       - "tools/content_editor/ContentEditor.tscn"
-      - "shaders/effects/**"
-      - "shaders/gaussian_glow_screen.gdshader"
+      - "shaders/**"
       - ".github/workflows/responsive-visuals-validation.yml"
   workflow_dispatch:
 
@@ -155,6 +156,17 @@ jobs:
             --script res://scripts/test/WorldPresentationValidator.gd \
             --verbose 2>&1 | tee world-presentation-validator.log
 
+      - name: Validate occlusion shared wind and biome ambience
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a ./godot \
+            --path . \
+            --rendering-method gl_compatibility \
+            --display-driver x11 \
+            --script res://scripts/test/WorldAtmosphereValidator.gd \
+            --verbose 2>&1 | tee world-atmosphere-validator.log
+
       - name: Open intro at base resolution
         shell: bash
         run: |
@@ -186,7 +198,7 @@ jobs:
         run: |
           if grep -E -i \
             'Parse Error|SCRIPT ERROR|Shader compilation failed|Parameter "version" is null|Using .return. in the .(vertex|fragment). processor' \
-            import.log validator.log character-content-validator.log player-visual-validator.log player-life-animation-validator.log build-craft-monster-validator.log world-presentation-validator.log intro-base.log game-large.log; then
+            import.log validator.log character-content-validator.log player-visual-validator.log player-life-animation-validator.log build-craft-monster-validator.log world-presentation-validator.log world-atmosphere-validator.log intro-base.log game-large.log; then
             exit 1
           fi
 
@@ -203,6 +215,7 @@ jobs:
             player-life-animation-validator.log
             build-craft-monster-validator.log
             world-presentation-validator.log
+            world-atmosphere-validator.log
             intro-base.log
             game-large.log
           if-no-files-found: warn
