@@ -103,12 +103,13 @@ func _validate_runtime_contract(post: Dictionary) -> void:
 	if not is_equal_approx(float(material.get_shader_parameter("warm_light_preservation")), float(post.get("warm_light_preservation", -1.0))):
 		failures.append("Runtime warm light preservation does not match content data.")
 	if screen_effects.has_method("set_day_night_strength"):
+		# This isolated scene intentionally has no DayNightCycle. Freeze its normal
+		# polling while directly exercising the public transition contract.
+		screen_effects.set_process(false)
 		screen_effects.call("set_day_night_strength", 1.0)
-		await process_frame
 		if not is_equal_approx(float(material.get_shader_parameter("night_strength")), 1.0):
 			failures.append("Screen compositor did not receive full night strength.")
 		screen_effects.call("set_day_night_strength", 0.0)
-		await process_frame
 		if not is_equal_approx(float(material.get_shader_parameter("night_strength")), 0.0):
 			failures.append("Screen compositor did not return to day grading.")
 	else:
