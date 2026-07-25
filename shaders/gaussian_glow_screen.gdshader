@@ -51,29 +51,29 @@ float oath_warm_mask(vec3 color_value) {
 		* smoothstep(0.10, 0.76, max(max(color_value.r, color_value.g), color_value.b));
 }
 
-vec3 apply_world_grading(vec3 source_color) {
+vec3 apply_world_grading(vec3 input_color) {
 	if (!grading_enabled) {
-		return source_color;
+		return input_color;
 	}
 	float night = clamp(night_strength, 0.0, 1.0);
 	vec3 tint = mix(day_tint.rgb, night_tint.rgb, night);
 	float saturation = mix(day_saturation, night_saturation, night);
 	float contrast = mix(day_contrast, night_contrast, night);
 	float brightness = mix(day_brightness, night_brightness, night);
-	float source_luma = oath_luminance(source_color);
+	float input_luma = oath_luminance(input_color);
 
-	vec3 graded = source_color * tint;
+	vec3 graded = input_color * tint;
 	float graded_luma = oath_luminance(graded);
 	graded = mix(vec3(graded_luma), graded, saturation);
 	graded = (graded - vec3(0.5)) * contrast + vec3(0.5 + brightness);
 
-	float shadow_mask = (1.0 - smoothstep(0.08, 0.58, source_luma)) * night;
+	float shadow_mask = (1.0 - smoothstep(0.08, 0.58, input_luma)) * night;
 	vec3 cool_shadow = vec3(0.04, 0.075, 0.15) * night_cool_shadow_strength;
 	graded += cool_shadow * shadow_mask;
 	graded += vec3(night_shadow_lift * shadow_mask);
 
-	float warm_mask = oath_warm_mask(source_color) * night * warm_light_preservation;
-	vec3 preserved_warm = max(source_color, source_color * vec3(1.08, 1.025, 0.90));
+	float warm_mask = oath_warm_mask(input_color) * night * warm_light_preservation;
+	vec3 preserved_warm = max(input_color, input_color * vec3(1.08, 1.025, 0.90));
 	graded = mix(graded, preserved_warm, clamp(warm_mask, 0.0, 1.0));
 	return max(graded, vec3(0.0));
 }
