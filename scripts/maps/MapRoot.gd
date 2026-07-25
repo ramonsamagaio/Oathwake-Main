@@ -5,12 +5,14 @@ extends Node2D
 const FUNCTIONAL_GROUND_TEXTURE := preload("res://assets/generated/functional_ground_tile.svg")
 const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
 const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
+const WorldVisualDirectorScript := preload("res://scripts/world/WorldVisualDirector.gd")
 
 @export var map_id: String = ""
 @export var display_name: String = ""
 @export var default_spawn_point_name: String = "PlayerSpawn"
 
 var _loaded_save_data: Dictionary = {}
+var _world_visual_director: Node2D
 
 @onready var _ground_layer: TileMapLayer = $GroundLayer
 @onready var _obstacle_layer: TileMapLayer = $ObstacleLayer
@@ -70,8 +72,21 @@ func get_tile_type_at_position(_global_position: Vector2) -> String:
 
 
 func _ready() -> void:
+	_ensure_world_visual_director()
 	_ensure_functional_ground()
 	call_deferred("_configure_authored_prop_presentation")
+	call_deferred("_configure_authored_foliage_layers")
+
+
+func _ensure_world_visual_director() -> void:
+	_world_visual_director = get_node_or_null("WorldVisualDirector") as Node2D
+	if _world_visual_director == null:
+		_world_visual_director = WorldVisualDirectorScript.new()
+		_world_visual_director.name = "WorldVisualDirector"
+		add_child(_world_visual_director)
+		move_child(_world_visual_director, 0)
+	if _world_visual_director.has_method("configure_map"):
+		_world_visual_director.call("configure_map", map_id)
 
 
 func _configure_authored_prop_presentation() -> void:
@@ -91,6 +106,18 @@ func _configure_authored_prop_presentation() -> void:
 			"z_index": -1,
 		}
 		DirectionalShadowRuntime.apply_to_sprite(sprite, shadow_config)
+		if _world_visual_director != null and _world_visual_director.has_method("register_authored_sprite"):
+			_world_visual_director.call("register_authored_sprite", sprite)
+
+
+func _configure_authored_foliage_layers() -> void:
+	if _props_root == null or _world_visual_director == null:
+		return
+	var layers: Array[CanvasItem] = []
+	_collect_authored_foliage_layers(_props_root, layers)
+	for layer in layers:
+		if _world_visual_director.has_method("register_authored_foliage_layer"):
+			_world_visual_director.call("register_authored_foliage_layer", layer)
 
 
 func _collect_authored_prop_sprites(node: Node, output: Array[Sprite2D]) -> void:
@@ -99,6 +126,16 @@ func _collect_authored_prop_sprites(node: Node, output: Array[Sprite2D]) -> void
 			output.append(child as Sprite2D)
 		if child is Node and not (child as Node).is_in_group("persistent_content_visual"):
 			_collect_authored_prop_sprites(child, output)
+
+
+func _collect_authored_foliage_layers(node: Node, output: Array[CanvasItem]) -> void:
+	for child in node.get_children():
+		if child is TileMapLayer:
+			var name_text := str(child.name).to_lower()
+			if name_text.contains("grass") or name_text.contains("foliage") or name_text.contains("vegetation"):
+				output.append(child as CanvasItem)
+		if child is Node and not (child as Node).is_in_group("persistent_content_visual"):
+			_collect_authored_foliage_layers(child, output)
 
 
 func _is_depth_sorted_authored_prop(sprite: Sprite2D) -> bool:
