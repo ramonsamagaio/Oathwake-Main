@@ -30,16 +30,16 @@ jobs:
               raise RuntimeError("MonsterAnimator base offset declaration mismatch")
           text = text.replace(old, new, 1)
 
-          old = "func set_visual_offset(offset: Vector2) -> void:\n\t_visual_offset = offset\n\tif _sprite != null:\n\t\t_sprite.position = _visual_offset"
+          old_assignment = "_sprite.position = _visual_offset"
+          if text.count(old_assignment) != 5:
+              raise RuntimeError(f"Expected five sprite offset assignments, found {text.count(old_assignment)}")
+          text = text.replace(old_assignment, "_sprite.position = _visual_offset + _motion_visual_offset")
+
+          old = "func set_visual_offset(offset: Vector2) -> void:\n\t_visual_offset = offset\n\tif _sprite != null:\n\t\t_sprite.position = _visual_offset + _motion_visual_offset"
           new = "func set_visual_offset(offset: Vector2) -> void:\n\t_motion_visual_offset = offset\n\tif _sprite != null:\n\t\t_sprite.position = _visual_offset + _motion_visual_offset"
           if text.count(old) != 1:
               raise RuntimeError("MonsterAnimator motion offset function mismatch")
           text = text.replace(old, new, 1)
-
-          remaining = text.count("_sprite.position = _visual_offset")
-          if remaining != 4:
-              raise RuntimeError(f"Expected four remaining sprite offset assignments, found {remaining}")
-          text = text.replace("_sprite.position = _visual_offset", "_sprite.position = _visual_offset + _motion_visual_offset")
           path.write_text(text, encoding="utf-8")
 
           slime_path = Path("scripts/enemies/Slime.gd")
