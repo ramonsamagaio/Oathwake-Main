@@ -1,0 +1,465 @@
+name: Nyra Fix Player Light And Hit Text
+
+on:
+  pull_request:
+    types: [opened, reopened]
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/player-light-attacks-hit-text
+
+      - name: Apply focused fixes
+        shell: python
+        run: |
+          from pathlib import Path
+          import json
+
+          def replace_once(file_name: str, old: str, new: str) -> None:
+              path = Path(file_name)
+              text = path.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise RuntimeError(f"{file_name}: expected one match, found {count}: {old[:120]!r}")
+              path.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          # Player tuning owns every player-light value.
+          tuning_path = Path("data/player_tuning.json")
+          tuning_data = json.loads(tuning_path.read_text(encoding="utf-8"))
+          tuning_data["default"]["light"] = {
+              "enabled": True,
+              "visual_aura_enabled": True,
+              "color": "#AFCBFFFF",
+              "aura_intensity": 0.75,
+              "aura_alpha": 0.30,
+              "aura_scale": 0.44,
+              "blur": 1.25,
+              "emission": 0.85,
+              "radius_scale": 1.20,
+              "day_multiplier": 0.28,
+              "night_multiplier": 1.0,
+              "offset": {"x": 0.0, "y": 6.0},
+          }
+          tuning_path.write_text(json.dumps(tuning_data, ensure_ascii=False, indent="\t") + "\n", encoding="utf-8")
+
+          # Keep only the two single slash attacks.
+          characters_path = Path("data/characters.json")
+          characters = json.loads(characters_path.read_text(encoding="utf-8"))
+          characters["test_template_player"]["attack_animation_variants"] = [
+              "attack_{direction}",
+              "katana_attack_sheathe",
+          ]
+          characters_path.write_text(json.dumps(characters, ensure_ascii=False, indent="\t") + "\n", encoding="utf-8")
+
+          # Campfire receives an authored blur value. Every building already uses the same optional glow form.
+          buildings_path = Path("data/buildings.json")
+          buildings = json.loads(buildings_path.read_text(encoding="utf-8"))
+          buildings["campfire"].setdefault("glow", {})["blur"] = 1.25
+          buildings_path.write_text(json.dumps(buildings, ensure_ascii=False, indent="\t") + "\n", encoding="utf-8")
+
+          replace_once(
+              "scripts/player/PlayerWorldFeedbackSuite.gd",
+              "var _content_shadow_config: Dictionary = {}\nvar _attack_animation_variants: Array[String] = []",
+              "var _content_shadow_config: Dictionary = {}\nvar _content_light_config: Dictionary = {}\nvar _attack_animation_variants: Array[String] = []",
+          )
+          replace_once(
+              "scripts/player/PlayerWorldFeedbackSuite.gd",
+              "\tvar shadow_value: Variant = tuning.get(\"shadow\", {})\n\t_content_shadow_config = (shadow_value as Dictionary).duplicate(true) if shadow_value is Dictionary else {}\n\t_content_character_side_view = false",
+              "\tvar shadow_value: Variant = tuning.get(\"shadow\", {})\n\t_content_shadow_config = (shadow_value as Dictionary).duplicate(true) if shadow_value is Dictionary else {}\n\tvar light_value: Variant = tuning.get(\"light\", {})\n\t_content_light_config = (light_value as Dictionary).duplicate(true) if light_value is Dictionary else {}\n\t_content_character_side_view = false",
+          )
+          replace_once(
+              "scripts/player/PlayerWorldFeedbackSuite.gd",
+              "\t_apply_player_visual_tuning()\n\t_apply_player_directional_shadow()",
+              "\t_apply_player_visual_tuning()\n\t_apply_player_light_tuning()\n\t_apply_player_directional_shadow()",
+          )
+          replace_once(
+              "scripts/player/PlayerWorldFeedbackSuite.gd",
+              "func _apply_player_directional_shadow() -> void:",
+              '''func _apply_player_light_tuning() -> void:
+\tvar light := get_node_or_null("NightLight") as Node2D
+\tif light == null:
+\t\treturn
+\tvar enabled := bool(_content_light_config.get("enabled", true))
+\tlight.visible = enabled
+\t_set_player_light_property(light, "visual_enabled", enabled and bool(_content_light_config.get("visual_aura_enabled", true)))
+\t_set_player_light_property(light, "use_point_light", enabled)
+\t_set_player_light_property(light, "glow_color", _player_light_color(_content_light_config.get("color", "#AFCBFFFF"), Color(0.69, 0.80, 1.0, 1.0)))
+\t_set_player_light_property(light, "intensity", maxf(float(_content_light_config.get("aura_intensity", 0.75)), 0.0))
+\t_set_player_light_property(light, "alpha", clampf(float(_content_light_config.get("aura_alpha", 0.30)), 0.0, 1.0))
+\t_set_player_light_property(light, "scale_multiplier", maxf(float(_content_light_config.get("aura_scale", 0.44)), 0.01))
+\t_set_player_light_property(light, "blur_amount", maxf(float(_content_light_config.get("blur", 1.25)), 0.0))
+\t_set_player_light_property(light, "point_light_energy", maxf(float(_content_light_config.get("emission", 0.85)), 0.0))
+\t_set_player_light_property(light, "point_light_scale", maxf(float(_content_light_config.get("radius_scale", 1.20)), 0.05))
+\t_set_player_light_property(light, "day_light_multiplier", maxf(float(_content_light_config.get("day_multiplier", 0.28)), 0.0))
+\t_set_player_light_property(light, "night_light_multiplier", maxf(float(_content_light_config.get("night_multiplier", 1.0)), 0.0))
+\t_set_player_light_property(light, "light_uses_aura_alpha", false)
+\tlight.position = _player_light_vector(_content_light_config.get("offset", {}), Vector2(0.0, 6.0))
+\tif light.has_method("refresh_from_config"):
+\t\tlight.call("refresh_from_config")
+
+
+func _set_player_light_property(target: Object, property_name: StringName, value: Variant) -> void:
+\tfor property_info in target.get_property_list():
+\t\tif StringName(property_info.get("name", "")) == property_name:
+\t\t\ttarget.set(property_name, value)
+\t\t\treturn
+
+
+func _player_light_vector(value: Variant, fallback: Vector2) -> Vector2:
+\tif value is Vector2:
+\t\treturn value
+\tif value is Dictionary:
+\t\treturn Vector2(float(value.get("x", fallback.x)), float(value.get("y", fallback.y)))
+\treturn fallback
+
+
+func _player_light_color(value: Variant, fallback: Color) -> Color:
+\tif value is Color:
+\t\treturn value
+\treturn Color.from_string(str(value), fallback)
+
+
+func _apply_player_directional_shadow() -> void:''',
+          )
+
+          # Player Tuning UI now exposes the complete player light.
+          replace_once(
+              "tools/content_editor/ContentEditorPlayerVisualSuite.gd",
+              "\t_add_float_spin_box(\"Depth Sort Offset Y\", \"player_depth_sort_offset_y\", float(current_record.get(\"depth_sort_offset_y\", 0.0)), -512.0, 512.0, 0.5)\n\n\tvar shadow := _record_dictionary(current_record, \"shadow\")",
+              '''\t_add_float_spin_box("Depth Sort Offset Y", "player_depth_sort_offset_y", float(current_record.get("depth_sort_offset_y", 0.0)), -512.0, 512.0, 0.5)
+
+\tvar light := _record_dictionary(current_record, "light")
+\tvar light_offset := _dictionary_vector(light, "offset", Vector2(0.0, 6.0))
+\t_add_subsection_title("Player Light")
+\tvar light_note := Label.new()
+\tlight_note.text = "Small light around the active player. Aura controls the visible circle; Emission and Radius control the real PointLight2D."
+\tlight_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+\tform_container.add_child(light_note)
+\t_add_check_box("Player Light Enabled", "player_light_enabled", bool(light.get("enabled", true)))
+\t_add_check_box("Visible Aura Enabled", "player_light_visual_aura", bool(light.get("visual_aura_enabled", true)))
+\t_add_content_color_picker("Light Color", "player_light_color", _color_from_value(light.get("color", "#AFCBFFFF"), Color(0.69, 0.80, 1.0, 1.0)))
+\t_add_float_spin_box("Aura Intensity", "player_light_aura_intensity", float(light.get("aura_intensity", 0.75)), 0.0, 8.0, 0.05)
+\t_add_float_spin_box("Aura Alpha", "player_light_aura_alpha", float(light.get("aura_alpha", 0.30)), 0.0, 1.0, 0.01)
+\t_add_float_spin_box("Aura Size", "player_light_aura_scale", float(light.get("aura_scale", 0.44)), 0.01, 8.0, 0.01)
+\t_add_float_spin_box("Aura Blur / Softness", "player_light_blur", float(light.get("blur", 1.25)), 0.0, 8.0, 0.05)
+\t_add_float_spin_box("Light Emission", "player_light_emission", float(light.get("emission", 0.85)), 0.0, 8.0, 0.05)
+\t_add_float_spin_box("Light Radius", "player_light_radius", float(light.get("radius_scale", 1.20)), 0.05, 8.0, 0.05)
+\t_add_float_spin_box("Day Multiplier", "player_light_day", float(light.get("day_multiplier", 0.28)), 0.0, 4.0, 0.01)
+\t_add_float_spin_box("Night Multiplier", "player_light_night", float(light.get("night_multiplier", 1.0)), 0.0, 4.0, 0.01)
+\t_add_float_spin_box("Light Offset X", "player_light_offset_x", light_offset.x, -512.0, 512.0, 0.5)
+\t_add_float_spin_box("Light Offset Y", "player_light_offset_y", light_offset.y, -512.0, 512.0, 0.5)
+
+\tvar shadow := _record_dictionary(current_record, "shadow")''',
+          )
+          replace_once(
+              "tools/content_editor/ContentEditorPlayerVisualSuite.gd",
+              "\trecord[\"depth_sort_offset_y\"] = _get_spin_box_value(\"player_depth_sort_offset_y\")\n\trecord[\"shadow\"] = {",
+              '''\trecord["depth_sort_offset_y"] = _get_spin_box_value("player_depth_sort_offset_y")
+\trecord["light"] = {
+\t\t"enabled": _get_check_box_pressed("player_light_enabled"),
+\t\t"visual_aura_enabled": _get_check_box_pressed("player_light_visual_aura"),
+\t\t"color": _get_content_color_html("player_light_color"),
+\t\t"aura_intensity": _get_spin_box_value("player_light_aura_intensity"),
+\t\t"aura_alpha": _get_spin_box_value("player_light_aura_alpha"),
+\t\t"aura_scale": _get_spin_box_value("player_light_aura_scale"),
+\t\t"blur": _get_spin_box_value("player_light_blur"),
+\t\t"emission": _get_spin_box_value("player_light_emission"),
+\t\t"radius_scale": _get_spin_box_value("player_light_radius"),
+\t\t"day_multiplier": _get_spin_box_value("player_light_day"),
+\t\t"night_multiplier": _get_spin_box_value("player_light_night"),
+\t\t"offset": {
+\t\t\t"x": _get_spin_box_value("player_light_offset_x"),
+\t\t\t"y": _get_spin_box_value("player_light_offset_y"),
+\t\t},
+\t}
+\trecord["shadow"] = {''',
+          )
+
+          # Generic building/monster glow already existed. Add the missing blur/softness value.
+          replace_once(
+              "tools/content_editor/ContentEditorLightingSuite.gd",
+              "\t_add_float_spin_box(\"Aura Scale\", \"content_glow_scale\", float(glow.get(\"scale\", 1.0)), 0.01, 8.0, 0.01)\n\t_add_float_spin_box(\"Stretch X\"",
+              "\t_add_float_spin_box(\"Aura Scale\", \"content_glow_scale\", float(glow.get(\"scale\", 1.0)), 0.01, 8.0, 0.01)\n\t_add_float_spin_box(\"Aura Blur / Softness\", \"content_glow_blur\", float(glow.get(\"blur\", 0.0)), 0.0, 8.0, 0.05)\n\t_add_float_spin_box(\"Stretch X\"",
+          )
+          replace_once(
+              "tools/content_editor/ContentEditorLightingSuite.gd",
+              "\t\t\"scale\": _get_spin_box_value(\"content_glow_scale\"),\n\t\t\"stretch\": {",
+              "\t\t\"scale\": _get_spin_box_value(\"content_glow_scale\"),\n\t\t\"blur\": _get_spin_box_value(\"content_glow_blur\"),\n\t\t\"stretch\": {",
+          )
+          replace_once(
+              "scripts/effects/ContentGlowRuntime.gd",
+              "\t_set_optional_property(glow, \"scale_multiplier\", maxf(float(config.get(\"scale\", 1.0)), 0.01))\n\t_set_optional_property(glow, \"stretch\"",
+              "\t_set_optional_property(glow, \"scale_multiplier\", maxf(float(config.get(\"scale\", 1.0)), 0.01))\n\t_set_optional_property(glow, \"blur_amount\", maxf(float(config.get(\"blur\", 0.0)), 0.0))\n\t_set_optional_property(glow, \"stretch\"",
+          )
+          replace_once(
+              "scripts/effects/GlowOverlay.gd",
+              "@export_range(0.05, 8.0, 0.05) var scale_multiplier: float = 1.0\n@export var stretch: Vector2 = Vector2.ONE",
+              "@export_range(0.05, 8.0, 0.05) var scale_multiplier: float = 1.0\n@export_range(0.0, 8.0, 0.05) var blur_amount: float = 0.0\n@export var stretch: Vector2 = Vector2.ONE",
+          )
+          replace_once(
+              "scripts/effects/GlowOverlay.gd",
+              "@export var use_point_light: bool = true\n@export_range(0.0, 8.0, 0.05) var point_light_energy: float = 1.0",
+              "@export var use_point_light: bool = true\n@export var light_uses_aura_alpha: bool = true\n@export_range(0.0, 8.0, 0.05) var point_light_energy: float = 1.0",
+          )
+          replace_once(
+              "scripts/effects/GlowOverlay.gd",
+              '''\tvar current_alpha := clampf(alpha * flicker_value, 0.0, 1.0)
+\tvar current_intensity := maxf(0.0, intensity * flicker_value)
+\tvar current_scale := Vector2(scale_multiplier, scale_multiplier) * stretch
+\tif flicker_enabled:
+\t\tcurrent_scale *= 1.0 + ((flicker_value - 1.0) * 0.35)
+
+\tvar texture_enabled := visual_enabled and (mode == Mode.TEXTURE or mode == Mode.BOTH)
+\tvar procedural_enabled := visual_enabled and (mode == Mode.PROCEDURAL or mode == Mode.BOTH)
+\t_configure_texture_sprite(texture_enabled, current_scale, current_alpha, current_intensity)
+\t_configure_procedural_sprite(procedural_enabled, current_scale, current_alpha, current_intensity)
+\t_configure_point_light(current_alpha, current_intensity, current_scale)''',
+              '''\tvar current_alpha := clampf(alpha * flicker_value, 0.0, 1.0)
+\tvar current_intensity := maxf(0.0, intensity * flicker_value)
+\tvar light_scale := Vector2(scale_multiplier, scale_multiplier) * stretch
+\tif flicker_enabled:
+\t\tlight_scale *= 1.0 + ((flicker_value - 1.0) * 0.35)
+\tvar blur_factor := maxf(blur_amount, 0.0)
+\tvar visual_scale := light_scale * (1.0 + (blur_factor * 0.06))
+\tvar visual_alpha := current_alpha / (1.0 + (blur_factor * 0.10))
+
+\tvar texture_enabled := visual_enabled and (mode == Mode.TEXTURE or mode == Mode.BOTH)
+\tvar procedural_enabled := visual_enabled and (mode == Mode.PROCEDURAL or mode == Mode.BOTH)
+\t_configure_texture_sprite(texture_enabled, visual_scale, visual_alpha, current_intensity)
+\t_configure_procedural_sprite(procedural_enabled, visual_scale, visual_alpha, current_intensity)
+\t_configure_point_light(current_alpha, current_intensity, light_scale)''',
+          )
+          replace_once(
+              "scripts/effects/GlowOverlay.gd",
+              "\tprocedural_material.set_shader_parameter(\"stretch\", stretch)",
+              "\tprocedural_material.set_shader_parameter(\"stretch\", stretch)\n\tprocedural_material.set_shader_parameter(\"softness\", clampf(0.22 + (blur_amount * 0.10), 0.01, 1.0))",
+          )
+          replace_once(
+              "scripts/effects/GlowOverlay.gd",
+              "\t_point_light.energy = point_light_energy * current_intensity * current_alpha * day_night_multiplier",
+              "\tvar alpha_influence := current_alpha if light_uses_aura_alpha else 1.0\n\t_point_light.energy = point_light_energy * current_intensity * alpha_influence * day_night_multiplier",
+          )
+
+          # Fallback scene values mirror the tuning record.
+          replace_once(
+              "scenes/Player.tscn",
+              '''visual_enabled = false
+glow_color = Color(0.62, 0.76, 1, 1)
+intensity = 0.48
+alpha = 0.34
+scale_multiplier = 0.28
+stretch = Vector2(1, 0.72)
+point_light_energy = 0.34
+point_light_scale = 0.92
+day_light_multiplier = 0.12
+night_light_multiplier = 0.72''',
+              '''visual_enabled = true
+glow_color = Color(0.686, 0.796, 1, 1)
+intensity = 0.75
+alpha = 0.3
+scale_multiplier = 0.44
+blur_amount = 1.25
+stretch = Vector2(1, 1)
+light_uses_aura_alpha = false
+point_light_energy = 0.85
+point_light_scale = 1.2
+day_light_multiplier = 0.28
+night_light_multiplier = 1.0''',
+          )
+
+          # Configure floating text before it enters the tree, so _ready never tweens from world origin.
+          replace_once(
+              "scripts/ui/FloatingCombatText.gd",
+              "var font_profile_id := \"damage_number\"\n\n@onready var label: Label = $Label",
+              "var font_profile_id := \"damage_number\"\nvar _spawn_world_position := Vector2.ZERO\nvar _has_spawn_world_position := false\nvar _motion_world_start := Vector2.ZERO\nvar _motion_world_target := Vector2.ZERO\n\n@onready var label: Label = $Label",
+          )
+          replace_once(
+              "scripts/ui/FloatingCombatText.gd",
+              "\tz_index = 4090\n\t_apply_vfx_profile()",
+              "\tz_index = 4090\n\tif _has_spawn_world_position:\n\t\tglobal_position = _spawn_world_position\n\t_apply_vfx_profile()",
+          )
+          replace_once(
+              "scripts/ui/FloatingCombatText.gd",
+              "\tvar target_world := calculate_world_target_for_screen_rise(global_position, canvas_transform, active_rise_distance)\n\n\tvar tween := create_tween()",
+              "\tvar target_world := calculate_world_target_for_screen_rise(global_position, canvas_transform, active_rise_distance)\n\t_motion_world_start = global_position\n\t_motion_world_target = target_world\n\n\tvar tween := create_tween()",
+          )
+          replace_once(
+              "scripts/ui/FloatingCombatText.gd",
+              "func setup(new_text: String, color: Color, critical := false, new_profile_id := \"\") -> void:",
+              '''func configure_spawn(new_text: String, color: Color, critical: bool, new_profile_id: String, world_position: Vector2) -> void:
+\t_spawn_world_position = world_position
+\t_has_spawn_world_position = true
+\tsetup(new_text, color, critical, new_profile_id)
+
+
+func get_motion_world_start() -> Vector2:
+\treturn _motion_world_start
+
+
+func get_motion_world_target() -> Vector2:
+\treturn _motion_world_target
+
+
+func setup(new_text: String, color: Color, critical := false, new_profile_id := "") -> void:''',
+          )
+          replace_once(
+              "scripts/ui/FloatingCombatTextSpawner.gd",
+              '''\tvar floating_text := FloatingCombatTextScene.instantiate()
+\tfloating_text.top_level = true
+\tfloating_text.z_as_relative = false
+\tfloating_text.z_index = 4090
+\ttree.current_scene.add_child(floating_text)
+\tfloating_text.global_position = world_position
+\tfloating_text.setup(text, color, is_critical, profile_id)''',
+              '''\tvar floating_text := FloatingCombatTextScene.instantiate()
+\tfloating_text.top_level = true
+\tfloating_text.z_as_relative = false
+\tfloating_text.z_index = 4090
+\tfloating_text.configure_spawn(text, color, is_critical, profile_id, world_position)
+\ttree.current_scene.add_child(floating_text)''',
+          )
+
+          # Validation follows the authored tuning instead of enforcing an invisible aura.
+          replace_once(
+              "scripts/test/BuildCraftMonsterValidator.gd",
+              '''\tvar light := player.get_node_or_null("NightLight")
+\tif light == null or not bool(light.get("use_point_light")) or float(light.get("point_light_energy")) <= 0.0:
+\t\tfailures.append("Player small point light is disabled")
+\telif bool(light.get("visual_enabled")):
+\t\tfailures.append("Player light must not draw a visible aura sprite")''',
+              '''\tvar light := player.get_node_or_null("NightLight")
+\tif light == null or not bool(light.get("use_point_light")) or float(light.get("point_light_energy")) <= 0.0:
+\t\tfailures.append("Player small point light is disabled")
+\telif not bool(light.get("visual_enabled")):
+\t\tfailures.append("Player visible aura is disabled")''',
+          )
+          replace_once(
+              "scripts/test/ResponsiveVisualsValidator.gd",
+              '''\tvar night_light := player.get_node_or_null("NightLight")
+\tif night_light == null or not bool(night_light.get("use_point_light")) or bool(night_light.get("visual_enabled")):
+\t\tfailures.append("Player night light must illuminate without drawing a visible aura.")''',
+              '''\tvar night_light := player.get_node_or_null("NightLight")
+\tif night_light == null or not bool(night_light.get("use_point_light")) or not bool(night_light.get("visual_enabled")):
+\t\tfailures.append("Player light must emit real light and draw its tuning-controlled small aura.")''',
+          )
+          replace_once(
+              "scripts/test/ResponsiveVisualsValidator.gd",
+              "\t\t\"Day Light Multiplier\",\n\t]:",
+              "\t\t\"Day Light Multiplier\",\n\t\t\"Aura Blur / Softness\",\n\t]:",
+          )
+
+          # Player tuning validator checks the light dictionary and runtime application.
+          replace_once(
+              "scripts/test/PlayerVisualTuningValidator.gd",
+              '''\tfor key in ["visual_offset_x", "visual_offset_y"]:
+\t\tif absf(float(tuning.get(key, 0.0))) > 1024.0:
+\t\t\tfailures.append("%s is outside the supported range." % key)''',
+              '''\tfor key in ["visual_offset_x", "visual_offset_y"]:
+\t\tif absf(float(tuning.get(key, 0.0))) > 1024.0:
+\t\t\tfailures.append("%s is outside the supported range." % key)
+\tvar light_value: Variant = tuning.get("light", {})
+\tif not (light_value is Dictionary):
+\t\tfailures.append("Player tuning light record is missing.")
+\t\treturn
+\tvar light := light_value as Dictionary
+\tfor key in ["enabled", "visual_aura_enabled", "color", "aura_intensity", "aura_alpha", "aura_scale", "blur", "emission", "radius_scale", "day_multiplier", "night_multiplier", "offset"]:
+\t\tif not light.has(key):
+\t\t\tfailures.append("Player light tuning is missing %s." % key)''',
+          )
+          replace_once(
+              "scripts/test/PlayerVisualTuningValidator.gd",
+              '''\tif not animated_sprite.position.is_equal_approx(expected_offset):
+\t\tfailures.append("AnimatedSprite2D position is %s; expected %s." % [animated_sprite.position, expected_offset])
+\tif not (player as Node2D).scale.is_equal_approx(Vector2.ONE):''',
+              '''\tif not animated_sprite.position.is_equal_approx(expected_offset):
+\t\tfailures.append("AnimatedSprite2D position is %s; expected %s." % [animated_sprite.position, expected_offset])
+
+\tvar light_config := tuning.get("light", {}) as Dictionary
+\tvar night_light := player.get_node_or_null("NightLight")
+\tif night_light == null:
+\t\tfailures.append("Player scene has no NightLight.")
+\telse:
+\t\tif bool(night_light.get("visual_enabled")) != bool(light_config.get("visual_aura_enabled", true)):
+\t\t\tfailures.append("Player visible aura does not match Player Tuning.")
+\t\tif not is_equal_approx(float(night_light.get("point_light_energy")), float(light_config.get("emission", 0.0))):
+\t\t\tfailures.append("Player light emission does not match Player Tuning.")
+\t\tif not is_equal_approx(float(night_light.get("point_light_scale")), float(light_config.get("radius_scale", 0.0))):
+\t\t\tfailures.append("Player light radius does not match Player Tuning.")
+\t\tif not is_equal_approx(float(night_light.get("blur_amount")), float(light_config.get("blur", 0.0))):
+\t\t\tfailures.append("Player light blur does not match Player Tuning.")
+\tif not (player as Node2D).scale.is_equal_approx(Vector2.ONE):''',
+          )
+
+          # World presentation validates exactly two slash variants and the real spawn lifecycle.
+          replace_once(
+              "scripts/test/WorldPresentationValidator.gd",
+              "const FloatingCombatTextScript := preload(\"res://scripts/ui/FloatingCombatText.gd\")\nconst PLAYER_SCENE",
+              "const FloatingCombatTextScript := preload(\"res://scripts/ui/FloatingCombatText.gd\")\nconst FLOATING_COMBAT_TEXT_SCENE := preload(\"res://scenes/ui/FloatingCombatText.tscn\")\nconst PLAYER_SCENE",
+          )
+          replace_once(
+              "scripts/test/WorldPresentationValidator.gd",
+              "\t_validate_screen_space_hit_motion()\n\t_validate_attack_content()",
+              "\t_validate_screen_space_hit_motion()\n\tawait _validate_floating_text_spawn_lifecycle()\n\t_validate_attack_content()",
+          )
+          replace_once(
+              "scripts/test/WorldPresentationValidator.gd",
+              '''func _validate_attack_content() -> void:
+\tvar content_db := root.get_node_or_null("ContentDB")''',
+              '''func _validate_floating_text_spawn_lifecycle() -> void:
+\tvar floating_text := FLOATING_COMBAT_TEXT_SCENE.instantiate()
+\tfloating_text.set("horizontal_jitter", 0.0)
+\tvar expected_start := Vector2(420.0, 680.0)
+\tfloating_text.call("configure_spawn", "10", Color.WHITE, false, "damage_number", expected_start)
+\troot.add_child(floating_text)
+\tawait process_frame
+\tvar actual_start: Vector2 = floating_text.call("get_motion_world_start")
+\tvar actual_target: Vector2 = floating_text.call("get_motion_world_target")
+\tif not actual_start.is_equal_approx(expected_start):
+\t\tfailures.append("Floating hit text started at %s instead of hit position %s." % [actual_start, expected_start])
+\tvar canvas_transform := floating_text.get_viewport().get_canvas_transform()
+\tif (canvas_transform * actual_target).y >= (canvas_transform * actual_start).y:
+\t\tfailures.append("Floating hit text lifecycle does not rise upward on screen.")
+\tfloating_text.queue_free()
+\tawait process_frame
+
+
+func _validate_attack_content() -> void:
+\tvar content_db := root.get_node_or_null("ContentDB")''',
+          )
+          replace_once(
+              "scripts/test/WorldPresentationValidator.gd",
+              '''\tvar variants_value: Variant = character.get("attack_animation_variants", [])
+\tif not (variants_value is Array) or (variants_value as Array).size() < 3:
+\t\tfailures.append("Test player needs at least three configured attack animation variants.")
+\t\treturn''',
+              '''\tvar variants_value: Variant = character.get("attack_animation_variants", [])
+\tvar expected_variants := ["attack_{direction}", "katana_attack_sheathe"]
+\tif not (variants_value is Array) or (variants_value as Array) != expected_variants:
+\t\tfailures.append("Test player must use only the lateral and overhead slash variants.")
+\t\treturn''',
+          )
+          replace_once(
+              "scripts/test/WorldPresentationValidator.gd",
+              '''\tif observed_attacks.size() < 3:
+\t\tfailures.append("Player attack shuffle produced only %d unique animations." % observed_attacks.size())''',
+              '''\tif observed_attacks.size() != 2:
+\t\tfailures.append("Player attack shuffle produced %d animations instead of the two configured slashes." % observed_attacks.size())
+\tif observed_attacks.has("sword_stab") or observed_attacks.has("katana_continuous_attack"):
+\t\tfailures.append("Removed stab or continuous double attack still entered the player shuffle.")''',
+          )
+
+      - name: Commit focused fixes
+        run: |
+          git config user.name "Nyra Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add data scenes scripts tools
+          git commit -m "Expose player light tuning and fix hit text motion"
+          git push origin HEAD:fix/player-light-attacks-hit-text
