@@ -142,6 +142,8 @@ func _register_world_visuals() -> void:
 		return
 	if size_class == "large" and director.has_method("register_resource_visual"):
 		director.call("register_resource_visual", self, target, "tree")
+	elif size_class == "small" and director.has_method("register_micro_target"):
+		director.call("register_micro_target", self, target, resource_type_id)
 
 
 func _get_world_visual_director() -> Node:

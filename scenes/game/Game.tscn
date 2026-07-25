@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/HUDStatusUI.tscn" id="17_hud_status"]
 [ext_resource type="PackedScene" path="res://scenes/effects/MapFogOverlay.tscn" id="18_map_fog"]
 [ext_resource type="PackedScene" path="res://scenes/effects/ScreenEffects.tscn" id="19_screen_effects"]
+[ext_resource type="PackedScene" path="res://scenes/effects/LightShaftOverlay.tscn" id="20_light_shafts"]
 
 [node name="Game" type="Node2D" unique_id=2133599417]
 script = ExtResource("1_game_script")
@@ -35,6 +36,8 @@ y_sort_enabled = true
 [node name="WorldPostEffects" type="Node" parent="." unique_id=128443278]
 
 [node name="MapFogOverlay" parent="WorldPostEffects" unique_id=38958819 instance=ExtResource("18_map_fog")]
+
+[node name="LightShaftOverlay" parent="WorldPostEffects" instance=ExtResource("20_light_shafts")]
 
 [node name="ScreenEffects" parent="WorldPostEffects" unique_id=1165169849 instance=ExtResource("19_screen_effects")]
 

@@ -96,6 +96,77 @@
 				"warm_light_preservation": 0.82,
 				"night_shadow_lift": 0.045,
 				"night_cool_shadow_strength": 0.34
+			},
+			"layered_fog": {
+				"enabled": true,
+				"density": 0.42,
+				"speed": {
+					"x": 0.018,
+					"y": 0.007
+				},
+				"color": "#9EADB829",
+				"scale": 3.25,
+				"coverage": 0.52,
+				"softness": 0.26,
+				"detail_mix": 0.42,
+				"world_anchor_strength": 1.0,
+				"ground_density": 0.28,
+				"ground_height": 0.42,
+				"ground_scale": 5.2,
+				"ground_speed": {
+					"x": -0.010,
+					"y": 0.004
+				},
+				"middle_density": 0.16,
+				"middle_band_center": 0.56,
+				"middle_band_width": 0.40,
+				"depth_density": 0.08,
+				"depth_falloff": 1.35,
+				"day_multiplier": 0.72,
+				"night_multiplier": 1.18
+			},
+			"light_shafts": {
+				"enabled": true,
+				"color": "#FFE8A81C",
+				"direction": {
+					"x": -0.38,
+					"y": 1.0
+				},
+				"intensity": 0.32,
+				"beam_count": 4.0,
+				"beam_width": 0.22,
+				"softness": 0.16,
+				"drift_speed": 0.045,
+				"noise_strength": 0.28,
+				"world_anchor_strength": 0.65,
+				"day_multiplier": 1.0,
+				"night_multiplier": 0.08
+			},
+			"water": {
+				"enabled": true,
+				"shallow_color": "#347184E0",
+				"deep_color": "#14304FF0",
+				"highlight_color": "#94D1E0B8",
+				"flow_direction": {
+					"x": 1.0,
+					"y": 0.18
+				},
+				"flow_speed": 0.36,
+				"ripple_scale": 28.0,
+				"ripple_strength": 0.008,
+				"reflection_strength": 0.24,
+				"caustic_strength": 0.18,
+				"edge_fade": 0.06
+			},
+			"micro_motion": {
+				"enabled": true,
+				"plant_rotation_degrees": 0.8,
+				"plant_scale_amount": 0.010,
+				"fungus_scale_amount": 0.018,
+				"flower_scale_amount": 0.024,
+				"sway_speed": 0.85,
+				"breathe_speed": 0.72,
+				"wind_influence": 0.55
 			}
 		}
 	},
