@@ -75,7 +75,7 @@ func _ready() -> void:
 	_ensure_world_visual_director()
 	_ensure_functional_ground()
 	call_deferred("_configure_authored_prop_presentation")
-	call_deferred("_configure_authored_foliage_layers")
+	call_deferred("_configure_authored_environment_layers")
 
 
 func _ensure_world_visual_director() -> void:
@@ -95,6 +95,8 @@ func _configure_authored_prop_presentation() -> void:
 	var prop_sprites: Array[Sprite2D] = []
 	_collect_authored_prop_sprites(_props_root, prop_sprites)
 	for sprite in prop_sprites:
+		if _world_visual_director != null and _world_visual_director.has_method("register_authored_sprite"):
+			_world_visual_director.call("register_authored_sprite", sprite)
 		if not _is_depth_sorted_authored_prop(sprite):
 			continue
 		var line_ratio := _get_authored_prop_depth_ratio(sprite)
@@ -106,17 +108,17 @@ func _configure_authored_prop_presentation() -> void:
 			"z_index": -1,
 		}
 		DirectionalShadowRuntime.apply_to_sprite(sprite, shadow_config)
-		if _world_visual_director != null and _world_visual_director.has_method("register_authored_sprite"):
-			_world_visual_director.call("register_authored_sprite", sprite)
 
 
-func _configure_authored_foliage_layers() -> void:
+func _configure_authored_environment_layers() -> void:
 	if _props_root == null or _world_visual_director == null:
 		return
 	var layers: Array[CanvasItem] = []
-	_collect_authored_foliage_layers(_props_root, layers)
+	_collect_authored_environment_layers(_props_root, layers)
 	for layer in layers:
-		if _world_visual_director.has_method("register_authored_foliage_layer"):
+		if _world_visual_director.has_method("register_authored_environment_layer"):
+			_world_visual_director.call("register_authored_environment_layer", layer)
+		elif _world_visual_director.has_method("register_authored_foliage_layer"):
 			_world_visual_director.call("register_authored_foliage_layer", layer)
 
 
@@ -128,14 +130,16 @@ func _collect_authored_prop_sprites(node: Node, output: Array[Sprite2D]) -> void
 			_collect_authored_prop_sprites(child, output)
 
 
-func _collect_authored_foliage_layers(node: Node, output: Array[CanvasItem]) -> void:
+func _collect_authored_environment_layers(node: Node, output: Array[CanvasItem]) -> void:
 	for child in node.get_children():
 		if child is TileMapLayer:
 			var name_text := str(child.name).to_lower()
-			if name_text.contains("grass") or name_text.contains("foliage") or name_text.contains("vegetation"):
-				output.append(child as CanvasItem)
+			for token in ["grass", "foliage", "vegetation", "water", "river", "lake", "pond", "stream", "agua", "água"]:
+				if name_text.contains(token):
+					output.append(child as CanvasItem)
+					break
 		if child is Node and not (child as Node).is_in_group("persistent_content_visual"):
-			_collect_authored_foliage_layers(child, output)
+			_collect_authored_environment_layers(child, output)
 
 
 func _is_depth_sorted_authored_prop(sprite: Sprite2D) -> bool:
