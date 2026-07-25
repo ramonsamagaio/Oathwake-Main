@@ -187,6 +187,43 @@ func _build_vfx_profile_form() -> void:
 	_add_float_spin_box("Fade Power", "global_shadow_fade_power", float(shadow.get("fade_power", 1.6)), 0.1, 8.0, 0.1)
 	_add_line_edit("Shadow Color", "global_shadow_color", str(shadow.get("color", "#040306FF")))
 
+	var world_visuals := _record_dictionary(current_record, "world_visuals")
+	var occlusion := _record_dictionary(world_visuals, "occlusion")
+	var wind := _record_dictionary(world_visuals, "wind")
+	var particles := _record_dictionary(world_visuals, "particles")
+	var wind_direction := _dictionary_vector(wind, "direction", Vector2(1.0, 0.16))
+	var particle_area := _dictionary_vector(particles, "area_size", Vector2(900.0, 520.0))
+	_add_subsection_title("World Occlusion")
+	_add_check_box("Occlusion Enabled", "world_occlusion_enabled", bool(occlusion.get("enabled", true)))
+	_add_float_spin_box("Tree Hidden Alpha", "world_occlusion_tree_alpha", float(occlusion.get("tree_alpha", 0.38)), 0.05, 1.0, 0.01)
+	_add_float_spin_box("Roof Hidden Alpha", "world_occlusion_roof_alpha", float(occlusion.get("roof_alpha", 0.30)), 0.05, 1.0, 0.01)
+	_add_float_spin_box("Fade Speed", "world_occlusion_fade_speed", float(occlusion.get("fade_speed", 5.5)), 0.1, 30.0, 0.1)
+	_add_float_spin_box("Horizontal Coverage", "world_occlusion_horizontal_ratio", float(occlusion.get("horizontal_ratio", 0.38)), 0.05, 1.5, 0.01)
+	_add_float_spin_box("Vertical Coverage", "world_occlusion_vertical_ratio", float(occlusion.get("vertical_ratio", 0.78)), 0.1, 2.0, 0.01)
+
+	_add_subsection_title("Shared World Wind")
+	_add_check_box("Wind Enabled", "world_wind_enabled", bool(wind.get("enabled", true)))
+	_add_float_spin_box("Wind Direction X", "world_wind_direction_x", wind_direction.x, -2.0, 2.0, 0.05)
+	_add_float_spin_box("Wind Direction Y", "world_wind_direction_y", wind_direction.y, -2.0, 2.0, 0.05)
+	_add_float_spin_box("Wind Strength", "world_wind_strength", float(wind.get("strength", 0.85)), 0.0, 4.0, 0.01)
+	_add_float_spin_box("Gust Strength", "world_wind_gust_strength", float(wind.get("gust_strength", 0.34)), 0.0, 1.5, 0.01)
+	_add_float_spin_box("Gust Speed", "world_wind_gust_speed", float(wind.get("gust_speed", 0.42)), 0.01, 4.0, 0.01)
+	_add_float_spin_box("Large Foliage Scale", "world_wind_large_scale", float(wind.get("large_amplitude_scale", 1.0)), 0.0, 4.0, 0.01)
+	_add_float_spin_box("Small Foliage Scale", "world_wind_small_scale", float(wind.get("small_amplitude_scale", 0.78)), 0.0, 4.0, 0.01)
+
+	_add_subsection_title("Biome Ambient Particles")
+	_add_check_box("Ambient Particles Enabled", "world_particles_enabled", bool(particles.get("enabled", true)))
+	_add_spin_box("Pollen Count", "world_particles_pollen", int(particles.get("pollen_count", 22)), 0, 128, 1)
+	_add_spin_box("Firefly Count", "world_particles_fireflies", int(particles.get("firefly_count", 8)), 0, 128, 1)
+	_add_spin_box("Leaf Count", "world_particles_leaves", int(particles.get("leaf_count", 5)), 0, 128, 1)
+	_add_float_spin_box("Particle Area Width", "world_particles_width", particle_area.x, 64.0, 4096.0, 16.0)
+	_add_float_spin_box("Particle Area Height", "world_particles_height", particle_area.y, 64.0, 4096.0, 16.0)
+	_add_float_spin_box("Day Particle Alpha", "world_particles_day_alpha", float(particles.get("day_alpha", 0.52)), 0.0, 1.0, 0.01)
+	_add_float_spin_box("Night Particle Alpha", "world_particles_night_alpha", float(particles.get("night_alpha", 0.86)), 0.0, 1.0, 0.01)
+	_add_content_color_picker("Pollen Color", "world_particles_pollen_color", _color_from_value(particles.get("pollen_color", "#D8D19AFF"), Color(0.85, 0.82, 0.60, 1.0)))
+	_add_content_color_picker("Firefly Color", "world_particles_firefly_color", _color_from_value(particles.get("firefly_color", "#FFE286FF"), Color(1.0, 0.89, 0.52, 1.0)))
+	_add_content_color_picker("Leaf Color", "world_particles_leaf_color", _color_from_value(particles.get("leaf_color", "#758B4DFF"), Color(0.46, 0.55, 0.30, 1.0)))
+
 
 func _get_vfx_profile_form_record() -> Dictionary:
 	var record := super._get_vfx_profile_form_record()
@@ -202,5 +239,46 @@ func _get_vfx_profile_form_record() -> Dictionary:
 			"fade_power": _get_spin_box_value("global_shadow_fade_power"),
 			"tail_width_ratio": 0.18,
 			"color": _get_line_edit_text("global_shadow_color"),
+		}
+		record["world_visuals"] = {
+			"enabled": true,
+			"occlusion": {
+				"enabled": _get_check_box_pressed("world_occlusion_enabled"),
+				"tree_alpha": _get_spin_box_value("world_occlusion_tree_alpha"),
+				"roof_alpha": _get_spin_box_value("world_occlusion_roof_alpha"),
+				"fade_speed": _get_spin_box_value("world_occlusion_fade_speed"),
+				"horizontal_ratio": _get_spin_box_value("world_occlusion_horizontal_ratio"),
+				"vertical_ratio": _get_spin_box_value("world_occlusion_vertical_ratio"),
+				"minimum_radius": 22.0,
+				"front_margin": 8.0,
+			},
+			"wind": {
+				"enabled": _get_check_box_pressed("world_wind_enabled"),
+				"direction": {
+					"x": _get_spin_box_value("world_wind_direction_x"),
+					"y": _get_spin_box_value("world_wind_direction_y"),
+				},
+				"strength": _get_spin_box_value("world_wind_strength"),
+				"gust_strength": _get_spin_box_value("world_wind_gust_strength"),
+				"gust_speed": _get_spin_box_value("world_wind_gust_speed"),
+				"large_amplitude_scale": _get_spin_box_value("world_wind_large_scale"),
+				"small_amplitude_scale": _get_spin_box_value("world_wind_small_scale"),
+			},
+			"particles": {
+				"enabled": _get_check_box_pressed("world_particles_enabled"),
+				"area_size": {
+					"x": _get_spin_box_value("world_particles_width"),
+					"y": _get_spin_box_value("world_particles_height"),
+				},
+				"pollen_count": _get_spin_box_int("world_particles_pollen"),
+				"firefly_count": _get_spin_box_int("world_particles_fireflies"),
+				"leaf_count": _get_spin_box_int("world_particles_leaves"),
+				"day_alpha": _get_spin_box_value("world_particles_day_alpha"),
+				"night_alpha": _get_spin_box_value("world_particles_night_alpha"),
+				"pollen_color": _get_content_color_html("world_particles_pollen_color"),
+				"firefly_color": _get_content_color_html("world_particles_firefly_color"),
+				"leaf_color": _get_content_color_html("world_particles_leaf_color"),
+				"z_index": 3600,
+			},
 		}
 	return record
