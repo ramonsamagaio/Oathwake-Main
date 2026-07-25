@@ -152,8 +152,8 @@ func _validate_world_lighting_contract() -> void:
 	root.add_child(player)
 	await process_frame
 	var night_light := player.get_node_or_null("NightLight")
-	if night_light == null or not bool(night_light.get("use_point_light")) or bool(night_light.get("visual_enabled")):
-		failures.append("Player night light must illuminate without drawing a visible aura.")
+	if night_light == null or not bool(night_light.get("use_point_light")) or not bool(night_light.get("visual_enabled")):
+		failures.append("Player light must emit real light and draw its tuning-controlled small aura.")
 	player.queue_free()
 	await process_frame
 
@@ -201,6 +201,7 @@ func _validate_content_editor_contract() -> void:
 		"func _get_building_form_record",
 		"Real Light Enabled",
 		"Day Light Multiplier",
+		"Aura Blur / Softness",
 	]:
 		if not editor_script.contains(required_text):
 			failures.append("Content Editor lighting contract is incomplete: %s" % required_text)

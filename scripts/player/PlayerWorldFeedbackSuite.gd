@@ -9,6 +9,7 @@ var _content_visual_scale := 1.0
 var _content_visual_offset := Vector2.ZERO
 var _content_depth_offset_y := 0.0
 var _content_shadow_config: Dictionary = {}
+var _content_light_config: Dictionary = {}
 var _attack_animation_variants: Array[String] = []
 var _attack_variant_bag: Array[String] = []
 var _last_attack_animation := ""
@@ -30,6 +31,8 @@ func _load_player_tuning() -> void:
 	_content_depth_offset_y = float(tuning.get("depth_sort_offset_y", 0.0))
 	var shadow_value: Variant = tuning.get("shadow", {})
 	_content_shadow_config = (shadow_value as Dictionary).duplicate(true) if shadow_value is Dictionary else {}
+	var light_value: Variant = tuning.get("light", {})
+	_content_light_config = (light_value as Dictionary).duplicate(true) if light_value is Dictionary else {}
 	_content_character_side_view = false
 	_attack_animation_variants.clear()
 	_attack_variant_bag.clear()
@@ -49,6 +52,7 @@ func _load_player_tuning() -> void:
 func _setup_character_visual() -> void:
 	super._setup_character_visual()
 	_apply_player_visual_tuning()
+	_apply_player_light_tuning()
 	_apply_player_directional_shadow()
 	_update_world_depth()
 
@@ -67,6 +71,50 @@ func _apply_player_visual_tuning() -> void:
 		var body_node := body_visual as Node2D
 		body_node.scale = tuned_scale
 		body_node.position = _content_visual_offset
+
+
+func _apply_player_light_tuning() -> void:
+	var light := get_node_or_null("NightLight") as Node2D
+	if light == null:
+		return
+	var enabled := bool(_content_light_config.get("enabled", true))
+	light.visible = enabled
+	_set_player_light_property(light, "visual_enabled", enabled and bool(_content_light_config.get("visual_aura_enabled", true)))
+	_set_player_light_property(light, "use_point_light", enabled)
+	_set_player_light_property(light, "glow_color", _player_light_color(_content_light_config.get("color", "#AFCBFFFF"), Color(0.69, 0.80, 1.0, 1.0)))
+	_set_player_light_property(light, "intensity", maxf(float(_content_light_config.get("aura_intensity", 0.75)), 0.0))
+	_set_player_light_property(light, "alpha", clampf(float(_content_light_config.get("aura_alpha", 0.30)), 0.0, 1.0))
+	_set_player_light_property(light, "scale_multiplier", maxf(float(_content_light_config.get("aura_scale", 0.44)), 0.01))
+	_set_player_light_property(light, "blur_amount", maxf(float(_content_light_config.get("blur", 1.25)), 0.0))
+	_set_player_light_property(light, "point_light_energy", maxf(float(_content_light_config.get("emission", 0.85)), 0.0))
+	_set_player_light_property(light, "point_light_scale", maxf(float(_content_light_config.get("radius_scale", 1.20)), 0.05))
+	_set_player_light_property(light, "day_light_multiplier", maxf(float(_content_light_config.get("day_multiplier", 0.28)), 0.0))
+	_set_player_light_property(light, "night_light_multiplier", maxf(float(_content_light_config.get("night_multiplier", 1.0)), 0.0))
+	_set_player_light_property(light, "light_uses_aura_alpha", false)
+	light.position = _player_light_vector(_content_light_config.get("offset", {}), Vector2(0.0, 6.0))
+	if light.has_method("refresh_from_config"):
+		light.call("refresh_from_config")
+
+
+func _set_player_light_property(target: Object, property_name: StringName, value: Variant) -> void:
+	for property_info in target.get_property_list():
+		if StringName(property_info.get("name", "")) == property_name:
+			target.set(property_name, value)
+			return
+
+
+func _player_light_vector(value: Variant, fallback: Vector2) -> Vector2:
+	if value is Vector2:
+		return value
+	if value is Dictionary:
+		return Vector2(float(value.get("x", fallback.x)), float(value.get("y", fallback.y)))
+	return fallback
+
+
+func _player_light_color(value: Variant, fallback: Color) -> Color:
+	if value is Color:
+		return value
+	return Color.from_string(str(value), fallback)
 
 
 func _apply_player_directional_shadow() -> void:

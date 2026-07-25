@@ -19,11 +19,13 @@ const POINT_LIGHT_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glo
 @export_range(0.0, 8.0, 0.05) var intensity: float = 1.0
 @export_range(0.0, 1.0, 0.01) var alpha: float = 0.75
 @export_range(0.05, 8.0, 0.05) var scale_multiplier: float = 1.0
+@export_range(0.0, 8.0, 0.05) var blur_amount: float = 0.0
 @export var stretch: Vector2 = Vector2.ONE
 @export var flicker_enabled: bool = false
 @export_range(0.0, 1.0, 0.01) var flicker_amount: float = 0.08
 @export_range(0.05, 12.0, 0.05) var flicker_speed: float = 2.0
 @export var use_point_light: bool = true
+@export var light_uses_aura_alpha: bool = true
 @export_range(0.0, 8.0, 0.05) var point_light_energy: float = 1.0
 @export_range(0.05, 8.0, 0.05) var point_light_scale: float = 1.8
 @export_range(0.0, 4.0, 0.01) var day_light_multiplier: float = 0.18
@@ -184,15 +186,18 @@ func _update_visuals(flicker_value: float) -> void:
 
 	var current_alpha := clampf(alpha * flicker_value, 0.0, 1.0)
 	var current_intensity := maxf(0.0, intensity * flicker_value)
-	var current_scale := Vector2(scale_multiplier, scale_multiplier) * stretch
+	var light_scale := Vector2(scale_multiplier, scale_multiplier) * stretch
 	if flicker_enabled:
-		current_scale *= 1.0 + ((flicker_value - 1.0) * 0.35)
+		light_scale *= 1.0 + ((flicker_value - 1.0) * 0.35)
+	var blur_factor := maxf(blur_amount, 0.0)
+	var visual_scale := light_scale * (1.0 + (blur_factor * 0.06))
+	var visual_alpha := current_alpha / (1.0 + (blur_factor * 0.10))
 
 	var texture_enabled := visual_enabled and (mode == Mode.TEXTURE or mode == Mode.BOTH)
 	var procedural_enabled := visual_enabled and (mode == Mode.PROCEDURAL or mode == Mode.BOTH)
-	_configure_texture_sprite(texture_enabled, current_scale, current_alpha, current_intensity)
-	_configure_procedural_sprite(procedural_enabled, current_scale, current_alpha, current_intensity)
-	_configure_point_light(current_alpha, current_intensity, current_scale)
+	_configure_texture_sprite(texture_enabled, visual_scale, visual_alpha, current_intensity)
+	_configure_procedural_sprite(procedural_enabled, visual_scale, visual_alpha, current_intensity)
+	_configure_point_light(current_alpha, current_intensity, light_scale)
 
 
 func _configure_texture_sprite(should_show: bool, sprite_scale: Vector2, current_alpha: float, current_intensity: float) -> void:
@@ -234,6 +239,7 @@ func _configure_procedural_sprite(should_show: bool, sprite_scale: Vector2, curr
 	procedural_material.set_shader_parameter("intensity", current_intensity)
 	procedural_material.set_shader_parameter("alpha", current_alpha)
 	procedural_material.set_shader_parameter("stretch", stretch)
+	procedural_material.set_shader_parameter("softness", clampf(0.22 + (blur_amount * 0.10), 0.01, 1.0))
 
 
 func _configure_point_light(current_alpha: float, current_intensity: float, sprite_scale: Vector2) -> void:
@@ -249,7 +255,8 @@ func _configure_point_light(current_alpha: float, current_intensity: float, spri
 	_point_light.visible = true
 	_point_light.enabled = true
 	_point_light.color = glow_color
-	_point_light.energy = point_light_energy * current_intensity * current_alpha * day_night_multiplier
+	var alpha_influence := current_alpha if light_uses_aura_alpha else 1.0
+	_point_light.energy = point_light_energy * current_intensity * alpha_influence * day_night_multiplier
 	_point_light.texture_scale = maxf(sprite_scale.x, sprite_scale.y) * point_light_scale
 	_point_light.z_index = z_index_value
 	_set_optional_property(_point_light, "range_z_min", -4096)

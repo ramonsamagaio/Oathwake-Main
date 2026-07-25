@@ -13,6 +13,27 @@ func _build_player_tuning_form() -> void:
 	_add_float_spin_box("Visual Offset Y", "player_visual_offset_y", float(current_record.get("visual_offset_y", 0.0)), -1024.0, 1024.0, 0.5)
 	_add_float_spin_box("Depth Sort Offset Y", "player_depth_sort_offset_y", float(current_record.get("depth_sort_offset_y", 0.0)), -512.0, 512.0, 0.5)
 
+	var light := _record_dictionary(current_record, "light")
+	var light_offset := _dictionary_vector(light, "offset", Vector2(0.0, 6.0))
+	_add_subsection_title("Player Light")
+	var light_note := Label.new()
+	light_note.text = "Small light around the active player. Aura controls the visible circle; Emission and Radius control the real PointLight2D."
+	light_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(light_note)
+	_add_check_box("Player Light Enabled", "player_light_enabled", bool(light.get("enabled", true)))
+	_add_check_box("Visible Aura Enabled", "player_light_visual_aura", bool(light.get("visual_aura_enabled", true)))
+	_add_content_color_picker("Light Color", "player_light_color", _color_from_value(light.get("color", "#AFCBFFFF"), Color(0.69, 0.80, 1.0, 1.0)))
+	_add_float_spin_box("Aura Intensity", "player_light_aura_intensity", float(light.get("aura_intensity", 0.75)), 0.0, 8.0, 0.05)
+	_add_float_spin_box("Aura Alpha", "player_light_aura_alpha", float(light.get("aura_alpha", 0.30)), 0.0, 1.0, 0.01)
+	_add_float_spin_box("Aura Size", "player_light_aura_scale", float(light.get("aura_scale", 0.44)), 0.01, 8.0, 0.01)
+	_add_float_spin_box("Aura Blur / Softness", "player_light_blur", float(light.get("blur", 1.25)), 0.0, 8.0, 0.05)
+	_add_float_spin_box("Light Emission", "player_light_emission", float(light.get("emission", 0.85)), 0.0, 8.0, 0.05)
+	_add_float_spin_box("Light Radius", "player_light_radius", float(light.get("radius_scale", 1.20)), 0.05, 8.0, 0.05)
+	_add_float_spin_box("Day Multiplier", "player_light_day", float(light.get("day_multiplier", 0.28)), 0.0, 4.0, 0.01)
+	_add_float_spin_box("Night Multiplier", "player_light_night", float(light.get("night_multiplier", 1.0)), 0.0, 4.0, 0.01)
+	_add_float_spin_box("Light Offset X", "player_light_offset_x", light_offset.x, -512.0, 512.0, 0.5)
+	_add_float_spin_box("Light Offset Y", "player_light_offset_y", light_offset.y, -512.0, 512.0, 0.5)
+
 	var shadow := _record_dictionary(current_record, "shadow")
 	_add_subsection_title("Player Directional Shadow")
 	_add_check_box("Shadow Enabled", "player_shadow_enabled", bool(shadow.get("enabled", true)))
@@ -30,6 +51,23 @@ func _get_player_tuning_form_record() -> Dictionary:
 	record["visual_offset_x"] = _get_spin_box_value("player_visual_offset_x")
 	record["visual_offset_y"] = _get_spin_box_value("player_visual_offset_y")
 	record["depth_sort_offset_y"] = _get_spin_box_value("player_depth_sort_offset_y")
+	record["light"] = {
+		"enabled": _get_check_box_pressed("player_light_enabled"),
+		"visual_aura_enabled": _get_check_box_pressed("player_light_visual_aura"),
+		"color": _get_content_color_html("player_light_color"),
+		"aura_intensity": _get_spin_box_value("player_light_aura_intensity"),
+		"aura_alpha": _get_spin_box_value("player_light_aura_alpha"),
+		"aura_scale": _get_spin_box_value("player_light_aura_scale"),
+		"blur": _get_spin_box_value("player_light_blur"),
+		"emission": _get_spin_box_value("player_light_emission"),
+		"radius_scale": _get_spin_box_value("player_light_radius"),
+		"day_multiplier": _get_spin_box_value("player_light_day"),
+		"night_multiplier": _get_spin_box_value("player_light_night"),
+		"offset": {
+			"x": _get_spin_box_value("player_light_offset_x"),
+			"y": _get_spin_box_value("player_light_offset_y"),
+		},
+	}
 	record["shadow"] = {
 		"enabled": _get_check_box_pressed("player_shadow_enabled"),
 		"opacity": _get_spin_box_value("player_shadow_opacity"),

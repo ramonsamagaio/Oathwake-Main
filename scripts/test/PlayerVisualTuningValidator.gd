@@ -52,6 +52,14 @@ func _validate_tuning_values(tuning: Dictionary) -> void:
 	for key in ["visual_offset_x", "visual_offset_y"]:
 		if absf(float(tuning.get(key, 0.0))) > 1024.0:
 			failures.append("%s is outside the supported range." % key)
+	var light_value: Variant = tuning.get("light", {})
+	if not (light_value is Dictionary):
+		failures.append("Player tuning light record is missing.")
+		return
+	var light := light_value as Dictionary
+	for key in ["enabled", "visual_aura_enabled", "color", "aura_intensity", "aura_alpha", "aura_scale", "blur", "emission", "radius_scale", "day_multiplier", "night_multiplier", "offset"]:
+		if not light.has(key):
+			failures.append("Player light tuning is missing %s." % key)
 
 
 func _validate_player_scene(tuning: Dictionary) -> void:
@@ -78,6 +86,20 @@ func _validate_player_scene(tuning: Dictionary) -> void:
 		failures.append("AnimatedSprite2D scale is %s; expected %s." % [animated_sprite.scale, expected_scale])
 	if not animated_sprite.position.is_equal_approx(expected_offset):
 		failures.append("AnimatedSprite2D position is %s; expected %s." % [animated_sprite.position, expected_offset])
+
+	var light_config := tuning.get("light", {}) as Dictionary
+	var night_light := player.get_node_or_null("NightLight")
+	if night_light == null:
+		failures.append("Player scene has no NightLight.")
+	else:
+		if bool(night_light.get("visual_enabled")) != bool(light_config.get("visual_aura_enabled", true)):
+			failures.append("Player visible aura does not match Player Tuning.")
+		if not is_equal_approx(float(night_light.get("point_light_energy")), float(light_config.get("emission", 0.0))):
+			failures.append("Player light emission does not match Player Tuning.")
+		if not is_equal_approx(float(night_light.get("point_light_scale")), float(light_config.get("radius_scale", 0.0))):
+			failures.append("Player light radius does not match Player Tuning.")
+		if not is_equal_approx(float(night_light.get("blur_amount")), float(light_config.get("blur", 0.0))):
+			failures.append("Player light blur does not match Player Tuning.")
 	if not (player as Node2D).scale.is_equal_approx(Vector2.ONE):
 		failures.append("Player physics node scale changed; visual tuning must not scale collision or movement.")
 

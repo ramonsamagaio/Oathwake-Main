@@ -63,9 +63,7 @@
 		"orientation_mode": "side_view",
 		"attack_animation_variants": [
 			"attack_{direction}",
-			"sword_stab",
-			"katana_attack_sheathe",
-			"katana_continuous_attack"
+			"katana_attack_sheathe"
 		],
 		"avoid_immediate_attack_repeat": true
 	}
