@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/effects/LightShaftOverlay.gd" id="1_shaft_script"]
+[ext_resource type="Shader" path="res://shaders/light_shafts_overlay_2d.gdshader" id="2_shaft_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_shafts"]
+resource_local_to_scene = true
+shader = ExtResource("2_shaft_shader")
+
+[node name="LightShaftOverlay" type="CanvasLayer"]
+layer = 5
+script = ExtResource("1_shaft_script")
+
+[node name="ShaftRect" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_shafts")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
