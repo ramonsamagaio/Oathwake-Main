@@ -80,6 +80,7 @@ func _apply_player_light_tuning() -> void:
 	var enabled := bool(_content_light_config.get("enabled", true))
 	light.visible = enabled
 	_set_player_light_property(light, "visual_enabled", enabled and bool(_content_light_config.get("visual_aura_enabled", true)))
+	_set_player_light_property(light, "visual_uses_day_night_multiplier", true)
 	_set_player_light_property(light, "use_point_light", enabled)
 	_set_player_light_property(light, "glow_color", _player_light_color(_content_light_config.get("color", "#AFCBFFFF"), Color(0.69, 0.80, 1.0, 1.0)))
 	_set_player_light_property(light, "intensity", maxf(float(_content_light_config.get("aura_intensity", 0.75)), 0.0))
@@ -88,7 +89,7 @@ func _apply_player_light_tuning() -> void:
 	_set_player_light_property(light, "blur_amount", maxf(float(_content_light_config.get("blur", 1.25)), 0.0))
 	_set_player_light_property(light, "point_light_energy", maxf(float(_content_light_config.get("emission", 0.85)), 0.0))
 	_set_player_light_property(light, "point_light_scale", maxf(float(_content_light_config.get("radius_scale", 1.20)), 0.05))
-	_set_player_light_property(light, "day_light_multiplier", maxf(float(_content_light_config.get("day_multiplier", 0.28)), 0.0))
+	_set_player_light_property(light, "day_light_multiplier", maxf(float(_content_light_config.get("day_multiplier", 0.0)), 0.0))
 	_set_player_light_property(light, "night_light_multiplier", maxf(float(_content_light_config.get("night_multiplier", 1.0)), 0.0))
 	_set_player_light_property(light, "light_uses_aura_alpha", false)
 	light.position = _player_light_vector(_content_light_config.get("offset", {}), Vector2(0.0, 6.0))

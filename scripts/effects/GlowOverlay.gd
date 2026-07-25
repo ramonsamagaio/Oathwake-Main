@@ -12,6 +12,7 @@ const PROCEDURAL_BASE_TEXTURE: Texture2D = preload("res://assets/sprites/effects
 const POINT_LIGHT_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
 
 @export var visual_enabled: bool = true
+@export var visual_uses_day_night_multiplier: bool = false
 @export_enum("Texture", "Procedural", "Both") var mode: int = Mode.TEXTURE
 @export_enum("Mix", "Additive") var blend_style: int = BlendStyle.ADDITIVE
 @export var glow_texture: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
@@ -186,17 +187,21 @@ func _update_visuals(flicker_value: float) -> void:
 
 	var current_alpha := clampf(alpha * flicker_value, 0.0, 1.0)
 	var current_intensity := maxf(0.0, intensity * flicker_value)
+	var day_night_multiplier := lerpf(day_light_multiplier, night_light_multiplier, _night_strength)
+	var visual_day_night_multiplier := day_night_multiplier if visual_uses_day_night_multiplier else 1.0
 	var light_scale := Vector2(scale_multiplier, scale_multiplier) * stretch
 	if flicker_enabled:
 		light_scale *= 1.0 + ((flicker_value - 1.0) * 0.35)
 	var blur_factor := maxf(blur_amount, 0.0)
 	var visual_scale := light_scale * (1.0 + (blur_factor * 0.06))
-	var visual_alpha := current_alpha / (1.0 + (blur_factor * 0.10))
+	var visual_alpha := (current_alpha / (1.0 + (blur_factor * 0.10))) * visual_day_night_multiplier
+	var visual_intensity := current_intensity * visual_day_night_multiplier
 
-	var texture_enabled := visual_enabled and (mode == Mode.TEXTURE or mode == Mode.BOTH)
-	var procedural_enabled := visual_enabled and (mode == Mode.PROCEDURAL or mode == Mode.BOTH)
-	_configure_texture_sprite(texture_enabled, visual_scale, visual_alpha, current_intensity)
-	_configure_procedural_sprite(procedural_enabled, visual_scale, visual_alpha, current_intensity)
+	var visual_is_active := visual_day_night_multiplier > 0.001
+	var texture_enabled := visual_enabled and visual_is_active and (mode == Mode.TEXTURE or mode == Mode.BOTH)
+	var procedural_enabled := visual_enabled and visual_is_active and (mode == Mode.PROCEDURAL or mode == Mode.BOTH)
+	_configure_texture_sprite(texture_enabled, visual_scale, visual_alpha, visual_intensity)
+	_configure_procedural_sprite(procedural_enabled, visual_scale, visual_alpha, visual_intensity)
 	_configure_point_light(current_alpha, current_intensity, light_scale)
 
 
@@ -251,12 +256,14 @@ func _configure_point_light(current_alpha: float, current_intensity: float, spri
 		_point_light.texture = null
 		return
 	var day_night_multiplier := lerpf(day_light_multiplier, night_light_multiplier, _night_strength)
-	_point_light.texture = POINT_LIGHT_TEXTURE
-	_point_light.visible = true
-	_point_light.enabled = true
-	_point_light.color = glow_color
 	var alpha_influence := current_alpha if light_uses_aura_alpha else 1.0
-	_point_light.energy = point_light_energy * current_intensity * alpha_influence * day_night_multiplier
+	var final_energy := point_light_energy * current_intensity * alpha_influence * day_night_multiplier
+	var should_enable := final_energy > 0.001
+	_point_light.texture = POINT_LIGHT_TEXTURE
+	_point_light.visible = should_enable
+	_point_light.enabled = should_enable
+	_point_light.color = glow_color
+	_point_light.energy = final_energy
 	_point_light.texture_scale = maxf(sprite_scale.x, sprite_scale.y) * point_light_scale
 	_point_light.z_index = z_index_value
 	_set_optional_property(_point_light, "range_z_min", -4096)
