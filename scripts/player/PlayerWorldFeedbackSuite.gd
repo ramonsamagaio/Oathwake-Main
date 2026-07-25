@@ -80,6 +80,7 @@ func _apply_player_light_tuning() -> void:
 	var enabled := bool(_content_light_config.get("enabled", true))
 	light.visible = enabled
 	_set_player_light_property(light, "visual_enabled", enabled and bool(_content_light_config.get("visual_aura_enabled", true)))
+	_set_player_light_property(light, "visual_uses_day_night_multiplier", true)
 	_set_player_light_property(light, "use_point_light", enabled)
 	_set_player_light_property(light, "glow_color", _player_light_color(_content_light_config.get("color", "#AFCBFFFF"), Color(0.69, 0.80, 1.0, 1.0)))
 	_set_player_light_property(light, "intensity", maxf(float(_content_light_config.get("aura_intensity", 0.75)), 0.0))
@@ -88,7 +89,7 @@ func _apply_player_light_tuning() -> void:
 	_set_player_light_property(light, "blur_amount", maxf(float(_content_light_config.get("blur", 1.25)), 0.0))
 	_set_player_light_property(light, "point_light_energy", maxf(float(_content_light_config.get("emission", 0.85)), 0.0))
 	_set_player_light_property(light, "point_light_scale", maxf(float(_content_light_config.get("radius_scale", 1.20)), 0.05))
-	_set_player_light_property(light, "day_light_multiplier", maxf(float(_content_light_config.get("day_multiplier", 0.28)), 0.0))
+	_set_player_light_property(light, "day_light_multiplier", maxf(float(_content_light_config.get("day_multiplier", 0.0)), 0.0))
 	_set_player_light_property(light, "night_light_multiplier", maxf(float(_content_light_config.get("night_multiplier", 1.0)), 0.0))
 	_set_player_light_property(light, "light_uses_aura_alpha", false)
 	light.position = _player_light_vector(_content_light_config.get("offset", {}), Vector2(0.0, 6.0))
@@ -258,20 +259,12 @@ func _perform_attack_hits() -> void:
 	var item_is_broken := _is_current_hotbar_item_broken()
 
 	for target in _find_nearby_attack_targets("enemy"):
-		if not _current_item_can_hit("can_hit_monsters", true):
-			continue
-		_attack_enemy(target)
-		if not item_is_broken:
+		if _apply_attack_to_enemy(target, item_is_broken):
 			hit_any_target = true
 
 	for target in _find_nearby_attack_targets("resource_node"):
-		if not _current_item_can_hit("can_hit_resources", true):
-			continue
-		_attack_resource(target)
-		if not item_is_broken:
+		if _apply_attack_to_resource(target, item_is_broken):
 			hit_any_target = true
 
-	if not hit_any_target:
-		var sfx_manager := get_node_or_null("/root/SFXManager")
-		if sfx_manager != null and sfx_manager.has_method("play_profile"):
-			sfx_manager.play_profile("player_attack_swing", global_position)
+	if hit_any_target:
+		_consume_current_item_durability()
