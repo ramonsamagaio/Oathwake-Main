@@ -29,6 +29,47 @@
 			"opacity": 0.32,
 			"tail_width_ratio": 0.18,
 			"width_scale": 1.0
+		},
+		"world_visuals": {
+			"enabled": true,
+			"occlusion": {
+				"enabled": true,
+				"tree_alpha": 0.38,
+				"roof_alpha": 0.30,
+				"fade_speed": 5.5,
+				"horizontal_ratio": 0.38,
+				"vertical_ratio": 0.78,
+				"minimum_radius": 22.0,
+				"front_margin": 8.0
+			},
+			"wind": {
+				"enabled": true,
+				"direction": {
+					"x": 1.0,
+					"y": 0.16
+				},
+				"strength": 0.85,
+				"gust_strength": 0.34,
+				"gust_speed": 0.42,
+				"large_amplitude_scale": 1.0,
+				"small_amplitude_scale": 0.78
+			},
+			"particles": {
+				"enabled": true,
+				"area_size": {
+					"x": 900.0,
+					"y": 520.0
+				},
+				"pollen_count": 22,
+				"firefly_count": 8,
+				"leaf_count": 5,
+				"day_alpha": 0.52,
+				"night_alpha": 0.86,
+				"pollen_color": "#D8D19AFF",
+				"firefly_color": "#FFE286FF",
+				"leaf_color": "#758B4DFF",
+				"z_index": 3600
+			}
 		}
 	},
 	"building_destroy_puff": {
