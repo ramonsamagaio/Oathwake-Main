@@ -5,6 +5,7 @@ var _sprite: AnimatedSprite2D
 var _sprite_frames: SpriteFrames
 var _direction_mode := "single"
 var _visual_offset := Vector2.ZERO
+var _motion_visual_offset := Vector2.ZERO
 var _fallback_nodes: Array = []
 var _current_animation_name := ""
 var _current_flip_h := false
@@ -28,9 +29,9 @@ func configure(owner: Node2D, monster_data: Dictionary, animations_data: Diction
 
 
 func set_visual_offset(offset: Vector2) -> void:
-	_visual_offset = offset
+	_motion_visual_offset = offset
 	if _sprite != null:
-		_sprite.position = _visual_offset
+		_sprite.position = _visual_offset + _motion_visual_offset
 
 
 func play_state(state: String, facing_direction: String) -> void:
@@ -49,7 +50,7 @@ func play_state(state: String, facing_direction: String) -> void:
 
 	_set_fallback_visible(false)
 	_sprite.visible = true
-	_sprite.position = _visual_offset
+	_sprite.position = _visual_offset + _motion_visual_offset
 	_sprite.flip_h = bool(resolved.get("flip_h", false))
 	_sprite.flip_v = bool(resolved.get("flip_v", false))
 
@@ -72,13 +73,13 @@ func _ensure_sprite() -> void:
 		if existing != null:
 			_sprite = existing
 			_sprite.centered = true
-			_sprite.position = _visual_offset
+			_sprite.position = _visual_offset + _motion_visual_offset
 			_sprite.z_index = 2
 			return
 	_sprite = AnimatedSprite2D.new()
 	_sprite.name = "MonsterSprite"
 	_sprite.centered = true
-	_sprite.position = _visual_offset
+	_sprite.position = _visual_offset + _motion_visual_offset
 	_sprite.z_index = 2
 	_sprite.visible = false
 	add_child(_sprite)
@@ -188,7 +189,7 @@ func _apply_visual_config(monster_data: Dictionary) -> void:
 	var offset_value: Variant = monster_data.get("visual_offset", {})
 	if offset_value is Dictionary:
 		_visual_offset = Vector2(float(offset_value.get("x", 0.0)), float(offset_value.get("y", 0.0)))
-	_sprite.position = _visual_offset
+	_sprite.position = _visual_offset + _motion_visual_offset
 
 func has_animation(animation_name: String) -> bool:
 	return _sprite_frames != null and _sprite_frames.has_animation(animation_name)
