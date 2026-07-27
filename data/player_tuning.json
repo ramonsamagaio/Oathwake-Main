@@ -23,15 +23,11 @@
 		"depth_sort_offset_y": 0.0,
 		"shadow": {
 			"enabled": true,
-			"fade_power": 1.6,
-			"length": 34.0,
+			"opacity": 0.3,
 			"offset": {
 				"x": 0.0,
 				"y": 0.0
 			},
-			"opacity": 0.3,
-			"tail_width_ratio": 0.18,
-			"width": 22.0,
 			"z_index": -1
 		},
 		"light": {
@@ -50,6 +46,17 @@
 				"x": 0.0,
 				"y": 6.0
 			}
+		},
+		"camera": {
+			"wheel_zoom_enabled": true,
+			"default_zoom": 2.0,
+			"minimum_zoom": 1.25,
+			"maximum_zoom": 3.25,
+			"zoom_step": 0.15,
+			"zoom_smoothing_speed": 10.0
+		},
+		"display": {
+			"borderless_fullscreen_on_start": false
 		}
 	}
 }

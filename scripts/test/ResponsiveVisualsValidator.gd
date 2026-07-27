@@ -52,10 +52,12 @@ func _validate_slime_visuals() -> void:
 	var shadow := slime.get_node_or_null("GroundShadow") as Polygon2D
 	var glow := slime.get_node_or_null("ContentGlow") as Node2D
 	var sprite := slime.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
-	if shadow == null or not shadow.visible or shadow.color.a < 0.30:
-		failures.append("Slime content shadow is missing or too transparent.")
-	elif shadow.position.y > 16.0:
-		failures.append("Slime content shadow is too far below the sprite.")
+	if shadow == null or not shadow.visible or shadow.color.a < 0.25:
+		failures.append("Slime projected shadow is missing or too transparent.")
+	elif not bool(shadow.get_meta("directional_shadow", false)):
+		failures.append("Slime still uses the legacy contact shadow instead of its sprite silhouette.")
+	elif shadow.polygon.size() < 4 or shadow.texture == null:
+		failures.append("Slime projected shadow did not copy the current animated sprite frame.")
 	if glow == null or not glow.visible:
 		failures.append("Slime ContentGlow was not created from monsters.json.")
 	else:
@@ -84,8 +86,10 @@ func _validate_world_item_shadow_and_pickup() -> void:
 	var item := packed.instantiate()
 	var shadow := item.get_node_or_null("GroundShadow") as Polygon2D
 	var sprite := item.get_node_or_null("Sprite2D") as Sprite2D
-	if shadow == null or shadow.z_index != 0 or shadow.color.a < 0.40:
-		failures.append("Dropped item shadow is not authored above the map floor with visible opacity.")
+	if shadow == null or shadow.z_index != 0 or shadow.color.a < 0.25:
+		failures.append("Dropped item projected shadow is not authored above the map floor with visible opacity.")
+	elif not bool(shadow.get_meta("directional_shadow", false)):
+		failures.append("Dropped item still uses a legacy contact ellipse.")
 	if sprite == null or shadow == null or sprite.z_index <= shadow.z_index:
 		failures.append("Dropped item sprite must remain above its shadow.")
 	if not _has_property(item, "drop_shadow_enabled"):

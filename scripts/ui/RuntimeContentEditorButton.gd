@@ -100,15 +100,12 @@ func _open_content_editor() -> void:
 	_editor_window.popup_centered()
 	_snapshot_content_hashes()
 	call_deferred("_finish_opening_runtime_editor")
-	call_deferred("_open_default_vfx_profile")
+	call_deferred("_open_default_post_effects")
 
 
 func _finish_opening_runtime_editor() -> void:
 	if _editor_window == null or not is_instance_valid(_editor_window):
 		return
-	# ContentEditor can also run as the main scene and therefore configures the
-	# default DisplayServer window. Restore the gameplay window after embedding
-	# it in this dedicated native subwindow.
 	_editor_window.min_size = EDITOR_MIN_SIZE
 	_editor_window.unresizable = false
 	_editor_window.borderless = false
@@ -142,11 +139,11 @@ func _close_content_editor() -> void:
 	_restore_game_window_state()
 
 
-func _open_default_vfx_profile() -> void:
+func _open_default_post_effects() -> void:
 	if _editor_instance == null or not is_instance_valid(_editor_instance):
 		return
 	if _editor_instance.has_method("_select_section"):
-		_editor_instance.call("_select_section", ContentEditorData.SECTION_VFX_PROFILES, true)
+		_editor_instance.call("_select_section", "post_effects", true)
 
 
 func _snapshot_content_hashes() -> void:

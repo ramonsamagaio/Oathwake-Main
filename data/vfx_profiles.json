@@ -2,8 +2,8 @@
 	"default": {
 		"critical_bump_scale": 1.08,
 		"critical_hit_flash_duration": 0.14,
-		"critical_shake_duration": 0.14,
-		"critical_shake_strength": 2.8,
+		"critical_shake_duration": 0.18,
+		"critical_shake_strength": 4.2,
 		"critical_text_duration": 1.6,
 		"critical_white_hit_flash_duration": 0.1,
 		"dash_glint_alpha": 0.24,
@@ -19,23 +19,21 @@
 		"tree_wind_strength": 1.5,
 		"white_hit_flash_duration": 0.08,
 		"directional_shadow": {
-			"color": "#040306FF",
-			"direction": {
-				"x": -1.0,
-				"y": 0.55
-			},
-			"fade_power": 1.6,
-			"length_scale": 1.0,
-			"opacity": 0.32,
-			"tail_width_ratio": 0.18,
-			"width_scale": 1.0
+			"enabled": true,
+			"color": "#050609FF",
+			"opacity": 0.3,
+			"stretch": 1.25,
+			"direction_degrees": -45.0,
+			"z_index": -1
 		},
+		"normal_shake_strength": 0.65,
+		"normal_shake_duration": 0.075,
 		"world_visuals": {
 			"enabled": true,
 			"occlusion": {
 				"enabled": true,
 				"tree_alpha": 0.38,
-				"roof_alpha": 0.30,
+				"roof_alpha": 0.3,
 				"fade_speed": 5.5,
 				"horizontal_ratio": 0.38,
 				"vertical_ratio": 0.78,
@@ -81,7 +79,7 @@
 				"glow_mix_amount": 0.28,
 				"colored_glow_boost": 0.34,
 				"emissive_chroma_threshold": 0.18,
-				"emissive_luminance_threshold": 0.60,
+				"emissive_luminance_threshold": 0.6,
 				"neutral_suppression": 0.88,
 				"warm_emissive_boost": 0.34,
 				"grading_enabled": true,
@@ -90,7 +88,7 @@
 				"day_saturation": 1.04,
 				"night_saturation": 0.84,
 				"day_contrast": 1.03,
-				"night_contrast": 1.10,
+				"night_contrast": 1.1,
 				"day_brightness": 0.012,
 				"night_brightness": -0.018,
 				"warm_light_preservation": 0.82,
@@ -114,12 +112,12 @@
 				"ground_height": 0.42,
 				"ground_scale": 5.2,
 				"ground_speed": {
-					"x": -0.010,
+					"x": -0.01,
 					"y": 0.004
 				},
 				"middle_density": 0.16,
 				"middle_band_center": 0.56,
-				"middle_band_width": 0.40,
+				"middle_band_width": 0.4,
 				"depth_density": 0.08,
 				"depth_falloff": 1.35,
 				"day_multiplier": 0.72,
@@ -161,7 +159,7 @@
 			"micro_motion": {
 				"enabled": true,
 				"plant_rotation_degrees": 0.8,
-				"plant_scale_amount": 0.010,
+				"plant_scale_amount": 0.01,
 				"fungus_scale_amount": 0.018,
 				"flower_scale_amount": 0.024,
 				"sway_speed": 0.85,
