@@ -143,19 +143,21 @@ func _validate_depth_and_directional_shadows() -> void:
 func _validate_directional_shadow(target: Node2D, label: String) -> void:
 	var shadow := target.get_node_or_null("GroundShadow") as Polygon2D
 	if shadow == null or not shadow.visible:
-		failures.append("%s has no visible directional shadow." % label)
+		failures.append("%s has no visible projected shadow." % label)
 		return
 	if not bool(shadow.get_meta("directional_shadow", false)):
-		failures.append("%s shadow is still a contact ellipse instead of the directional runtime." % label)
+		failures.append("%s shadow is still a contact ellipse instead of the projected sprite runtime." % label)
 		return
-	var direction: Vector2 = shadow.get_meta("shadow_direction", Vector2.ZERO)
-	if direction.x >= 0.0 or direction.y <= 0.0:
-		failures.append("%s shadow does not point southwest." % label)
-	if shadow.vertex_colors.size() != shadow.polygon.size() or shadow.vertex_colors.size() < 6:
-		failures.append("%s shadow has no complete vertex fade." % label)
-		return
-	if shadow.vertex_colors[3].a > 0.001 or shadow.vertex_colors[4].a > 0.001:
-		failures.append("%s shadow tail does not fade to transparent." % label)
+	var direction_degrees := float(shadow.get_meta("shadow_direction_degrees", 999.0))
+	if absf(direction_degrees - (-45.0)) > 0.1:
+		failures.append("%s shadow direction is %.2f° instead of northeast -45°." % [label, direction_degrees])
+	if float(shadow.get_meta("shadow_stretch", 0.0)) <= 1.0:
+		failures.append("%s shadow is not stretched from the source silhouette." % label)
+	if shadow.polygon.size() < 4:
+		failures.append("%s projected shadow has no sprite-shaped polygon." % label)
+	var source_visual := target.find_child("AnimatedSprite2D", true, false)
+	if source_visual is AnimatedSprite2D and (source_visual as AnimatedSprite2D).visible and shadow.texture == null:
+		failures.append("%s projected shadow did not copy the current sprite frame texture." % label)
 
 
 func _validate_layered_tree_backend() -> void:
