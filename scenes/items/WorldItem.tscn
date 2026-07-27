@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/items/WorldItemFeedbackSuite.gd" id="1_world_item_script"]
 [ext_resource type="Shader" path="res://shaders/world_item_outline.gdshader" id="2_outline_shader"]
 [ext_resource type="PackedScene" path="res://scenes/effects/settings/WorldItemOutlineSettings.tscn" id="3_outline_settings"]
+[ext_resource type="Script" path="res://scripts/effects/ProjectedSpriteShadow.gd" id="4_projected_shadow"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pickup"]
 radius = 12.0
@@ -30,6 +31,8 @@ z_index = 0
 position = Vector2(0, 9)
 color = Color(0.01, 0.007, 0.014, 0.5)
 polygon = PackedVector2Array(-8, 0, -6, -2, -2, -3, 2, -3, 6, -2, 8, 0, 6, 2, 2, 3, -2, 3, -6, 2)
+script = ExtResource("4_projected_shadow")
+metadata/directional_shadow = true
 
 [node name="OutlineSprite" type="Sprite2D" parent="."]
 z_index = 1
