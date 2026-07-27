@@ -1,22 +1,29 @@
 class_name DirectionalShadowRuntime
 extends RefCounted
 
-const DEFAULT_DIRECTION := Vector2(-1.0, 0.55)
-const DEFAULT_COLOR := Color(0.015, 0.01, 0.022, 1.0)
+const ProjectedSpriteShadowScript := preload("res://scripts/effects/ProjectedSpriteShadow.gd")
+const DEFAULT_DIRECTION_DEGREES := -45.0
+const DEFAULT_COLOR := Color(0.02, 0.024, 0.035, 1.0)
 
 
 static func apply_to_target(
 	target: Node2D,
 	config: Dictionary = {},
-	visual_size := Vector2(32.0, 48.0),
-	local_foot_offset := Vector2.ZERO
+	_visual_size := Vector2(32.0, 48.0),
+	local_foot_offset := Vector2.ZERO,
+	source_override: CanvasItem = null
 ) -> Polygon2D:
 	if target == null:
 		return null
+	var defaults := _get_global_defaults(target)
+	var enabled := bool(defaults.get("enabled", true)) and bool(config.get("enabled", true))
 	var shadow := target.get_node_or_null("GroundShadow") as Polygon2D
-	var enabled := bool(config.get("enabled", true))
+	if shadow != null and shadow.get_script() != ProjectedSpriteShadowScript:
+		target.remove_child(shadow)
+		shadow.free()
+		shadow = null
 	if shadow == null and enabled:
-		shadow = Polygon2D.new()
+		shadow = ProjectedSpriteShadowScript.new() as Polygon2D
 		shadow.name = "GroundShadow"
 		target.add_child(shadow)
 	if shadow == null:
@@ -26,72 +33,40 @@ static func apply_to_target(
 	if not enabled:
 		return shadow
 
-	var defaults := _get_global_defaults(target)
-	var direction := _vector_from_value(config.get("direction", defaults.get("direction", {})), DEFAULT_DIRECTION)
-	if direction.length_squared() < 0.0001:
-		direction = DEFAULT_DIRECTION
-	direction = direction.normalized()
+	var source := source_override if source_override != null else _find_largest_visual(target)
+	if source == null:
+		shadow.visible = false
+		return shadow
 
-	var length_scale := maxf(float(defaults.get("length_scale", 1.0)), 0.01)
-	var width_scale := maxf(float(defaults.get("width_scale", 1.0)), 0.01)
-	var default_length := clampf(visual_size.y * 0.48 * length_scale, 14.0, 72.0)
-	var default_width := clampf(visual_size.x * 0.42 * width_scale, 9.0, 54.0)
-	var legacy_scale := _vector_from_value(config.get("scale", {}), Vector2.ONE)
-	var length := maxf(float(config.get("length", default_length * maxf(legacy_scale.x, 0.25))), 1.0)
-	var width := maxf(float(config.get("width", default_width * maxf(legacy_scale.x, 0.25))), 1.0)
-	var tail_width_ratio := clampf(float(config.get("tail_width_ratio", defaults.get("tail_width_ratio", 0.18))), 0.0, 1.0)
-	var opacity := clampf(float(config.get("opacity", defaults.get("opacity", 0.34))), 0.0, 1.0)
-	var fade_power := maxf(float(config.get("fade_power", defaults.get("fade_power", 1.6))), 0.1)
-	var mid_alpha := opacity * pow(0.48, fade_power)
-	var color := _color_from_value(config.get("color", defaults.get("color", "#040306FF")), DEFAULT_COLOR)
-	var offset := local_foot_offset + _vector_from_value(config.get("offset", {}), Vector2.ZERO)
+	var resolved := config.duplicate(true)
+	# Projection shape is global and intentionally controlled from the dedicated
+	# World Shadows tab. Per-element records keep only enable, offset and z-order.
+	for projection_key in ["opacity", "stretch", "direction_degrees", "direction", "color"]:
+		if defaults.has(projection_key):
+			resolved[projection_key] = defaults[projection_key]
+	if not resolved.has("direction_degrees"):
+		resolved["direction_degrees"] = _direction_degrees_from_legacy(resolved.get("direction", {}))
+	if not resolved.has("stretch"):
+		resolved["stretch"] = 1.15
+	if not resolved.has("opacity"):
+		resolved["opacity"] = 0.30
+	if not resolved.has("color"):
+		resolved["color"] = "#050609FF"
+	if not resolved.has("z_index"):
+		resolved["z_index"] = -1
+	resolved["enabled"] = enabled
 
-	var perpendicular := Vector2(-direction.y, direction.x)
-	var near_center := Vector2.ZERO
-	var mid_center := direction * length * 0.48
-	var far_center := direction * length
-	var near_half := width * 0.5
-	var mid_half := width * 0.34
-	var far_half := width * tail_width_ratio * 0.5
-	shadow.polygon = PackedVector2Array([
-		near_center - perpendicular * near_half,
-		near_center + perpendicular * near_half,
-		mid_center + perpendicular * mid_half,
-		far_center + perpendicular * far_half,
-		far_center - perpendicular * far_half,
-		mid_center - perpendicular * mid_half,
-	])
-	shadow.vertex_colors = PackedColorArray([
-		Color(color.r, color.g, color.b, opacity),
-		Color(color.r, color.g, color.b, opacity),
-		Color(color.r, color.g, color.b, mid_alpha),
-		Color(color.r, color.g, color.b, 0.0),
-		Color(color.r, color.g, color.b, 0.0),
-		Color(color.r, color.g, color.b, mid_alpha),
-	])
-	shadow.position = offset
-	shadow.scale = Vector2.ONE
-	shadow.rotation = 0.0
-	shadow.color = Color.WHITE
-	shadow.modulate = Color.WHITE
-	shadow.show_behind_parent = true
-	shadow.z_as_relative = true
-	shadow.z_index = int(config.get("z_index", -1))
+	if shadow.has_method("configure"):
+		shadow.call("configure", target, source, resolved, local_foot_offset)
 	shadow.set_meta("directional_shadow", true)
-	shadow.set_meta("shadow_direction", direction)
-	shadow.set_meta("shadow_length", length)
-	shadow.set_meta("shadow_fade_power", fade_power)
-	if not shadow.is_in_group("persistent_content_visual"):
-		shadow.add_to_group("persistent_content_visual")
 	return shadow
 
 
 static func apply_to_sprite(sprite: Sprite2D, config: Dictionary = {}) -> Polygon2D:
 	if sprite == null:
 		return null
-	var visual_size := WorldDepthRuntime.get_sprite_visual_size(sprite) * Vector2(absf(sprite.scale.x), absf(sprite.scale.y))
-	var foot_offset := WorldDepthRuntime.get_sprite_foot_offset(sprite)
-	return apply_to_target(sprite, config, visual_size, foot_offset - sprite.position)
+	var foot_offset := WorldDepthRuntime.get_sprite_foot_offset(sprite) - sprite.position
+	return apply_to_target(sprite, config, WorldDepthRuntime.get_sprite_visual_size(sprite), foot_offset, sprite)
 
 
 static func estimate_target_visual_size(target: Node2D) -> Vector2:
@@ -109,7 +84,7 @@ static func estimate_target_visual_size(target: Node2D) -> Vector2:
 static func estimate_target_foot_offset(target: Node2D) -> Vector2:
 	var visual := _find_largest_visual(target)
 	if visual is Sprite2D:
-		return (visual as Sprite2D).position + WorldDepthRuntime.get_sprite_foot_offset(visual as Sprite2D) - (visual as Sprite2D).position
+		return WorldDepthRuntime.get_sprite_foot_offset(visual as Sprite2D)
 	if visual is AnimatedSprite2D:
 		return WorldDepthRuntime.get_animated_sprite_foot_offset(visual as AnimatedSprite2D)
 	if visual is Polygon2D:
@@ -127,29 +102,46 @@ static func _find_largest_visual(target: Node) -> CanvasItem:
 	var queue: Array[Node] = [target]
 	while not queue.is_empty():
 		var node: Node = queue.pop_front() as Node
+		if node != target:
+			var candidate := node as CanvasItem
+			if candidate != null and _is_valid_source(candidate):
+				var size := _visual_size(candidate)
+				var area := size.x * size.y
+				if area > best_area:
+					best_area = area
+					best = candidate
 		for child in node.get_children():
-			if child is CanvasItem and (child as CanvasItem).is_in_group("persistent_content_visual"):
-				continue
 			if child is Node:
 				queue.append(child)
-			var size := Vector2.ZERO
-			if child is Sprite2D:
-				var sprite := child as Sprite2D
-				if sprite.texture != null and sprite.visible:
-					size = WorldDepthRuntime.get_sprite_visual_size(sprite) * Vector2(absf(sprite.scale.x), absf(sprite.scale.y))
-			elif child is AnimatedSprite2D:
-				var animated := child as AnimatedSprite2D
-				if animated.visible:
-					size = WorldDepthRuntime.get_animated_sprite_visual_size(animated)
-			elif child is Polygon2D:
-				var polygon := child as Polygon2D
-				if polygon.visible:
-					size = _polygon_bounds(polygon).size
-			var area := size.x * size.y
-			if area > best_area:
-				best_area = area
-				best = child as CanvasItem
+	if best == null and target is CanvasItem and _is_valid_source(target as CanvasItem):
+		best = target as CanvasItem
 	return best
+
+
+static func _is_valid_source(candidate: CanvasItem) -> bool:
+	if candidate == null or not candidate.visible:
+		return false
+	if str(candidate.name) == "GroundShadow" or candidate.is_in_group("persistent_content_visual"):
+		return false
+	if candidate is Sprite2D:
+		return (candidate as Sprite2D).texture != null
+	if candidate is AnimatedSprite2D:
+		var animated := candidate as AnimatedSprite2D
+		return animated.sprite_frames != null
+	if candidate is Polygon2D:
+		return not (candidate as Polygon2D).polygon.is_empty()
+	return false
+
+
+static func _visual_size(candidate: CanvasItem) -> Vector2:
+	if candidate is Sprite2D:
+		var sprite := candidate as Sprite2D
+		return WorldDepthRuntime.get_sprite_visual_size(sprite) * Vector2(absf(sprite.scale.x), absf(sprite.scale.y))
+	if candidate is AnimatedSprite2D:
+		return WorldDepthRuntime.get_animated_sprite_visual_size(candidate as AnimatedSprite2D)
+	if candidate is Polygon2D:
+		return _polygon_bounds(candidate as Polygon2D).size
+	return Vector2.ZERO
 
 
 static func _polygon_bounds(polygon: Polygon2D) -> Rect2:
@@ -176,16 +168,12 @@ static func _get_global_defaults(target: Node) -> Dictionary:
 	return (value as Dictionary).duplicate(true) if value is Dictionary else {}
 
 
-static func _vector_from_value(value: Variant, fallback: Vector2) -> Vector2:
+static func _direction_degrees_from_legacy(value: Variant) -> float:
+	var direction := Vector2.RIGHT.rotated(deg_to_rad(DEFAULT_DIRECTION_DEGREES))
 	if value is Vector2:
-		return value
-	if value is Dictionary:
-		return Vector2(float(value.get("x", fallback.x)), float(value.get("y", fallback.y)))
-	return fallback
-
-
-static func _color_from_value(value: Variant, fallback: Color) -> Color:
-	if value is Color:
-		return value
-	var text := str(value).strip_edges()
-	return Color.from_string(text, fallback) if not text.is_empty() else fallback
+		direction = value
+	elif value is Dictionary:
+		direction = Vector2(float(value.get("x", direction.x)), float(value.get("y", direction.y)))
+	if direction.length_squared() < 0.0001:
+		return DEFAULT_DIRECTION_DEGREES
+	return rad_to_deg(direction.angle())
