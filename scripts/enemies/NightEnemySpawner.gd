@@ -26,6 +26,7 @@ var world: Node
 
 
 func _ready() -> void:
+	add_to_group("natural_monster_spawn_controller")
 	rng.randomize()
 	setup({})
 
@@ -48,6 +49,11 @@ func setup(context: Dictionary) -> void:
 		world = get_node_or_null(world_path)
 
 
+func set_natural_spawn_enabled(is_enabled: bool) -> void:
+	natural_spawn_enabled = is_enabled
+	spawn_timer = 0.0
+
+
 func _process(delta: float) -> void:
 	if player == null or day_night_cycle == null or enemies_root == null:
 		return
@@ -68,7 +74,7 @@ func _process(delta: float) -> void:
 
 
 func _try_spawn_slime() -> bool:
-	if slime_scene == null:
+	if not natural_spawn_enabled or slime_scene == null:
 		return false
 
 	if get_alive_slime_count() >= max_alive_slimes:

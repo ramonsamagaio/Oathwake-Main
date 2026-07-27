@@ -14,13 +14,15 @@ var _monster_spawner := MonsterSpawner.new()
 
 
 func _ready() -> void:
+	add_to_group("natural_monster_spawn_source")
 	add_child(_monster_spawner)
 	_spawn_timer = spawn_interval
 	set_process(true)
 
 
 func _process(delta: float) -> void:
-	if not active:
+	if not active or not _is_global_natural_spawn_enabled():
+		_spawn_timer = spawn_interval
 		return
 
 	_cleanup_alive_monsters()
@@ -36,6 +38,8 @@ func _process(delta: float) -> void:
 
 
 func _try_spawn_monster() -> void:
+	if not active or not _is_global_natural_spawn_enabled():
+		return
 	var spawn_parent := get_parent()
 	if spawn_parent == null:
 		return
@@ -46,6 +50,13 @@ func _try_spawn_monster() -> void:
 
 	spawn_parent.add_child(monster)
 	_alive_monsters.append(monster)
+
+
+func _is_global_natural_spawn_enabled() -> bool:
+	var controller := get_tree().get_first_node_in_group("natural_monster_spawn_controller")
+	if controller == null:
+		return true
+	return bool(controller.get("natural_spawn_enabled"))
 
 
 func _cleanup_alive_monsters() -> void:

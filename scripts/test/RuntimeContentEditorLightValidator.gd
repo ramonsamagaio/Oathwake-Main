@@ -2,6 +2,8 @@ extends SceneTree
 
 const GLOW_SCENE := preload("res://scenes/effects/GlowOverlay.tscn")
 const GAME_SCENE := preload("res://scenes/game/Game.tscn")
+const NIGHT_SPAWNER_SCRIPT := preload("res://scripts/enemies/NightEnemySpawner.gd")
+const SPAWN_ZONE_SCRIPT := preload("res://scripts/systems/MonsterSpawnZone.gd")
 
 var failures: Array[String] = []
 
@@ -13,8 +15,10 @@ func _init() -> void:
 func _run() -> void:
 	_validate_content_editor_sections()
 	_validate_runtime_editor_button()
+	_validate_runtime_editor_window_contract()
 	_validate_player_light_content()
 	await _validate_night_only_light_runtime()
+	await _validate_global_spawn_lock_runtime()
 	if failures.is_empty():
 		print("RUNTIME_CONTENT_EDITOR_LIGHT_VALIDATION_PASS")
 		quit(0)
@@ -52,6 +56,21 @@ func _validate_runtime_editor_button() -> void:
 		if not launcher_text.contains(token):
 			failures.append("Runtime Content Editor launcher is missing %s." % token)
 	game.free()
+
+
+func _validate_runtime_editor_window_contract() -> void:
+	var launcher_text := FileAccess.get_file_as_string("res://scripts/ui/RuntimeContentEditorButton.gd")
+	var required_tokens := [
+		"root_window.gui_embed_subwindows = false",
+		"close_requested.connect(_close_content_editor)",
+		"unresizable = false",
+		"borderless = false",
+		"KEY_ESCAPE",
+		"_restore_game_window_state",
+	]
+	for token in required_tokens:
+		if not launcher_text.contains(token):
+			failures.append("Runtime Content Editor window contract is missing %s." % token)
 
 
 func _validate_player_light_content() -> void:
@@ -102,4 +121,32 @@ func _validate_night_only_light_runtime() -> void:
 		failures.append("Player PointLight2D does not appear during dusk.")
 
 	glow.queue_free()
+	await process_frame
+
+
+func _validate_global_spawn_lock_runtime() -> void:
+	var controller := NIGHT_SPAWNER_SCRIPT.new()
+	controller.set("natural_spawn_enabled", false)
+	root.add_child(controller)
+	var zone := SPAWN_ZONE_SCRIPT.new()
+	root.add_child(zone)
+	await process_frame
+
+	if not controller.is_in_group("natural_monster_spawn_controller"):
+		failures.append("NightEnemySpawner is not registered as the global natural spawn controller.")
+	if bool(zone.call("_is_global_natural_spawn_enabled")):
+		failures.append("MonsterSpawnZone ignores the disabled global natural spawn controller.")
+
+	controller.call("set_natural_spawn_enabled", true)
+	await process_frame
+	if not bool(zone.call("_is_global_natural_spawn_enabled")):
+		failures.append("MonsterSpawnZone does not resume when natural spawning is enabled.")
+
+	var start_area_text := FileAccess.get_file_as_string("res://scenes/maps/StartArea.tscn")
+	for zone_name in ["SlimeSpawnZone", "SkeletonSpawnZone"]:
+		if not start_area_text.contains(zone_name):
+			failures.append("StartArea no longer exposes expected spawn zone %s." % zone_name)
+
+	zone.queue_free()
+	controller.queue_free()
 	await process_frame
