@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" path="res://scenes/effects/ScreenEffects.tscn" id="19_screen_effects"]
 [ext_resource type="PackedScene" path="res://scenes/effects/LightShaftOverlay.tscn" id="20_light_shafts"]
 [ext_resource type="Script" path="res://scripts/ui/RuntimeContentEditorButton.gd" id="21_runtime_content_editor"]
+[ext_resource type="Script" path="res://scripts/ui/DisplayShortcut.gd" id="22_display_shortcut"]
 
 [node name="Game" type="Node2D" unique_id=2133599417]
 script = ExtResource("1_game_script")
@@ -60,19 +61,66 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="SpawnMonsterButton" type="Button" parent="UI" unique_id=794836599]
-anchors_preset = 3
+anchors_preset = 6
 anchor_left = 1.0
-anchor_top = 1.0
+anchor_top = 0.5
 anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -252.0
-offset_top = -92.0
-offset_right = -4.0
-offset_bottom = -60.0
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -82.0
+offset_right = -16.0
+offset_bottom = -46.0
 grow_horizontal = 0
-grow_vertical = 0
+grow_vertical = 2
 focus_mode = 0
 text = "SPAWN"
+
+[node name="ContentEditorButton" type="Button" parent="UI"]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -40.0
+offset_right = -16.0
+offset_bottom = -4.0
+grow_horizontal = 0
+grow_vertical = 2
+focus_mode = 0
+text = "⚙  CONTENT EDITOR"
+tooltip_text = "Open or close the live Content Editor"
+script = ExtResource("21_runtime_content_editor")
+
+[node name="SaveButton" type="Button" parent="UI" unique_id=1204412285]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = 2.0
+offset_right = -16.0
+offset_bottom = 38.0
+grow_horizontal = 0
+grow_vertical = 2
+focus_mode = 0
+text = "SAVE GAME"
+
+[node name="LoadButton" type="Button" parent="UI" unique_id=234493538]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = 44.0
+offset_right = -16.0
+offset_bottom = 80.0
+grow_horizontal = 0
+grow_vertical = 2
+focus_mode = 0
+text = "LOAD GAME"
 
 [node name="MonsterSpawnPanel" type="Panel" parent="UI" unique_id=69754692]
 visible = false
@@ -115,52 +163,8 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ContentEditorButton" type="Button" parent="UI"]
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -292.0
-offset_top = -52.0
-offset_right = -260.0
-offset_bottom = -20.0
-grow_horizontal = 0
-grow_vertical = 0
-focus_mode = 0
-text = "⚙"
-tooltip_text = "Open the live Content Editor"
-script = ExtResource("21_runtime_content_editor")
-
-[node name="SaveButton" type="Button" parent="UI" unique_id=1204412285]
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -252.0
-offset_top = -52.0
-offset_right = -132.0
-offset_bottom = -20.0
-grow_horizontal = 0
-grow_vertical = 0
-focus_mode = 0
-text = "SAVE GAME"
-
-[node name="LoadButton" type="Button" parent="UI" unique_id=234493538]
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -124.0
-offset_top = -52.0
-offset_right = -4.0
-offset_bottom = -20.0
-grow_horizontal = 0
-grow_vertical = 0
-focus_mode = 0
-text = "LOAD GAME"
+[node name="DisplayShortcut" type="Node" parent="."]
+script = ExtResource("22_display_shortcut")
 
 [node name="Systems" type="Node" parent="." unique_id=484419278]
 
