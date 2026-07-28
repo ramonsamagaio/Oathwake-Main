@@ -7,6 +7,92 @@ const EXISTING_MONSTER_SPEED_FIELDS := [
 	"locomotion_move_speed",
 	MONSTER_RUNTIME_SPEED_FIELD,
 ]
+const EMBEDDED_MAXIMIZE_MARGIN := 8
+
+var _runtime_shutting_down := false
+var _embedded_editor_maximized := false
+var _embedded_restore_position := Vector2i.ZERO
+var _embedded_restore_size := Vector2i.ZERO
+
+
+func prepare_for_runtime_close() -> void:
+	if _runtime_shutting_down:
+		return
+	_runtime_shutting_down = true
+	animation_preview_playing = false
+	set_process(false)
+	set_process_input(false)
+	set_process_unhandled_input(false)
+	set_process_unhandled_key_input(false)
+	process_mode = Node.PROCESS_MODE_DISABLED
+	for window_value in [texture_file_dialog, batch_sprite_file_dialog, batch_sprite_window]:
+		if window_value is Window and is_instance_valid(window_value):
+			(window_value as Window).hide()
+
+
+func _exit_tree() -> void:
+	_runtime_shutting_down = true
+	animation_preview_playing = false
+
+
+func _process(delta: float) -> void:
+	if _runtime_shutting_down or not is_inside_tree():
+		return
+	super._process(delta)
+
+
+func _fit_root_to_viewport() -> void:
+	if _runtime_shutting_down or not is_inside_tree():
+		return
+	super._fit_root_to_viewport()
+
+
+func _install_workspace_usability() -> void:
+	if _runtime_shutting_down or not is_inside_tree():
+		return
+	super._install_workspace_usability()
+
+
+func _request_close_editor() -> void:
+	prepare_for_runtime_close()
+	super._request_close_editor()
+
+
+func _toggle_editor_maximize() -> void:
+	if _runtime_shutting_down:
+		return
+	var window := get_window()
+	if window == null:
+		return
+	if not window.is_embedded():
+		super._toggle_editor_maximize()
+		return
+
+	var embedder := window.get_parent() as Window
+	if embedder == null:
+		return
+	if _embedded_editor_maximized:
+		if _embedded_restore_size.x > 0 and _embedded_restore_size.y > 0:
+			window.size = _embedded_restore_size
+			window.position = _embedded_restore_position
+		_embedded_editor_maximized = false
+		if _maximize_button != null:
+			_maximize_button.text = "Maximize Editor"
+		return
+
+	_embedded_restore_position = window.position
+	_embedded_restore_size = window.size
+	var available_size := Vector2i(embedder.get_visible_rect().size)
+	if available_size.x <= 0 or available_size.y <= 0:
+		available_size = embedder.size
+	window.position = Vector2i(EMBEDDED_MAXIMIZE_MARGIN, EMBEDDED_MAXIMIZE_MARGIN)
+	window.size = Vector2i(
+		maxi(1, available_size.x - EMBEDDED_MAXIMIZE_MARGIN * 2),
+		maxi(1, available_size.y - EMBEDDED_MAXIMIZE_MARGIN * 2)
+	)
+	_embedded_editor_maximized = true
+	if _maximize_button != null:
+		_maximize_button.text = "Restore Editor"
 
 
 func _build_monster_form() -> void:
@@ -37,6 +123,8 @@ func _get_monster_form_record() -> Dictionary:
 
 
 func _on_save_pressed() -> void:
+	if _runtime_shutting_down:
+		return
 	var had_unsaved_changes := has_unsaved_changes
 	super._on_save_pressed()
 	if had_unsaved_changes and not has_unsaved_changes:
@@ -44,6 +132,8 @@ func _on_save_pressed() -> void:
 
 
 func _reload_runtime_content_after_save() -> void:
+	if _runtime_shutting_down or not is_inside_tree():
+		return
 	var content_db := get_node_or_null("/root/ContentDB")
 	if content_db == null or not content_db.has_method("load_all"):
 		return
@@ -54,6 +144,8 @@ func _reload_runtime_content_after_save() -> void:
 
 
 func _refresh_live_players() -> void:
+	if _runtime_shutting_down or get_tree() == null:
+		return
 	for player in get_tree().get_nodes_in_group("player"):
 		if player == null or not is_instance_valid(player):
 			continue
