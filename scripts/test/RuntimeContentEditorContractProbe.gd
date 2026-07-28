@@ -33,12 +33,15 @@ func _ready() -> void:
 func _run_contract_probe() -> void:
 	await get_tree().process_frame
 	var editor := get_parent()
-	if editor == null or not is_instance_valid(editor):
+	var launcher := get_tree().get_first_node_in_group("runtime_content_editor_launcher")
+	# Scene-isolation tests intentionally have no gameplay launcher. Avoid racing
+	# their own section navigation and probe only the real editor opened in-game.
+	if editor == null or not is_instance_valid(editor) or launcher == null:
 		queue_free()
 		return
 
 	_validate_group_navigation(editor)
-	_validate_window_recovery(editor)
+	await _validate_window_recovery(launcher)
 	queue_free()
 
 
@@ -47,7 +50,9 @@ func _validate_group_navigation(editor: Node) -> void:
 		push_error("Runtime Content Editor contract probe: segmented Post Effects navigation is unavailable.")
 		return
 	var ids_value: Variant = editor.call("get_post_effect_group_ids")
-	var ids: Array = ids_value as Array if ids_value is Array else []
+	var ids: Array = []
+	if ids_value is Array:
+		ids = ids_value as Array
 	if ids.size() != EXPECTED_GROUPS.size():
 		push_error("Runtime Content Editor contract probe: expected %d Post Effects groups, found %d." % [EXPECTED_GROUPS.size(), ids.size()])
 	for expected_id in EXPECTED_GROUPS:
@@ -57,7 +62,6 @@ func _validate_group_navigation(editor: Node) -> void:
 	var previous_group := str(editor.call("get_selected_post_effect_group")) if editor.has_method("get_selected_post_effect_group") else "screen_shake"
 	for group_id in GROUP_FIELD_PROBES.keys():
 		editor.call("_select_post_effect_group", str(group_id))
-		await get_tree().process_frame
 		var controls_value: Variant = editor.get("field_controls")
 		var field_name := str(GROUP_FIELD_PROBES[group_id])
 		if not controls_value is Dictionary or not (controls_value as Dictionary).has(field_name):
@@ -74,9 +78,8 @@ func _validate_group_navigation(editor: Node) -> void:
 		push_error("Runtime Content Editor contract probe: middle column does not expose all Post Effects groups.")
 
 
-func _validate_window_recovery(editor: Node) -> void:
-	var launcher := get_tree().get_first_node_in_group("runtime_content_editor_launcher")
-	if launcher == null or not launcher.has_method("get_runtime_editor_window"):
+func _validate_window_recovery(launcher: Node) -> void:
+	if not launcher.has_method("get_runtime_editor_window"):
 		return
 	var window := launcher.call("get_runtime_editor_window") as Window
 	if window == null:
