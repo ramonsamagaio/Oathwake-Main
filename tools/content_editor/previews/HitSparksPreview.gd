@@ -69,7 +69,8 @@ func _process(delta: float) -> void:
 			var velocity: Vector2 = particle.get("velocity", Vector2.ZERO)
 			velocity.y += float(particle.get("gravity", 0.0)) * delta
 			particle["velocity"] = velocity
-			particle["position"] = (particle.get("position", Vector2.ZERO) as Vector2) + velocity * delta
+			var current_position: Vector2 = particle.get("position", Vector2.ZERO)
+			particle["position"] = current_position + velocity * delta
 		_particles[index] = particle
 	if not alive:
 		_replay_elapsed += delta
