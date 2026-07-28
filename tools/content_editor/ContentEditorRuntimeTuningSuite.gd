@@ -24,8 +24,9 @@ func _build_monster_form() -> void:
 
 func _get_monster_form_record() -> Dictionary:
 	var record := super._get_monster_form_record()
-	if field_controls.has(MONSTER_RUNTIME_SPEED_FIELD):
-		var movement_speed := _get_spin_box_value(MONSTER_RUNTIME_SPEED_FIELD)
+	var speed_field := _find_existing_monster_speed_field()
+	if not speed_field.is_empty():
+		var movement_speed := _get_spin_box_value(speed_field)
 		var locomotion := _record_dictionary(record, "locomotion")
 		locomotion["move_speed"] = movement_speed
 		record["locomotion"] = locomotion
