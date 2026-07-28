@@ -11,10 +11,16 @@ var settings := {
 	"ui_scale": 1.0,
 }
 
+var _root_window: Window
+var _scaling_refresh_queued := false
+
 
 func _ready() -> void:
+	_root_window = get_tree().root
+	_connect_root_window_resize()
 	load_settings()
 	apply_settings()
+	call_deferred("_refresh_content_scaling_after_resize")
 
 
 func load_settings() -> Dictionary:
@@ -86,6 +92,26 @@ func set_ui_scale(scale: float) -> void:
 	save_settings()
 
 
+func _connect_root_window_resize() -> void:
+	if _root_window == null:
+		return
+	var callback := Callable(self, "_on_root_window_size_changed")
+	if not _root_window.size_changed.is_connected(callback):
+		_root_window.size_changed.connect(callback)
+
+
+func _on_root_window_size_changed() -> void:
+	if _scaling_refresh_queued:
+		return
+	_scaling_refresh_queued = true
+	call_deferred("_refresh_content_scaling_after_resize")
+
+
+func _refresh_content_scaling_after_resize() -> void:
+	_scaling_refresh_queued = false
+	_apply_content_scaling()
+
+
 func _load_settings_file(path: String, fallback: Dictionary) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		return fallback.duplicate(true)
@@ -109,9 +135,12 @@ func _apply_content_scaling() -> void:
 		return
 	var scene_tree := root_loop as SceneTree
 	var root_window := scene_tree.root
-	root_window.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
-	root_window.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
-	root_window.content_scale_size = BASE_VIEWPORT_SIZE
+	if root_window.content_scale_mode != Window.CONTENT_SCALE_MODE_VIEWPORT:
+		root_window.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
+	if root_window.content_scale_aspect != Window.CONTENT_SCALE_ASPECT_EXPAND:
+		root_window.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
+	if root_window.content_scale_size != BASE_VIEWPORT_SIZE:
+		root_window.content_scale_size = BASE_VIEWPORT_SIZE
 
 
 func _apply_resolution(resolution: String) -> void:
