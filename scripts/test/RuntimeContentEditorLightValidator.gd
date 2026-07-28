@@ -6,6 +6,7 @@ const PLAYER_SCENE := preload("res://scenes/Player.tscn")
 const CONTENT_EDITOR_SCENE := preload("res://tools/content_editor/ContentEditor.tscn")
 const NIGHT_SPAWNER_SCRIPT := preload("res://scripts/enemies/NightEnemySpawner.gd")
 const SPAWN_ZONE_SCRIPT := preload("res://scripts/systems/MonsterSpawnZone.gd")
+const ANIMATED_CURSOR_SCRIPT := preload("res://scripts/ui/AnimatedCursor.gd")
 
 var failures: Array[String] = []
 
@@ -23,6 +24,7 @@ func _run() -> void:
 	_validate_borderless_fullscreen_contract()
 	_validate_debug_action_panel()
 	_validate_hit_shake_contract()
+	await _validate_cursor_hotspot_runtime()
 	await _validate_independent_content_editor_runtime()
 	await _validate_camera_zoom_runtime()
 	await _validate_night_only_light_runtime()
@@ -53,8 +55,14 @@ func _validate_content_editor_sections() -> void:
 		if not environment_editor.contains(label):
 			failures.append("Post Effects inherited controls are missing %s." % label)
 	var editor_scene := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditor.tscn")
-	if not editor_scene.contains("ContentEditorIndependentTabsSuite.gd"):
-		failures.append("ContentEditor.tscn is not using the independent tab suite.")
+	if not editor_scene.contains("ContentEditorUsabilitySuite.gd"):
+		failures.append("ContentEditor.tscn is not using the usability suite.")
+	var usability_text := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditorUsabilitySuite.gd")
+	for token in ["Hide Record List", "Reset Columns", "Maximize Editor", "Close", "WORKSPACE_MINIMUM_SIZE"]:
+		if not usability_text.contains(token):
+			failures.append("Content Editor usability suite is missing %s." % token)
+	if usability_text.contains("DisplayServer.window_set_size"):
+		failures.append("Content Editor still resizes the game through global DisplayServer calls.")
 
 
 func _validate_runtime_editor_button() -> void:
@@ -84,11 +92,15 @@ func _validate_runtime_editor_window_contract() -> void:
 		"unresizable = false",
 		"borderless = false",
 		"KEY_ESCAPE",
-		"_restore_game_window_state",
+		"EDITOR_GEOMETRY_PATH",
+		"_configure_editor_window_geometry",
+		"screen_get_usable_rect",
 	]
 	for token in required_tokens:
 		if not launcher_text.contains(token):
 			failures.append("Runtime Content Editor window contract is missing %s." % token)
+	if launcher_text.contains("_restore_game_window_state"):
+		failures.append("Runtime Content Editor still restores and overrides the game window state.")
 
 
 func _validate_player_light_content() -> void:
@@ -134,6 +146,11 @@ func _validate_borderless_fullscreen_contract() -> void:
 		failures.append("SettingsManager has no desktop-filling borderless fullscreen mode.")
 	if settings_text.contains("WINDOW_MODE_EXCLUSIVE_FULLSCREEN"):
 		failures.append("SettingsManager uses exclusive fullscreen, which locks normal desktop window switching.")
+	for token in ["CONTENT_SCALE_ASPECT_EXPAND", "size_changed.connect", "_refresh_content_scaling_after_resize"]:
+		if not settings_text.contains(token):
+			failures.append("SettingsManager maximized-window scaling is missing %s." % token)
+	if str(ProjectSettings.get_setting("display/window/stretch/aspect", "")) != "expand":
+		failures.append("Project stretch aspect is not expand, so maximized windows can show gray bars.")
 	var shortcut_text := FileAccess.get_file_as_string("res://scripts/ui/DisplayShortcut.gd")
 	if not shortcut_text.contains("KEY_F11") or not shortcut_text.contains("toggle_borderless_fullscreen"):
 		failures.append("Game does not expose F11 borderless fullscreen toggling.")
@@ -169,6 +186,23 @@ func _validate_hit_shake_contract() -> void:
 		failures.append("Damage events do not request both normal and critical screen shake.")
 
 
+func _validate_cursor_hotspot_runtime() -> void:
+	var cursor := ANIMATED_CURSOR_SCRIPT.new()
+	root.add_child(cursor)
+	await process_frame
+	var hotspot: Vector2 = cursor.call("get_cursor_hotspot")
+	if hotspot == Vector2.ZERO:
+		failures.append("Custom cursor still clicks from texture coordinate zero instead of its visible tip.")
+	if hotspot.x < 1.0:
+		failures.append("Custom cursor hotspot did not move right to the visible pointer tip.")
+	var cursor_text := FileAccess.get_file_as_string("res://scripts/ui/AnimatedCursor.gd")
+	for token in ["_detect_visible_tip", "HOTSPOT_ALPHA_THRESHOLDS", "_cursor_hotspot", "get_cursor_hotspot"]:
+		if not cursor_text.contains(token):
+			failures.append("Custom cursor hotspot contract is missing %s." % token)
+	cursor.queue_free()
+	await process_frame
+
+
 func _validate_independent_content_editor_runtime() -> void:
 	var editor := CONTENT_EDITOR_SCENE.instantiate()
 	root.add_child(editor)
@@ -190,6 +224,20 @@ func _validate_independent_content_editor_runtime() -> void:
 		for section in expectations.keys():
 			if not sidebar.has(section):
 				failures.append("Independent Content Editor sidebar is missing %s." % section)
+	var toolbar := editor.get_node_or_null("MarginContainer/MainLayout/ContentSplit/FormPanel/WorkspaceToolbar")
+	var record_panel := editor.get_node_or_null("MarginContainer/MainLayout/ContentSplit/RecordPanel") as Control
+	var record_toggle := toolbar.get_node_or_null("RecordPanelToggle") as Button if toolbar != null else null
+	if toolbar == null or record_toggle == null or record_panel == null:
+		failures.append("Content Editor workspace toolbar or record toggle is missing at runtime.")
+	else:
+		record_toggle.pressed.emit()
+		await process_frame
+		if record_panel.visible:
+			failures.append("Content Editor record panel cannot be hidden to widen the form.")
+		record_toggle.pressed.emit()
+		await process_frame
+		if not record_panel.visible:
+			failures.append("Content Editor record panel cannot be restored.")
 	editor.queue_free()
 	await process_frame
 
