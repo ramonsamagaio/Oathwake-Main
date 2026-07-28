@@ -60,12 +60,11 @@ float oath_warm_mask(vec3 color_value) {
 		* smoothstep(0.10, 0.76, max(max(color_value.r, color_value.g), color_value.b));
 }
 
-float oath_local_light_mask(vec2 uv) {
+float oath_local_light_mask(vec2 uv, float viewport_aspect) {
 	if (!local_light_grading_mask_enabled || !local_light_source_active) {
 		return 0.0;
 	}
 	vec2 delta = uv - local_light_screen_position;
-	float viewport_aspect = SCREEN_PIXEL_SIZE.y / max(SCREEN_PIXEL_SIZE.x, 0.000001);
 	delta.x *= viewport_aspect;
 	float radius = max(local_light_radius_uv, 0.001);
 	float softness = clamp(local_light_mask_softness, 0.01, 1.0);
@@ -129,7 +128,8 @@ vec3 glow_bright_pass(vec3 color_value) {
 void fragment() {
 	vec4 base_color = textureLod(screen_texture, SCREEN_UV, 0.0);
 	vec3 graded_rgb = apply_world_grading(base_color.rgb);
-	float local_light_mask = oath_local_light_mask(SCREEN_UV);
+	float viewport_aspect = SCREEN_PIXEL_SIZE.y / max(SCREEN_PIXEL_SIZE.x, 0.000001);
+	float local_light_mask = oath_local_light_mask(SCREEN_UV, viewport_aspect);
 	vec3 protected_scene = max(base_color.rgb + vec3(local_light_scene_lift * local_light_mask), vec3(0.0));
 	graded_rgb = mix(
 		graded_rgb,
