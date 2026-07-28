@@ -35,6 +35,18 @@ func _validate_content() -> void:
 	var skel: Dictionary = db.get_monster("skeleton")
 	if (slime.get("animations", {}) as Dictionary).size() < 20: failures.append("Slime1 animations incomplete")
 	if (skel.get("animations", {}) as Dictionary).size() < 12: failures.append("Skeleton placeholder animations incomplete")
+	for monster_data in [slime, skel]:
+		var locomotion_value: Variant = (monster_data as Dictionary).get("locomotion", {})
+		if not locomotion_value is Dictionary or float((locomotion_value as Dictionary).get("move_speed", 0.0)) <= 0.0:
+			failures.append("Monster locomotion.move_speed is missing or invalid")
+	var editor_text := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditorRuntimeTuningSuite.gd")
+	for token in ["Movement Speed", "locomotion[\"move_speed\"]", "Saved and applied to the running game"]:
+		if not editor_text.contains(token):
+			failures.append("Runtime Content Editor monster/live-save contract is missing %s" % token)
+	var enhanced_text := FileAccess.get_file_as_string("res://scripts/enemies/EnemyBaseEnhanced.gd")
+	for token in ["_refresh_runtime_monster_content", "_monster_locomotion.configure"]:
+		if not enhanced_text.contains(token):
+			failures.append("Living monsters cannot refresh locomotion after content reload: %s" % token)
 
 func _validate_runtime() -> void:
 	var player := PLAYER_SCENE.instantiate()
@@ -70,6 +82,11 @@ func _validate_runtime() -> void:
 		var sprite := monster.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 		if sprite == null or sprite.sprite_frames == null or sprite.sprite_frames.get_animation_names().is_empty():
 			failures.append("Monster content animation did not load")
+		var locomotion := monster.get_node_or_null("MonsterLocomotion")
+		var monster_data: Dictionary = root.get_node("ContentDB").get_monster(str(monster.get("monster_id")))
+		var expected_speed := float((monster_data.get("locomotion", {}) as Dictionary).get("move_speed", monster_data.get("move_speed", 0.0)))
+		if locomotion == null or not is_equal_approx(float(locomotion.get("move_speed")), expected_speed):
+			failures.append("Monster runtime speed does not match ContentDB locomotion.move_speed")
 		monster.queue_free()
 	player.queue_free(); campfire.queue_free(); door.queue_free()
 	await process_frame
