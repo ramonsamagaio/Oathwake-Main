@@ -45,11 +45,18 @@ func _connect_content_visual_reload() -> void:
 
 
 func _on_content_visuals_reloaded() -> void:
-	var content_db := get_node_or_null("/root/ContentDB")
-	if content_db != null and content_db.has_method("has_monster") and content_db.has_monster(monster_id):
-		monster_data = content_db.get_monster(monster_id)
+	_refresh_runtime_monster_content()
 	_apply_content_visual_effects()
 	_update_world_depth()
+
+
+func _refresh_runtime_monster_content() -> void:
+	_load_monster_data()
+	health = mini(health, max_health)
+	if _monster_locomotion != null and is_instance_valid(_monster_locomotion):
+		_monster_locomotion.configure(monster_data, movement_mode, direction_mode, locomotion_data, speed)
+	if nameplate != null and is_instance_valid(nameplate):
+		_update_nameplate()
 
 
 func _update_world_depth() -> void:

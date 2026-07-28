@@ -45,6 +45,16 @@ func _build_vfx_profile_form() -> void:
 	_add_float_spin_box("Night Shadow Lift", "post_shadow_lift", float(post.get("night_shadow_lift", 0.045)), 0.0, 0.25, 0.005)
 	_add_float_spin_box("Cool Shadow Strength", "post_cool_shadow_strength", float(post.get("night_cool_shadow_strength", 0.34)), 0.0, 1.0, 0.01)
 
+	_add_subsection_title("Local Light Night Mask")
+	var mask_note := Label.new()
+	mask_note.text = "Uses the player PointLight2D as a radial mask against the night grading pass. The world is still dark, but the already-lit pixels remain clean instead of receiving a second blue-dark filter."
+	mask_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(mask_note)
+	_add_check_box("Protect Player-Lit Area", "post_local_light_mask_enabled", bool(post.get("local_light_grading_mask_enabled", true)))
+	_add_float_spin_box("Night Filter Protection", "post_local_light_protection", float(post.get("local_light_grading_protection", 0.92)), 0.0, 1.0, 0.01)
+	_add_float_spin_box("Mask Edge Softness", "post_local_light_softness", float(post.get("local_light_mask_softness", 0.42)), 0.01, 1.0, 0.01)
+	_add_float_spin_box("Protected Scene Lift", "post_local_light_lift", float(post.get("local_light_scene_lift", 0.035)), 0.0, 0.25, 0.005)
+
 
 func _get_vfx_profile_form_record() -> Dictionary:
 	var record := super._get_vfx_profile_form_record()
@@ -77,6 +87,10 @@ func _get_vfx_profile_form_record() -> Dictionary:
 		"warm_light_preservation": _get_spin_box_value("post_warm_preservation"),
 		"night_shadow_lift": _get_spin_box_value("post_shadow_lift"),
 		"night_cool_shadow_strength": _get_spin_box_value("post_cool_shadow_strength"),
+		"local_light_grading_mask_enabled": _get_check_box_pressed("post_local_light_mask_enabled"),
+		"local_light_grading_protection": _get_spin_box_value("post_local_light_protection"),
+		"local_light_mask_softness": _get_spin_box_value("post_local_light_softness"),
+		"local_light_scene_lift": _get_spin_box_value("post_local_light_lift"),
 	}
 	record["world_visuals"] = world_visuals
 	return record

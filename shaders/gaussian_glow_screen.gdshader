@@ -36,6 +36,15 @@ uniform float warm_light_preservation : hint_range(0.0, 1.0, 0.01) = 0.78;
 uniform float night_shadow_lift : hint_range(0.0, 0.25, 0.005) = 0.035;
 uniform float night_cool_shadow_strength : hint_range(0.0, 1.0, 0.01) = 0.32;
 
+uniform bool local_light_grading_mask_enabled = true;
+uniform bool local_light_source_active = false;
+uniform vec2 local_light_screen_position = vec2(0.5, 0.5);
+uniform float local_light_radius_uv : hint_range(0.001, 1.0, 0.001) = 0.16;
+uniform float local_light_source_strength : hint_range(0.0, 1.0, 0.001) = 0.0;
+uniform float local_light_grading_protection : hint_range(0.0, 1.0, 0.01) = 0.92;
+uniform float local_light_mask_softness : hint_range(0.01, 1.0, 0.01) = 0.42;
+uniform float local_light_scene_lift : hint_range(0.0, 0.25, 0.005) = 0.035;
+
 float oath_luminance(vec3 color_value) {
 	return dot(color_value, vec3(0.2126, 0.7152, 0.0722));
 }
@@ -49,6 +58,19 @@ float oath_warm_mask(vec3 color_value) {
 	float amber_presence = min(color_value.r, color_value.g * 1.28) - color_value.b * 0.42;
 	return smoothstep(0.015, 0.30, max(red_dominance, amber_presence))
 		* smoothstep(0.10, 0.76, max(max(color_value.r, color_value.g), color_value.b));
+}
+
+float oath_local_light_mask(vec2 uv, float viewport_aspect) {
+	if (!local_light_grading_mask_enabled || !local_light_source_active) {
+		return 0.0;
+	}
+	vec2 delta = uv - local_light_screen_position;
+	delta.x *= viewport_aspect;
+	float radius = max(local_light_radius_uv, 0.001);
+	float softness = clamp(local_light_mask_softness, 0.01, 1.0);
+	float inner_radius = radius * (1.0 - softness);
+	float radial = 1.0 - smoothstep(inner_radius, radius, length(delta));
+	return radial * clamp(local_light_source_strength, 0.0, 1.0) * clamp(night_strength, 0.0, 1.0);
 }
 
 vec3 apply_world_grading(vec3 input_color) {
@@ -106,6 +128,14 @@ vec3 glow_bright_pass(vec3 color_value) {
 void fragment() {
 	vec4 base_color = textureLod(screen_texture, SCREEN_UV, 0.0);
 	vec3 graded_rgb = apply_world_grading(base_color.rgb);
+	float viewport_aspect = SCREEN_PIXEL_SIZE.y / max(SCREEN_PIXEL_SIZE.x, 0.000001);
+	float local_light_mask = oath_local_light_mask(SCREEN_UV, viewport_aspect);
+	vec3 protected_scene = max(base_color.rgb + vec3(local_light_scene_lift * local_light_mask), vec3(0.0));
+	graded_rgb = mix(
+		graded_rgb,
+		protected_scene,
+		clamp(local_light_mask * local_light_grading_protection, 0.0, 1.0)
+	);
 	vec3 output_rgb = graded_rgb;
 	if (enabled && bloom_enabled && bloom_intensity > 0.0 && mix_amount > 0.0) {
 		float blur_lod = clamp(

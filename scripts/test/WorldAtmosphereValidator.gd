@@ -49,6 +49,10 @@ func _validate_content_contract() -> void:
 	for label in ["World Occlusion", "Shared World Wind", "Biome Ambient Particles"]:
 		if not editor_text.contains(label):
 			failures.append("Content Editor is missing %s controls." % label)
+	var particle_text := FileAccess.get_file_as_string("res://scripts/effects/AmbientParticleField.gd")
+	for token in ["top_level = true", "get_particle_world_positions", "_wrap_position(position_value, recycle_center)"]:
+		if not particle_text.contains(token):
+			failures.append("Ambient particle field is missing world-anchor contract %s." % token)
 
 
 func _validate_runtime_contract() -> void:
@@ -68,6 +72,13 @@ func _validate_runtime_contract() -> void:
 	var ambient := director.get_node_or_null("AmbientParticleField") as Node2D
 	if ambient == null or not ambient.is_processing():
 		failures.append("WorldVisualDirector did not create an active ambient particle field.")
+	else:
+		if not ambient.has_method("is_world_anchored") or not bool(ambient.call("is_world_anchored")):
+			failures.append("Ambient particles are not fixed to world coordinates.")
+		player.global_position += Vector2(96.0, 48.0)
+		await process_frame
+		if not ambient.global_position.is_zero_approx():
+			failures.append("Ambient particles followed the player/camera instead of remaining on the map.")
 	if not director.has_method("get_wind_vector") or (director.call("get_wind_vector") as Vector2).length() <= 0.0:
 		failures.append("WorldVisualDirector does not publish active shared wind.")
 

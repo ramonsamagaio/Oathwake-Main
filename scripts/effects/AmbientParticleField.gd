@@ -16,11 +16,15 @@ func configure(config: Dictionary, wind_source: Node) -> void:
 	_area_size = _vector_from_value(_config.get("area_size", {}), Vector2(900.0, 520.0))
 	_area_size.x = maxf(_area_size.x, 64.0)
 	_area_size.y = maxf(_area_size.y, 64.0)
+	if is_inside_tree() and (_anchor == null or not is_instance_valid(_anchor)):
+		_anchor = get_tree().get_first_node_in_group("player") as Node2D
 	_reset_particles()
 
 
 func _ready() -> void:
 	_rng.randomize()
+	top_level = true
+	global_position = Vector2.ZERO
 	z_as_relative = false
 	z_index = int(_config.get("z_index", 3600))
 	_anchor = get_tree().get_first_node_in_group("player") as Node2D
@@ -33,8 +37,9 @@ func _process(delta: float) -> void:
 	_time += delta
 	if _anchor == null or not is_instance_valid(_anchor):
 		_anchor = get_tree().get_first_node_in_group("player") as Node2D
-	if _anchor != null:
-		global_position = _anchor.global_position.round()
+	# This canvas remains fixed in world space. The player is used only as the
+	# center of the recycling area, never as the transform of the particles.
+	global_position = Vector2.ZERO
 	_update_night_strength()
 	_update_particles(delta)
 	queue_redraw()
@@ -89,10 +94,11 @@ func _reset_particles() -> void:
 
 
 func _add_particles(kind: String, count: int, min_size: float, max_size: float) -> void:
+	var center := _get_anchor_position()
 	for _index in range(count):
 		_particles.append({
 			"kind": kind,
-			"position": Vector2(
+			"position": center + Vector2(
 				_rng.randf_range(-_area_size.x * 0.5, _area_size.x * 0.5),
 				_rng.randf_range(-_area_size.y * 0.5, _area_size.y * 0.5)
 			),
@@ -106,6 +112,7 @@ func _update_particles(delta: float) -> void:
 	var wind := Vector2(10.0, 1.0)
 	if _wind_source != null and is_instance_valid(_wind_source) and _wind_source.has_method("get_wind_vector"):
 		wind = _wind_source.call("get_wind_vector")
+	var recycle_center := _get_anchor_position()
 	for index in range(_particles.size()):
 		var particle := _particles[index]
 		var kind := str(particle.get("kind", "pollen"))
@@ -120,21 +127,40 @@ func _update_particles(delta: float) -> void:
 				position_value += (wind * (0.55 + seed * 0.18) + Vector2(0.0, 5.0) + drift * 2.0) * delta
 			_:
 				position_value += (wind * 0.12 + drift * 3.2 + Vector2(0.0, -0.8)) * delta
-		particle["position"] = _wrap_position(position_value)
+		particle["position"] = _wrap_position(position_value, recycle_center)
 		_particles[index] = particle
 
 
-func _wrap_position(value: Vector2) -> Vector2:
+func _wrap_position(value: Vector2, center: Vector2) -> Vector2:
 	var half := _area_size * 0.5
-	if value.x < -half.x:
+	var minimum := center - half
+	var maximum := center + half
+	if value.x < minimum.x:
 		value.x += _area_size.x
-	elif value.x > half.x:
+	elif value.x > maximum.x:
 		value.x -= _area_size.x
-	if value.y < -half.y:
+	if value.y < minimum.y:
 		value.y += _area_size.y
-	elif value.y > half.y:
+	elif value.y > maximum.y:
 		value.y -= _area_size.y
 	return value
+
+
+func _get_anchor_position() -> Vector2:
+	if _anchor != null and is_instance_valid(_anchor):
+		return _anchor.global_position.round()
+	return Vector2.ZERO
+
+
+func get_particle_world_positions() -> Array[Vector2]:
+	var result: Array[Vector2] = []
+	for particle in _particles:
+		result.append(particle.get("position", Vector2.ZERO) as Vector2)
+	return result
+
+
+func is_world_anchored() -> bool:
+	return top_level and global_position.is_zero_approx()
 
 
 func _update_night_strength() -> void:
