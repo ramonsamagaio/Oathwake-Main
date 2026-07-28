@@ -30,8 +30,8 @@ func _run() -> void:
 func _validate_responsive_project_settings() -> void:
 	if str(ProjectSettings.get_setting("display/window/stretch/mode", "")) != "viewport":
 		failures.append("Stretch mode must be viewport so the 1600x900 composition scales as one canvas.")
-	if str(ProjectSettings.get_setting("display/window/stretch/aspect", "")) != "keep":
-		failures.append("Stretch aspect must be keep so layout proportions do not drift.")
+	if str(ProjectSettings.get_setting("display/window/stretch/aspect", "")) != "expand":
+		failures.append("Stretch aspect must be expand so maximized windows fill without gray bars.")
 	if str(ProjectSettings.get_setting("display/window/stretch/scale_mode", "")) != "fractional":
 		failures.append("Stretch scale mode must be fractional for arbitrary maximized window sizes.")
 	if int(ProjectSettings.get_setting("display/window/size/viewport_width", 0)) != 1600:
