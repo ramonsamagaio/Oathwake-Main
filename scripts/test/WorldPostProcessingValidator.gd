@@ -1,6 +1,7 @@
 extends SceneTree
 
 const SCREEN_EFFECTS_SCENE := preload("res://scenes/effects/ScreenEffects.tscn")
+const PLAYER_SCENE := preload("res://scenes/Player.tscn")
 
 var failures: Array[String] = []
 
@@ -55,7 +56,7 @@ func _validate_content_contract() -> Dictionary:
 	if float(post_data.get("warm_light_preservation", 0.0)) <= 0.0:
 		failures.append("Warm light preservation is disabled.")
 	var editor_text := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditorPostProcessSuite.gd")
-	for label in ["Selective Emissive Bloom", "Time-Aware Color Grading", "Warm Light Preservation"]:
+	for label in ["Selective Emissive Bloom", "Time-Aware Color Grading", "Warm Light Preservation", "Local Light Night Mask", "Protect Player-Lit Area"]:
 		if not editor_text.contains(label):
 			failures.append("Content Editor post-processing controls are missing %s." % label)
 	return post_data
@@ -71,6 +72,9 @@ func _validate_shader_contract() -> void:
 		"night_strength",
 		"warm_light_preservation",
 		"night_cool_shadow_strength",
+		"local_light_grading_mask_enabled",
+		"oath_local_light_mask",
+		"local_light_grading_protection",
 	]:
 		if not shader_text.contains(token):
 			failures.append("Unified screen shader is missing %s." % token)
@@ -79,6 +83,8 @@ func _validate_shader_contract() -> void:
 
 
 func _validate_runtime_contract(post: Dictionary) -> void:
+	var player := PLAYER_SCENE.instantiate()
+	root.add_child(player)
 	var screen_effects := SCREEN_EFFECTS_SCENE.instantiate()
 	root.add_child(screen_effects)
 	await process_frame
@@ -87,7 +93,7 @@ func _validate_runtime_contract(post: Dictionary) -> void:
 	var back_buffer := screen_effects.get_node_or_null("BackBufferCopy") as BackBufferCopy
 	if compositor == null or not (compositor.material is ShaderMaterial):
 		failures.append("ScreenEffects has no unified compositor material.")
-		screen_effects.queue_free()
+		_cleanup(screen_effects, player)
 		return
 	var material := compositor.material as ShaderMaterial
 	if not compositor.visible:
@@ -102,17 +108,37 @@ func _validate_runtime_contract(post: Dictionary) -> void:
 		failures.append("Runtime neutral suppression does not match content data.")
 	if not is_equal_approx(float(material.get_shader_parameter("warm_light_preservation")), float(post.get("warm_light_preservation", -1.0))):
 		failures.append("Runtime warm light preservation does not match content data.")
+	if not bool(material.get_shader_parameter("local_light_grading_mask_enabled")):
+		failures.append("Runtime local-light grading mask is disabled.")
+
 	if screen_effects.has_method("set_day_night_strength"):
 		# This isolated scene intentionally has no DayNightCycle. Freeze its normal
 		# polling while directly exercising the public transition contract.
 		screen_effects.set_process(false)
+		var player_light := player.get_node_or_null("NightLight")
+		if player_light != null and player_light.has_method("set_day_night_strength"):
+			player_light.call("set_day_night_strength", 1.0)
 		screen_effects.call("set_day_night_strength", 1.0)
+		screen_effects.call("_sync_local_light_grading_mask")
 		if not is_equal_approx(float(material.get_shader_parameter("night_strength")), 1.0):
 			failures.append("Screen compositor did not receive full night strength.")
+		if not bool(material.get_shader_parameter("local_light_source_active")):
+			failures.append("Player PointLight2D did not activate the night-grading protection mask.")
+		if float(material.get_shader_parameter("local_light_radius_uv")) <= 0.0:
+			failures.append("Player light protection mask has no radius.")
+		if float(material.get_shader_parameter("local_light_source_strength")) <= 0.0:
+			failures.append("Player light protection mask has no strength.")
 		screen_effects.call("set_day_night_strength", 0.0)
 		if not is_equal_approx(float(material.get_shader_parameter("night_strength")), 0.0):
 			failures.append("Screen compositor did not return to day grading.")
 	else:
 		failures.append("ScreenEffects does not expose day/night strength control.")
-	screen_effects.queue_free()
+	_cleanup(screen_effects, player)
 	await process_frame
+
+
+func _cleanup(screen_effects: Node, player: Node) -> void:
+	if is_instance_valid(screen_effects):
+		screen_effects.queue_free()
+	if is_instance_valid(player):
+		player.queue_free()
