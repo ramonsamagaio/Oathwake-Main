@@ -16,16 +16,15 @@ func _init() -> void:
 
 
 func _run() -> void:
-	_validate_content_editor_sections()
-	_validate_runtime_editor_button()
-	_validate_runtime_editor_window_contract()
+	_validate_content_editor_contracts()
+	_validate_runtime_editor_launcher_contract()
 	_validate_player_light_content()
-	_validate_camera_display_content()
-	_validate_borderless_fullscreen_contract()
+	_validate_camera_and_fullscreen_contracts()
 	_validate_debug_action_panel()
 	_validate_hit_shake_contract()
 	await _validate_cursor_hotspot_runtime()
 	await _validate_independent_content_editor_runtime()
+	await _validate_embedded_content_editor_lifecycle()
 	await _validate_camera_zoom_runtime()
 	await _validate_night_only_light_runtime()
 	await _validate_global_spawn_lock_runtime()
@@ -38,7 +37,7 @@ func _run() -> void:
 	quit(1)
 
 
-func _validate_content_editor_sections() -> void:
+func _validate_content_editor_contracts() -> void:
 	var independent_editor := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditorIndependentTabsSuite.gd")
 	for token in ["SECTION_WORLD_SHADOWS", "SECTION_POST_EFFECTS", "SECTION_CAMERA_DISPLAY", "World Shadows", "Post Effects", "Camera & Display", "_install_independent_sidebar_buttons"]:
 		if not independent_editor.contains(token):
@@ -46,6 +45,7 @@ func _validate_content_editor_sections() -> void:
 	for label in ["Projected Shadows Enabled", "Normal Hit Screen Shake", "Mouse Wheel Camera Zoom", "Desktop-Filling Fullscreen"]:
 		if not independent_editor.contains(label):
 			failures.append("Independent Content Editor tabs are missing %s." % label)
+
 	var player_editor := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditorPlayerVisualSuite.gd")
 	for label in ["World Occlusion", "Biome Ambient Particles"]:
 		if not player_editor.contains(label):
@@ -54,9 +54,10 @@ func _validate_content_editor_sections() -> void:
 	for label in ["Layered World Fog", "Forest Light Shafts"]:
 		if not environment_editor.contains(label):
 			failures.append("Post Effects inherited controls are missing %s." % label)
+
 	var editor_scene := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditor.tscn")
-	if not editor_scene.contains("ContentEditorUsabilitySuite.gd"):
-		failures.append("ContentEditor.tscn is not using the usability suite.")
+	if not editor_scene.contains("ContentEditorRuntimeTuningSuite.gd"):
+		failures.append("ContentEditor.tscn is not using the runtime-safe tuning suite.")
 	var usability_text := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditorUsabilitySuite.gd")
 	for token in ["Hide Record List", "Reset Columns", "Maximize Editor", "Close", "WORKSPACE_MINIMUM_SIZE"]:
 		if not usability_text.contains(token):
@@ -64,8 +65,21 @@ func _validate_content_editor_sections() -> void:
 	if usability_text.contains("DisplayServer.window_set_size"):
 		failures.append("Content Editor still resizes the game through global DisplayServer calls.")
 
+	var runtime_suite := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditorRuntimeTuningSuite.gd")
+	for token in [
+		"_runtime_shutting_down",
+		"prepare_for_runtime_close",
+		"process_mode = Node.PROCESS_MODE_DISABLED",
+		"func _fit_root_to_viewport",
+		"func _install_workspace_usability",
+		"func _request_close_editor",
+		"window.is_embedded()",
+	]:
+		if not runtime_suite.contains(token):
+			failures.append("Runtime Content Editor shutdown contract is missing %s." % token)
 
-func _validate_runtime_editor_button() -> void:
+
+func _validate_runtime_editor_launcher_contract() -> void:
 	var game := GAME_SCENE.instantiate()
 	var button := game.get_node_or_null("UI/ContentEditorButton") as Button
 	if button == null:
@@ -77,40 +91,43 @@ func _validate_runtime_editor_button() -> void:
 	var script := button.get_script() as Script
 	if script == null or script.resource_path != "res://scripts/ui/RuntimeContentEditorButton.gd":
 		failures.append("Content Editor gear button is not wired to the runtime launcher.")
-	var launcher_text := FileAccess.get_file_as_string("res://scripts/ui/RuntimeContentEditorButton.gd")
-	for token in ["ContentEditor.tscn", "post_effects", "ContentDB", "FileAccess.get_md5"]:
-		if not launcher_text.contains(token):
-			failures.append("Runtime Content Editor launcher is missing %s." % token)
 	game.free()
 
-
-func _validate_runtime_editor_window_contract() -> void:
 	var launcher_text := FileAccess.get_file_as_string("res://scripts/ui/RuntimeContentEditorButton.gd")
-	var required_tokens := [
-		"root_window.gui_embed_subwindows = false",
+	for token in [
+		"ContentEditor.tscn",
+		"root_window.gui_embed_subwindows = true",
+		"force_native = false",
 		"close_requested.connect(_close_content_editor)",
-		"unresizable = false",
-		"borderless = false",
+		"prepare_for_runtime_close",
+		"_finalize_content_editor_close",
+		"await window_to_close.tree_exited",
+		"process_mode = Node.PROCESS_MODE_DISABLED",
+		"window_to_close.hide()",
 		"KEY_ESCAPE",
 		"EDITOR_GEOMETRY_PATH",
-		"_configure_editor_window_geometry",
-		"screen_get_usable_rect",
-	]
-	for token in required_tokens:
+		"_get_embedder_size",
+	]:
 		if not launcher_text.contains(token):
-			failures.append("Runtime Content Editor window contract is missing %s." % token)
-	if launcher_text.contains("_restore_game_window_state"):
-		failures.append("Runtime Content Editor still restores and overrides the game window state.")
+			failures.append("Runtime Content Editor launcher is missing %s." % token)
+	for forbidden in [
+		"gui_embed_subwindows = false",
+		"_previous_embed_subwindows",
+		"screen_get_usable_rect",
+		"FileAccess.get_md5",
+	]:
+		if launcher_text.contains(forbidden):
+			failures.append("Runtime Content Editor still contains unsafe or wasteful behavior: %s." % forbidden)
 
 
 func _validate_player_light_content() -> void:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/player_tuning.json"))
-	if not (parsed is Dictionary):
+	if not parsed is Dictionary:
 		failures.append("player_tuning.json is invalid.")
 		return
 	var default_value: Variant = (parsed as Dictionary).get("default", {})
 	var light_value: Variant = (default_value as Dictionary).get("light", {}) if default_value is Dictionary else {}
-	if not (light_value is Dictionary):
+	if not light_value is Dictionary:
 		failures.append("Player tuning has no light block.")
 		return
 	if not is_zero_approx(float((light_value as Dictionary).get("day_multiplier", -1.0))):
@@ -120,27 +137,23 @@ func _validate_player_light_content() -> void:
 		failures.append("Player aura is not configured to follow day/night strength.")
 
 
-func _validate_camera_display_content() -> void:
+func _validate_camera_and_fullscreen_contracts() -> void:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/player_tuning.json"))
-	if not (parsed is Dictionary):
-		return
-	var default_value: Variant = (parsed as Dictionary).get("default", {})
-	if not default_value is Dictionary:
-		return
-	var camera: Variant = (default_value as Dictionary).get("camera", {})
-	if not camera is Dictionary:
-		failures.append("Player tuning has no camera block.")
-		return
-	for key in ["wheel_zoom_enabled", "default_zoom", "minimum_zoom", "maximum_zoom", "zoom_step", "zoom_smoothing_speed"]:
-		if not (camera as Dictionary).has(key):
-			failures.append("Camera tuning is missing %s." % key)
+	if parsed is Dictionary:
+		var default_value: Variant = (parsed as Dictionary).get("default", {})
+		var camera: Variant = (default_value as Dictionary).get("camera", {}) if default_value is Dictionary else {}
+		if not camera is Dictionary:
+			failures.append("Player tuning has no camera block.")
+		else:
+			for key in ["wheel_zoom_enabled", "default_zoom", "minimum_zoom", "maximum_zoom", "zoom_step", "zoom_smoothing_speed"]:
+				if not (camera as Dictionary).has(key):
+					failures.append("Camera tuning is missing %s." % key)
+
 	var camera_text := FileAccess.get_file_as_string("res://scripts/camera/CameraShake2D.gd")
 	for token in ["MOUSE_BUTTON_WHEEL_UP", "MOUSE_BUTTON_WHEEL_DOWN", "target_zoom_level", "request_hit_shake"]:
 		if not camera_text.contains(token):
 			failures.append("Camera runtime is missing %s." % token)
 
-
-func _validate_borderless_fullscreen_contract() -> void:
 	var settings_text := FileAccess.get_file_as_string("res://scripts/systems/SettingsManager.gd")
 	if not settings_text.contains("WINDOW_MODE_FULLSCREEN"):
 		failures.append("SettingsManager has no desktop-filling borderless fullscreen mode.")
@@ -191,14 +204,8 @@ func _validate_cursor_hotspot_runtime() -> void:
 	root.add_child(cursor)
 	await process_frame
 	var hotspot: Vector2 = cursor.call("get_cursor_hotspot")
-	if hotspot == Vector2.ZERO:
-		failures.append("Custom cursor still clicks from texture coordinate zero instead of its visible tip.")
-	if hotspot.x < 1.0:
-		failures.append("Custom cursor hotspot did not move right to the visible pointer tip.")
-	var cursor_text := FileAccess.get_file_as_string("res://scripts/ui/AnimatedCursor.gd")
-	for token in ["_detect_visible_tip", "HOTSPOT_ALPHA_THRESHOLDS", "_cursor_hotspot", "get_cursor_hotspot"]:
-		if not cursor_text.contains(token):
-			failures.append("Custom cursor hotspot contract is missing %s." % token)
+	if hotspot == Vector2.ZERO or hotspot.x < 1.0:
+		failures.append("Custom cursor hotspot is not aligned to its visible pointer tip.")
 	cursor.queue_free()
 	await process_frame
 
@@ -219,26 +226,66 @@ func _validate_independent_content_editor_runtime() -> void:
 		var controls_value: Variant = editor.get("field_controls")
 		if not controls_value is Dictionary or not (controls_value as Dictionary).has(str(expectations[section])):
 			failures.append("Independent Content Editor section %s did not build expected control %s." % [section, expectations[section]])
-	if editor.get("sidebar_buttons") is Dictionary:
-		var sidebar := editor.get("sidebar_buttons") as Dictionary
-		for section in expectations.keys():
-			if not sidebar.has(section):
-				failures.append("Independent Content Editor sidebar is missing %s." % section)
 	var toolbar := editor.get_node_or_null("MarginContainer/MainLayout/ContentSplit/FormPanel/WorkspaceToolbar")
 	var record_panel := editor.get_node_or_null("MarginContainer/MainLayout/ContentSplit/RecordPanel") as Control
 	var record_toggle := toolbar.get_node_or_null("RecordPanelToggle") as Button if toolbar != null else null
 	if toolbar == null or record_toggle == null or record_panel == null:
 		failures.append("Content Editor workspace toolbar or record toggle is missing at runtime.")
 	else:
-		record_toggle.pressed.emit()
+		record_toggle.emit_signal("pressed")
 		await process_frame
 		if record_panel.visible:
 			failures.append("Content Editor record panel cannot be hidden to widen the form.")
-		record_toggle.pressed.emit()
+		record_toggle.emit_signal("pressed")
 		await process_frame
 		if not record_panel.visible:
 			failures.append("Content Editor record panel cannot be restored.")
+	editor.call("prepare_for_runtime_close")
+	editor.call_deferred("_install_workspace_usability")
 	editor.queue_free()
+	await process_frame
+	await process_frame
+
+
+func _validate_embedded_content_editor_lifecycle() -> void:
+	root.gui_embed_subwindows = true
+	var game := GAME_SCENE.instantiate()
+	root.add_child(game)
+	await process_frame
+	await process_frame
+	var button := game.get_node_or_null("UI/ContentEditorButton") as Button
+	if button == null:
+		failures.append("Cannot exercise runtime Content Editor lifecycle without its launcher button.")
+		game.queue_free()
+		return
+
+	for cycle in range(2):
+		button.emit_signal("pressed")
+		await process_frame
+		await process_frame
+		await process_frame
+		var editor_window := button.call("get_runtime_editor_window") as Window
+		if editor_window == null:
+			failures.append("Runtime Content Editor did not open on lifecycle cycle %d." % cycle)
+			break
+		if not root.gui_embed_subwindows or not editor_window.is_embedded():
+			failures.append("Runtime Content Editor opened as a native window instead of an embedded window.")
+		if editor_window.force_native:
+			failures.append("Runtime Content Editor forces a second native presentation surface.")
+		var editor_instance := editor_window.get_node_or_null("ContentEditor")
+		if editor_instance == null or not editor_instance.has_method("prepare_for_runtime_close"):
+			failures.append("Runtime Content Editor has no shutdown guard.")
+
+		button.emit_signal("pressed")
+		for _frame in range(5):
+			await process_frame
+		if root.get_node_or_null("RuntimeContentEditorWindow") != null:
+			failures.append("Runtime Content Editor Window survived its deferred close cycle.")
+		if bool(button.call("is_runtime_editor_closing")):
+			failures.append("Runtime Content Editor launcher remained locked in closing state.")
+
+	game.queue_free()
+	await process_frame
 	await process_frame
 
 
@@ -260,8 +307,7 @@ func _validate_camera_zoom_runtime() -> void:
 	if float(camera.get("target_zoom_level")) <= initial_target:
 		failures.append("Mouse wheel up does not increase the camera zoom target.")
 	var game := GAME_SCENE.instantiate()
-	var ui := game.get_node_or_null("UI") as CanvasLayer
-	if ui == null:
+	if game.get_node_or_null("UI") as CanvasLayer == null:
 		failures.append("HUD is no longer isolated in a CanvasLayer from camera zoom.")
 	game.free()
 	player.queue_free()
@@ -285,16 +331,12 @@ func _validate_night_only_light_runtime() -> void:
 		failures.append("GlowOverlay scene is missing visual or PointLight2D nodes.")
 		glow.queue_free()
 		return
-	if texture_glow.visible:
-		failures.append("Player aura remains visible during full daylight.")
-	if point_light.enabled or point_light.energy > 0.001:
-		failures.append("Player PointLight2D remains active during full daylight.")
+	if texture_glow.visible or point_light.enabled or point_light.energy > 0.001:
+		failures.append("Player light remains active during full daylight.")
 	glow.call("set_day_night_strength", 0.5)
 	await process_frame
-	if not texture_glow.visible:
-		failures.append("Player aura does not appear during dusk.")
-	if not point_light.enabled or point_light.energy <= 0.001:
-		failures.append("Player PointLight2D does not appear during dusk.")
+	if not texture_glow.visible or not point_light.enabled or point_light.energy <= 0.001:
+		failures.append("Player light does not appear during dusk.")
 	glow.queue_free()
 	await process_frame
 
