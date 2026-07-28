@@ -1,8 +1,9 @@
-[gd_scene format=3 uid="uid://cn6juf8fptk0e"]
+[gd_scene load_steps=3 format=3 uid="uid://cn6juf8fptk0e"]
 
 ; ContentEditorPostEffectsNavigationSuite.gd extends ContentEditorRuntimeTuningSuite.gd.
 ; ContentEditorRuntimeTuningSuite.gd extends ContentEditorUsabilitySuite.gd.
 [ext_resource type="Script" path="res://tools/content_editor/ContentEditorPostEffectsNavigationSuite.gd" id="1_content_editor_script"]
+[ext_resource type="Script" path="res://scripts/test/RuntimeContentEditorContractProbe.gd" id="2_contract_probe"]
 
 [node name="ContentEditor" type="Control" unique_id=47190531]
 custom_minimum_size = Vector2(800, 500)
@@ -13,3 +14,6 @@ offset_bottom = 900.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_content_editor_script")
+
+[node name="RuntimeContractProbe" type="Node" parent="."]
+script = ExtResource("2_contract_probe")
