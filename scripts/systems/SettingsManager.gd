@@ -2,6 +2,7 @@ extends Node
 
 const DEFAULT_SETTINGS_PATH := "res://data/settings.json"
 const USER_SETTINGS_PATH := "user://settings.json"
+const BASE_VIEWPORT_SIZE := Vector2i(1600, 900)
 
 var settings := {
 	"resolution": "1600x900",
@@ -37,6 +38,7 @@ func save_settings() -> String:
 
 
 func apply_settings() -> void:
+	_apply_content_scaling()
 	_apply_resolution(str(settings.get("resolution", "1600x900")))
 	_apply_fullscreen(bool(settings.get("fullscreen", false)))
 	_apply_vsync(bool(settings.get("vsync", true)))
@@ -99,6 +101,17 @@ func _load_settings_file(path: String, fallback: Dictionary) -> Dictionary:
 	for key in parsed.keys():
 		loaded_settings[str(key)] = parsed[key]
 	return loaded_settings
+
+
+func _apply_content_scaling() -> void:
+	var root_loop := Engine.get_main_loop()
+	if not root_loop is SceneTree:
+		return
+	var scene_tree := root_loop as SceneTree
+	var root_window := scene_tree.root
+	root_window.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
+	root_window.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
+	root_window.content_scale_size = BASE_VIEWPORT_SIZE
 
 
 func _apply_resolution(resolution: String) -> void:
