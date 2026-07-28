@@ -10,6 +10,7 @@ var _dash_tween: Tween
 var _post_processing_config: Dictionary = {}
 var _night_strength := 0.0
 var _last_applied_night_strength := -1.0
+var _local_light_source: Node2D
 
 
 func _ready() -> void:
@@ -30,6 +31,7 @@ func _process(_delta: float) -> void:
 	if cycle != null and cycle.has_method("get_night_strength"):
 		target_strength = clampf(float(cycle.call("get_night_strength")), 0.0, 1.0)
 	set_day_night_strength(target_strength)
+	_sync_local_light_grading_mask()
 
 
 func set_day_night_strength(strength: float) -> void:
@@ -175,13 +177,61 @@ func _sync_glow_material() -> void:
 	shader_material.set_shader_parameter("warm_light_preservation", _float_setting("warm_light_preservation"))
 	shader_material.set_shader_parameter("night_shadow_lift", _float_setting("night_shadow_lift"))
 	shader_material.set_shader_parameter("night_cool_shadow_strength", _float_setting("night_cool_shadow_strength"))
+	shader_material.set_shader_parameter("local_light_grading_mask_enabled", bool(_post_processing_config.get("local_light_grading_mask_enabled", true)))
+	shader_material.set_shader_parameter("local_light_grading_protection", float(_post_processing_config.get("local_light_grading_protection", 0.92)))
+	shader_material.set_shader_parameter("local_light_mask_softness", float(_post_processing_config.get("local_light_mask_softness", 0.42)))
+	shader_material.set_shader_parameter("local_light_scene_lift", float(_post_processing_config.get("local_light_scene_lift", 0.035)))
 	_sync_dynamic_grading()
+	_sync_local_light_grading_mask()
 
 
 func _sync_dynamic_grading() -> void:
 	if gaussian_glow == null or not (gaussian_glow.material is ShaderMaterial):
 		return
 	(gaussian_glow.material as ShaderMaterial).set_shader_parameter("night_strength", _night_strength)
+
+
+func _sync_local_light_grading_mask() -> void:
+	if gaussian_glow == null or not (gaussian_glow.material is ShaderMaterial):
+		return
+	var material := gaussian_glow.material as ShaderMaterial
+	if not bool(_post_processing_config.get("local_light_grading_mask_enabled", true)) or _night_strength <= 0.001:
+		material.set_shader_parameter("local_light_source_active", false)
+		return
+
+	if _local_light_source == null or not is_instance_valid(_local_light_source):
+		var player := get_tree().get_first_node_in_group("player")
+		if player != null:
+			_local_light_source = player.get_node_or_null("NightLight") as Node2D
+	if _local_light_source == null or not is_instance_valid(_local_light_source):
+		material.set_shader_parameter("local_light_source_active", false)
+		return
+
+	var point_light := _local_light_source.get_node_or_null("PointLight2D") as PointLight2D
+	if point_light == null or not point_light.enabled or point_light.energy <= 0.001 or point_light.texture == null:
+		material.set_shader_parameter("local_light_source_active", false)
+		return
+
+	var viewport_size := get_viewport().get_visible_rect().size
+	if viewport_size.x <= 1.0 or viewport_size.y <= 1.0:
+		material.set_shader_parameter("local_light_source_active", false)
+		return
+	var canvas_transform := get_viewport().get_canvas_transform()
+	var screen_position := canvas_transform * _local_light_source.global_position
+	var screen_uv := Vector2(screen_position.x / viewport_size.x, screen_position.y / viewport_size.y)
+	var canvas_scale_x := canvas_transform.x.length()
+	var canvas_scale_y := canvas_transform.y.length()
+	var canvas_scale := maxf((canvas_scale_x + canvas_scale_y) * 0.5, 0.001)
+	var texture_size := point_light.texture.get_size()
+	var radius_world := maxf(texture_size.x, texture_size.y) * 0.5 * point_light.texture_scale
+	var radius_pixels := radius_world * canvas_scale
+	var radius_uv := radius_pixels / minf(viewport_size.x, viewport_size.y)
+	var source_strength := clampf(point_light.energy * 1.55, 0.0, 1.0)
+
+	material.set_shader_parameter("local_light_source_active", true)
+	material.set_shader_parameter("local_light_screen_position", screen_uv)
+	material.set_shader_parameter("local_light_radius_uv", maxf(radius_uv, 0.001))
+	material.set_shader_parameter("local_light_source_strength", source_strength)
 
 
 func _float_setting(key: String) -> float:
