@@ -1,7 +1,7 @@
 class_name LocalLightShadowDirector
 extends Node
 
-const DynamicShadowScript := preload("res://scripts/effects/DynamicProjectedSpriteShadow.gd")
+const ActiveFrameShadowScript := preload("res://scripts/effects/ActiveFrameProjectedShadow.gd")
 const CASTER_GROUP := "projected_shadow_caster"
 const EMITTER_GROUP := "world_light_emitter"
 
@@ -160,7 +160,7 @@ func _sync_local_shadow(
 	if stored_shadow != null and is_instance_valid(stored_shadow):
 		shadow = stored_shadow as Polygon2D
 	if shadow == null:
-		shadow = DynamicShadowScript.new() as Polygon2D
+		shadow = ActiveFrameShadowScript.new() as Polygon2D
 		target.add_child(shadow)
 		_local_shadows[key] = shadow
 	var emitter_position := light.global_position
