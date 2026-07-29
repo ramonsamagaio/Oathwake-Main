@@ -12,6 +12,7 @@ var time_of_day := 0.0
 
 var canvas_modulate: CanvasModulate
 var state_label: Label
+var _solar_shadows_are_processing := true
 
 
 func _ready() -> void:
@@ -101,6 +102,7 @@ func get_sun_shadow_direction_degrees() -> float:
 func _update_day_night_visuals() -> void:
 	var night_strength := _get_night_strength()
 	var daylight_strength := 1.0 - night_strength
+	var solar_shadow_strength := get_solar_shadow_strength()
 	if canvas_modulate != null:
 		canvas_modulate.color = day_color.lerp(night_color, night_strength)
 	if state_label != null:
@@ -108,7 +110,18 @@ func _update_day_night_visuals() -> void:
 	for emitter in get_tree().get_nodes_in_group("world_light_emitter"):
 		if emitter != null and emitter.has_method("set_day_night_strength"):
 			emitter.call("set_day_night_strength", night_strength)
+	_sync_solar_shadow_processing(solar_shadow_strength)
 	lighting_state_changed.emit(time_of_day, night_strength, daylight_strength, get_sun_shadow_direction_degrees())
+
+
+func _sync_solar_shadow_processing(solar_shadow_strength: float) -> void:
+	var should_process := solar_shadow_strength > 0.001
+	if should_process == _solar_shadows_are_processing:
+		return
+	_solar_shadows_are_processing = should_process
+	for shadow in get_tree().get_nodes_in_group("projected_shadow_caster"):
+		if shadow != null and shadow.has_method("set_solar_shadow_processing"):
+			shadow.call("set_solar_shadow_processing", should_process)
 
 
 func _get_night_strength() -> float:
