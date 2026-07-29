@@ -40,6 +40,7 @@ uniform bool local_light_grading_mask_enabled = true;
 uniform bool local_light_source_active = false;
 uniform vec2 local_light_screen_position = vec2(0.5, 0.5);
 uniform float local_light_radius_uv : hint_range(0.001, 1.0, 0.001) = 0.16;
+uniform vec2 local_light_axis_scale = vec2(1.0, 1.0);
 uniform float local_light_source_strength : hint_range(0.0, 1.0, 0.001) = 0.0;
 uniform float local_light_grading_protection : hint_range(0.0, 1.0, 0.01) = 0.92;
 uniform float local_light_mask_softness : hint_range(0.01, 1.0, 0.01) = 0.42;
@@ -66,6 +67,8 @@ float oath_local_light_mask(vec2 uv, float viewport_aspect) {
 	}
 	vec2 delta = uv - local_light_screen_position;
 	delta.x *= viewport_aspect;
+	vec2 safe_axis = max(abs(local_light_axis_scale), vec2(0.05));
+	delta /= safe_axis;
 	float radius = max(local_light_radius_uv, 0.001);
 	float softness = clamp(local_light_mask_softness, 0.01, 1.0);
 	float inner_radius = radius * (1.0 - softness);
