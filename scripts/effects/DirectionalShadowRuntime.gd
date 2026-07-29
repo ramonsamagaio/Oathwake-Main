@@ -98,6 +98,7 @@ static func _find_largest_visual(target: Node) -> CanvasItem:
 	if target == null:
 		return null
 	var best: CanvasItem = null
+	var best_priority := -1
 	var best_area := 0.0
 	var queue: Array[Node] = [target]
 	while not queue.is_empty():
@@ -105,9 +106,11 @@ static func _find_largest_visual(target: Node) -> CanvasItem:
 		if node != target:
 			var candidate := node as CanvasItem
 			if candidate != null and _is_valid_source(candidate):
+				var priority := _source_priority(candidate)
 				var size := _visual_size(candidate)
 				var area := size.x * size.y
-				if area > best_area:
+				if priority > best_priority or (priority == best_priority and area > best_area):
+					best_priority = priority
 					best_area = area
 					best = candidate
 		for child in node.get_children():
@@ -116,6 +119,18 @@ static func _find_largest_visual(target: Node) -> CanvasItem:
 	if best == null and target is CanvasItem and _is_valid_source(target as CanvasItem):
 		best = target as CanvasItem
 	return best
+
+
+static func _source_priority(candidate: CanvasItem) -> int:
+	# AnimatedSprite2D must win over helper Sprite2D nodes that may still hold a
+	# complete sprite sheet. The shadow renderer then receives only the active frame.
+	if candidate is AnimatedSprite2D:
+		return 3
+	if candidate is Sprite2D:
+		return 2
+	if candidate is Polygon2D:
+		return 1
+	return 0
 
 
 static func _is_valid_source(candidate: CanvasItem) -> bool:
@@ -127,7 +142,9 @@ static func _is_valid_source(candidate: CanvasItem) -> bool:
 		return (candidate as Sprite2D).texture != null
 	if candidate is AnimatedSprite2D:
 		var animated := candidate as AnimatedSprite2D
-		return animated.sprite_frames != null
+		if animated.sprite_frames == null or not animated.sprite_frames.has_animation(animated.animation):
+			return false
+		return animated.sprite_frames.get_frame_count(animated.animation) > 0
 	if candidate is Polygon2D:
 		return not (candidate as Polygon2D).polygon.is_empty()
 	return false
