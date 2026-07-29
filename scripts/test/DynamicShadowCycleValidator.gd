@@ -184,8 +184,10 @@ func _validate_night_local_light_shadow() -> void:
 		var local_shadows: Variant = director.get("_local_shadows")
 		if local_shadows is Dictionary:
 			for shadow_value in (local_shadows as Dictionary).values():
+				if shadow_value == null or not is_instance_valid(shadow_value):
+					continue
 				var shadow := shadow_value as Polygon2D
-				if shadow == null or not is_instance_valid(shadow):
+				if shadow == null:
 					continue
 				if not shadow.visible or float(shadow.get_meta("shadow_mask_weight", 0.0)) <= 0.05:
 					failures.append("Night local shadow exists but is effectively invisible.")
@@ -197,8 +199,15 @@ func _validate_night_local_light_shadow() -> void:
 					failures.append("Night local shadow geometry collapsed or was not generated.")
 				break
 
-	director.queue_free()
+	# Reproduce the real-game lifecycle: the caster disappears before the director
+	# performs its next stale-shadow sweep. The dictionary must tolerate the freed node.
 	target.queue_free()
+	await process_frame
+	director.call("_remove_stale_shadows", {})
+	if int(director.call("get_active_local_shadow_count")) != 0:
+		failures.append("Freed caster left a stale local shadow entry behind.")
+
+	director.queue_free()
 	emitter.queue_free()
 	cycle.queue_free()
 	await process_frame
