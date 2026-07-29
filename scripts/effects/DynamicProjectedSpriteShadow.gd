@@ -11,6 +11,23 @@ func configure(target: Node2D, source: CanvasItem, config: Dictionary, foot_offs
 		add_to_group("projected_shadow_caster")
 
 
+func _apply_projection_settings() -> void:
+	super._apply_projection_settings()
+	var live_global := _get_live_global_config()
+	if not bool(live_global.get("follow_day_cycle", true)):
+		return
+	var cycle := get_tree().get_first_node_in_group("day_night_cycle")
+	if cycle == null or not cycle.has_method("get_solar_phase"):
+		return
+	var morning_angle := float(live_global.get("morning_direction_degrees", 135.0))
+	var evening_angle := float(live_global.get("evening_direction_degrees", 45.0))
+	var solar_phase := clampf(float(cycle.call("get_solar_phase")), 0.0, 1.0)
+	var direction_degrees := lerpf(morning_angle, evening_angle, solar_phase)
+	_projection_direction = Vector2.RIGHT.rotated(deg_to_rad(direction_degrees)).normalized()
+	set_meta("shadow_direction_degrees", direction_degrees)
+	set_meta("shadow_solar_phase", solar_phase)
+
+
 func get_shadow_owner() -> Node2D:
 	return _target
 
