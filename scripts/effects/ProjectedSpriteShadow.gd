@@ -2,6 +2,7 @@ class_name ProjectedSpriteShadow
 extends Polygon2D
 
 const ALPHA_THRESHOLD := 0.01
+const DEFAULT_DIRECTION_DEGREES := -45.0
 
 static var _alpha_bounds_cache: Dictionary = {}
 
@@ -9,8 +10,8 @@ var _target: Node2D
 var _source: CanvasItem
 var _config: Dictionary = {}
 var _foot_offset := Vector2.ZERO
-var _projection_anchor := Vector2.ZERO
-var _has_projection_anchor := false
+var _projection_direction := Vector2.RIGHT.rotated(deg_to_rad(DEFAULT_DIRECTION_DEGREES))
+var _projection_stretch := 1.15
 
 
 func configure(target: Node2D, source: CanvasItem, config: Dictionary, foot_offset: Vector2) -> void:
@@ -39,17 +40,19 @@ func _process(_delta: float) -> void:
 
 func _apply_projection_settings() -> void:
 	var live_global := _get_live_global_config()
-	var direction_degrees := float(live_global.get("direction_degrees", _config.get("direction_degrees", -45.0)))
+	var direction_degrees := float(live_global.get("direction_degrees", _config.get("direction_degrees", DEFAULT_DIRECTION_DEGREES)))
 	var stretch_amount := maxf(float(live_global.get("stretch", _config.get("stretch", 1.15))), 0.05)
 	var opacity := clampf(float(live_global.get("opacity", _config.get("opacity", 0.30))), 0.0, 1.0)
 	var shadow_color := _color_from_value(live_global.get("color", _config.get("color", "#050609FF")), Color(0.02, 0.024, 0.035, 1.0))
 	var offset := _vector_from_value(_config.get("offset", {}), Vector2.ZERO)
 
-	# The visible silhouette points upward from its lowest opaque pixels. Rotating
-	# that local UP vector lays only the current frame on the ground.
-	rotation = deg_to_rad(direction_degrees) - Vector2.UP.angle()
-	scale = Vector2(1.0, stretch_amount)
-	position = (_projection_anchor if _has_projection_anchor else _foot_offset) + offset
+	# The projected geometry itself performs the shear. Keeping this node
+	# unrotated preserves the entire contact line at the source sprite's feet.
+	_projection_direction = Vector2.RIGHT.rotated(deg_to_rad(direction_degrees)).normalized()
+	_projection_stretch = stretch_amount
+	rotation = 0.0
+	scale = Vector2.ONE
+	position = offset
 	color = Color(shadow_color.r, shadow_color.g, shadow_color.b, opacity * shadow_color.a)
 	self_modulate = Color.WHITE
 	z_index = int(_config.get("z_index", -1))
@@ -95,6 +98,7 @@ func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
 		source.flip_v,
 		_source_to_target_transform(source)
 	)
+	set_meta("shadow_source_kind", "AnimatedSprite2D")
 	set_meta("shadow_source_animation", source.animation)
 	set_meta("shadow_source_frame", frame_index)
 
@@ -113,6 +117,7 @@ func _apply_sprite(source: Sprite2D) -> void:
 		source.flip_v,
 		_source_to_target_transform(source)
 	)
+	set_meta("shadow_source_kind", "Sprite2D")
 	set_meta("shadow_source_frame", source.frame)
 
 
@@ -152,19 +157,18 @@ func _apply_texture_rect(
 		Vector2(visible_top_left.x, visible_bottom_right.y),
 	])
 
-	# Anchor the projection at the actual lowest opaque row of this frame. Every
-	# silhouette pixel is therefore projected away from the sprite instead of a
-	# transparent texture rectangle leaking below or beside it.
-	var local_contact := Vector2(
-		(visible_top_left.x + visible_bottom_right.x) * 0.5,
-		visible_bottom_right.y
-	)
-	_projection_anchor = relative_transform * local_contact
-	_has_projection_anchor = true
-
+	# Project every column away from its own point on the lowest opaque row.
+	# Unlike rotating a rectangular quad, this shear leaves the full bottom edge
+	# attached to the sprite while the alpha texture preserves the exact silhouette.
+	var contact_y := visible_bottom_right.y
+	var transformed_origin := relative_transform * Vector2.ZERO
+	var transformed_up := relative_transform * Vector2.UP
+	var vertical_scale := maxf((transformed_up - transformed_origin).length(), 0.0001)
 	var projected := PackedVector2Array()
 	for point in local_corners:
-		projected.append((relative_transform * point) - _projection_anchor)
+		var base_point := relative_transform * Vector2(point.x, contact_y)
+		var projection_height := maxf(contact_y - point.y, 0.0) * vertical_scale
+		projected.append(base_point + _projection_direction * projection_height * _projection_stretch)
 	polygon = projected
 
 	var left_u := float(opaque_rect.end.x) if flip_h else float(opaque_rect.position.x)
@@ -177,7 +181,6 @@ func _apply_texture_rect(
 		Vector2(right_u, bottom_v),
 		Vector2(left_u, bottom_v),
 	])
-	_apply_projection_settings()
 	set_meta("shadow_opaque_rect", opaque_rect)
 
 
@@ -188,21 +191,19 @@ func _apply_polygon(source: Polygon2D) -> void:
 		_clear_visual()
 		return
 	var lowest_y := source.polygon[0].y
-	var minimum_x := source.polygon[0].x
-	var maximum_x := source.polygon[0].x
 	for point in source.polygon:
 		lowest_y = maxf(lowest_y, point.y)
-		minimum_x = minf(minimum_x, point.x)
-		maximum_x = maxf(maximum_x, point.x)
-	var local_contact := Vector2((minimum_x + maximum_x) * 0.5, lowest_y)
-	_projection_anchor = relative_transform * local_contact
-	_has_projection_anchor = true
+	var transformed_origin := relative_transform * Vector2.ZERO
+	var transformed_up := relative_transform * Vector2.UP
+	var vertical_scale := maxf((transformed_up - transformed_origin).length(), 0.0001)
 	var projected := PackedVector2Array()
 	for point in source.polygon:
-		projected.append((relative_transform * point) - _projection_anchor)
+		var base_point := relative_transform * Vector2(point.x, lowest_y)
+		var projection_height := maxf(lowest_y - point.y, 0.0) * vertical_scale
+		projected.append(base_point + _projection_direction * projection_height * _projection_stretch)
 	polygon = projected
 	uv = source.uv
-	_apply_projection_settings()
+	set_meta("shadow_source_kind", "Polygon2D")
 
 
 func _source_to_target_transform(source: Node2D) -> Transform2D:
@@ -239,7 +240,7 @@ func _get_opaque_pixel_rect(frame_texture: Texture2D) -> Rect2i:
 	if frame_texture == null:
 		return Rect2i()
 	var texture_size := Vector2i(frame_texture.get_size())
-	var cache_key := "%s:%dx%d" % [str(frame_texture.get_rid()), texture_size.x, texture_size.y]
+	var cache_key := _alpha_cache_key(frame_texture, texture_size)
 	if _alpha_bounds_cache.has(cache_key):
 		return _alpha_bounds_cache[cache_key] as Rect2i
 	var image := frame_texture.get_image()
@@ -265,12 +266,20 @@ func _get_opaque_pixel_rect(frame_texture: Texture2D) -> Rect2i:
 	return result
 
 
+func _alpha_cache_key(frame_texture: Texture2D, texture_size: Vector2i) -> String:
+	if frame_texture is AtlasTexture:
+		var atlas_texture := frame_texture as AtlasTexture
+		var atlas_id := "none"
+		if atlas_texture.atlas != null:
+			atlas_id = str(atlas_texture.atlas.get_instance_id())
+		return "atlas:%s:%s:%dx%d" % [atlas_id, str(atlas_texture.region), texture_size.x, texture_size.y]
+	return "texture:%s:%dx%d" % [str(frame_texture.get_instance_id()), texture_size.x, texture_size.y]
+
+
 func _clear_visual() -> void:
 	texture = null
 	uv = PackedVector2Array()
 	polygon = PackedVector2Array()
-	_has_projection_anchor = false
-	_projection_anchor = Vector2.ZERO
 
 
 func _get_live_global_config() -> Dictionary:
