@@ -24,11 +24,15 @@
 [ext_resource type="Script" path="res://scripts/ui/DisplayShortcut.gd" id="22_display_shortcut"]
 [ext_resource type="Script" path="res://scripts/ui/DayNightDebugControls.gd" id="23_day_night_debug"]
 [ext_resource type="Script" path="res://scripts/effects/LocalLightShadowDirector.gd" id="24_local_shadow_director"]
+[ext_resource type="Script" path="res://scripts/effects/ProjectedShadowGroup.gd" id="25_projected_shadow_group"]
 
 [node name="Game" type="Node2D" unique_id=2133599417]
 script = ExtResource("1_game_script")
 
 [node name="WorldTint" type="CanvasModulate" parent="." unique_id=1359142384]
+
+[node name="ProjectedShadowGroup" type="CanvasGroup" parent="."]
+script = ExtResource("25_projected_shadow_group")
 
 [node name="CurrentMapRoot" type="Node2D" parent="." unique_id=1084848041]
 
