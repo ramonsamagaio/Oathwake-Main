@@ -1,10 +1,15 @@
 extends Node
 
+signal time_of_day_changed(time_of_day: float, night_strength: float)
+
 @export var cycle_duration_seconds: float = 120.0
 @export var day_color: Color = Color(0.95, 0.965, 0.98, 1.0)
 @export var night_color: Color = Color(0.28, 0.34, 0.55, 1.0)
 @export var canvas_modulate_path: NodePath = "../WorldTint"
 @export var state_label_path: NodePath = "../UI/DayNightLabel"
+
+const DEBUG_DAY_TIME := 0.25
+const DEBUG_NIGHT_TIME := 0.75
 
 var time_of_day := 0.0
 
@@ -40,6 +45,31 @@ func get_night_strength() -> float:
 	return _get_night_strength()
 
 
+func get_daylight_strength() -> float:
+	return clampf(1.0 - _get_night_strength(), 0.0, 1.0)
+
+
+func get_solar_phase() -> float:
+	# Dawn -> dusk travels 0..1. During the hidden night arc it returns from
+	# dusk toward dawn, so the next visible shadow reappears on the morning side.
+	if time_of_day <= 0.5:
+		return clampf(time_of_day / 0.5, 0.0, 1.0)
+	return clampf(1.0 - ((time_of_day - 0.5) / 0.5), 0.0, 1.0)
+
+
+func set_time_of_day(value: float) -> void:
+	time_of_day = fposmod(value, 1.0)
+	_update_day_night_visuals()
+
+
+func set_day() -> void:
+	set_time_of_day(DEBUG_DAY_TIME)
+
+
+func set_night() -> void:
+	set_time_of_day(DEBUG_NIGHT_TIME)
+
+
 func _update_day_night_visuals() -> void:
 	var night_strength := _get_night_strength()
 	if canvas_modulate != null:
@@ -49,11 +79,11 @@ func _update_day_night_visuals() -> void:
 	for emitter in get_tree().get_nodes_in_group("world_light_emitter"):
 		if emitter != null and emitter.has_method("set_day_night_strength"):
 			emitter.call("set_day_night_strength", night_strength)
+	time_of_day_changed.emit(time_of_day, night_strength)
 
 
 func _get_night_strength() -> float:
 	if is_day():
 		return 0.0
-
 	var night_progress := (time_of_day - 0.5) / 0.5
 	return sin(night_progress * PI)
