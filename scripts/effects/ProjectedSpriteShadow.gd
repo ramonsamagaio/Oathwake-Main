@@ -3,6 +3,9 @@ extends Polygon2D
 
 const ALPHA_THRESHOLD := 0.01
 const DEFAULT_DIRECTION_DEGREES := -45.0
+const ProjectedShadowGroupScript := preload("res://scripts/effects/ProjectedShadowGroup.gd")
+const ProjectedShadowMaskShader := preload("res://shaders/projected_shadow_mask.gdshader")
+const FoliageWindShader := preload("res://shaders/foliage_wind_2d.gdshader")
 
 static var _alpha_bounds_cache: Dictionary = {}
 
@@ -12,6 +15,10 @@ var _config: Dictionary = {}
 var _foot_offset := Vector2.ZERO
 var _projection_direction := Vector2.RIGHT.rotated(deg_to_rad(DEFAULT_DIRECTION_DEGREES))
 var _projection_stretch := 1.15
+var _visible_frame_size := Vector2(32.0, 32.0)
+var _shadow_group: CanvasGroup
+var _render_proxy: Polygon2D
+var _proxy_material: ShaderMaterial
 
 
 func configure(target: Node2D, source: CanvasItem, config: Dictionary, foot_offset: Vector2) -> void:
@@ -31,9 +38,17 @@ func configure(target: Node2D, source: CanvasItem, config: Dictionary, foot_offs
 	set_process(true)
 
 
+func _exit_tree() -> void:
+	if _render_proxy != null and is_instance_valid(_render_proxy):
+		_render_proxy.queue_free()
+	_render_proxy = null
+	_shadow_group = null
+
+
 func _process(_delta: float) -> void:
 	if _target == null or not is_instance_valid(_target) or _source == null or not is_instance_valid(_source):
 		visible = false
+		_hide_render_proxy()
 		return
 	_refresh_silhouette()
 
@@ -43,7 +58,6 @@ func _apply_projection_settings() -> void:
 	var direction_degrees := float(live_global.get("direction_degrees", _config.get("direction_degrees", DEFAULT_DIRECTION_DEGREES)))
 	var stretch_amount := maxf(float(live_global.get("stretch", _config.get("stretch", 1.15))), 0.05)
 	var opacity := clampf(float(live_global.get("opacity", _config.get("opacity", 0.30))), 0.0, 1.0)
-	var shadow_color := _color_from_value(live_global.get("color", _config.get("color", "#050609FF")), Color(0.02, 0.024, 0.035, 1.0))
 	var offset := _vector_from_value(_config.get("offset", {}), Vector2.ZERO)
 
 	# The projected geometry itself performs the shear. Keeping this node
@@ -53,7 +67,10 @@ func _apply_projection_settings() -> void:
 	rotation = 0.0
 	scale = Vector2.ONE
 	position = offset
-	color = Color(shadow_color.r, shadow_color.g, shadow_color.b, opacity * shadow_color.a)
+	# This child remains the canonical geometry and metadata owner, while the
+	# shared CanvasGroup draws one combined mask for every shadow. Making this
+	# polygon transparent prevents ordinary alpha blending from darkening overlaps.
+	color = Color(1.0, 1.0, 1.0, 0.0)
 	self_modulate = Color.WHITE
 	z_index = int(_config.get("z_index", -1))
 	visible = bool(_config.get("enabled", true)) and bool(live_global.get("enabled", true)) and opacity > 0.001
@@ -65,6 +82,7 @@ func _apply_projection_settings() -> void:
 func _refresh_silhouette() -> void:
 	_apply_projection_settings()
 	if not visible:
+		_hide_render_proxy()
 		return
 	if _source is AnimatedSprite2D:
 		_apply_animated_sprite(_source as AnimatedSprite2D)
@@ -74,6 +92,7 @@ func _refresh_silhouette() -> void:
 		_apply_polygon(_source as Polygon2D)
 	else:
 		_clear_visual()
+	_sync_render_proxy()
 
 
 func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
@@ -136,6 +155,7 @@ func _apply_texture_rect(
 		return
 
 	texture = frame_texture
+	_visible_frame_size = frame_size
 	var base_top_left := offset
 	if centered:
 		base_top_left -= frame_size * 0.5
@@ -203,7 +223,119 @@ func _apply_polygon(source: Polygon2D) -> void:
 		projected.append(base_point + _projection_direction * projection_height * _projection_stretch)
 	polygon = projected
 	uv = source.uv
+	_visible_frame_size = _polygon_size(source.polygon)
 	set_meta("shadow_source_kind", "Polygon2D")
+
+
+func _sync_render_proxy() -> void:
+	if polygon.is_empty() or texture == null or not visible or not _is_source_near_viewport():
+		_hide_render_proxy()
+		return
+	_ensure_render_proxy()
+	if _render_proxy == null or _shadow_group == null:
+		return
+	var group_inverse := _shadow_group.global_transform.affine_inverse()
+	var shadow_transform := global_transform
+	var group_polygon := PackedVector2Array()
+	for point in polygon:
+		group_polygon.append(group_inverse * (shadow_transform * point))
+	_render_proxy.polygon = group_polygon
+	_render_proxy.uv = uv
+	_render_proxy.texture = texture
+	_render_proxy.visible = true
+	_render_proxy.set_meta("shadow_source_id", _source.get_instance_id())
+	_render_proxy.set_meta("shadow_owner_id", _target.get_instance_id())
+	_sync_proxy_material()
+	set_meta("shadow_render_proxy_id", _render_proxy.get_instance_id())
+
+
+func _ensure_render_proxy() -> void:
+	_ensure_shadow_group()
+	if _shadow_group == null:
+		return
+	if _render_proxy != null and is_instance_valid(_render_proxy) and _render_proxy.get_parent() == _shadow_group:
+		return
+	if _render_proxy != null and is_instance_valid(_render_proxy):
+		_render_proxy.queue_free()
+	_render_proxy = Polygon2D.new()
+	_render_proxy.name = "ShadowMask_%s" % str(get_instance_id())
+	_render_proxy.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_render_proxy.color = Color.WHITE
+	_render_proxy.self_modulate = Color.WHITE
+	_render_proxy.z_index = 0
+	_render_proxy.z_as_relative = true
+	_proxy_material = ShaderMaterial.new()
+	_proxy_material.resource_local_to_scene = true
+	_proxy_material.shader = ProjectedShadowMaskShader
+	_render_proxy.material = _proxy_material
+	_shadow_group.add_child(_render_proxy)
+
+
+func _ensure_shadow_group() -> void:
+	if _shadow_group != null and is_instance_valid(_shadow_group):
+		return
+	var existing := get_tree().get_first_node_in_group("projected_shadow_group") as CanvasGroup
+	if existing != null:
+		_shadow_group = existing
+		return
+	var host: Node = get_tree().current_scene
+	if host == null:
+		host = get_tree().root
+	_shadow_group = ProjectedShadowGroupScript.new() as CanvasGroup
+	host.add_child(_shadow_group)
+
+
+func _sync_proxy_material() -> void:
+	if _proxy_material == null or _source == null:
+		return
+	var source_material := _source.material as ShaderMaterial
+	var uses_shared_wind := source_material != null and source_material.shader == FoliageWindShader
+	_proxy_material.set_shader_parameter("wind_enabled", uses_shared_wind and bool(_shader_parameter(source_material, "enabled", true)))
+	if uses_shared_wind:
+		_proxy_material.set_shader_parameter("wind_amplitude", float(_shader_parameter(source_material, "amplitude", 0.08)))
+		_proxy_material.set_shader_parameter("wind_time_scale", float(_shader_parameter(source_material, "time_scale", 0.20)))
+		_proxy_material.set_shader_parameter("wind_noise_scale", float(_shader_parameter(source_material, "noise_scale", 0.004)))
+		_proxy_material.set_shader_parameter("wind_rotation_strength", float(_shader_parameter(source_material, "rotation_strength", 1.0)))
+		_proxy_material.set_shader_parameter("wind_rotation_pivot", _shader_parameter(source_material, "rotation_pivot", Vector2(0.5, 1.0)))
+		_proxy_material.set_shader_parameter("wind_direction", _shader_parameter(source_material, "wind_direction", Vector2(1.0, 0.16)))
+		_proxy_material.set_shader_parameter("wind_strength", float(_shader_parameter(source_material, "wind_strength", 0.85)))
+		_proxy_material.set_shader_parameter("wind_gust_strength", float(_shader_parameter(source_material, "gust_strength", 0.34)))
+		_proxy_material.set_shader_parameter("wind_gust_speed", float(_shader_parameter(source_material, "gust_speed", 0.42)))
+		_proxy_material.set_shader_parameter("wind_phase_offset", float(_shader_parameter(source_material, "phase_offset", 0.0)))
+	var source_node := _source as Node2D
+	var source_origin := source_node.global_position if source_node != null else Vector2.ZERO
+	var source_scale := Vector2.ONE
+	if source_node != null:
+		source_scale = Vector2(absf(source_node.global_scale.x), absf(source_node.global_scale.y))
+	_proxy_material.set_shader_parameter("source_world_origin", source_origin)
+	_proxy_material.set_shader_parameter("source_world_size", _visible_frame_size * source_scale)
+	_render_proxy.set_meta("shadow_wind_synced", uses_shared_wind)
+
+
+func _shader_parameter(shader_material: ShaderMaterial, parameter_name: String, fallback: Variant) -> Variant:
+	if shader_material == null:
+		return fallback
+	var value: Variant = shader_material.get_shader_parameter(parameter_name)
+	return fallback if value == null else value
+
+
+func _is_source_near_viewport() -> bool:
+	if _source == null or not (_source is Node2D):
+		return true
+	var camera := get_viewport().get_camera_2d()
+	if camera == null:
+		return true
+	var zoom := camera.zoom
+	var safe_zoom := Vector2(maxf(absf(zoom.x), 0.01), maxf(absf(zoom.y), 0.01))
+	var half_view := get_viewport_rect().size * 0.5 / safe_zoom
+	var margin := Vector2(768.0, 768.0)
+	var bounds := Rect2(camera.get_screen_center_position() - half_view - margin, (half_view + margin) * 2.0)
+	return bounds.has_point((_source as Node2D).global_position)
+
+
+func _hide_render_proxy() -> void:
+	if _render_proxy != null and is_instance_valid(_render_proxy):
+		_render_proxy.visible = false
 
 
 func _source_to_target_transform(source: Node2D) -> Transform2D:
@@ -276,10 +408,20 @@ func _alpha_cache_key(frame_texture: Texture2D, texture_size: Vector2i) -> Strin
 	return "texture:%s:%dx%d" % [str(frame_texture.get_instance_id()), texture_size.x, texture_size.y]
 
 
+func _polygon_size(points: PackedVector2Array) -> Vector2:
+	if points.is_empty():
+		return Vector2(32.0, 32.0)
+	var bounds := Rect2(points[0], Vector2.ZERO)
+	for point in points:
+		bounds = bounds.expand(point)
+	return bounds.size
+
+
 func _clear_visual() -> void:
 	texture = null
 	uv = PackedVector2Array()
 	polygon = PackedVector2Array()
+	_hide_render_proxy()
 
 
 func _get_live_global_config() -> Dictionary:
@@ -299,10 +441,3 @@ func _vector_from_value(value: Variant, fallback: Vector2) -> Vector2:
 	if value is Dictionary:
 		return Vector2(float(value.get("x", fallback.x)), float(value.get("y", fallback.y)))
 	return fallback
-
-
-func _color_from_value(value: Variant, fallback: Color) -> Color:
-	if value is Color:
-		return value
-	var text := str(value).strip_edges()
-	return Color.from_string(text, fallback) if not text.is_empty() else fallback
