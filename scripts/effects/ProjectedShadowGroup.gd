@@ -15,9 +15,18 @@ func _ready() -> void:
 	fit_margin = 128.0
 	clear_margin = 128.0
 	use_mipmaps = false
+	# Run after the individual shadow nodes have synchronized their render proxies.
+	# This final visibility gate keeps a proxy hidden while its resource owner is
+	# collected, then allows the normal shadow runtime to reveal it on respawn.
+	process_priority = 1000
 	_ensure_material()
 	_reload_from_content()
 	_connect_content_reload()
+	set_process(true)
+
+
+func _process(_delta: float) -> void:
+	_sync_proxy_owner_visibility()
 
 
 func configure(config: Dictionary) -> void:
@@ -67,6 +76,22 @@ func _apply_configuration() -> void:
 	set_meta("shadow_group_opacity", opacity)
 	set_meta("shadow_group_softness", softness)
 	set_meta("shadow_group_color", shadow_color)
+
+
+func _sync_proxy_owner_visibility() -> void:
+	for child in get_children():
+		if not (child is CanvasItem):
+			continue
+		var proxy := child as CanvasItem
+		if not proxy.has_meta("shadow_owner_id"):
+			continue
+		var owner := instance_from_id(int(proxy.get_meta("shadow_owner_id", 0))) as CanvasItem
+		var source := instance_from_id(int(proxy.get_meta("shadow_source_id", 0))) as CanvasItem
+		if owner == null or source == null or not is_instance_valid(owner) or not is_instance_valid(source):
+			proxy.visible = false
+			continue
+		if not owner.is_visible_in_tree() or not source.is_visible_in_tree():
+			proxy.visible = false
 
 
 func _color_from_value(value: Variant, fallback: Color) -> Color:
