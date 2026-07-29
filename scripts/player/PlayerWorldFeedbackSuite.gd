@@ -121,13 +121,17 @@ func _player_light_color(value: Variant, fallback: Color) -> Color:
 func _apply_player_directional_shadow() -> void:
 	var visual_size := DirectionalShadowRuntime.estimate_target_visual_size(self)
 	var foot_offset := DirectionalShadowRuntime.estimate_target_foot_offset(self)
+	var active_shadow_source: CanvasItem = null
 	if animated_sprite != null and animated_sprite.visible:
 		visual_size = WorldDepthRuntime.get_animated_sprite_visual_size(animated_sprite)
 		foot_offset = WorldDepthRuntime.get_animated_sprite_foot_offset(animated_sprite)
+		# The player can also contain helper Sprite2D nodes backed by complete sprite
+		# sheets. Always project the actual AnimatedSprite2D frame being displayed.
+		active_shadow_source = animated_sprite
 	var config := _content_shadow_config.duplicate(true)
 	if not config.has("enabled"):
 		config["enabled"] = true
-	DirectionalShadowRuntime.apply_to_target(self, config, visual_size, foot_offset)
+	DirectionalShadowRuntime.apply_to_target(self, config, visual_size, foot_offset, active_shadow_source)
 
 
 func _update_world_depth() -> void:
@@ -165,7 +169,6 @@ func _next_attack_animation_name() -> String:
 		candidates.append(canonical)
 	if candidates.is_empty():
 		return ""
-
 	var valid_bag: Array[String] = []
 	for candidate in _attack_variant_bag:
 		if candidates.has(candidate):
