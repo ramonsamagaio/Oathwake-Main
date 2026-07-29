@@ -59,12 +59,43 @@ func get_daylight_strength() -> float:
 	return 1.0 - _get_night_strength()
 
 
-func get_sun_shadow_direction_degrees() -> float:
+func get_solar_shadow_strength() -> float:
 	var solar := _get_solar_shadow_config()
-	var morning := float(solar.get("morning_direction_degrees", -45.0))
-	var evening := float(solar.get("evening_direction_degrees", 45.0))
-	var day_progress := clampf(time_of_day / 0.5, 0.0, 1.0)
-	return lerpf(morning, evening, smoothstep(0.0, 1.0, day_progress))
+	if not bool(solar.get("fade_with_night", true)):
+		return 1.0
+	var thresholds := _get_solar_thresholds(solar)
+	var dusk_start := float(thresholds["dusk_start"])
+	var dusk_end := float(thresholds["dusk_end"])
+	var dawn_start := float(thresholds["dawn_start"])
+	if time_of_day < dusk_start:
+		return 1.0
+	if time_of_day < dusk_end:
+		return 1.0 - smoothstep(dusk_start, dusk_end, time_of_day)
+	if time_of_day < dawn_start:
+		return 0.0
+	return smoothstep(dawn_start, 1.0, time_of_day)
+
+
+func get_sun_shadow_direction() -> Vector2:
+	var solar := _get_solar_shadow_config()
+	var morning_angle := float(solar.get("morning_angle_from_up_degrees", solar.get("morning_direction_degrees", -45.0)))
+	var evening_angle := float(solar.get("evening_angle_from_up_degrees", solar.get("evening_direction_degrees", 45.0)))
+	var thresholds := _get_solar_thresholds(solar)
+	var dusk_end := float(thresholds["dusk_end"])
+
+	# The angle resets only while the shadow is fully invisible. Dawn therefore
+	# fades in at the morning position instead of showing the evening position and
+	# jumping at the normalized-time rollover.
+	if time_of_day >= dusk_end:
+		return Vector2.UP.rotated(deg_to_rad(morning_angle)).normalized()
+
+	var motion_progress := smoothstep(0.0, dusk_end, time_of_day)
+	var angle_radians := lerp_angle(deg_to_rad(morning_angle), deg_to_rad(evening_angle), motion_progress)
+	return Vector2.UP.rotated(angle_radians).normalized()
+
+
+func get_sun_shadow_direction_degrees() -> float:
+	return rad_to_deg(get_sun_shadow_direction().angle())
 
 
 func _update_day_night_visuals() -> void:
@@ -85,6 +116,17 @@ func _get_night_strength() -> float:
 		return 0.0
 	var night_progress := (time_of_day - 0.5) / 0.5
 	return sin(night_progress * PI)
+
+
+func _get_solar_thresholds(solar: Dictionary) -> Dictionary:
+	var dusk_start := clampf(float(solar.get("dusk_fade_start", 0.42)), 0.05, 0.90)
+	var dusk_end := clampf(float(solar.get("dusk_fade_end", 0.62)), dusk_start + 0.01, 0.95)
+	var dawn_start := clampf(float(solar.get("dawn_fade_start", 0.82)), dusk_end + 0.01, 0.99)
+	return {
+		"dusk_start": dusk_start,
+		"dusk_end": dusk_end,
+		"dawn_start": dawn_start,
+	}
 
 
 func _get_solar_shadow_config() -> Dictionary:
