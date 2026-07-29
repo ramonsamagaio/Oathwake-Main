@@ -15,6 +15,7 @@ func _run() -> void:
 	await _validate_sprite_frame_crop()
 	await _validate_animated_frame_switch()
 	await _validate_runtime_source_choice()
+	await _validate_owner_visibility_lifecycle()
 	await _validate_shared_compositor_and_wind()
 	if failures.is_empty():
 		print("PROJECTED_SHADOW_FRAME_VALIDATION_PASS")
@@ -149,6 +150,38 @@ func _validate_runtime_source_choice() -> void:
 		failures.append("Runtime selected a sprite sheet instead of the active animation frame.")
 	elif str(shadow.get_meta("shadow_source_kind", "")) != "AnimatedSprite2D":
 		failures.append("Runtime source kind is not AnimatedSprite2D.")
+	target.queue_free()
+	await process_frame
+
+
+func _validate_owner_visibility_lifecycle() -> void:
+	var image := Image.create(20, 20, false, Image.FORMAT_RGBA8)
+	image.fill(Color.TRANSPARENT)
+	for y in range(4, 19):
+		for x in range(5, 15):
+			image.set_pixel(x, y, Color.WHITE)
+	var target := Node2D.new()
+	root.add_child(target)
+	var sprite := Sprite2D.new()
+	sprite.texture = ImageTexture.create_from_image(image)
+	target.add_child(sprite)
+	var shadow := SHADOW_RUNTIME.apply_to_target(target, {"enabled": true})
+	await process_frame
+	await process_frame
+	var proxy := _shadow_proxy(shadow)
+	if proxy == null or not proxy.visible:
+		failures.append("Spawned resource shadow proxy is not visible.")
+	else:
+		target.visible = false
+		await process_frame
+		await process_frame
+		if proxy.visible:
+			failures.append("Destroyed resource left its projected shadow proxy visible.")
+		target.visible = true
+		await process_frame
+		await process_frame
+		if not proxy.visible:
+			failures.append("Respawned resource did not restore its projected shadow proxy.")
 	target.queue_free()
 	await process_frame
 
