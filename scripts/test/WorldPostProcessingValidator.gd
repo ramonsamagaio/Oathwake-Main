@@ -114,8 +114,11 @@ func _validate_runtime_contract(post: Dictionary) -> void:
 		var mask_radius_value: Variant = material.get_shader_parameter("local_light_radius_uv")
 		if not (mask_radius_value is Vector2) or (mask_radius_value as Vector2).x <= 0.0 or (mask_radius_value as Vector2).y <= 0.0:
 			failures.append("Player light protection mask has no elliptical radius.")
-		elif player_light is Node2D and (player_light as Node2D).scale.y < (player_light as Node2D).scale.x and (mask_radius_value as Vector2).y >= (mask_radius_value as Vector2).x:
-			failures.append("Player night mask did not follow the emitted light perspective ellipse.")
+		elif player_light is Node2D and (player_light as Node2D).scale.y < (player_light as Node2D).scale.x:
+			var viewport_size := root.get_visible_rect().size
+			var pixel_radius := Vector2((mask_radius_value as Vector2).x * viewport_size.x, (mask_radius_value as Vector2).y * viewport_size.y)
+			if pixel_radius.y >= pixel_radius.x:
+				failures.append("Player night mask did not follow the emitted light perspective ellipse.")
 		if float(material.get_shader_parameter("local_light_source_strength")) <= 0.0:
 			failures.append("Player light protection mask has no strength.")
 		screen_effects.call("set_day_night_strength", 0.0)
