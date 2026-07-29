@@ -48,8 +48,10 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	if not bool(_config.get("enabled", true)):
 		return
-	var day_alpha := clampf(float(_config.get("day_alpha", 0.52)), 0.0, 1.0)
-	var night_alpha := clampf(float(_config.get("night_alpha", 0.86)), 0.0, 1.0)
+	# These values are visibility multipliers rather than literal normalized alpha.
+	# Values above 1.0 let subtle pixel particles reach full opacity when desired.
+	var day_alpha := clampf(float(_config.get("day_alpha", 0.52)), 0.0, 4.0)
+	var night_alpha := clampf(float(_config.get("night_alpha", 0.86)), 0.0, 4.0)
 	for particle in _particles:
 		var kind := str(particle.get("kind", "pollen"))
 		var position_value: Vector2 = particle.get("position", Vector2.ZERO)
