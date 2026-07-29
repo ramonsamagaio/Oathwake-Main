@@ -125,8 +125,6 @@ func _register_world_visuals() -> void:
 	if director == null:
 		return
 	var size_class := _get_foliage_size_class()
-	if size_class.is_empty():
-		return
 	var target: CanvasItem = null
 	if layered_canopy_sprite != null and layered_canopy_sprite.visible:
 		target = layered_canopy_sprite
@@ -140,9 +138,24 @@ func _register_world_visuals() -> void:
 				break
 	if target == null:
 		return
-	if size_class == "large" and director.has_method("register_resource_visual"):
-		director.call("register_resource_visual", self, target, "tree")
-	elif size_class == "small" and director.has_method("register_micro_target"):
+
+	var sprite_id := str(resource_data.get("sprite_id", ""))
+	if sprite_id.is_empty():
+		var layered_value: Variant = resource_data.get("layered_visual", {})
+		if layered_value is Dictionary:
+			var layered := layered_value as Dictionary
+			sprite_id = str(layered.get("canopy_sprite_id", layered.get("trunk_sprite_id", "")))
+	var fade_when_player_behind := true
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and not sprite_id.is_empty() and content_db.has_method("has_sprite") and content_db.has_sprite(sprite_id):
+		var sprite_record: Dictionary = content_db.get_sprite(sprite_id)
+		fade_when_player_behind = bool(sprite_record.get("fade_when_player_behind", true))
+	target.set_meta("content_sprite_id", sprite_id)
+	target.set_meta("world_occlusion_enabled", fade_when_player_behind)
+
+	if director.has_method("register_resource_visual"):
+		director.call("register_resource_visual", self, target, resource_type_id, fade_when_player_behind)
+	if size_class == "small" and director.has_method("register_micro_target"):
 		director.call("register_micro_target", self, target, resource_type_id)
 
 
