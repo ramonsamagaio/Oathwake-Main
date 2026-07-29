@@ -8,6 +8,7 @@ const RuntimeShadowGroupScript := preload("res://scripts/effects/ProjectedShadow
 
 static var _runtime_alpha_bounds_cache: Dictionary = {}
 static var _pending_shadow_group: CanvasGroup = null
+static var _solid_mask_texture: Texture2D = null
 
 var _projection_width_scale := 1.0
 var _projection_root_overlap := 6.0
@@ -169,7 +170,7 @@ func _apply_texture_rect(
 
 
 func _apply_polygon(source: Polygon2D) -> void:
-	texture = source.texture
+	texture = source.texture if source.texture != null else _get_solid_mask_texture()
 	var relative_transform := _source_to_target_transform(source)
 	if source.polygon.is_empty():
 		_clear_visual()
@@ -188,10 +189,25 @@ func _apply_polygon(source: Polygon2D) -> void:
 		var height := maxf(contact_local.y - point.y, 0.0) * basis_scale.y * _projection_stretch
 		projected.append(projection_anchor + (side_axis * lateral) + (_projection_direction * height))
 	polygon = projected
-	uv = source.uv
+	if source.texture != null and source.uv.size() == source.polygon.size():
+		uv = source.uv
+	else:
+		var solid_uv := PackedVector2Array()
+		for _point in source.polygon:
+			solid_uv.append(Vector2(0.5, 0.5))
+		uv = solid_uv
 	_visible_frame_size = bounds.size
 	_publish_projection_metadata(contact_target, projection_anchor, side_axis, bounds.size * basis_scale)
 	set_meta("shadow_source_kind", "Polygon2D")
+
+
+func _get_solid_mask_texture() -> Texture2D:
+	if _solid_mask_texture != null:
+		return _solid_mask_texture
+	var solid_image := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	solid_image.fill(Color.WHITE)
+	_solid_mask_texture = ImageTexture.create_from_image(solid_image)
+	return _solid_mask_texture
 
 
 func _relative_basis_scale(relative_transform: Transform2D) -> Vector2:
