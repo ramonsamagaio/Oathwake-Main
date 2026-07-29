@@ -32,6 +32,9 @@ func _validate_content_contract() -> void:
 	if not (default_profile is Dictionary):
 		failures.append("Default VFX profile is missing.")
 		return
+	var directional_shadow := (default_profile as Dictionary).get("directional_shadow", {}) as Dictionary
+	if not directional_shadow.has("softness"):
+		failures.append("Directional shadow profile has no configurable softness.")
 	var world_visuals: Variant = (default_profile as Dictionary).get("world_visuals", {})
 	if not (world_visuals is Dictionary):
 		failures.append("Default VFX profile has no world_visuals block.")
@@ -39,6 +42,9 @@ func _validate_content_contract() -> void:
 	for key in ["occlusion", "wind", "particles"]:
 		if not (world_visuals as Dictionary).get(key, {}) is Dictionary:
 			failures.append("world_visuals is missing %s configuration." % key)
+	var occlusion := (world_visuals as Dictionary).get("occlusion", {}) as Dictionary
+	if not occlusion.has("default_alpha"):
+		failures.append("World occlusion has no unified hidden alpha.")
 	var wind := (world_visuals as Dictionary).get("wind", {}) as Dictionary
 	if float(wind.get("strength", 0.0)) <= 0.0:
 		failures.append("Shared world wind has no strength.")
@@ -49,6 +55,10 @@ func _validate_content_contract() -> void:
 	for label in ["World Occlusion", "Shared World Wind", "Biome Ambient Particles"]:
 		if not editor_text.contains(label):
 			failures.append("Content Editor is missing %s controls." % label)
+	var shadow_editor_text := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditorShadowOcclusionSuite.gd")
+	for label in ["Fade When Player Is Behind", "Occluded Element Alpha", "Diffusion / Blur"]:
+		if not shadow_editor_text.contains(label):
+			failures.append("Content Editor is missing %s." % label)
 	var particle_text := FileAccess.get_file_as_string("res://scripts/effects/AmbientParticleField.gd")
 	for token in ["top_level = true", "get_particle_world_positions", "_wrap_position(position_value, recycle_center)"]:
 		if not particle_text.contains(token):
@@ -118,6 +128,8 @@ func _validate_runtime_contract() -> void:
 	var resource_target := content_sprite if content_sprite != null and content_sprite.visible else crown
 	if resource_target == null or not resource_target.has_meta("world_occlusion_target"):
 		failures.append("Content resource tree was not registered for occlusion.")
+	elif not bool(resource_target.get_meta("world_occlusion_enabled", false)):
+		failures.append("Content resource did not inherit the sprite occlusion default.")
 	resource_tree.queue_free()
 	_cleanup(map, player)
 	await process_frame
