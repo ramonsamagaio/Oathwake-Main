@@ -1,4 +1,4 @@
-extends "res://scripts/enemies/EnemyBase.gd"
+extends "res://scripts/enemies/EnemyScreenCombatSuite.gd"
 
 const HitFlashOverlayScript := preload("res://scripts/effects/HitFlashOverlay.gd")
 const ContentGlowRuntime := preload("res://scripts/effects/ContentGlowRuntime.gd")
