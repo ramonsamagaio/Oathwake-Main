@@ -111,13 +111,26 @@ func _validate_monster_shadow_frame(monster: Node, sprite: AnimatedSprite2D) -> 
 	if int(shadow.get_meta("shadow_bound_source_id", 0)) != sprite.get_instance_id():
 		failures.append("Animated monster shadow is not bound to its visible AnimatedSprite2D")
 	var source_texture := sprite.sprite_frames.get_frame_texture(sprite.animation, sprite.frame)
+	var proxy: Polygon2D = null
+	var proxy_id := int(shadow.get_meta("shadow_render_proxy_id", 0))
+	if proxy_id > 0:
+		var proxy_value: Variant = instance_from_id(proxy_id)
+		if proxy_value != null and is_instance_valid(proxy_value):
+			proxy = proxy_value as Polygon2D
+	if proxy == null or proxy.texture == null:
+		failures.append("Animated monster shadow has no compositor proxy texture")
+		return
 	if source_texture is AtlasTexture:
-		if shadow.texture is AtlasTexture:
-			failures.append("Animated monster shadow still samples the complete sprite atlas")
+		# The invisible canonical node may retain the authored AtlasTexture for frame
+		# identity, but the actual compositor must render an isolated ImageTexture.
+		if proxy.texture is AtlasTexture:
+			failures.append("Animated monster compositor still samples the complete sprite atlas")
 		if not bool(shadow.get_meta("shadow_source_frame_isolated", false)):
 			failures.append("Animated monster frame was not isolated before shadow projection")
-	if shadow.texture == null or shadow.texture.get_size().x <= 0.0 or shadow.texture.get_size().y <= 0.0:
-		failures.append("Animated monster shadow has no valid active-frame texture")
+		if not bool(proxy.get_meta("shadow_active_frame_texture_isolated", false)):
+			failures.append("Animated monster compositor proxy was not marked as active-frame isolated")
+	if proxy.texture.get_size().x <= 0.0 or proxy.texture.get_size().y <= 0.0:
+		failures.append("Animated monster shadow has no valid active-frame render texture")
 
 
 func _validate_offscreen_activation(monster: Node, player: Node2D) -> void:
