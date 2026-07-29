@@ -60,9 +60,13 @@ func _validate_content_contract() -> void:
 		if not shadow_editor_text.contains(label):
 			failures.append("Content Editor is missing %s." % label)
 	var particle_text := FileAccess.get_file_as_string("res://scripts/effects/AmbientParticleField.gd")
-	for token in ["top_level = true", "get_particle_world_positions", "_wrap_position(position_value, recycle_center)"]:
-		if not particle_text.contains(token):
-			failures.append("Ambient particle field is missing world-anchor contract %s." % token)
+	for token in ["top_level = true", "get_particle_world_positions", "_wrap_position(position_value, recycle_center)", "0.0, 4.0", "visibility multipliers"]:
+		if not particle_text.to_lower().contains(token.to_lower()):
+			failures.append("Ambient particle field is missing world-anchor/visibility contract %s." % token)
+	var range_suite := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditorControlRangesSuite.gd")
+	for token in ["AMBIENT_PARTICLE_ALPHA_MAX := 4.0", "world_particles_day_alpha", "world_particles_night_alpha"]:
+		if not range_suite.contains(token):
+			failures.append("Content Editor ambient particle range is missing %s." % token)
 
 
 func _validate_runtime_contract() -> void:

@@ -3,11 +3,13 @@ extends "res://tools/content_editor/ContentEditorLivePreviewSuite.gd"
 const WORKSPACE_MINIMUM_SIZE := Vector2i(960, 620)
 const DEFAULT_SIDEBAR_WIDTH := 155
 const DEFAULT_RECORD_WIDTH := 320
+const FORM_SCROLL_MINIMUM_WIDTH := 720.0
 
 var _record_panel: Control
 var _content_split: HSplitContainer
 var _record_toggle_button: Button
 var _maximize_button: Button
+var _sidebar_scroll: ScrollContainer
 
 
 func _configure_content_editor_window() -> void:
@@ -24,6 +26,16 @@ func _configure_content_editor_window() -> void:
 	window.content_scale_size = Vector2i.ZERO
 
 
+func _get_editor_available_size() -> Vector2:
+	# Embedded windows can report the parent game viewport through get_viewport_rect().
+	# The actual subwindow size is authoritative; using the larger parent size made
+	# the bottom of the editor exist outside the visible window with no way to reach it.
+	var window := get_window()
+	if window != null and window.size.x > 0 and window.size.y > 0:
+		return Vector2(window.size)
+	return super._get_editor_available_size()
+
+
 func _ready() -> void:
 	super._ready()
 	call_deferred("_install_workspace_usability")
@@ -32,7 +44,7 @@ func _ready() -> void:
 func _install_workspace_usability() -> void:
 	var main_layout := get_node_or_null("MarginContainer/MainLayout") as HSplitContainer
 	_content_split = get_node_or_null("MarginContainer/MainLayout/ContentSplit") as HSplitContainer
-	var sidebar := get_node_or_null("MarginContainer/MainLayout/Sidebar") as VBoxContainer
+	var sidebar := find_child("Sidebar", true, false) as VBoxContainer
 	_record_panel = get_node_or_null("MarginContainer/MainLayout/ContentSplit/RecordPanel") as Control
 	var form_panel := get_node_or_null("MarginContainer/MainLayout/ContentSplit/FormPanel") as VBoxContainer
 	var form_scroll := get_node_or_null("MarginContainer/MainLayout/ContentSplit/FormPanel/FormScroll") as ScrollContainer
@@ -45,6 +57,7 @@ func _install_workspace_usability() -> void:
 		for button_value in sidebar_buttons.values():
 			if button_value is Button:
 				(button_value as Button).custom_minimum_size = Vector2(0.0, 31.0)
+		_wrap_sidebar_in_scroll(sidebar)
 	if _content_split != null:
 		_content_split.split_offset = DEFAULT_RECORD_WIDTH
 	if _record_panel != null:
@@ -53,15 +66,39 @@ func _install_workspace_usability() -> void:
 		form_panel.custom_minimum_size = Vector2(480.0, 0.0)
 		_install_workspace_toolbar(form_panel)
 	if form_scroll != null:
-		form_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		form_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 		form_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 		form_scroll.follow_focus = true
 	if form_container != null:
-		form_container.custom_minimum_size = Vector2.ZERO
+		form_container.custom_minimum_size = Vector2(FORM_SCROLL_MINIMUM_WIDTH, 0.0)
 		form_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		form_container.add_theme_constant_override("separation", 6)
 
 	_fit_root_to_viewport()
+
+
+func _wrap_sidebar_in_scroll(sidebar: VBoxContainer) -> void:
+	if sidebar == null or sidebar.get_parent() == null:
+		return
+	if sidebar.get_parent() is ScrollContainer:
+		_sidebar_scroll = sidebar.get_parent() as ScrollContainer
+		return
+	var parent := sidebar.get_parent()
+	var original_index := sidebar.get_index()
+	parent.remove_child(sidebar)
+	_sidebar_scroll = ScrollContainer.new()
+	_sidebar_scroll.name = "SidebarScroll"
+	_sidebar_scroll.custom_minimum_size = Vector2(145.0, 0.0)
+	_sidebar_scroll.size_flags_horizontal = Control.SIZE_FILL
+	_sidebar_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_sidebar_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_sidebar_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_sidebar_scroll.follow_focus = true
+	parent.add_child(_sidebar_scroll)
+	parent.move_child(_sidebar_scroll, original_index)
+	_sidebar_scroll.add_child(sidebar)
+	sidebar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sidebar.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 
 
 func _install_workspace_toolbar(form_panel: VBoxContainer) -> void:
@@ -128,6 +165,13 @@ func _reset_workspace_layout() -> void:
 		_record_toggle_button.text = "Hide Record List"
 	if _content_split != null:
 		_content_split.split_offset = DEFAULT_RECORD_WIDTH
+	if _sidebar_scroll != null and is_instance_valid(_sidebar_scroll):
+		_sidebar_scroll.scroll_horizontal = 0
+		_sidebar_scroll.scroll_vertical = 0
+	var form_scroll := get_node_or_null("MarginContainer/MainLayout/ContentSplit/FormPanel/FormScroll") as ScrollContainer
+	if form_scroll != null:
+		form_scroll.scroll_horizontal = 0
+		form_scroll.scroll_vertical = 0
 
 
 func _toggle_editor_maximize() -> void:

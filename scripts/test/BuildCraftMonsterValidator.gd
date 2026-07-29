@@ -40,13 +40,17 @@ func _validate_content() -> void:
 		if not locomotion_value is Dictionary or float((locomotion_value as Dictionary).get("move_speed", 0.0)) <= 0.0:
 			failures.append("Monster locomotion.move_speed is missing or invalid")
 	var editor_text := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditorRuntimeTuningSuite.gd")
-	for token in ["Movement Speed", "locomotion[\"move_speed\"]", "Saved and applied to the running game"]:
+	for token in ["Movement Speed", "locomotion[\"move_speed\"]", "Attack Contact Frame", "attack_hit_frame", "Saved and applied to the running game"]:
 		if not editor_text.contains(token):
 			failures.append("Runtime Content Editor monster/live-save contract is missing %s" % token)
 	var enhanced_text := FileAccess.get_file_as_string("res://scripts/enemies/EnemyBaseEnhanced.gd")
-	for token in ["_refresh_runtime_monster_content", "_monster_locomotion.configure"]:
+	for token in ["_refresh_runtime_monster_content", "_monster_locomotion.configure", "EnemyScreenCombatSuite.gd"]:
 		if not enhanced_text.contains(token):
-			failures.append("Living monsters cannot refresh locomotion after content reload: %s" % token)
+			failures.append("Living monsters cannot refresh locomotion/combat after content reload: %s" % token)
+	var screen_combat_text := FileAccess.get_file_as_string("res://scripts/enemies/EnemyScreenCombatSuite.gd")
+	for token in ["is_visible_for_activation", "_wait_for_attack_contact_frame", "attack_contact_frame - 1", "player_in_contact"]:
+		if not screen_combat_text.contains(token):
+			failures.append("Monster screen/contact-frame runtime is missing %s" % token)
 
 func _validate_runtime() -> void:
 	var player := PLAYER_SCENE.instantiate()
@@ -79,6 +83,7 @@ func _validate_runtime() -> void:
 		var monster: Node = scene.instantiate()
 		root.add_child(monster)
 		await process_frame
+		await process_frame
 		var sprite := monster.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 		if sprite == null or sprite.sprite_frames == null or sprite.sprite_frames.get_animation_names().is_empty():
 			failures.append("Monster content animation did not load")
@@ -87,11 +92,58 @@ func _validate_runtime() -> void:
 		var expected_speed := float((monster_data.get("locomotion", {}) as Dictionary).get("move_speed", monster_data.get("move_speed", 0.0)))
 		if locomotion == null or not is_equal_approx(float(locomotion.get("move_speed")), expected_speed):
 			failures.append("Monster runtime speed does not match ContentDB locomotion.move_speed")
+		if not monster.has_method("get_attack_contact_frame") or int(monster.call("get_attack_contact_frame")) < 1:
+			failures.append("Monster has no valid authored attack contact frame")
+		_validate_monster_shadow_frame(monster, sprite)
 		if str(monster.get("monster_id")) == "slime":
 			_validate_slime_direction_rows(monster)
+			_validate_offscreen_activation(monster, player)
 		monster.queue_free()
 	player.queue_free(); campfire.queue_free(); door.queue_free()
 	await process_frame
+
+
+func _validate_monster_shadow_frame(monster: Node, sprite: AnimatedSprite2D) -> void:
+	var shadow := monster.get_node_or_null("GroundShadow") as Polygon2D
+	if shadow == null or sprite == null:
+		failures.append("Animated monster has no projected shadow source")
+		return
+	if int(shadow.get_meta("shadow_bound_source_id", 0)) != sprite.get_instance_id():
+		failures.append("Animated monster shadow is not bound to its visible AnimatedSprite2D")
+	var source_texture := sprite.sprite_frames.get_frame_texture(sprite.animation, sprite.frame)
+	var proxy: Polygon2D = null
+	var proxy_id := int(shadow.get_meta("shadow_render_proxy_id", 0))
+	if proxy_id > 0:
+		var proxy_value: Variant = instance_from_id(proxy_id)
+		if proxy_value != null and is_instance_valid(proxy_value):
+			proxy = proxy_value as Polygon2D
+	if proxy == null or proxy.texture == null:
+		failures.append("Animated monster shadow has no compositor proxy texture")
+		return
+	if source_texture is AtlasTexture:
+		# The invisible canonical node may retain the authored AtlasTexture for frame
+		# identity, but the actual compositor must render an isolated ImageTexture.
+		if proxy.texture is AtlasTexture:
+			failures.append("Animated monster compositor still samples the complete sprite atlas")
+		if not bool(shadow.get_meta("shadow_source_frame_isolated", false)):
+			failures.append("Animated monster frame was not isolated before shadow projection")
+		if not bool(proxy.get_meta("shadow_active_frame_texture_isolated", false)):
+			failures.append("Animated monster compositor proxy was not marked as active-frame isolated")
+	if proxy.texture.get_size().x <= 0.0 or proxy.texture.get_size().y <= 0.0:
+		failures.append("Animated monster shadow has no valid active-frame render texture")
+
+
+func _validate_offscreen_activation(monster: Node, player: Node2D) -> void:
+	monster.set("player", player)
+	monster.set("facing_direction", "down")
+	monster.global_position = Vector2(100000.0, 100000.0)
+	var offscreen_motion := monster.call("_update_movement", 0.1) as Dictionary
+	if (offscreen_motion.get("velocity", Vector2.ZERO) as Vector2).length() > 0.001:
+		failures.append("Offscreen monster still chases the player across the map")
+	monster.global_position = Vector2(180.0, 120.0)
+	var onscreen_motion := monster.call("_update_movement", 0.1) as Dictionary
+	if (onscreen_motion.get("velocity", Vector2.ZERO) as Vector2).length() <= 0.001:
+		failures.append("Visible monster did not reactivate pursuit")
 
 
 func _validate_slime_direction_rows(slime: Node) -> void:
@@ -103,7 +155,7 @@ func _validate_slime_direction_rows(slime: Node) -> void:
 		failures.append("Slime runtime animation data is unavailable")
 		return
 	var animations := animation_value as Dictionary
-	var expected_rows := {"down": 0, "left": 1, "right": 2, "up": 3}
+	var expected_rows := {"down": 0, "up": 1, "left": 2, "right": 3}
 	for state in ["idle", "walk", "run", "attack", "hurt", "death"]:
 		for direction in expected_rows.keys():
 			var animation_name := "%s_%s" % [state, direction]

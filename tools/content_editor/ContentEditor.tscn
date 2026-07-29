@@ -1,9 +1,9 @@
 [gd_scene load_steps=3 format=3 uid="uid://cn6juf8fptk0e"]
 
-; ContentEditorPlayerLightPerspectiveSuite.gd extends ContentEditorShadowOcclusionSuite.gd.
-; ContentEditorShadowOcclusionSuite.gd extends ContentEditorPostEffectsNavigationSuite.gd.
-; ContentEditorPostEffectsNavigationSuite.gd extends ContentEditorRuntimeTuningSuite.gd.
-[ext_resource type="Script" path="res://tools/content_editor/ContentEditorPlayerLightPerspectiveSuite.gd" id="1_content_editor_script"]
+; ContentEditorControlRangesSuite.gd extends ContentEditorLightEmittersSuite.gd.
+; The inherited chain includes ContentEditorRuntimeTuningSuite.gd and centralizes
+; light-only authoring, runtime-safe tuning, workspace scrolling and post effects.
+[ext_resource type="Script" path="res://tools/content_editor/ContentEditorControlRangesSuite.gd" id="1_content_editor_script"]
 [ext_resource type="Script" path="res://scripts/test/RuntimeContentEditorContractProbe.gd" id="2_contract_probe"]
 
 [node name="ContentEditor" type="Control" unique_id=47190531]

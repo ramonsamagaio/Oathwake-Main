@@ -1,7 +1,7 @@
 class_name DirectionalShadowRuntime
 extends RefCounted
 
-const ProjectedSpriteShadowScript := preload("res://scripts/effects/ProjectedSpriteShadow.gd")
+const ProjectedSpriteShadowScript := preload("res://scripts/effects/ActiveFrameProjectedShadow.gd")
 const DEFAULT_DIRECTION_DEGREES := -45.0
 const DEFAULT_COLOR := Color(0.02, 0.024, 0.035, 1.0)
 
@@ -9,18 +9,19 @@ const DEFAULT_COLOR := Color(0.02, 0.024, 0.035, 1.0)
 static func apply_to_target(
 	target: Node2D,
 	config: Dictionary = {},
-	_visual_size := Vector2(32.0, 48.0),
+	visual_size_hint := Vector2(32.0, 48.0),
 	local_foot_offset := Vector2.ZERO,
 	source_override: CanvasItem = null
 ) -> Polygon2D:
-	if target == null:
+	if target == null or not is_instance_valid(target):
 		return null
 	var defaults := _get_global_defaults(target)
 	var enabled := bool(defaults.get("enabled", true)) and bool(config.get("enabled", true))
 	var shadow := target.get_node_or_null("GroundShadow") as Polygon2D
 	if shadow != null and shadow.get_script() != ProjectedSpriteShadowScript:
+		shadow.name = "LegacyGroundShadow"
 		target.remove_child(shadow)
-		shadow.free()
+		shadow.queue_free()
 		shadow = null
 	if shadow == null and enabled:
 		shadow = ProjectedSpriteShadowScript.new() as Polygon2D
@@ -30,17 +31,18 @@ static func apply_to_target(
 		return null
 
 	shadow.visible = enabled
+	shadow.set_meta("shadow_visual_size_hint", visual_size_hint)
 	if not enabled:
 		return shadow
 
-	var source := source_override if source_override != null else _find_largest_visual(target)
+	var source := source_override
+	if source == null or not is_instance_valid(source) or not _is_valid_source(source):
+		source = find_active_visual_source(target)
 	if source == null:
 		shadow.visible = false
 		return shadow
 
 	var resolved := config.duplicate(true)
-	# Projection shape is global and intentionally controlled from the dedicated
-	# World Shadows tab. Per-element records keep only enable, offset and z-order.
 	for projection_key in ["opacity", "stretch", "direction_degrees", "direction", "color"]:
 		if defaults.has(projection_key):
 			resolved[projection_key] = defaults[projection_key]
@@ -59,6 +61,7 @@ static func apply_to_target(
 	if shadow.has_method("configure"):
 		shadow.call("configure", target, source, resolved, local_foot_offset)
 	shadow.set_meta("directional_shadow", true)
+	shadow.set_meta("shadow_bound_source_id", source.get_instance_id())
 	return shadow
 
 
@@ -69,8 +72,12 @@ static func apply_to_sprite(sprite: Sprite2D, config: Dictionary = {}) -> Polygo
 	return apply_to_target(sprite, config, WorldDepthRuntime.get_sprite_visual_size(sprite), foot_offset, sprite)
 
 
+static func find_active_visual_source(target: Node) -> CanvasItem:
+	return _find_largest_visual(target)
+
+
 static func estimate_target_visual_size(target: Node2D) -> Vector2:
-	var visual := _find_largest_visual(target)
+	var visual := find_active_visual_source(target)
 	if visual is Sprite2D:
 		var sprite := visual as Sprite2D
 		return WorldDepthRuntime.get_sprite_visual_size(sprite) * Vector2(absf(sprite.scale.x), absf(sprite.scale.y))
@@ -82,7 +89,7 @@ static func estimate_target_visual_size(target: Node2D) -> Vector2:
 
 
 static func estimate_target_foot_offset(target: Node2D) -> Vector2:
-	var visual := _find_largest_visual(target)
+	var visual := find_active_visual_source(target)
 	if visual is Sprite2D:
 		return WorldDepthRuntime.get_sprite_foot_offset(visual as Sprite2D)
 	if visual is AnimatedSprite2D:
@@ -122,8 +129,6 @@ static func _find_largest_visual(target: Node) -> CanvasItem:
 
 
 static func _source_priority(candidate: CanvasItem) -> int:
-	# AnimatedSprite2D must win over helper Sprite2D nodes that may still hold a
-	# complete sprite sheet. The shadow renderer then receives only the active frame.
 	if candidate is AnimatedSprite2D:
 		return 3
 	if candidate is Sprite2D:
@@ -134,17 +139,27 @@ static func _source_priority(candidate: CanvasItem) -> int:
 
 
 static func _is_valid_source(candidate: CanvasItem) -> bool:
-	if candidate == null or not candidate.visible:
+	if candidate == null or not is_instance_valid(candidate) or not candidate.visible:
 		return false
 	if str(candidate.name) == "GroundShadow" or candidate.is_in_group("persistent_content_visual"):
 		return false
 	if candidate is Sprite2D:
-		return (candidate as Sprite2D).texture != null
+		var sprite := candidate as Sprite2D
+		if sprite.texture == null or not _has_positive_texture_size(sprite.texture):
+			return false
+		if sprite.region_enabled:
+			return sprite.region_rect.size.x > 0.0 and sprite.region_rect.size.y > 0.0
+		return sprite.hframes > 0 and sprite.vframes > 0
 	if candidate is AnimatedSprite2D:
 		var animated := candidate as AnimatedSprite2D
 		if animated.sprite_frames == null or not animated.sprite_frames.has_animation(animated.animation):
 			return false
-		return animated.sprite_frames.get_frame_count(animated.animation) > 0
+		var frame_count := animated.sprite_frames.get_frame_count(animated.animation)
+		if frame_count <= 0:
+			return false
+		var frame_index := clampi(animated.frame, 0, frame_count - 1)
+		var frame_texture := animated.sprite_frames.get_frame_texture(animated.animation, frame_index)
+		return frame_texture != null and _has_positive_texture_size(frame_texture)
 	if candidate is Polygon2D:
 		return not (candidate as Polygon2D).polygon.is_empty()
 	return false
@@ -159,6 +174,13 @@ static func _visual_size(candidate: CanvasItem) -> Vector2:
 	if candidate is Polygon2D:
 		return _polygon_bounds(candidate as Polygon2D).size
 	return Vector2.ZERO
+
+
+static func _has_positive_texture_size(texture: Texture2D) -> bool:
+	if texture == null:
+		return false
+	var texture_size := texture.get_size()
+	return texture_size.x > 0.0 and texture_size.y > 0.0
 
 
 static func _polygon_bounds(polygon: Polygon2D) -> Rect2:

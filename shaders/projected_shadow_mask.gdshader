@@ -1,6 +1,7 @@
 shader_type canvas_item;
 render_mode unshaded;
 
+uniform float mask_weight : hint_range(0.0, 1.0, 0.001) = 1.0;
 uniform bool wind_enabled = false;
 uniform float wind_amplitude : hint_range(0.0, 0.5, 0.005) = 0.08;
 uniform float wind_time_scale : hint_range(0.0, 5.0, 0.01) = 0.20;
@@ -70,7 +71,7 @@ void fragment() {
 		vec2 directional_bend = vec2(safe_direction.x, -abs(safe_direction.y)) * wind_amount * 0.0035 * pivot_distance;
 		sample_uv = mix(UV, rotated_uv, pivot_distance) - directional_bend;
 	}
-	float mask_alpha = texture(TEXTURE, sample_uv).a;
+	float mask_alpha = texture(TEXTURE, sample_uv).a * clamp(mask_weight, 0.0, 1.0);
 	if (mask_alpha <= 0.001) {
 		discard;
 	}

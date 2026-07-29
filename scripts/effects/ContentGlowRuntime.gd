@@ -1,7 +1,7 @@
 extends RefCounted
 
 const GlowOverlayScene: PackedScene = preload("res://scenes/effects/GlowOverlay.tscn")
-const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
+const DirectionalShadowRuntimeScript := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
 
 
 static func apply_content_effects(target: Node2D, record: Dictionary, default_glow_z := 24) -> void:
@@ -59,9 +59,10 @@ static func apply_shadow(target: Node2D, config: Dictionary) -> Polygon2D:
 	var resolved_config := config.duplicate(true)
 	if not resolved_config.has("enabled"):
 		resolved_config["enabled"] = false
-	var visual_size := DirectionalShadowRuntime.estimate_target_visual_size(target)
-	var foot_offset := DirectionalShadowRuntime.estimate_target_foot_offset(target)
-	return DirectionalShadowRuntime.apply_to_target(target, resolved_config, visual_size, foot_offset)
+	var active_source := DirectionalShadowRuntimeScript.find_active_visual_source(target)
+	var visual_size := DirectionalShadowRuntimeScript.estimate_target_visual_size(target)
+	var foot_offset := DirectionalShadowRuntimeScript.estimate_target_foot_offset(target)
+	return DirectionalShadowRuntimeScript.apply_to_target(target, resolved_config, visual_size, foot_offset, active_source)
 
 
 static func _visual_mode_to_int(mode_name: String) -> int:

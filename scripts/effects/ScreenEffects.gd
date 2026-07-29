@@ -43,8 +43,6 @@ func set_day_night_strength(strength: float) -> void:
 
 
 func refresh_from_settings() -> void:
-	# Explicit scene/inspector refreshes are allowed to override content defaults.
-	# Normal gameplay startup and ContentDB reloads still use the authored profile.
 	_post_processing_config.clear()
 	_sync_settings()
 
@@ -55,16 +53,13 @@ func play_dash_lines(custom_duration := -1.0) -> void:
 		return
 	if not bool(settings.get("dash_lines_enabled")):
 		return
-
 	var duration := float(settings.get("dash_effect_duration"))
 	if custom_duration > 0.0:
 		duration = custom_duration
 	duration = maxf(duration, 0.04)
-
 	if _dash_tween != null:
 		_dash_tween.kill()
 		_dash_tween = null
-
 	speed_lines.visible = true
 	speed_lines.modulate.a = 0.0
 	_dash_tween = create_tween()
@@ -144,7 +139,6 @@ func _sync_glow_material() -> void:
 		if back_buffer_copy != null:
 			back_buffer_copy.copy_mode = BackBufferCopy.COPY_MODE_DISABLED
 		return
-
 	var bloom_enabled := bool(_post_processing_config.get("bloom_enabled", settings.get("glow_enabled")))
 	var grading_enabled := bool(_post_processing_config.get("grading_enabled", settings.get("grading_enabled")))
 	var effects_enabled := bloom_enabled or grading_enabled
@@ -198,7 +192,6 @@ func _sync_local_light_grading_mask() -> void:
 	if not bool(_post_processing_config.get("local_light_grading_mask_enabled", true)) or _night_strength <= 0.001:
 		material.set_shader_parameter("local_light_source_active", false)
 		return
-
 	if _local_light_source == null or not is_instance_valid(_local_light_source):
 		var player := get_tree().get_first_node_in_group("player")
 		if player != null:
@@ -206,12 +199,10 @@ func _sync_local_light_grading_mask() -> void:
 	if _local_light_source == null or not is_instance_valid(_local_light_source):
 		material.set_shader_parameter("local_light_source_active", false)
 		return
-
 	var point_light := _local_light_source.get_node_or_null("PointLight2D") as PointLight2D
 	if point_light == null or not point_light.enabled or point_light.energy <= 0.001 or point_light.texture == null:
 		material.set_shader_parameter("local_light_source_active", false)
 		return
-
 	var viewport_size := get_viewport().get_visible_rect().size
 	if viewport_size.x <= 1.0 or viewport_size.y <= 1.0:
 		material.set_shader_parameter("local_light_source_active", false)
@@ -219,19 +210,20 @@ func _sync_local_light_grading_mask() -> void:
 	var canvas_transform := get_viewport().get_canvas_transform()
 	var screen_position := canvas_transform * _local_light_source.global_position
 	var screen_uv := Vector2(screen_position.x / viewport_size.x, screen_position.y / viewport_size.y)
-	var canvas_scale_x := canvas_transform.x.length()
-	var canvas_scale_y := canvas_transform.y.length()
-	var canvas_scale := maxf((canvas_scale_x + canvas_scale_y) * 0.5, 0.001)
 	var texture_size := point_light.texture.get_size()
-	var radius_world := maxf(texture_size.x, texture_size.y) * 0.5 * point_light.texture_scale
-	var radius_pixels := radius_world * canvas_scale
-	var radius_uv := radius_pixels / minf(viewport_size.x, viewport_size.y)
+	var source_scale := Vector2(absf(_local_light_source.global_scale.x), absf(_local_light_source.global_scale.y))
+	var radius_world := Vector2(texture_size.x, texture_size.y) * 0.5 * point_light.texture_scale * source_scale
+	var radius_pixels := Vector2(
+		radius_world.x * canvas_transform.x.length(),
+		radius_world.y * canvas_transform.y.length()
+	)
+	var radius_uv := Vector2(radius_pixels.x / viewport_size.x, radius_pixels.y / viewport_size.y)
 	var source_strength := clampf(point_light.energy * 1.55, 0.0, 1.0)
-
 	material.set_shader_parameter("local_light_source_active", true)
 	material.set_shader_parameter("local_light_screen_position", screen_uv)
-	material.set_shader_parameter("local_light_radius_uv", maxf(radius_uv, 0.001))
+	material.set_shader_parameter("local_light_radius_uv", radius_uv.max(Vector2(0.001, 0.001)))
 	material.set_shader_parameter("local_light_source_strength", source_strength)
+	material.set_meta("local_light_mask_scale", source_scale)
 
 
 func _float_setting(key: String) -> float:

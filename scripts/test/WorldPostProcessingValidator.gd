@@ -36,13 +36,8 @@ func _validate_content_contract() -> Dictionary:
 		return {}
 	var post_data := post as Dictionary
 	for required_key in [
-		"bloom_enabled",
-		"selective_bloom_enabled",
-		"emissive_chroma_threshold",
-		"neutral_suppression",
-		"grading_enabled",
-		"day_tint",
-		"night_tint",
+		"bloom_enabled", "selective_bloom_enabled", "emissive_chroma_threshold",
+		"neutral_suppression", "grading_enabled", "day_tint", "night_tint",
 		"warm_light_preservation",
 	]:
 		if not post_data.has(required_key):
@@ -65,16 +60,10 @@ func _validate_content_contract() -> Dictionary:
 func _validate_shader_contract() -> void:
 	var shader_text := FileAccess.get_file_as_string("res://shaders/gaussian_glow_screen.gdshader")
 	for token in [
-		"selective_bloom_enabled",
-		"emissive_chroma_threshold",
-		"neutral_suppression",
-		"apply_world_grading",
-		"night_strength",
-		"warm_light_preservation",
-		"night_cool_shadow_strength",
-		"local_light_grading_mask_enabled",
-		"oath_local_light_mask",
-		"local_light_grading_protection",
+		"selective_bloom_enabled", "emissive_chroma_threshold", "neutral_suppression",
+		"apply_world_grading", "night_strength", "warm_light_preservation",
+		"night_cool_shadow_strength", "local_light_grading_mask_enabled",
+		"oath_local_light_mask", "local_light_grading_protection",
 	]:
 		if not shader_text.contains(token):
 			failures.append("Unified screen shader is missing %s." % token)
@@ -112,8 +101,6 @@ func _validate_runtime_contract(post: Dictionary) -> void:
 		failures.append("Runtime local-light grading mask is disabled.")
 
 	if screen_effects.has_method("set_day_night_strength"):
-		# This isolated scene intentionally has no DayNightCycle. Freeze its normal
-		# polling while directly exercising the public transition contract.
 		screen_effects.set_process(false)
 		var player_light := player.get_node_or_null("NightLight")
 		if player_light != null and player_light.has_method("set_day_night_strength"):
@@ -124,8 +111,14 @@ func _validate_runtime_contract(post: Dictionary) -> void:
 			failures.append("Screen compositor did not receive full night strength.")
 		if not bool(material.get_shader_parameter("local_light_source_active")):
 			failures.append("Player PointLight2D did not activate the night-grading protection mask.")
-		if float(material.get_shader_parameter("local_light_radius_uv")) <= 0.0:
-			failures.append("Player light protection mask has no radius.")
+		var mask_radius_value: Variant = material.get_shader_parameter("local_light_radius_uv")
+		if not (mask_radius_value is Vector2) or (mask_radius_value as Vector2).x <= 0.0 or (mask_radius_value as Vector2).y <= 0.0:
+			failures.append("Player light protection mask has no elliptical radius.")
+		elif player_light is Node2D and (player_light as Node2D).scale.y < (player_light as Node2D).scale.x:
+			var viewport_size := root.get_visible_rect().size
+			var pixel_radius := Vector2((mask_radius_value as Vector2).x * viewport_size.x, (mask_radius_value as Vector2).y * viewport_size.y)
+			if pixel_radius.y >= pixel_radius.x:
+				failures.append("Player night mask did not follow the emitted light perspective ellipse.")
 		if float(material.get_shader_parameter("local_light_source_strength")) <= 0.0:
 			failures.append("Player light protection mask has no strength.")
 		screen_effects.call("set_day_night_strength", 0.0)

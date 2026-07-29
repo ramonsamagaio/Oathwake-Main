@@ -1,10 +1,11 @@
 extends "res://scripts/enemies/EnemyBaseEnhanced.gd"
 
+# The source sheets use: south, north, west, east.
 const DIRECTION_ROWS := {
 	"down": 0,
-	"left": 1,
-	"right": 2,
-	"up": 3,
+	"up": 1,
+	"left": 2,
+	"right": 3,
 }
 
 

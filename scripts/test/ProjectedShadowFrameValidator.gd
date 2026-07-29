@@ -14,7 +14,9 @@ func _init() -> void:
 func _run() -> void:
 	await _validate_sprite_frame_crop()
 	await _validate_animated_frame_switch()
+	await _validate_animated_atlas_frame_crop()
 	await _validate_runtime_source_choice()
+	await _validate_placeholder_polygon_shadow()
 	await _validate_owner_visibility_lifecycle()
 	await _validate_shared_compositor_and_wind()
 	if failures.is_empty():
@@ -122,6 +124,53 @@ func _validate_animated_frame_switch() -> void:
 	await process_frame
 
 
+func _validate_animated_atlas_frame_crop() -> void:
+	var sheet_image := Image.create(96, 32, false, Image.FORMAT_RGBA8)
+	sheet_image.fill(Color.TRANSPARENT)
+	for y in range(6, 30):
+		for x in range(4, 14):
+			sheet_image.set_pixel(x, y, Color.WHITE)
+	for y in range(3, 30):
+		for x in range(42, 58):
+			sheet_image.set_pixel(x, y, Color.WHITE)
+	var sheet_texture := ImageTexture.create_from_image(sheet_image)
+	var first_atlas := AtlasTexture.new()
+	first_atlas.atlas = sheet_texture
+	first_atlas.region = Rect2(0, 0, 32, 32)
+	var second_atlas := AtlasTexture.new()
+	second_atlas.atlas = sheet_texture
+	second_atlas.region = Rect2(32, 0, 32, 32)
+	var frames := SpriteFrames.new()
+	frames.add_animation("walk")
+	frames.add_frame("walk", first_atlas)
+	frames.add_frame("walk", second_atlas)
+	var target := Node2D.new()
+	root.add_child(target)
+	var sprite := AnimatedSprite2D.new()
+	sprite.sprite_frames = frames
+	sprite.animation = "walk"
+	sprite.frame = 0
+	target.add_child(sprite)
+	var shadow := SHADOW_RUNTIME.apply_to_target(target, {"enabled": true})
+	await process_frame
+	var first_rect: Rect2i = shadow.get_meta("shadow_opaque_rect", Rect2i())
+	if first_rect != Rect2i(Vector2i(4, 6), Vector2i(10, 24)):
+		failures.append("Atlas frame 0 was scanned as the complete sheet: %s" % first_rect)
+	if shadow.texture != first_atlas:
+		failures.append("Atlas frame 0 texture was not preserved as the active animation frame.")
+	sprite.frame = 1
+	await process_frame
+	var second_rect: Rect2i = shadow.get_meta("shadow_opaque_rect", Rect2i())
+	if second_rect != Rect2i(Vector2i(10, 3), Vector2i(16, 27)):
+		failures.append("Atlas frame 1 was scanned as the complete sheet: %s" % second_rect)
+	if shadow.texture != second_atlas:
+		failures.append("Atlas frame 1 texture was not selected after the animation advanced.")
+	if second_rect.end.x > 32 or second_rect.end.y > 32:
+		failures.append("Atlas alpha bounds escaped the active frame region.")
+	target.queue_free()
+	await process_frame
+
+
 func _validate_runtime_source_choice() -> void:
 	var sheet_image := Image.create(128, 16, false, Image.FORMAT_RGBA8)
 	sheet_image.fill(Color.WHITE)
@@ -150,6 +199,33 @@ func _validate_runtime_source_choice() -> void:
 		failures.append("Runtime selected a sprite sheet instead of the active animation frame.")
 	elif str(shadow.get_meta("shadow_source_kind", "")) != "AnimatedSprite2D":
 		failures.append("Runtime source kind is not AnimatedSprite2D.")
+	target.queue_free()
+	await process_frame
+
+
+func _validate_placeholder_polygon_shadow() -> void:
+	var target := Node2D.new()
+	root.add_child(target)
+	var body := Polygon2D.new()
+	body.name = "Body"
+	body.polygon = PackedVector2Array([
+		Vector2(0, -16), Vector2(12, -6), Vector2(10, 14),
+		Vector2(-10, 14), Vector2(-12, -6),
+	])
+	target.add_child(body)
+	var hidden_animation := AnimatedSprite2D.new()
+	hidden_animation.visible = false
+	target.add_child(hidden_animation)
+	var shadow := SHADOW_RUNTIME.apply_to_target(target, {"enabled": true})
+	await process_frame
+	await process_frame
+	if shadow == null or str(shadow.get_meta("shadow_source_kind", "")) != "Polygon2D":
+		failures.append("Player fallback polygon was not selected as a shadow source.")
+	elif shadow.texture == null:
+		failures.append("Untextured player fallback did not receive a solid shadow mask.")
+	var proxy := _shadow_proxy(shadow)
+	if proxy == null or not proxy.visible:
+		failures.append("Player fallback polygon shadow is not visible in the shared compositor.")
 	target.queue_free()
 	await process_frame
 
@@ -239,4 +315,7 @@ func _shadow_proxy(shadow: Polygon2D) -> Polygon2D:
 	var proxy_id := int(shadow.get_meta("shadow_render_proxy_id", 0))
 	if proxy_id <= 0:
 		return null
-	return instance_from_id(proxy_id) as Polygon2D
+	var proxy_value: Variant = instance_from_id(proxy_id)
+	if proxy_value == null or not is_instance_valid(proxy_value):
+		return null
+	return proxy_value as Polygon2D

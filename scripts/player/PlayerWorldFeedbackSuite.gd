@@ -1,7 +1,7 @@
 extends "res://scripts/player/PlayerShaderSuite.gd"
 
-const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
-const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
+const WorldDepthRuntimeScript := preload("res://scripts/world/WorldDepthRuntime.gd")
+const DirectionalShadowRuntimeScript := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
 
 
 var _content_character_side_view := false
@@ -54,6 +54,7 @@ func _setup_character_visual() -> void:
 	_apply_player_visual_tuning()
 	_apply_player_light_tuning()
 	_apply_player_directional_shadow()
+	call_deferred("_refresh_player_directional_shadow_source")
 	_update_world_depth()
 
 
@@ -119,23 +120,23 @@ func _player_light_color(value: Variant, fallback: Color) -> Color:
 
 
 func _apply_player_directional_shadow() -> void:
-	var visual_size := DirectionalShadowRuntime.estimate_target_visual_size(self)
-	var foot_offset := DirectionalShadowRuntime.estimate_target_foot_offset(self)
-	var active_shadow_source: CanvasItem = null
-	if animated_sprite != null and animated_sprite.visible:
-		visual_size = WorldDepthRuntime.get_animated_sprite_visual_size(animated_sprite)
-		foot_offset = WorldDepthRuntime.get_animated_sprite_foot_offset(animated_sprite)
-		# The player can also contain helper Sprite2D nodes backed by complete sprite
-		# sheets. Always project the actual AnimatedSprite2D frame being displayed.
-		active_shadow_source = animated_sprite
+	var active_shadow_source := DirectionalShadowRuntimeScript.find_active_visual_source(self)
+	var visual_size := DirectionalShadowRuntimeScript.estimate_target_visual_size(self)
+	var foot_offset := DirectionalShadowRuntimeScript.estimate_target_foot_offset(self)
 	var config := _content_shadow_config.duplicate(true)
 	if not config.has("enabled"):
 		config["enabled"] = true
-	DirectionalShadowRuntime.apply_to_target(self, config, visual_size, foot_offset, active_shadow_source)
+	DirectionalShadowRuntimeScript.apply_to_target(self, config, visual_size, foot_offset, active_shadow_source)
+
+
+func _refresh_player_directional_shadow_source() -> void:
+	if not is_inside_tree() or is_queued_for_deletion():
+		return
+	_apply_player_directional_shadow()
 
 
 func _update_world_depth() -> void:
-	WorldDepthRuntime.apply_node_depth(self, _content_depth_offset_y)
+	WorldDepthRuntimeScript.apply_node_depth(self, _content_depth_offset_y)
 
 
 func _play_attack_animation() -> void:
