@@ -22,6 +22,8 @@
 [ext_resource type="PackedScene" path="res://scenes/effects/LightShaftOverlay.tscn" id="20_light_shafts"]
 [ext_resource type="Script" path="res://scripts/ui/RuntimeContentEditorButton.gd" id="21_runtime_content_editor"]
 [ext_resource type="Script" path="res://scripts/ui/DisplayShortcut.gd" id="22_display_shortcut"]
+[ext_resource type="Script" path="res://scripts/ui/DayNightDebugControls.gd" id="23_day_night_debug"]
+[ext_resource type="Script" path="res://scripts/effects/LocalLightShadowDirector.gd" id="24_local_shadow_director"]
 
 [node name="Game" type="Node2D" unique_id=2133599417]
 script = ExtResource("1_game_script")
@@ -59,6 +61,9 @@ layer = 10
 [node name="HUDStatusUI" parent="UI" unique_id=1231664397 instance=ExtResource("17_hud_status")]
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="DayNightDebugControls" type="HBoxContainer" parent="UI"]
+script = ExtResource("23_day_night_debug")
 
 [node name="SpawnMonsterButton" type="Button" parent="UI" unique_id=794836599]
 anchors_preset = 6
@@ -188,6 +193,9 @@ script = ExtResource("13_settlement_manager")
 
 [node name="DayNightCycle" type="Node" parent="Systems" unique_id=1918717164]
 script = ExtResource("14_day_night")
+
+[node name="LocalLightShadowDirector" type="Node" parent="Systems"]
+script = ExtResource("24_local_shadow_director")
 
 [node name="NightEnemySpawner" type="Node" parent="Systems" unique_id=1328287738]
 script = ExtResource("15_night_spawner")
