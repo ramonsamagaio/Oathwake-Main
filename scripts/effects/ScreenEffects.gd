@@ -43,8 +43,6 @@ func set_day_night_strength(strength: float) -> void:
 
 
 func refresh_from_settings() -> void:
-	# Explicit scene/inspector refreshes are allowed to override content defaults.
-	# Normal gameplay startup and ContentDB reloads still use the authored profile.
 	_post_processing_config.clear()
 	_sync_settings()
 
@@ -222,15 +220,27 @@ func _sync_local_light_grading_mask() -> void:
 	var canvas_scale_x := canvas_transform.x.length()
 	var canvas_scale_y := canvas_transform.y.length()
 	var canvas_scale := maxf((canvas_scale_x + canvas_scale_y) * 0.5, 0.001)
-	var texture_size := point_light.texture.get_size()
-	var radius_world := maxf(texture_size.x, texture_size.y) * 0.5 * point_light.texture_scale
+	var radius_world := 0.0
+	if _local_light_source.has_method("get_light_radius_world"):
+		radius_world = maxf(float(_local_light_source.call("get_light_radius_world")), 0.0)
+	if radius_world <= 0.0:
+		var texture_size := point_light.texture.get_size()
+		radius_world = maxf(texture_size.x, texture_size.y) * 0.5 * point_light.texture_scale
 	var radius_pixels := radius_world * canvas_scale
 	var radius_uv := radius_pixels / minf(viewport_size.x, viewport_size.y)
 	var source_strength := clampf(point_light.energy * 1.55, 0.0, 1.0)
+	var axis_scale := Vector2.ONE
+	if _local_light_source.has_method("get_light_projection_scale"):
+		var projection_value: Variant = _local_light_source.call("get_light_projection_scale")
+		if projection_value is Vector2:
+			axis_scale = projection_value
+	axis_scale.x = maxf(absf(axis_scale.x), 0.05)
+	axis_scale.y = maxf(absf(axis_scale.y), 0.05)
 
 	material.set_shader_parameter("local_light_source_active", true)
 	material.set_shader_parameter("local_light_screen_position", screen_uv)
 	material.set_shader_parameter("local_light_radius_uv", maxf(radius_uv, 0.001))
+	material.set_shader_parameter("local_light_axis_scale", axis_scale)
 	material.set_shader_parameter("local_light_source_strength", source_strength)
 
 
