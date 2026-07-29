@@ -1,7 +1,7 @@
 class_name DirectionalShadowRuntime
 extends RefCounted
 
-const ProjectedSpriteShadowScript := preload("res://scripts/effects/ProjectedSpriteShadow.gd")
+const ProjectedSpriteShadowScript := preload("res://scripts/effects/DynamicProjectedSpriteShadow.gd")
 const DEFAULT_DIRECTION_DEGREES := -45.0
 const DEFAULT_COLOR := Color(0.02, 0.024, 0.035, 1.0)
 
@@ -39,8 +39,6 @@ static func apply_to_target(
 		return shadow
 
 	var resolved := config.duplicate(true)
-	# Projection shape is global and intentionally controlled from the dedicated
-	# World Shadows tab. Per-element records keep only enable, offset and z-order.
 	for projection_key in ["opacity", "stretch", "direction_degrees", "direction", "color"]:
 		if defaults.has(projection_key):
 			resolved[projection_key] = defaults[projection_key]
@@ -122,8 +120,6 @@ static func _find_largest_visual(target: Node) -> CanvasItem:
 
 
 static func _source_priority(candidate: CanvasItem) -> int:
-	# AnimatedSprite2D must win over helper Sprite2D nodes that may still hold a
-	# complete sprite sheet. The shadow renderer then receives only the active frame.
 	if candidate is AnimatedSprite2D:
 		return 3
 	if candidate is Sprite2D:
