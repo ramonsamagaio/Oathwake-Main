@@ -3,6 +3,7 @@ extends Node2D
 const AmbientParticleFieldScript := preload("res://scripts/effects/AmbientParticleField.gd")
 const FoliageWindShader := preload("res://shaders/foliage_wind_2d.gdshader")
 const WaterSurfaceShader := preload("res://shaders/water_surface_2d.gdshader")
+const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
 
 var map_id := ""
 var _config: Dictionary = {}
@@ -75,14 +76,20 @@ func register_authored_sprite(sprite: Sprite2D) -> void:
 			configure_water_canvas_item(sprite)
 		"vegetation_large":
 			configure_foliage_canvas_item(sprite, "large")
-			register_occluder(sprite, sprite, "tree")
 		"vegetation_small":
 			configure_foliage_canvas_item(sprite, "small")
 			register_micro_target(sprite, sprite, _micro_kind_from_name(str(sprite.name)))
 		"micro":
 			register_micro_target(sprite, sprite, _micro_kind_from_name(str(sprite.name)))
-		"roof":
-			register_occluder(sprite, sprite, "roof")
+
+	# Every substantial authored prop participates in player occlusion. Tiny floor
+	# decoration and water remain untouched, while trees, roofs, rocks, fences,
+	# buildings and other tall props fade consistently when covering the player.
+	var size := _estimate_canvas_item_size(sprite)
+	var should_occlude := category != "water" and category != "micro" and size.y >= 40.0
+	if should_occlude:
+		var kind := "roof" if category == "roof" else ("tree" if category == "vegetation_large" else "element")
+		register_occluder(sprite, sprite, kind, size, true)
 
 
 func register_authored_foliage_layer(layer: CanvasItem) -> void:
@@ -99,13 +106,10 @@ func register_authored_environment_layer(layer: CanvasItem) -> void:
 		configure_foliage_canvas_item(layer, "small")
 
 
-func register_resource_visual(owner: Node2D, target: CanvasItem, kind: String) -> void:
+func register_resource_visual(owner: Node2D, target: CanvasItem, kind: String, fade_when_player_behind := true) -> void:
 	if owner == null or target == null:
 		return
-	if kind == "tree":
-		register_occluder(owner, target, "tree")
-	else:
-		register_micro_target(owner, target, kind)
+	register_occluder(owner, target, kind, Vector2.ZERO, fade_when_player_behind)
 
 
 func register_micro_target(owner: Node2D, target: CanvasItem, kind := "plant") -> void:
@@ -127,11 +131,26 @@ func register_micro_target(owner: Node2D, target: CanvasItem, kind := "plant") -
 	target.set_meta("world_micro_motion", true)
 
 
-func register_occluder(owner: Node2D, target: CanvasItem, kind := "tree", size_hint := Vector2.ZERO) -> void:
+func register_occluder(
+	owner: Node2D,
+	target: CanvasItem,
+	kind := "element",
+	size_hint := Vector2.ZERO,
+	fade_when_player_behind := true
+) -> void:
 	if owner == null or target == null:
 		return
 	var target_id := target.get_instance_id()
 	if _occluder_target_ids.has(target_id):
+		for index in range(_occluders.size()):
+			var existing_target: Variant = _occluders[index].get("target")
+			if existing_target == target:
+				_occluders[index]["owner"] = owner
+				_occluders[index]["kind"] = kind
+				_occluders[index]["size_hint"] = size_hint
+				_occluders[index]["fade_enabled"] = fade_when_player_behind
+				target.set_meta("world_occlusion_enabled", fade_when_player_behind)
+				return
 		return
 	_occluder_target_ids[target_id] = true
 	_occluders.append({
@@ -140,8 +159,10 @@ func register_occluder(owner: Node2D, target: CanvasItem, kind := "tree", size_h
 		"kind": kind,
 		"size_hint": size_hint,
 		"base_alpha": target.modulate.a,
+		"fade_enabled": fade_when_player_behind,
 	})
 	target.set_meta("world_occlusion_target", true)
+	target.set_meta("world_occlusion_enabled", fade_when_player_behind)
 
 
 func configure_foliage_canvas_item(item: CanvasItem, size_class := "small") -> void:
@@ -293,11 +314,13 @@ func _update_occlusion(delta: float) -> void:
 		var owner: Variant = entry.get("owner")
 		var target: Variant = entry.get("target")
 		if not (owner is Node2D) or not (target is CanvasItem) or not is_instance_valid(owner) or not is_instance_valid(target):
+			_occluder_target_ids.erase((target as Object).get_instance_id() if target is Object and is_instance_valid(target) else -1)
 			_occluders.remove_at(index)
 			continue
 		var owner_node := owner as Node2D
 		var target_item := target as CanvasItem
 		var base_alpha := float(entry.get("base_alpha", 1.0))
+		var fade_enabled := bool(entry.get("fade_enabled", target_item.get_meta("world_occlusion_enabled", true)))
 		if not target_item.visible:
 			target_item.modulate.a = base_alpha
 			continue
@@ -309,9 +332,10 @@ func _update_occlusion(delta: float) -> void:
 		var horizontal_limit := maxf(size.x * horizontal_ratio, float(_occlusion_config.get("minimum_radius", 22.0)))
 		var upper_limit := depth_y - maxf(size.y * vertical_ratio, 28.0)
 		var lower_limit := depth_y + front_margin
-		var should_fade := enabled and absf(player_delta.x) <= horizontal_limit and _player.global_position.y >= upper_limit and _player.global_position.y <= lower_limit
-		var kind := str(entry.get("kind", "tree"))
-		var faded_alpha := float(_occlusion_config.get("roof_alpha", 0.30)) if kind == "roof" else float(_occlusion_config.get("tree_alpha", 0.38))
+		var should_fade := enabled and fade_enabled and absf(player_delta.x) <= horizontal_limit and _player.global_position.y >= upper_limit and _player.global_position.y <= lower_limit
+		var kind := str(entry.get("kind", "element"))
+		var legacy_alpha := float(_occlusion_config.get("roof_alpha", 0.30)) if kind == "roof" else float(_occlusion_config.get("tree_alpha", 0.38))
+		var faded_alpha := float(target_item.get_meta("world_occlusion_alpha", _occlusion_config.get("default_alpha", legacy_alpha)))
 		var target_alpha := clampf(faded_alpha, 0.05, base_alpha) if should_fade else base_alpha
 		target_item.modulate.a = move_toward(target_item.modulate.a, target_alpha, fade_speed * delta)
 		target_item.set_meta("world_occluded", should_fade)
@@ -362,8 +386,9 @@ func _contains_any(text: String, tokens: Array) -> bool:
 func _estimate_canvas_item_size(item: CanvasItem) -> Vector2:
 	if item is Sprite2D:
 		var sprite := item as Sprite2D
-		if sprite.texture != null:
-			return sprite.texture.get_size() * Vector2(absf(sprite.global_scale.x), absf(sprite.global_scale.y))
+		return WorldDepthRuntime.get_sprite_visual_size(sprite) * Vector2(absf(sprite.global_scale.x), absf(sprite.global_scale.y))
+	if item is AnimatedSprite2D:
+		return WorldDepthRuntime.get_animated_sprite_visual_size(item as AnimatedSprite2D)
 	if item is Polygon2D:
 		var polygon := (item as Polygon2D).polygon
 		if not polygon.is_empty():
