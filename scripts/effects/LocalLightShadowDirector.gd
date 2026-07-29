@@ -6,7 +6,7 @@ const CASTER_GROUP := "projected_shadow_caster"
 const EMITTER_GROUP := "world_light_emitter"
 
 var _elapsed := 0.0
-var _emitter_cache_elapsed := 0.0
+var _emitter_cache_dirty := true
 var _local_shadows: Dictionary = {}
 var _emitter_cache: Array[Dictionary] = []
 var _config: Dictionary = {}
@@ -16,16 +16,14 @@ func _ready() -> void:
 	add_to_group("local_light_shadow_director")
 	_reload_config()
 	_connect_content_reload()
+	_connect_tree_changes()
 	_refresh_emitter_cache()
 	set_process(true)
 
 
 func _process(delta: float) -> void:
-	var safe_delta := maxf(delta, 0.0)
-	_elapsed += safe_delta
-	_emitter_cache_elapsed += safe_delta
-	var cache_interval := maxf(float(_config.get("emitter_cache_interval", 0.50)), 0.10)
-	if _emitter_cache.is_empty() or _emitter_cache_elapsed >= cache_interval:
+	_elapsed += maxf(delta, 0.0)
+	if _emitter_cache_dirty or _emitter_cache.is_empty():
 		_refresh_emitter_cache()
 	var interval := maxf(float(_config.get("update_interval", 0.08)), 0.03)
 	if _elapsed < interval:
@@ -36,6 +34,7 @@ func _process(delta: float) -> void:
 
 func refresh_from_content() -> void:
 	_reload_config()
+	_emitter_cache_dirty = true
 	_refresh_emitter_cache()
 	_update_local_light_shadows()
 
@@ -69,6 +68,22 @@ func _connect_content_reload() -> void:
 		var callback := Callable(self, "refresh_from_content")
 		if not content_db.content_reloaded.is_connected(callback):
 			content_db.content_reloaded.connect(callback)
+
+
+func _connect_tree_changes() -> void:
+	var tree := get_tree()
+	var added_callback := Callable(self, "_on_tree_node_changed")
+	var removed_callback := Callable(self, "_on_tree_node_changed")
+	if not tree.node_added.is_connected(added_callback):
+		tree.node_added.connect(added_callback)
+	if not tree.node_removed.is_connected(removed_callback):
+		tree.node_removed.connect(removed_callback)
+
+
+func _on_tree_node_changed(_node: Node) -> void:
+	# Rebuild once on the next process tick instead of traversing the scene tree
+	# periodically. Enabled state and energy are still checked from the cache.
+	_emitter_cache_dirty = true
 
 
 func _update_local_light_shadows() -> void:
@@ -173,7 +188,7 @@ func _sync_local_shadow(
 
 
 func _refresh_emitter_cache() -> void:
-	_emitter_cache_elapsed = 0.0
+	_emitter_cache_dirty = false
 	_emitter_cache.clear()
 	var seen: Dictionary = {}
 	for value in get_tree().get_nodes_in_group(EMITTER_GROUP):
