@@ -87,6 +87,29 @@ func _validate_runtime() -> void:
 		var expected_speed := float((monster_data.get("locomotion", {}) as Dictionary).get("move_speed", monster_data.get("move_speed", 0.0)))
 		if locomotion == null or not is_equal_approx(float(locomotion.get("move_speed")), expected_speed):
 			failures.append("Monster runtime speed does not match ContentDB locomotion.move_speed")
+		if str(monster.get("monster_id")) == "slime":
+			_validate_slime_direction_rows(monster)
 		monster.queue_free()
 	player.queue_free(); campfire.queue_free(); door.queue_free()
 	await process_frame
+
+
+func _validate_slime_direction_rows(slime: Node) -> void:
+	if not bool(slime.get_meta("slime_direction_rows_corrected", false)):
+		failures.append("Slime runtime did not correct its direction rows")
+		return
+	var animation_value: Variant = slime.get("animations_data")
+	if not (animation_value is Dictionary):
+		failures.append("Slime runtime animation data is unavailable")
+		return
+	var animations := animation_value as Dictionary
+	var expected_rows := {"down": 0, "left": 1, "right": 2, "up": 3}
+	for state in ["idle", "walk", "run", "attack", "hurt", "death"]:
+		for direction in expected_rows.keys():
+			var animation_name := "%s_%s" % [state, direction]
+			var definition_value: Variant = animations.get(animation_name, {})
+			if not (definition_value is Dictionary):
+				failures.append("Slime runtime is missing %s" % animation_name)
+				continue
+			if int((definition_value as Dictionary).get("row", -1)) != int(expected_rows[direction]):
+				failures.append("Slime %s uses the wrong facing row" % animation_name)
