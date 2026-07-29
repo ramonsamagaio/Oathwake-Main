@@ -14,6 +14,7 @@ uniform float softness : hint_range(0.01, 0.75, 0.01) = 0.26;
 uniform float detail_mix : hint_range(0.0, 1.0, 0.01) = 0.42;
 uniform vec2 camera_offset = vec2(0.0);
 uniform float world_anchor_strength : hint_range(0.0, 2.0, 0.01) = 1.0;
+uniform float motion_time = 0.0;
 
 uniform float ground_density : hint_range(0.0, 1.0, 0.01) = 0.28;
 uniform float ground_height : hint_range(0.05, 1.0, 0.01) = 0.42;
@@ -62,7 +63,11 @@ void fragment() {
 	vec4 output_color = vec4(0.0);
 	if (enabled && fog_color.a > 0.0) {
 		vec2 anchored_uv = UV + camera_offset * world_anchor_strength;
-		vec2 primary_drift = TIME * speed;
+		vec2 slow_wander = vec2(
+			sin(motion_time * 0.061),
+			cos(motion_time * 0.047)
+		) * 0.045;
+		vec2 primary_drift = motion_time * speed + slow_wander;
 		vec2 primary_position = anchored_uv * fog_scale + primary_drift;
 		vec2 secondary_position = anchored_uv * (fog_scale * 1.73) - primary_drift * 0.63 + vec2(4.7, 8.1);
 		float primary_noise = fog_fbm(primary_position);
@@ -71,7 +76,7 @@ void fragment() {
 		float safe_softness = max(softness, 0.001);
 		float base_fog = smoothstep(coverage - safe_softness, coverage + safe_softness, combined_noise) * density;
 
-		vec2 ground_position = anchored_uv * ground_scale + TIME * ground_speed + vec2(11.3, 2.7);
+		vec2 ground_position = anchored_uv * ground_scale + motion_time * ground_speed - slow_wander * 0.45 + vec2(11.3, 2.7);
 		float ground_noise = fog_fbm(ground_position);
 		float ground_vertical = smoothstep(1.0 - ground_height - 0.16, 1.0 - ground_height + 0.18, UV.y);
 		float ground_ribbons = smoothstep(0.44, 0.70, ground_noise) * ground_vertical * ground_density;

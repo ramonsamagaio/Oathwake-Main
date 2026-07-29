@@ -20,6 +20,7 @@ extends CanvasLayer
 var _config: Dictionary = {}
 var _night_strength := 0.0
 var _last_camera_offset := Vector2(INF, INF)
+var _motion_time := 0.0
 
 
 func _ready() -> void:
@@ -31,9 +32,11 @@ func _ready() -> void:
 	set_process(true)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	_update_night_strength()
 	if visible:
+		_motion_time = fmod(_motion_time + maxf(delta, 0.0), 100000.0)
+		_update_motion_time()
 		_update_world_anchor(false)
 
 
@@ -91,6 +94,7 @@ func _sync_material() -> void:
 	material.set_shader_parameter("detail_mix", float(_config.get("detail_mix", detail_mix)))
 	var anchor_strength := float(_config.get("world_anchor_strength", world_anchor_strength)) if anchor_to_world else 0.0
 	material.set_shader_parameter("world_anchor_strength", anchor_strength)
+	material.set_shader_parameter("motion_time", _motion_time)
 	material.set_shader_parameter("ground_density", float(_config.get("ground_density", 0.28)))
 	material.set_shader_parameter("ground_height", float(_config.get("ground_height", 0.42)))
 	material.set_shader_parameter("ground_scale", float(_config.get("ground_scale", 5.2)))
@@ -103,6 +107,13 @@ func _sync_material() -> void:
 	material.set_shader_parameter("day_multiplier", float(_config.get("day_multiplier", 0.72)))
 	material.set_shader_parameter("night_multiplier", float(_config.get("night_multiplier", 1.18)))
 	material.set_shader_parameter("night_strength", _night_strength)
+
+
+func _update_motion_time() -> void:
+	if fog_rect == null or not (fog_rect.material is ShaderMaterial):
+		return
+	(fog_rect.material as ShaderMaterial).set_shader_parameter("motion_time", _motion_time)
+	set_meta("fog_motion_time", _motion_time)
 
 
 func _update_night_strength() -> void:
