@@ -18,6 +18,35 @@ func configure(target: Node2D, source: CanvasItem, config: Dictionary, foot_offs
 		remove_from_group(CASTER_GROUP)
 	set_meta("shadow_kind", "local" if is_local else "solar")
 
+	# Local-light shadows are refreshed by their director at a bounded interval,
+	# so they do not need a second per-frame silhouette pass. Solar shadows also
+	# suspend processing during the fully hidden part of the night.
+	if is_local:
+		set_process(false)
+	else:
+		_sync_solar_processing_to_cycle()
+
+
+func set_solar_shadow_processing(active: bool) -> void:
+	if bool(_config.get("local_light_shadow", false)):
+		return
+	if active:
+		set_process(true)
+		_refresh_silhouette()
+		return
+	_apply_projection_settings()
+	visible = false
+	_hide_render_proxy()
+	set_process(false)
+
+
+func _sync_solar_processing_to_cycle() -> void:
+	var cycle := get_tree().get_first_node_in_group("day_night_cycle")
+	if cycle != null and cycle.has_method("get_solar_shadow_strength"):
+		set_solar_shadow_processing(float(cycle.call("get_solar_shadow_strength")) > 0.001)
+	else:
+		set_process(true)
+
 
 func _apply_projection_settings() -> void:
 	var live_global := _get_live_global_config()
@@ -163,8 +192,8 @@ func _apply_polygon(source: Polygon2D) -> void:
 
 func _relative_basis_scale(relative_transform: Transform2D) -> Vector2:
 	var origin := relative_transform * Vector2.ZERO
-	var right_scale := (relative_transform * Vector2.RIGHT - origin).length()
-	var up_scale := (relative_transform * Vector2.UP - origin).length()
+	var right_scale := ((relative_transform * Vector2.RIGHT) - origin).length()
+	var up_scale := ((relative_transform * Vector2.UP) - origin).length()
 	return Vector2(maxf(right_scale, 0.0001), maxf(up_scale, 0.0001))
 
 
