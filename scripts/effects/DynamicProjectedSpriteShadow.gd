@@ -4,6 +4,10 @@ extends "res://scripts/effects/ProjectedSpriteShadow.gd"
 const CASTER_GROUP := "projected_shadow_caster"
 const DEFAULT_MORNING_ANGLE_FROM_UP := -45.0
 const DEFAULT_EVENING_ANGLE_FROM_UP := 45.0
+const RuntimeShadowGroupScript := preload("res://scripts/effects/ProjectedShadowGroup.gd")
+
+static var _runtime_alpha_bounds_cache: Dictionary = {}
+static var _pending_shadow_group: CanvasGroup = null
 
 var _projection_width_scale := 1.0
 var _projection_root_overlap := 6.0
@@ -84,12 +88,12 @@ func _apply_projection_settings() -> void:
 		elif fade_with_night and cycle != null and cycle.has_method("get_daylight_strength"):
 			mask_weight *= clampf(float(cycle.call("get_daylight_strength")), 0.0, 1.0)
 
-	var offset := _vector_from_value(_config.get("offset", {}), Vector2.ZERO)
+	var projection_offset := _vector_from_value(_config.get("offset", {}), Vector2.ZERO)
 	_projection_direction = resolved_direction if resolved_direction.length_squared() > 0.0001 else Vector2.UP
 	_projection_stretch = stretch_amount
 	rotation = 0.0
 	scale = Vector2.ONE
-	position = offset
+	position = projection_offset
 	color = Color(1.0, 1.0, 1.0, 0.0)
 	self_modulate = Color.WHITE
 	z_index = int(_config.get("z_index", -1))
@@ -107,7 +111,7 @@ func _apply_texture_rect(
 	frame_texture: Texture2D,
 	frame_size: Vector2,
 	centered: bool,
-	offset: Vector2,
+	sprite_offset: Vector2,
 	flip_h: bool,
 	flip_v: bool,
 	relative_transform: Transform2D
@@ -119,7 +123,7 @@ func _apply_texture_rect(
 
 	texture = frame_texture
 	_visible_frame_size = frame_size
-	var base_top_left := offset
+	var base_top_left := sprite_offset
 	if centered:
 		base_top_left -= frame_size * 0.5
 
@@ -191,9 +195,9 @@ func _apply_polygon(source: Polygon2D) -> void:
 
 
 func _relative_basis_scale(relative_transform: Transform2D) -> Vector2:
-	var origin := relative_transform * Vector2.ZERO
-	var right_scale := ((relative_transform * Vector2.RIGHT) - origin).length()
-	var up_scale := ((relative_transform * Vector2.UP) - origin).length()
+	var transform_origin := relative_transform * Vector2.ZERO
+	var right_scale := ((relative_transform * Vector2.RIGHT) - transform_origin).length()
+	var up_scale := ((relative_transform * Vector2.UP) - transform_origin).length()
 	return Vector2(maxf(right_scale, 0.0001), maxf(up_scale, 0.0001))
 
 
@@ -204,6 +208,109 @@ func _publish_projection_metadata(contact: Vector2, anchor: Vector2, side_axis: 
 	set_meta("shadow_projection_direction", _projection_direction)
 	set_meta("shadow_projection_source_size", source_size)
 	set_meta("shadow_projection_rigid_basis", true)
+
+
+func _sync_render_proxy() -> void:
+	_ensure_shadow_group()
+	if _shadow_group == null or not is_instance_valid(_shadow_group) or not _shadow_group.is_inside_tree():
+		_hide_render_proxy()
+		return
+	super._sync_render_proxy()
+
+
+func _ensure_shadow_group() -> void:
+	if _shadow_group != null and is_instance_valid(_shadow_group):
+		return
+	var existing := get_tree().get_first_node_in_group("projected_shadow_group") as CanvasGroup
+	if existing != null:
+		_shadow_group = existing
+		_pending_shadow_group = existing
+		return
+	if _pending_shadow_group != null and is_instance_valid(_pending_shadow_group):
+		_shadow_group = _pending_shadow_group
+		return
+	var host: Node = get_tree().current_scene
+	if host == null:
+		host = get_tree().root
+	var created := RuntimeShadowGroupScript.new() as CanvasGroup
+	_pending_shadow_group = created
+	_shadow_group = created
+	if host.is_node_ready():
+		host.add_child(created)
+	else:
+		host.call_deferred("add_child", created)
+
+
+func _get_opaque_pixel_rect(frame_texture: Texture2D) -> Rect2i:
+	if frame_texture == null:
+		return Rect2i()
+	var raw_size := frame_texture.get_size()
+	var texture_size := Vector2i(int(round(raw_size.x)), int(round(raw_size.y)))
+	if texture_size.x <= 0 or texture_size.y <= 0:
+		return Rect2i()
+	var cache_key := _alpha_cache_key(frame_texture, texture_size)
+	if _runtime_alpha_bounds_cache.has(cache_key):
+		return _runtime_alpha_bounds_cache[cache_key] as Rect2i
+
+	var result := Rect2i()
+	if frame_texture is AtlasTexture:
+		result = _get_atlas_opaque_rect(frame_texture as AtlasTexture, texture_size)
+	else:
+		var frame_image := frame_texture.get_image()
+		if frame_image == null or frame_image.is_empty():
+			result = Rect2i(Vector2i.ZERO, texture_size)
+		else:
+			result = _scan_opaque_rect(
+				frame_image,
+				Rect2i(Vector2i.ZERO, texture_size),
+				Vector2i.ZERO
+			)
+	_runtime_alpha_bounds_cache[cache_key] = result
+	return result
+
+
+func _get_atlas_opaque_rect(atlas_texture: AtlasTexture, fallback_size: Vector2i) -> Rect2i:
+	if atlas_texture == null or atlas_texture.atlas == null:
+		return Rect2i(Vector2i.ZERO, fallback_size)
+	var atlas_size := atlas_texture.atlas.get_size()
+	if atlas_size.x <= 0.0 or atlas_size.y <= 0.0:
+		return Rect2i(Vector2i.ZERO, fallback_size)
+	var region := atlas_texture.region
+	var region_position := Vector2i(int(floor(region.position.x)), int(floor(region.position.y)))
+	var region_size := Vector2i(int(round(region.size.x)), int(round(region.size.y)))
+	if region_size.x <= 0 or region_size.y <= 0:
+		return Rect2i(Vector2i.ZERO, fallback_size)
+	var atlas_image := atlas_texture.atlas.get_image()
+	if atlas_image == null or atlas_image.is_empty():
+		return Rect2i(Vector2i.ZERO, fallback_size)
+	return _scan_opaque_rect(
+		atlas_image,
+		Rect2i(region_position, region_size),
+		region_position
+	)
+
+
+func _scan_opaque_rect(image: Image, requested_rect: Rect2i, local_origin: Vector2i) -> Rect2i:
+	if image == null or image.is_empty():
+		return Rect2i()
+	var image_bounds := Rect2i(Vector2i.ZERO, Vector2i(image.get_width(), image.get_height()))
+	var scan_rect := requested_rect.intersection(image_bounds)
+	if scan_rect.size.x <= 0 or scan_rect.size.y <= 0:
+		return Rect2i()
+	var minimum := Vector2i(scan_rect.end.x, scan_rect.end.y)
+	var maximum := Vector2i(-1, -1)
+	for pixel_y in range(scan_rect.position.y, scan_rect.end.y):
+		for pixel_x in range(scan_rect.position.x, scan_rect.end.x):
+			if image.get_pixel(pixel_x, pixel_y).a <= ALPHA_THRESHOLD:
+				continue
+			var local_pixel := Vector2i(pixel_x, pixel_y) - local_origin
+			minimum.x = mini(minimum.x, local_pixel.x)
+			minimum.y = mini(minimum.y, local_pixel.y)
+			maximum.x = maxi(maximum.x, local_pixel.x)
+			maximum.y = maxi(maximum.y, local_pixel.y)
+	if maximum.x < minimum.x or maximum.y < minimum.y:
+		return Rect2i()
+	return Rect2i(minimum, maximum - minimum + Vector2i.ONE)
 
 
 func _sync_proxy_material() -> void:
