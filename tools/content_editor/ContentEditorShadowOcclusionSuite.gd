@@ -32,21 +32,31 @@ func _build_world_shadows_form() -> void:
 
 	var solar := _record_dictionary(shadow, "solar")
 	_add_subsection_title("Solar Shadow Cycle")
+	var solar_note := Label.new()
+	solar_note.text = "Angles are measured from screen-up: -45° points upper-left and +45° points upper-right. The silhouette rotates around its contact point without shearing. It keeps moving while dusk fades it out, resets only while invisible, and fades in again at the morning angle."
+	solar_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(solar_note)
 	_add_check_box("Rotate With Day", "shadow_solar_rotate", bool(solar.get("rotate_with_day", true)))
-	_add_check_box("Fade As Night Falls", "shadow_solar_fade", bool(solar.get("fade_with_night", true)))
-	_add_float_spin_box("Morning Direction", "shadow_solar_morning", float(solar.get("morning_direction_degrees", -45.0)), -180.0, 180.0, 1.0)
-	_add_float_spin_box("Evening Direction", "shadow_solar_evening", float(solar.get("evening_direction_degrees", 45.0)), -180.0, 180.0, 1.0)
+	_add_check_box("Fade Through Dusk and Dawn", "shadow_solar_fade", bool(solar.get("fade_with_night", true)))
+	_add_float_spin_box("Morning Angle From Up", "shadow_solar_morning", float(solar.get("morning_angle_from_up_degrees", solar.get("morning_direction_degrees", -45.0))), -89.0, 89.0, 1.0)
+	_add_float_spin_box("Evening Angle From Up", "shadow_solar_evening", float(solar.get("evening_angle_from_up_degrees", solar.get("evening_direction_degrees", 45.0))), -89.0, 89.0, 1.0)
+	_add_float_spin_box("Dusk Fade Start", "shadow_solar_dusk_start", float(solar.get("dusk_fade_start", 0.42)), 0.05, 0.90, 0.01)
+	_add_float_spin_box("Dusk Fade End", "shadow_solar_dusk_end", float(solar.get("dusk_fade_end", 0.62)), 0.10, 0.95, 0.01)
+	_add_float_spin_box("Dawn Fade Start", "shadow_solar_dawn_start", float(solar.get("dawn_fade_start", 0.82)), 0.20, 0.99, 0.01)
+	_add_float_spin_box("Root Hidden Under Object", "shadow_solar_root_overlap", float(solar.get("root_overlap", shadow.get("root_overlap", 6.0))), 0.0, 64.0, 0.5)
+	_add_float_spin_box("Silhouette Width Scale", "shadow_solar_width_scale", float(solar.get("width_scale", shadow.get("width_scale", 1.0))), 0.10, 3.0, 0.01)
 
 	var local_lights := _record_dictionary(shadow, "local_lights")
 	_add_subsection_title("Night Local-Light Shadows")
 	var local_note := Label.new()
-	local_note.text = "At night, every active PointLight2D can cast a weak shadow away from its own position. These masks use the same shared compositor, so overlaps remain bounded instead of multiplying darkness."
+	local_note.text = "At night, every active PointLight2D can cast a shadow away from the light position. The same rigid pivot projection and shared compositor are used, so the shadows remain stable and overlaps do not multiply darkness."
 	local_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(local_note)
 	_add_check_box("Local-Light Shadows Enabled", "shadow_local_enabled", bool(local_lights.get("enabled", true)))
-	_add_float_spin_box("Local Shadow Strength", "shadow_local_opacity", float(local_lights.get("opacity_multiplier", 0.28)), 0.0, 1.0, 0.01)
-	_add_float_spin_box("Local Shadow Stretch", "shadow_local_stretch", float(local_lights.get("stretch", 0.82)), 0.05, 4.0, 0.05)
-	_add_float_spin_box("Distance Falloff", "shadow_local_falloff", float(local_lights.get("distance_falloff", 1.35)), 0.1, 4.0, 0.05)
+	_add_float_spin_box("Local Shadow Strength", "shadow_local_opacity", float(local_lights.get("opacity_multiplier", 0.72)), 0.0, 1.0, 0.01)
+	_add_float_spin_box("Local Shadow Stretch", "shadow_local_stretch", float(local_lights.get("stretch", 0.72)), 0.05, 4.0, 0.05)
+	_add_float_spin_box("Local Root Hidden Under Object", "shadow_local_root_overlap", float(local_lights.get("root_overlap", 4.0)), 0.0, 64.0, 0.5)
+	_add_float_spin_box("Distance Falloff", "shadow_local_falloff", float(local_lights.get("distance_falloff", 1.25)), 0.1, 4.0, 0.05)
 	_add_spin_box("Max Lights Per Caster", "shadow_local_max_emitters", int(local_lights.get("max_emitters_per_caster", 4)), 1, 8, 1)
 
 
@@ -54,21 +64,31 @@ func _get_world_shadows_record() -> Dictionary:
 	var record := super._get_world_shadows_record()
 	var shadow := _record_dictionary(record, "directional_shadow")
 	shadow["softness"] = _get_spin_box_value(SHADOW_SOFTNESS_FIELD) if field_controls.has(SHADOW_SOFTNESS_FIELD) else 0.0
+	shadow["width_scale"] = _get_spin_box_value("shadow_solar_width_scale")
+	shadow["root_overlap"] = _get_spin_box_value("shadow_solar_root_overlap")
 	shadow["solar"] = {
 		"rotate_with_day": _get_check_box_pressed("shadow_solar_rotate"),
 		"fade_with_night": _get_check_box_pressed("shadow_solar_fade"),
-		"morning_direction_degrees": _get_spin_box_value("shadow_solar_morning"),
-		"evening_direction_degrees": _get_spin_box_value("shadow_solar_evening"),
+		"morning_angle_from_up_degrees": _get_spin_box_value("shadow_solar_morning"),
+		"evening_angle_from_up_degrees": _get_spin_box_value("shadow_solar_evening"),
+		"dusk_fade_start": _get_spin_box_value("shadow_solar_dusk_start"),
+		"dusk_fade_end": _get_spin_box_value("shadow_solar_dusk_end"),
+		"dawn_fade_start": _get_spin_box_value("shadow_solar_dawn_start"),
+		"root_overlap": _get_spin_box_value("shadow_solar_root_overlap"),
+		"width_scale": _get_spin_box_value("shadow_solar_width_scale"),
 	}
 	shadow["local_lights"] = {
 		"enabled": _get_check_box_pressed("shadow_local_enabled"),
 		"opacity_multiplier": _get_spin_box_value("shadow_local_opacity"),
 		"stretch": _get_spin_box_value("shadow_local_stretch"),
+		"width_scale": 1.0,
+		"root_overlap": _get_spin_box_value("shadow_local_root_overlap"),
 		"distance_falloff": _get_spin_box_value("shadow_local_falloff"),
 		"max_emitters_per_caster": _get_spin_box_int("shadow_local_max_emitters"),
-		"maximum_mask_weight": 0.32,
-		"reference_energy": 1.0,
-		"update_interval": 0.10,
+		"maximum_mask_weight": 0.85,
+		"reference_energy": 0.25,
+		"update_interval": 0.08,
+		"emitter_cache_interval": 0.50,
 	}
 	record["directional_shadow"] = shadow
 	return record
