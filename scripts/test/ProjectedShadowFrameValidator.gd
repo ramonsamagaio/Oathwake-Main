@@ -2,6 +2,7 @@ extends SceneTree
 
 const SHADOW_SCRIPT := preload("res://scripts/effects/ProjectedSpriteShadow.gd")
 const SHADOW_RUNTIME := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
+const FOLIAGE_WIND_SHADER := preload("res://shaders/foliage_wind_2d.gdshader")
 
 var failures: Array[String] = []
 
@@ -14,6 +15,7 @@ func _run() -> void:
 	await _validate_sprite_frame_crop()
 	await _validate_animated_frame_switch()
 	await _validate_runtime_source_choice()
+	await _validate_shared_compositor_and_wind()
 	if failures.is_empty():
 		print("PROJECTED_SHADOW_FRAME_VALIDATION_PASS")
 		quit(0)
@@ -58,6 +60,11 @@ func _validate_sprite_frame_crop() -> void:
 		failures.append("Projected shadow polygon is invalid.")
 	if not is_zero_approx(shadow.rotation) or shadow.scale != Vector2.ONE:
 		failures.append("Projected shadow still rotates the complete quad.")
+	if shadow.color.a > 0.001:
+		failures.append("Canonical shadow polygon is still drawing directly and can darken overlaps.")
+	var proxy := _shadow_proxy(shadow)
+	if proxy == null or proxy.texture == null:
+		failures.append("Projected shadow did not publish its mask to the shared compositor.")
 	sprite.frame = 1
 	await process_frame
 	var second_rect: Rect2i = shadow.get_meta("shadow_opaque_rect", Rect2i())
@@ -107,6 +114,9 @@ func _validate_animated_frame_switch() -> void:
 		failures.append("Animated frame 1 was not reflected by the shadow.")
 	if int(shadow.get_meta("shadow_source_frame", -1)) != 1:
 		failures.append("Animated frame metadata did not advance.")
+	var proxy := _shadow_proxy(shadow)
+	if proxy == null or proxy.texture != second_texture:
+		failures.append("Shared compositor proxy did not advance to animated frame 1.")
 	target.queue_free()
 	await process_frame
 
@@ -141,3 +151,59 @@ func _validate_runtime_source_choice() -> void:
 		failures.append("Runtime source kind is not AnimatedSprite2D.")
 	target.queue_free()
 	await process_frame
+
+
+func _validate_shared_compositor_and_wind() -> void:
+	var image := Image.create(24, 24, false, Image.FORMAT_RGBA8)
+	image.fill(Color.TRANSPARENT)
+	for y in range(3, 23):
+		for x in range(5, 19):
+			image.set_pixel(x, y, Color.WHITE)
+	var texture := ImageTexture.create_from_image(image)
+	var targets: Array[Node2D] = []
+	var proxies: Array[Polygon2D] = []
+	for index in range(2):
+		var target := Node2D.new()
+		target.position = Vector2(index * 4.0, 0.0)
+		root.add_child(target)
+		var sprite := Sprite2D.new()
+		sprite.texture = texture
+		var wind_material := ShaderMaterial.new()
+		wind_material.shader = FOLIAGE_WIND_SHADER
+		wind_material.set_shader_parameter("enabled", true)
+		wind_material.set_shader_parameter("phase_offset", 0.73)
+		sprite.material = wind_material
+		target.add_child(sprite)
+		var shadow := SHADOW_RUNTIME.apply_to_target(target, {"enabled": true})
+		await process_frame
+		var proxy := _shadow_proxy(shadow)
+		if proxy != null:
+			proxies.append(proxy)
+		targets.append(target)
+	if proxies.size() != 2:
+		failures.append("Two projected shadows did not create two shared mask proxies.")
+	else:
+		if proxies[0].get_parent() != proxies[1].get_parent() or not (proxies[0].get_parent() is CanvasGroup):
+			failures.append("Overlapping shadows are not routed through one CanvasGroup compositor.")
+		for proxy in proxies:
+			if not bool(proxy.get_meta("shadow_wind_synced", false)):
+				failures.append("Foliage shadow proxy did not mirror the wind deformation.")
+	var group := get_first_node_in_group("projected_shadow_group") as CanvasGroup
+	if group == null:
+		failures.append("Shared projected shadow compositor is missing.")
+	else:
+		group.call("configure", {"enabled": true, "opacity": 0.3, "softness": 2.5, "color": "#050609FF"})
+		if absf(float(group.get_meta("shadow_group_softness", -1.0)) - 2.5) > 0.01:
+			failures.append("Shared compositor did not apply configurable shadow diffusion.")
+	for target in targets:
+		target.queue_free()
+	await process_frame
+
+
+func _shadow_proxy(shadow: Polygon2D) -> Polygon2D:
+	if shadow == null:
+		return null
+	var proxy_id := int(shadow.get_meta("shadow_render_proxy_id", 0))
+	if proxy_id <= 0:
+		return null
+	return instance_from_id(proxy_id) as Polygon2D
