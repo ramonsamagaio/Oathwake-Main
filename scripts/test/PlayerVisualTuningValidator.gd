@@ -57,9 +57,15 @@ func _validate_tuning_values(tuning: Dictionary) -> void:
 		failures.append("Player tuning light record is missing.")
 		return
 	var light := light_value as Dictionary
-	for key in ["enabled", "visual_aura_enabled", "color", "aura_intensity", "aura_alpha", "aura_scale", "blur", "emission", "radius_scale", "day_multiplier", "night_multiplier", "offset"]:
+	for key in ["enabled", "visual_aura_enabled", "color", "aura_intensity", "aura_alpha", "aura_scale", "blur", "emission", "radius_scale", "perspective_angle_degrees", "day_multiplier", "night_multiplier", "offset"]:
 		if not light.has(key):
 			failures.append("Player light tuning is missing %s." % key)
+	var perspective_angle := float(light.get("perspective_angle_degrees", 0.0))
+	if perspective_angle < 15.0 or perspective_angle > 90.0:
+		failures.append("Player light perspective angle is outside the supported 15-90 degree range.")
+	var editor_text := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditorPlayerLightPerspectiveSuite.gd")
+	if not editor_text.contains("Light Perspective Angle") or not editor_text.contains("perspective_angle_degrees"):
+		failures.append("Content Editor is missing the player light perspective field.")
 
 
 func _validate_player_scene(tuning: Dictionary) -> void:
@@ -88,7 +94,7 @@ func _validate_player_scene(tuning: Dictionary) -> void:
 		failures.append("AnimatedSprite2D position is %s; expected %s." % [animated_sprite.position, expected_offset])
 
 	var light_config := tuning.get("light", {}) as Dictionary
-	var night_light := player.get_node_or_null("NightLight")
+	var night_light := player.get_node_or_null("NightLight") as Node2D
 	if night_light == null:
 		failures.append("Player scene has no NightLight.")
 	else:
@@ -100,6 +106,12 @@ func _validate_player_scene(tuning: Dictionary) -> void:
 			failures.append("Player light radius does not match Player Tuning.")
 		if not is_equal_approx(float(night_light.get("blur_amount")), float(light_config.get("blur", 0.0))):
 			failures.append("Player light blur does not match Player Tuning.")
+		var perspective_angle := clampf(float(light_config.get("perspective_angle_degrees", 50.0)), 15.0, 90.0)
+		var expected_vertical_projection := clampf(sin(deg_to_rad(perspective_angle)), 0.20, 1.0)
+		if absf(night_light.scale.y - expected_vertical_projection) > 0.001 or not is_equal_approx(night_light.scale.x, 1.0):
+			failures.append("Player light is not projected to the configured camera angle: %s." % night_light.scale)
+		if perspective_angle < 89.0 and night_light.scale.y >= night_light.scale.x:
+			failures.append("Non-zenith player light remains circular instead of elliptical.")
 	if not (player as Node2D).scale.is_equal_approx(Vector2.ONE):
 		failures.append("Player physics node scale changed; visual tuning must not scale collision or movement.")
 
