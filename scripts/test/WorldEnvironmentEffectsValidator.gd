@@ -46,6 +46,12 @@ func _validate_content_contract() -> Dictionary:
 	var fog := world_visuals.get("layered_fog", {}) as Dictionary
 	if float(fog.get("ground_density", 0.0)) <= 0.0 or float(fog.get("depth_density", 0.0)) <= 0.0:
 		failures.append("Layered fog does not configure ground mist and depth haze.")
+	var fog_speed_value: Variant = fog.get("speed", {})
+	var fog_speed := Vector2.ZERO
+	if fog_speed_value is Dictionary:
+		fog_speed = Vector2(float((fog_speed_value as Dictionary).get("x", 0.0)), float((fog_speed_value as Dictionary).get("y", 0.0)))
+	if fog_speed.length() <= 0.0001:
+		failures.append("Layered fog has no configured drift speed.")
 	var shafts := world_visuals.get("light_shafts", {}) as Dictionary
 	if not bool(shafts.get("enabled", false)) or float(shafts.get("intensity", 0.0)) <= 0.0:
 		failures.append("Forest light shafts are disabled.")
@@ -64,7 +70,7 @@ func _validate_content_contract() -> Dictionary:
 
 func _validate_shader_contract() -> void:
 	var fog_shader := FileAccess.get_file_as_string("res://shaders/map_fog_overlay_2d.gdshader")
-	for token in ["ground_density", "middle_density", "depth_density", "night_multiplier"]:
+	for token in ["ground_density", "middle_density", "depth_density", "night_multiplier", "motion_time", "slow_wander"]:
 		if not fog_shader.contains(token):
 			failures.append("Layered fog shader is missing %s." % token)
 	var shaft_shader := FileAccess.get_file_as_string("res://shaders/light_shafts_overlay_2d.gdshader")
@@ -90,6 +96,13 @@ func _validate_effect_scenes(world_visuals: Dictionary) -> void:
 			failures.append("MapFogOverlay did not apply ground fog content values.")
 		if float(fog_material.get_shader_parameter("depth_density")) <= 0.0:
 			failures.append("MapFogOverlay did not apply depth haze content values.")
+		var initial_motion_time := float(fog_material.get_shader_parameter("motion_time"))
+		fog.call("_process", 0.75)
+		var advanced_motion_time := float(fog_material.get_shader_parameter("motion_time"))
+		if advanced_motion_time <= initial_motion_time:
+			failures.append("MapFogOverlay does not advance its procedural fog motion.")
+		if absf(float(fog.get_meta("fog_motion_time", -1.0)) - advanced_motion_time) > 0.001:
+			failures.append("MapFogOverlay motion time is not published consistently to the shader.")
 
 	var shafts := SHAFT_SCENE.instantiate()
 	root.add_child(shafts)
