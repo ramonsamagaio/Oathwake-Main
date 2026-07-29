@@ -42,8 +42,10 @@ func refresh_from_content() -> void:
 func get_active_local_shadow_count() -> int:
 	var count := 0
 	for shadow_value in _local_shadows.values():
+		if shadow_value == null or not is_instance_valid(shadow_value):
+			continue
 		var shadow := shadow_value as Node
-		if shadow != null and is_instance_valid(shadow):
+		if shadow != null:
 			count += 1
 	return count
 
@@ -96,12 +98,18 @@ func _update_local_light_shadows() -> void:
 	var emitters := _active_emitters()
 	var max_emitters := maxi(int(_config.get("max_emitters_per_caster", 4)), 1)
 	for caster_value in get_tree().get_nodes_in_group(CASTER_GROUP):
-		var caster := caster_value as Node
-		if caster == null or not is_instance_valid(caster) or not caster.has_method("get_shadow_target"):
+		if caster_value == null or not is_instance_valid(caster_value):
 			continue
-		var target := caster.call("get_shadow_target") as Node2D
-		var source := caster.call("get_shadow_source") as CanvasItem
-		if target == null or source == null or not is_instance_valid(target) or not is_instance_valid(source) or not target.is_visible_in_tree():
+		var caster := caster_value as Node
+		if caster == null or not caster.has_method("get_shadow_target"):
+			continue
+		var target_value: Variant = caster.call("get_shadow_target")
+		var source_value: Variant = caster.call("get_shadow_source")
+		if target_value == null or source_value == null or not is_instance_valid(target_value) or not is_instance_valid(source_value):
+			continue
+		var target := target_value as Node2D
+		var source := source_value as CanvasItem
+		if target == null or source == null or not target.is_visible_in_tree():
 			continue
 		var candidates: Array[Dictionary] = []
 		for emitter_entry in emitters:
@@ -123,7 +131,7 @@ func _update_local_light_shadows() -> void:
 		for index in range(mini(candidates.size(), max_emitters)):
 			var candidate := candidates[index]
 			var emitter_entry := candidate["entry"] as Dictionary
-			var light := emitter_entry.get("light") as PointLight2D
+			var light := _valid_light_from_entry(emitter_entry)
 			if light == null:
 				continue
 			var distance := float(candidate["distance"])
@@ -144,11 +152,14 @@ func _sync_local_shadow(
 	radius: float,
 	night_strength: float
 ) -> void:
-	var light := emitter_entry.get("light") as PointLight2D
+	var light := _valid_light_from_entry(emitter_entry)
 	if light == null:
 		return
-	var shadow := _local_shadows.get(key) as Polygon2D
-	if shadow == null or not is_instance_valid(shadow):
+	var shadow: Polygon2D = null
+	var stored_shadow: Variant = _local_shadows.get(key)
+	if stored_shadow != null and is_instance_valid(stored_shadow):
+		shadow = stored_shadow as Polygon2D
+	if shadow == null:
 		shadow = DynamicShadowScript.new() as Polygon2D
 		target.add_child(shadow)
 		_local_shadows[key] = shadow
@@ -192,8 +203,10 @@ func _refresh_emitter_cache() -> void:
 	_emitter_cache.clear()
 	var seen: Dictionary = {}
 	for value in get_tree().get_nodes_in_group(EMITTER_GROUP):
+		if value == null or not is_instance_valid(value):
+			continue
 		var host := value as Node
-		if host == null or not is_instance_valid(host):
+		if host == null:
 			continue
 		_collect_lights_from_node(host, host as Node2D, seen)
 
@@ -205,7 +218,7 @@ func _refresh_emitter_cache() -> void:
 
 
 func _collect_lights_from_node(node: Node, preferred_host: Node2D, seen: Dictionary) -> void:
-	if node == null:
+	if node == null or not is_instance_valid(node):
 		return
 	if node is PointLight2D:
 		var light := node as PointLight2D
@@ -219,38 +232,50 @@ func _collect_lights_from_node(node: Node, preferred_host: Node2D, seen: Diction
 			_emitter_cache.append({"host": host, "light": light})
 			seen[light_id] = true
 	for child in node.get_children():
-		if child is Node:
+		if child is Node and is_instance_valid(child):
 			_collect_lights_from_node(child as Node, preferred_host, seen)
 
 
 func _active_emitters() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for entry in _emitter_cache:
-		var light := entry.get("light") as PointLight2D
-		if light == null or not is_instance_valid(light) or not light.is_visible_in_tree():
+		var light := _valid_light_from_entry(entry)
+		if light == null or not light.is_visible_in_tree():
 			continue
 		if not light.enabled or light.energy <= 0.001 or light.texture == null:
+			continue
+		var texture_size := light.texture.get_size()
+		if texture_size.x <= 0.0 or texture_size.y <= 0.0:
 			continue
 		result.append(entry)
 	return result
 
 
+func _valid_light_from_entry(entry: Dictionary) -> PointLight2D:
+	var light_value: Variant = entry.get("light")
+	if light_value == null or not is_instance_valid(light_value):
+		return null
+	return light_value as PointLight2D
+
+
 func _emitter_position(entry: Dictionary) -> Vector2:
-	var light := entry.get("light") as PointLight2D
+	var light := _valid_light_from_entry(entry)
 	return light.global_position if light != null else Vector2.ZERO
 
 
 func _emitter_radius(entry: Dictionary) -> float:
-	var light := entry.get("light") as PointLight2D
+	var light := _valid_light_from_entry(entry)
 	if light == null or light.texture == null:
 		return 0.0
 	var texture_size := light.texture.get_size()
+	if texture_size.x <= 0.0 or texture_size.y <= 0.0:
+		return 0.0
 	var scale_value := maxf(absf(light.global_scale.x), absf(light.global_scale.y))
 	return maxf(texture_size.x, texture_size.y) * 0.5 * light.texture_scale * scale_value
 
 
 func _emitter_strength(entry: Dictionary) -> float:
-	var light := entry.get("light") as PointLight2D
+	var light := _valid_light_from_entry(entry)
 	if light == null:
 		return 0.0
 	var reference_energy := maxf(float(_config.get("reference_energy", 0.25)), 0.01)
@@ -259,12 +284,18 @@ func _emitter_strength(entry: Dictionary) -> float:
 
 
 func _emitter_belongs_to_target(entry: Dictionary, target: Node) -> bool:
-	var host := entry.get("host") as Node
-	var light := entry.get("light") as Node
-	if target == null or light == null:
+	var host_value: Variant = entry.get("host")
+	var light_value: Variant = entry.get("light")
+	if target == null or light_value == null or not is_instance_valid(light_value):
+		return false
+	var light := light_value as Node
+	if light == null:
 		return false
 	if target == light or target.is_ancestor_of(light) or light.is_ancestor_of(target):
 		return true
+	if host_value == null or not is_instance_valid(host_value):
+		return false
+	var host := host_value as Node
 	return host != null and (target == host or target.is_ancestor_of(host) or host.is_ancestor_of(target))
 
 
@@ -280,15 +311,19 @@ func _remove_stale_shadows(active_keys: Dictionary) -> void:
 		var key := str(key_value)
 		if active_keys.has(key):
 			continue
-		var shadow := _local_shadows[key] as Node
-		if shadow != null and is_instance_valid(shadow):
-			shadow.queue_free()
+		var shadow_value: Variant = _local_shadows.get(key)
+		if shadow_value != null and is_instance_valid(shadow_value):
+			var shadow := shadow_value as Node
+			if shadow != null:
+				shadow.queue_free()
 		_local_shadows.erase(key)
 
 
 func _clear_local_shadows() -> void:
 	for shadow_value in _local_shadows.values():
+		if shadow_value == null or not is_instance_valid(shadow_value):
+			continue
 		var shadow := shadow_value as Node
-		if shadow != null and is_instance_valid(shadow):
+		if shadow != null:
 			shadow.queue_free()
 	_local_shadows.clear()
