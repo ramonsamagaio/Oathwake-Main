@@ -5,6 +5,8 @@ const GROUP_SHADER := preload("res://shaders/projected_shadow_group.gdshader")
 
 var _config: Dictionary = {}
 var _group_material: ShaderMaterial
+var _base_opacity := 0.30
+var _enabled := true
 
 
 func _ready() -> void:
@@ -15,9 +17,6 @@ func _ready() -> void:
 	fit_margin = 128.0
 	clear_margin = 128.0
 	use_mipmaps = false
-	# Run after the individual shadow nodes have synchronized their render proxies.
-	# This final visibility gate keeps a proxy hidden while its resource owner is
-	# collected, then allows the normal shadow runtime to reveal it on respawn.
 	process_priority = 1000
 	_ensure_material()
 	_reload_from_content()
@@ -27,6 +26,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_sync_proxy_owner_visibility()
+	_sync_sun_visibility()
 
 
 func configure(config: Dictionary) -> void:
@@ -65,17 +65,31 @@ func _connect_content_reload() -> void:
 
 func _apply_configuration() -> void:
 	_ensure_material()
-	var enabled := bool(_config.get("enabled", true))
-	var opacity := clampf(float(_config.get("opacity", 0.30)), 0.0, 1.0)
+	_enabled = bool(_config.get("enabled", true))
+	_base_opacity = clampf(float(_config.get("opacity", 0.30)), 0.0, 1.0)
 	var softness := maxf(float(_config.get("softness", 0.0)), 0.0)
 	var shadow_color := _color_from_value(_config.get("color", "#050609FF"), Color(0.02, 0.024, 0.035, 1.0))
-	visible = enabled and opacity > 0.001
 	_group_material.set_shader_parameter("shadow_color", shadow_color)
-	_group_material.set_shader_parameter("shadow_opacity", opacity)
 	_group_material.set_shader_parameter("softness", softness)
-	set_meta("shadow_group_opacity", opacity)
 	set_meta("shadow_group_softness", softness)
 	set_meta("shadow_group_color", shadow_color)
+	_sync_sun_visibility()
+
+
+func _sync_sun_visibility() -> void:
+	if _group_material == null:
+		return
+	var daylight := 1.0
+	var cycle := get_tree().get_first_node_in_group("day_night_cycle")
+	if cycle != null and cycle.has_method("get_daylight_strength"):
+		daylight = clampf(float(cycle.call("get_daylight_strength")), 0.0, 1.0)
+	var fade_power := maxf(float(_config.get("sun_fade_power", 1.35)), 0.05)
+	var sun_strength := pow(daylight, fade_power)
+	var final_opacity := _base_opacity * sun_strength
+	visible = _enabled and final_opacity > 0.001
+	_group_material.set_shader_parameter("shadow_opacity", final_opacity)
+	set_meta("shadow_group_opacity", final_opacity)
+	set_meta("sun_shadow_strength", sun_strength)
 
 
 func _sync_proxy_owner_visibility() -> void:
