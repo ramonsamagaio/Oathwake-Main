@@ -1,10 +1,16 @@
 class_name ProjectedSpriteShadow
 extends Polygon2D
 
+const ALPHA_THRESHOLD := 0.01
+
+static var _alpha_bounds_cache: Dictionary = {}
+
 var _target: Node2D
 var _source: CanvasItem
 var _config: Dictionary = {}
 var _foot_offset := Vector2.ZERO
+var _projection_anchor := Vector2.ZERO
+var _has_projection_anchor := false
 
 
 func configure(target: Node2D, source: CanvasItem, config: Dictionary, foot_offset: Vector2) -> void:
@@ -39,11 +45,11 @@ func _apply_projection_settings() -> void:
 	var shadow_color := _color_from_value(live_global.get("color", _config.get("color", "#050609FF")), Color(0.02, 0.024, 0.035, 1.0))
 	var offset := _vector_from_value(_config.get("offset", {}), Vector2.ZERO)
 
-	# The source silhouette points upward from its feet. Rotating that local UP
-	# vector toward the requested screen-space angle lays the sprite on the ground.
+	# The visible silhouette points upward from its lowest opaque pixels. Rotating
+	# that local UP vector lays only the current frame on the ground.
 	rotation = deg_to_rad(direction_degrees) - Vector2.UP.angle()
 	scale = Vector2(1.0, stretch_amount)
-	position = _foot_offset + offset
+	position = (_projection_anchor if _has_projection_anchor else _foot_offset) + offset
 	color = Color(shadow_color.r, shadow_color.g, shadow_color.b, opacity * shadow_color.a)
 	self_modulate = Color.WHITE
 	z_index = int(_config.get("z_index", -1))
@@ -64,9 +70,7 @@ func _refresh_silhouette() -> void:
 	elif _source is Polygon2D:
 		_apply_polygon(_source as Polygon2D)
 	else:
-		texture = null
-		uv = PackedVector2Array()
-		polygon = PackedVector2Array()
+		_clear_visual()
 
 
 func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
@@ -91,6 +95,8 @@ func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
 		source.flip_v,
 		_source_to_target_transform(source)
 	)
+	set_meta("shadow_source_animation", source.animation)
+	set_meta("shadow_source_frame", frame_index)
 
 
 func _apply_sprite(source: Sprite2D) -> void:
@@ -107,6 +113,7 @@ func _apply_sprite(source: Sprite2D) -> void:
 		source.flip_v,
 		_source_to_target_transform(source)
 	)
+	set_meta("shadow_source_frame", source.frame)
 
 
 func _apply_texture_rect(
@@ -118,41 +125,84 @@ func _apply_texture_rect(
 	flip_v: bool,
 	relative_transform: Transform2D
 ) -> void:
+	var opaque_rect := _get_opaque_pixel_rect(frame_texture)
+	if opaque_rect.size.x <= 0 or opaque_rect.size.y <= 0:
+		_clear_visual()
+		return
+
 	texture = frame_texture
-	var top_left := offset
+	var base_top_left := offset
 	if centered:
-		top_left -= frame_size * 0.5
+		base_top_left -= frame_size * 0.5
+
+	# Flips affect where the cropped opaque rectangle is drawn, not only its UVs.
+	var drawn_position := Vector2(opaque_rect.position)
+	var opaque_size := Vector2(opaque_rect.size)
+	if flip_h:
+		drawn_position.x = frame_size.x - float(opaque_rect.end.x)
+	if flip_v:
+		drawn_position.y = frame_size.y - float(opaque_rect.end.y)
+	var visible_top_left := base_top_left + drawn_position
+	var visible_bottom_right := visible_top_left + opaque_size
+
 	var local_corners := PackedVector2Array([
-		top_left,
-		top_left + Vector2(frame_size.x, 0.0),
-		top_left + frame_size,
-		top_left + Vector2(0.0, frame_size.y),
+		visible_top_left,
+		Vector2(visible_bottom_right.x, visible_top_left.y),
+		visible_bottom_right,
+		Vector2(visible_top_left.x, visible_bottom_right.y),
 	])
+
+	# Anchor the projection at the actual lowest opaque row of this frame. Every
+	# silhouette pixel is therefore projected away from the sprite instead of a
+	# transparent texture rectangle leaking below or beside it.
+	var local_contact := Vector2(
+		(visible_top_left.x + visible_bottom_right.x) * 0.5,
+		visible_bottom_right.y
+	)
+	_projection_anchor = relative_transform * local_contact
+	_has_projection_anchor = true
+
 	var projected := PackedVector2Array()
 	for point in local_corners:
-		projected.append((relative_transform * point) - _foot_offset)
+		projected.append((relative_transform * point) - _projection_anchor)
 	polygon = projected
 
-	var left_u := frame_size.x if flip_h else 0.0
-	var right_u := 0.0 if flip_h else frame_size.x
-	var top_v := frame_size.y if flip_v else 0.0
-	var bottom_v := 0.0 if flip_v else frame_size.y
+	var left_u := float(opaque_rect.end.x) if flip_h else float(opaque_rect.position.x)
+	var right_u := float(opaque_rect.position.x) if flip_h else float(opaque_rect.end.x)
+	var top_v := float(opaque_rect.end.y) if flip_v else float(opaque_rect.position.y)
+	var bottom_v := float(opaque_rect.position.y) if flip_v else float(opaque_rect.end.y)
 	uv = PackedVector2Array([
 		Vector2(left_u, top_v),
 		Vector2(right_u, top_v),
 		Vector2(right_u, bottom_v),
 		Vector2(left_u, bottom_v),
 	])
+	_apply_projection_settings()
+	set_meta("shadow_opaque_rect", opaque_rect)
 
 
 func _apply_polygon(source: Polygon2D) -> void:
 	texture = source.texture
 	var relative_transform := _source_to_target_transform(source)
+	if source.polygon.is_empty():
+		_clear_visual()
+		return
+	var lowest_y := source.polygon[0].y
+	var minimum_x := source.polygon[0].x
+	var maximum_x := source.polygon[0].x
+	for point in source.polygon:
+		lowest_y = maxf(lowest_y, point.y)
+		minimum_x = minf(minimum_x, point.x)
+		maximum_x = maxf(maximum_x, point.x)
+	var local_contact := Vector2((minimum_x + maximum_x) * 0.5, lowest_y)
+	_projection_anchor = relative_transform * local_contact
+	_has_projection_anchor = true
 	var projected := PackedVector2Array()
 	for point in source.polygon:
-		projected.append((relative_transform * point) - _foot_offset)
+		projected.append((relative_transform * point) - _projection_anchor)
 	polygon = projected
 	uv = source.uv
+	_apply_projection_settings()
 
 
 func _source_to_target_transform(source: Node2D) -> Transform2D:
@@ -174,18 +224,53 @@ func _resolve_sprite_texture(source: Sprite2D) -> Texture2D:
 	if source.region_enabled and source.region_rect.size.x > 0.0 and source.region_rect.size.y > 0.0:
 		atlas_texture.region = source.region_rect
 		return atlas_texture
-	var frame_size := source.texture.get_size() / Vector2(maxi(source.hframes, 1), maxi(source.vframes, 1))
-	var frame_index := maxi(source.frame, 0)
-	var column := frame_index % maxi(source.hframes, 1)
-	var row := frame_index / maxi(source.hframes, 1)
+	var horizontal_frames := maxi(source.hframes, 1)
+	var vertical_frames := maxi(source.vframes, 1)
+	var frame_size := source.texture.get_size() / Vector2(horizontal_frames, vertical_frames)
+	var maximum_frame := horizontal_frames * vertical_frames - 1
+	var frame_index := clampi(source.frame, 0, maximum_frame)
+	var column := frame_index % horizontal_frames
+	var row := frame_index / horizontal_frames
 	atlas_texture.region = Rect2(Vector2(column, row) * frame_size, frame_size)
 	return atlas_texture
+
+
+func _get_opaque_pixel_rect(frame_texture: Texture2D) -> Rect2i:
+	if frame_texture == null:
+		return Rect2i()
+	var texture_size := Vector2i(frame_texture.get_size())
+	var cache_key := "%s:%dx%d" % [str(frame_texture.get_rid()), texture_size.x, texture_size.y]
+	if _alpha_bounds_cache.has(cache_key):
+		return _alpha_bounds_cache[cache_key] as Rect2i
+	var image := frame_texture.get_image()
+	if image == null or image.is_empty():
+		var fallback := Rect2i(Vector2i.ZERO, texture_size)
+		_alpha_bounds_cache[cache_key] = fallback
+		return fallback
+
+	var minimum := Vector2i(image.get_width(), image.get_height())
+	var maximum := Vector2i(-1, -1)
+	for y in range(image.get_height()):
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= ALPHA_THRESHOLD:
+				continue
+			minimum.x = mini(minimum.x, x)
+			minimum.y = mini(minimum.y, y)
+			maximum.x = maxi(maximum.x, x)
+			maximum.y = maxi(maximum.y, y)
+	var result := Rect2i()
+	if maximum.x >= minimum.x and maximum.y >= minimum.y:
+		result = Rect2i(minimum, maximum - minimum + Vector2i.ONE)
+	_alpha_bounds_cache[cache_key] = result
+	return result
 
 
 func _clear_visual() -> void:
 	texture = null
 	uv = PackedVector2Array()
 	polygon = PackedVector2Array()
+	_has_projection_anchor = false
+	_projection_anchor = Vector2.ZERO
 
 
 func _get_live_global_config() -> Dictionary:
