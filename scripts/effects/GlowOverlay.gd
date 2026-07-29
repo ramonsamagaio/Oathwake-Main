@@ -10,6 +10,8 @@ const GLOW_MAGIC_TEXTURE := "res://assets/sprites/effects/glows/glow3.png"
 const PROCEDURAL_SHADER := "res://shaders/effects/glow_procedural.gdshader"
 const PROCEDURAL_BASE_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
 const POINT_LIGHT_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
+const MIN_PERSPECTIVE_ANGLE := 15.0
+const MAX_PERSPECTIVE_ANGLE := 90.0
 
 @export var visual_enabled: bool = true
 @export var visual_uses_day_night_multiplier: bool = false
@@ -22,6 +24,7 @@ const POINT_LIGHT_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glo
 @export_range(0.05, 8.0, 0.05) var scale_multiplier: float = 1.0
 @export_range(0.0, 8.0, 0.05) var blur_amount: float = 0.0
 @export var stretch: Vector2 = Vector2.ONE
+@export_range(15.0, 90.0, 1.0) var perspective_angle_degrees: float = 90.0
 @export var flicker_enabled: bool = false
 @export_range(0.0, 1.0, 0.01) var flicker_amount: float = 0.08
 @export_range(0.05, 12.0, 0.05) var flicker_speed: float = 2.0
@@ -31,6 +34,7 @@ const POINT_LIGHT_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glo
 @export_range(0.05, 8.0, 0.05) var point_light_scale: float = 1.8
 @export_range(0.0, 4.0, 0.01) var day_light_multiplier: float = 0.18
 @export_range(0.0, 4.0, 0.01) var night_light_multiplier: float = 1.0
+@export var casts_night_shadows: bool = true
 @export var z_index_value: int = 60
 
 @onready var _texture_glow: Sprite2D = $TextureGlow
@@ -71,6 +75,40 @@ func refresh_from_config() -> void:
 func set_day_night_strength(strength: float) -> void:
 	_night_strength = clampf(strength, 0.0, 1.0)
 	_update_visuals(1.0)
+
+
+func get_light_projection_scale() -> Vector2:
+	var angle := clampf(perspective_angle_degrees, MIN_PERSPECTIVE_ANGLE, MAX_PERSPECTIVE_ANGLE)
+	return Vector2(1.0, clampf(sin(deg_to_rad(angle)), 0.20, 1.0))
+
+
+func get_light_radius_world() -> float:
+	if _point_light == null or _point_light.texture == null:
+		return 0.0
+	var texture_size := _point_light.texture.get_size()
+	var base_radius := maxf(texture_size.x, texture_size.y) * 0.5 * _point_light.texture_scale
+	var world_scale := _point_light.global_scale.abs()
+	return base_radius * maxf(world_scale.x, world_scale.y)
+
+
+func get_light_energy() -> float:
+	return _point_light.energy if _point_light != null and _point_light.enabled else 0.0
+
+
+func get_light_owner() -> Node2D:
+	return get_parent() as Node2D
+
+
+func is_night_shadow_emitter_active() -> bool:
+	return (
+		is_visible_in_tree()
+		and casts_night_shadows
+		and use_point_light
+		and _point_light != null
+		and _point_light.enabled
+		and _point_light.energy > 0.001
+		and get_light_radius_world() > 1.0
+	)
 
 
 func apply_window_preset() -> void:
@@ -189,11 +227,12 @@ func _update_visuals(flicker_value: float) -> void:
 	var current_intensity := maxf(0.0, intensity * flicker_value)
 	var day_night_multiplier := lerpf(day_light_multiplier, night_light_multiplier, _night_strength)
 	var visual_day_night_multiplier := day_night_multiplier if visual_uses_day_night_multiplier else 1.0
-	var light_scale := Vector2(scale_multiplier, scale_multiplier) * stretch
+	var radial_scale := Vector2(scale_multiplier, scale_multiplier) * stretch
 	if flicker_enabled:
-		light_scale *= 1.0 + ((flicker_value - 1.0) * 0.35)
+		radial_scale *= 1.0 + ((flicker_value - 1.0) * 0.35)
+	var projection_scale := get_light_projection_scale()
 	var blur_factor := maxf(blur_amount, 0.0)
-	var visual_scale := light_scale * (1.0 + (blur_factor * 0.06))
+	var visual_scale := radial_scale * projection_scale * (1.0 + (blur_factor * 0.06))
 	var visual_alpha := (current_alpha / (1.0 + (blur_factor * 0.10))) * visual_day_night_multiplier
 	var visual_intensity := current_intensity * visual_day_night_multiplier
 
@@ -202,7 +241,9 @@ func _update_visuals(flicker_value: float) -> void:
 	var procedural_enabled := visual_enabled and visual_is_active and (mode == Mode.PROCEDURAL or mode == Mode.BOTH)
 	_configure_texture_sprite(texture_enabled, visual_scale, visual_alpha, visual_intensity)
 	_configure_procedural_sprite(procedural_enabled, visual_scale, visual_alpha, visual_intensity)
-	_configure_point_light(current_alpha, current_intensity, light_scale)
+	_configure_point_light(current_alpha, current_intensity, radial_scale, projection_scale)
+	set_meta("light_projection_scale", projection_scale)
+	set_meta("light_perspective_angle_degrees", clampf(perspective_angle_degrees, MIN_PERSPECTIVE_ANGLE, MAX_PERSPECTIVE_ANGLE))
 
 
 func _configure_texture_sprite(should_show: bool, sprite_scale: Vector2, current_alpha: float, current_intensity: float) -> void:
@@ -247,7 +288,7 @@ func _configure_procedural_sprite(should_show: bool, sprite_scale: Vector2, curr
 	procedural_material.set_shader_parameter("softness", clampf(0.22 + (blur_amount * 0.10), 0.01, 1.0))
 
 
-func _configure_point_light(current_alpha: float, current_intensity: float, sprite_scale: Vector2) -> void:
+func _configure_point_light(current_alpha: float, current_intensity: float, radial_scale: Vector2, projection_scale: Vector2) -> void:
 	if _point_light == null:
 		return
 	if not use_point_light:
@@ -264,7 +305,8 @@ func _configure_point_light(current_alpha: float, current_intensity: float, spri
 	_point_light.enabled = should_enable
 	_point_light.color = glow_color
 	_point_light.energy = final_energy
-	_point_light.texture_scale = maxf(sprite_scale.x, sprite_scale.y) * point_light_scale
+	_point_light.texture_scale = maxf(radial_scale.x, radial_scale.y) * point_light_scale
+	_point_light.scale = projection_scale
 	_point_light.z_index = z_index_value
 	_set_optional_property(_point_light, "range_z_min", -4096)
 	_set_optional_property(_point_light, "range_z_max", 4096)
