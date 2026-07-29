@@ -13,6 +13,7 @@ func _init() -> void:
 
 func _run() -> void:
 	await _validate_rigid_rotation_geometry()
+	await _validate_southern_caster_limit()
 	await _validate_continuous_solar_cycle()
 	await _validate_night_local_light_shadow()
 	if failures.is_empty():
@@ -79,6 +80,43 @@ func _validate_rigid_rotation_geometry() -> void:
 		if not bool(shadow.get_meta("shadow_projection_rigid_basis", false)):
 			failures.append("Dynamic shadow did not use the rigid rotating basis.")
 
+	target.queue_free()
+	await process_frame
+
+
+func _validate_southern_caster_limit() -> void:
+	var image := Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	image.fill(Color.TRANSPARENT)
+	for y in range(8, 57):
+		var width := 16 + int(float(y - 8) * 0.65)
+		var left := maxi(2, 32 - width / 2)
+		var right := mini(62, 32 + width / 2)
+		for x in range(left, right):
+			image.set_pixel(x, y, Color.WHITE)
+	var target := Node2D.new()
+	root.add_child(target)
+	var sprite := Sprite2D.new()
+	sprite.texture = ImageTexture.create_from_image(image)
+	target.add_child(sprite)
+	var shadow := DynamicShadowScript.new() as Polygon2D
+	target.add_child(shadow)
+	shadow.call("configure", target, sprite, {
+		"enabled": true,
+		"direction_degrees": -135.0,
+		"stretch": 1.25,
+		"width_scale": 1.0,
+		"root_overlap": 6.0,
+		"mask_weight": 1.0,
+	}, Vector2(0.0, 28.0))
+	await process_frame
+	var southern_limit_y := float(shadow.get_meta("shadow_southern_limit_y", INF))
+	var maximum_shadow_y := -INF
+	for point in shadow.polygon:
+		maximum_shadow_y = maxf(maximum_shadow_y, point.y)
+	if maximum_shadow_y > southern_limit_y + 0.01:
+		failures.append("Solar shadow crossed the caster lower-corner boundary: %s > %s." % [maximum_shadow_y, southern_limit_y])
+	if _polygon_area(shadow.polygon) <= 100.0:
+		failures.append("Southern boundary correction distorted or collapsed the shadow.")
 	target.queue_free()
 	await process_frame
 
