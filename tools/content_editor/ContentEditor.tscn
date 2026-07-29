@@ -1,7 +1,9 @@
 [gd_scene load_steps=3 format=3 uid="uid://cn6juf8fptk0e"]
 
 ; ContentEditorLightEmittersSuite.gd centralizes all light-only authoring.
-; It extends PlayerLightPerspective -> ShadowOcclusion -> PostEffectsNavigation -> RuntimeTuning.
+; Inheritance chain includes ContentEditorPlayerLightPerspectiveSuite.gd,
+; ContentEditorShadowOcclusionSuite.gd, ContentEditorPostEffectsNavigationSuite.gd
+; and the runtime-safe ContentEditorRuntimeTuningSuite.gd.
 [ext_resource type="Script" path="res://tools/content_editor/ContentEditorLightEmittersSuite.gd" id="1_content_editor_script"]
 [ext_resource type="Script" path="res://scripts/test/RuntimeContentEditorContractProbe.gd" id="2_contract_probe"]
 
