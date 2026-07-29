@@ -10,6 +10,8 @@ func _apply_player_light_tuning() -> void:
 	var light := get_node_or_null("NightLight") as Node2D
 	if light == null:
 		return
+	var enabled := bool(_content_light_config.get("enabled", true))
+	var real_light_enabled := enabled and bool(_content_light_config.get("light_enabled", true))
 	var perspective_angle := clampf(
 		float(_content_light_config.get("perspective_angle_degrees", DEFAULT_LIGHT_PERSPECTIVE_ANGLE)),
 		MIN_LIGHT_PERSPECTIVE_ANGLE,
@@ -18,6 +20,7 @@ func _apply_player_light_tuning() -> void:
 	# GlowOverlay is the single owner of the light footprint. The aura, real
 	# PointLight2D and post-process night mask all read this same projection.
 	light.scale = Vector2.ONE
+	_set_player_light_property(light, "use_point_light", real_light_enabled)
 	_set_player_light_property(light, "perspective_angle_degrees", perspective_angle)
 	_set_player_light_property(light, "mode", _player_light_visual_mode(str(_content_light_config.get("visual_mode", "texture"))))
 	_set_player_light_property(light, "blend_style", 1 if str(_content_light_config.get("blend_mode", "additive")) == "additive" else 0)
