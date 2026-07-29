@@ -52,12 +52,20 @@ func _validate_slime_visuals() -> void:
 	var shadow := slime.get_node_or_null("GroundShadow") as Polygon2D
 	var glow := slime.get_node_or_null("ContentGlow") as Node2D
 	var sprite := slime.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
-	if shadow == null or not shadow.visible or shadow.color.a < 0.25:
-		failures.append("Slime projected shadow is missing or too transparent.")
+	if shadow == null or not shadow.visible:
+		failures.append("Slime projected shadow is missing.")
 	elif not bool(shadow.get_meta("directional_shadow", false)):
 		failures.append("Slime still uses the legacy contact shadow instead of its sprite silhouette.")
 	elif shadow.polygon.size() < 4 or shadow.texture == null:
 		failures.append("Slime projected shadow did not copy the current animated sprite frame.")
+	else:
+		var proxy_id := int(shadow.get_meta("shadow_render_proxy_id", 0))
+		var proxy := instance_from_id(proxy_id) as Polygon2D if proxy_id > 0 else null
+		var group := get_first_node_in_group("projected_shadow_group") as CanvasGroup
+		if proxy == null or group == null or proxy.get_parent() != group:
+			failures.append("Slime shadow is not rendered by the shared projected-shadow compositor.")
+		elif float(group.get_meta("shadow_group_opacity", 0.0)) < 0.25:
+			failures.append("Shared projected-shadow compositor is too transparent.")
 	if glow == null or not glow.visible:
 		failures.append("Slime ContentGlow was not created from monsters.json.")
 	else:
