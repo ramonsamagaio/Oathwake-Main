@@ -7,6 +7,7 @@ const DEFAULT_EVENING_ANGLE_FROM_UP := 45.0
 const RuntimeShadowGroupScript := preload("res://scripts/effects/ProjectedShadowGroup.gd")
 
 static var _runtime_alpha_bounds_cache: Dictionary = {}
+static var _isolated_frame_texture_cache: Dictionary = {}
 static var _pending_shadow_group: CanvasGroup = null
 static var _solid_mask_texture: Texture2D = null
 
@@ -108,6 +109,94 @@ func _apply_projection_settings() -> void:
 	set_meta("shadow_mask_weight", mask_weight)
 
 
+func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
+	if source.sprite_frames == null or not source.sprite_frames.has_animation(source.animation):
+		_clear_visual()
+		return
+	var frame_count := source.sprite_frames.get_frame_count(source.animation)
+	if frame_count <= 0:
+		_clear_visual()
+		return
+	var frame_index := clampi(source.frame, 0, frame_count - 1)
+	var source_frame_texture := source.sprite_frames.get_frame_texture(source.animation, frame_index)
+	if source_frame_texture == null:
+		_clear_visual()
+		return
+	var isolated_texture := _isolate_active_frame_texture(source_frame_texture)
+	if isolated_texture == null:
+		_clear_visual()
+		return
+	_apply_texture_rect(
+		isolated_texture,
+		isolated_texture.get_size(),
+		source.centered,
+		source.offset,
+		source.flip_h,
+		source.flip_v,
+		_source_to_target_transform(source)
+	)
+	set_meta("shadow_source_kind", "AnimatedSprite2D")
+	set_meta("shadow_source_animation", source.animation)
+	set_meta("shadow_source_frame", frame_index)
+	set_meta("shadow_source_frame_isolated", isolated_texture != source_frame_texture)
+
+
+func _apply_sprite(source: Sprite2D) -> void:
+	var source_frame_texture := _resolve_sprite_texture(source)
+	if source_frame_texture == null:
+		_clear_visual()
+		return
+	var isolated_texture := _isolate_active_frame_texture(source_frame_texture)
+	if isolated_texture == null:
+		_clear_visual()
+		return
+	_apply_texture_rect(
+		isolated_texture,
+		isolated_texture.get_size(),
+		source.centered,
+		source.offset,
+		source.flip_h,
+		source.flip_v,
+		_source_to_target_transform(source)
+	)
+	set_meta("shadow_source_kind", "Sprite2D")
+	set_meta("shadow_source_frame", source.frame)
+	set_meta("shadow_source_frame_isolated", isolated_texture != source_frame_texture)
+
+
+func _isolate_active_frame_texture(frame_texture: Texture2D) -> Texture2D:
+	if frame_texture == null:
+		return null
+	if not (frame_texture is AtlasTexture):
+		return frame_texture
+	var atlas_texture := frame_texture as AtlasTexture
+	if atlas_texture.atlas == null:
+		return null
+	var cache_key := "isolated:%s:%s" % [str(atlas_texture.atlas.get_instance_id()), str(atlas_texture.region)]
+	if _isolated_frame_texture_cache.has(cache_key):
+		var cached: Variant = _isolated_frame_texture_cache.get(cache_key)
+		if cached is Texture2D and is_instance_valid(cached):
+			return cached as Texture2D
+	var atlas_image := atlas_texture.atlas.get_image()
+	if atlas_image == null or atlas_image.is_empty():
+		return null
+	var region := atlas_texture.region
+	var requested := Rect2i(
+		Vector2i(int(floor(region.position.x)), int(floor(region.position.y))),
+		Vector2i(int(round(region.size.x)), int(round(region.size.y)))
+	)
+	var atlas_bounds := Rect2i(Vector2i.ZERO, Vector2i(atlas_image.get_width(), atlas_image.get_height()))
+	var clipped := requested.intersection(atlas_bounds)
+	if clipped.size.x <= 0 or clipped.size.y <= 0:
+		return null
+	var frame_image := atlas_image.get_region(clipped)
+	if frame_image == null or frame_image.is_empty():
+		return null
+	var isolated := ImageTexture.create_from_image(frame_image)
+	_isolated_frame_texture_cache[cache_key] = isolated
+	return isolated
+
+
 func _apply_texture_rect(
 	frame_texture: Texture2D,
 	frame_size: Vector2,
@@ -153,6 +242,15 @@ func _apply_texture_rect(
 		var lateral := (point.x - contact_local.x) * basis_scale.x * _projection_width_scale
 		var height := maxf(contact_local.y - point.y, 0.0) * basis_scale.y * _projection_stretch
 		projected.append(projection_anchor + (side_axis * lateral) + (_projection_direction * height))
+
+	var bottom_left_target := relative_transform * Vector2(visible_top_left.x, visible_bottom_right.y)
+	var bottom_right_target := relative_transform * visible_bottom_right
+	var southern_limit_y := maxf(bottom_left_target.y, bottom_right_target.y)
+	var southern_shift := _southern_limit_shift(projected, southern_limit_y)
+	if not southern_shift.is_zero_approx():
+		for point_index in range(projected.size()):
+			projected[point_index] += southern_shift
+		projection_anchor += southern_shift
 	polygon = projected
 
 	var left_u := float(opaque_rect.end.x) if flip_h else float(opaque_rect.position.x)
@@ -167,6 +265,8 @@ func _apply_texture_rect(
 	])
 	_publish_projection_metadata(contact_target, projection_anchor, side_axis, opaque_size * basis_scale)
 	set_meta("shadow_opaque_rect", opaque_rect)
+	set_meta("shadow_southern_limit_y", southern_limit_y)
+	set_meta("shadow_southern_limit_shift", southern_shift)
 
 
 func _apply_polygon(source: Polygon2D) -> void:
@@ -188,6 +288,14 @@ func _apply_polygon(source: Polygon2D) -> void:
 		var lateral := (point.x - contact_local.x) * basis_scale.x * _projection_width_scale
 		var height := maxf(contact_local.y - point.y, 0.0) * basis_scale.y * _projection_stretch
 		projected.append(projection_anchor + (side_axis * lateral) + (_projection_direction * height))
+	var bottom_left_target := relative_transform * Vector2(bounds.position.x, bounds.end.y)
+	var bottom_right_target := relative_transform * Vector2(bounds.end.x, bounds.end.y)
+	var southern_limit_y := maxf(bottom_left_target.y, bottom_right_target.y)
+	var southern_shift := _southern_limit_shift(projected, southern_limit_y)
+	if not southern_shift.is_zero_approx():
+		for point_index in range(projected.size()):
+			projected[point_index] += southern_shift
+		projection_anchor += southern_shift
 	polygon = projected
 	if source.texture != null and source.uv.size() == source.polygon.size():
 		uv = source.uv
@@ -199,6 +307,22 @@ func _apply_polygon(source: Polygon2D) -> void:
 	_visible_frame_size = bounds.size
 	_publish_projection_metadata(contact_target, projection_anchor, side_axis, bounds.size * basis_scale)
 	set_meta("shadow_source_kind", "Polygon2D")
+	set_meta("shadow_southern_limit_y", southern_limit_y)
+	set_meta("shadow_southern_limit_shift", southern_shift)
+
+
+func _southern_limit_shift(points: PackedVector2Array, limit_y: float) -> Vector2:
+	if bool(_config.get("local_light_shadow", false)) or _projection_direction.y >= -0.001:
+		return Vector2.ZERO
+	var maximum_y := -INF
+	for point in points:
+		maximum_y = maxf(maximum_y, point.y)
+	if maximum_y <= limit_y:
+		return Vector2.ZERO
+	# Shift the complete rigid silhouette rather than clipping or squeezing it.
+	# The shadow keeps its dimensions while the source's two lower corners remain
+	# the southern boundary, so roots and feet hide the contact edge naturally.
+	return Vector2(0.0, limit_y - maximum_y)
 
 
 func _get_solid_mask_texture() -> Texture2D:
