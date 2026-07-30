@@ -48,7 +48,7 @@ static func get_sprite_depth_y(sprite: Sprite2D, line_ratio := 0.58) -> float:
 static func get_sprite_local_foot_point(sprite: Sprite2D) -> Vector2:
 	if sprite == null:
 		return Vector2.ZERO
-	var authored_anchor := _ground_anchor_from_object(sprite)
+	var authored_anchor: Variant = _ground_anchor_from_object(sprite)
 	if authored_anchor != null:
 		return authored_anchor as Vector2
 	# Sprite2D.get_rect() already includes centered and drawing-offset rules.
@@ -76,11 +76,11 @@ static func get_animated_sprite_local_foot_point(sprite: AnimatedSprite2D) -> Ve
 	# the frame's top-left. They are more accurate than the transparent cell edge
 	# and remain stable across every frame of a walk, attack or idle cycle.
 	var anchor_in_frame := Vector2(frame_size.x * 0.5, frame_size.y)
-	var sprite_anchor := _ground_anchor_from_object(sprite)
+	var sprite_anchor: Variant = _ground_anchor_from_object(sprite)
 	if sprite_anchor != null:
 		anchor_in_frame = sprite_anchor as Vector2
 	elif sprite.sprite_frames != null:
-		var frames_anchor := _ground_anchor_from_object(sprite.sprite_frames)
+		var frames_anchor: Variant = _ground_anchor_from_object(sprite.sprite_frames)
 		if frames_anchor != null:
 			anchor_in_frame = frames_anchor as Vector2
 
@@ -148,10 +148,10 @@ static func _ground_anchor_from_object(value: Object) -> Variant:
 				return vector_value
 		elif raw is Dictionary:
 			var dictionary_value := raw as Dictionary
-			var vector_value := Vector2(
+			var dictionary_vector := Vector2(
 				float(dictionary_value.get("x", 0.0)),
 				float(dictionary_value.get("y", 0.0))
 			)
-			if vector_value.is_finite():
-				return vector_value
+			if dictionary_vector.is_finite():
+				return dictionary_vector
 	return null
