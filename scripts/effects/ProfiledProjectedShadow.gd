@@ -4,9 +4,12 @@ extends "res://scripts/effects/DynamicProjectedSpriteShadow.gd"
 const ShadowProfiles := preload("res://scripts/effects/ShadowProfileLibrary.gd")
 const PROJECTION_MODE := "universal_shadow_profile"
 
+var _profile_mask_texture: Texture2D
+
 
 func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
 	if _should_use_legacy_silhouette():
+		_profile_mask_texture = null
 		super._apply_animated_sprite(source)
 		return
 	if source.sprite_frames == null or not source.sprite_frames.has_animation(source.animation):
@@ -27,14 +30,20 @@ func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
 		source.offset,
 		_source_to_target_transform(source)
 	)
+	# Keep the invisible canonical node tied to the authored frame for diagnostics,
+	# editor inspection and backwards-compatible source metadata. The shared
+	# compositor still receives only the universal mask stored separately above.
+	texture = frame_texture
+	set_meta("shadow_opaque_rect", _get_opaque_pixel_rect(frame_texture))
 	set_meta("shadow_source_kind", "AnimatedSprite2D")
 	set_meta("shadow_source_animation", source.animation)
 	set_meta("shadow_source_frame", frame_index)
-	set_meta("shadow_source_frame_isolated", false)
+	set_meta("shadow_source_frame_isolated", frame_texture is not AtlasTexture)
 
 
 func _apply_sprite(source: Sprite2D) -> void:
 	if _should_use_legacy_silhouette():
+		_profile_mask_texture = null
 		super._apply_sprite(source)
 		return
 	var frame_texture := _resolve_sprite_texture(source)
@@ -47,9 +56,11 @@ func _apply_sprite(source: Sprite2D) -> void:
 		source.offset,
 		_source_to_target_transform(source)
 	)
+	texture = frame_texture
+	set_meta("shadow_opaque_rect", _get_opaque_pixel_rect(frame_texture))
 	set_meta("shadow_source_kind", "Sprite2D")
 	set_meta("shadow_source_frame", source.frame)
-	set_meta("shadow_source_frame_isolated", false)
+	set_meta("shadow_source_frame_isolated", frame_texture is not AtlasTexture)
 
 
 func _apply_texture_rect(
@@ -62,6 +73,7 @@ func _apply_texture_rect(
 	relative_transform: Transform2D
 ) -> void:
 	if _should_use_legacy_silhouette():
+		_profile_mask_texture = null
 		super._apply_texture_rect(
 			frame_texture,
 			frame_size,
@@ -73,10 +85,13 @@ func _apply_texture_rect(
 		)
 		return
 	_apply_profile_projection(frame_size, centered, sprite_offset, relative_transform)
+	texture = frame_texture
+	set_meta("shadow_opaque_rect", _get_opaque_pixel_rect(frame_texture))
 
 
 func _apply_polygon(source: Polygon2D) -> void:
 	if _should_use_legacy_silhouette():
+		_profile_mask_texture = null
 		super._apply_polygon(source)
 		return
 	if source.polygon.is_empty():
@@ -91,6 +106,9 @@ func _apply_polygon(source: Polygon2D) -> void:
 		bounds.get_center(),
 		_source_to_target_transform(source)
 	)
+	# Polygon fallbacks have no authored frame texture, so the canonical node may
+	# safely keep the profile mask as its non-null source identity.
+	texture = _profile_mask_texture
 	set_meta("shadow_source_kind", "Polygon2D")
 
 
@@ -107,6 +125,7 @@ func _apply_profile_projection(
 	if mask_texture == null:
 		_clear_visual()
 		return
+	_profile_mask_texture = mask_texture
 
 	var contact := _foot_offset
 	if not contact.is_finite():
@@ -187,8 +206,18 @@ func _sync_render_proxy() -> void:
 	super._sync_render_proxy()
 	if _render_proxy == null or not is_instance_valid(_render_proxy):
 		return
+	var uses_legacy := _should_use_legacy_silhouette()
+	if not uses_legacy and _profile_mask_texture != null:
+		_render_proxy.texture = _profile_mask_texture
+		_render_proxy.set_meta("shadow_profile_mask", true)
+		_render_proxy.set_meta("shadow_active_frame_texture_isolated", false)
 	_render_proxy.texture_filter = (
 		CanvasItem.TEXTURE_FILTER_NEAREST
-		if _should_use_legacy_silhouette()
+		if uses_legacy
 		else CanvasItem.TEXTURE_FILTER_LINEAR
 	)
+
+
+func _clear_visual() -> void:
+	_profile_mask_texture = null
+	super._clear_visual()
