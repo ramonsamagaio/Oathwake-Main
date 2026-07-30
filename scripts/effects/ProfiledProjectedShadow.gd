@@ -21,20 +21,22 @@ func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
 		return
 	var frame_index := clampi(source.frame, 0, frame_count - 1)
 	var frame_texture := source.sprite_frames.get_frame_texture(source.animation, frame_index)
-	if frame_texture == null or frame_texture.get_size().x <= 0.0 or frame_texture.get_size().y <= 0.0:
+	if not _is_valid_texture_size(frame_texture):
 		_clear_visual()
 		return
+	var frame_size := frame_texture.get_size()
 	_apply_profile_projection(
-		frame_texture.get_size(),
+		frame_size,
 		source.centered,
 		source.offset,
 		_source_to_target_transform(source)
 	)
-	# Keep the invisible canonical node tied to the authored frame for diagnostics,
-	# editor inspection and backwards-compatible source metadata. The shared
-	# compositor still receives only the universal mask stored separately above.
+	# The canonical node is transparent and keeps the authored frame only for
+	# diagnostics. Solar profiles intentionally do not read or crop its pixels.
+	# Avoiding an AtlasTexture image read also prevents transient zero-size image
+	# errors while imported SpriteFrames are being rebuilt during content reload.
 	texture = frame_texture
-	set_meta("shadow_opaque_rect", _get_opaque_pixel_rect(frame_texture))
+	set_meta("shadow_opaque_rect", _full_frame_rect(frame_size))
 	set_meta("shadow_source_kind", "AnimatedSprite2D")
 	set_meta("shadow_source_animation", source.animation)
 	set_meta("shadow_source_frame", frame_index)
@@ -47,17 +49,18 @@ func _apply_sprite(source: Sprite2D) -> void:
 		super._apply_sprite(source)
 		return
 	var frame_texture := _resolve_sprite_texture(source)
-	if frame_texture == null or frame_texture.get_size().x <= 0.0 or frame_texture.get_size().y <= 0.0:
+	if not _is_valid_texture_size(frame_texture):
 		_clear_visual()
 		return
+	var frame_size := frame_texture.get_size()
 	_apply_profile_projection(
-		frame_texture.get_size(),
+		frame_size,
 		source.centered,
 		source.offset,
 		_source_to_target_transform(source)
 	)
 	texture = frame_texture
-	set_meta("shadow_opaque_rect", _get_opaque_pixel_rect(frame_texture))
+	set_meta("shadow_opaque_rect", _full_frame_rect(frame_size))
 	set_meta("shadow_source_kind", "Sprite2D")
 	set_meta("shadow_source_frame", source.frame)
 	set_meta("shadow_source_frame_isolated", frame_texture is not AtlasTexture)
@@ -84,9 +87,12 @@ func _apply_texture_rect(
 			relative_transform
 		)
 		return
+	if not _is_valid_texture_size(frame_texture) or frame_size.x <= 0.0 or frame_size.y <= 0.0:
+		_clear_visual()
+		return
 	_apply_profile_projection(frame_size, centered, sprite_offset, relative_transform)
 	texture = frame_texture
-	set_meta("shadow_opaque_rect", _get_opaque_pixel_rect(frame_texture))
+	set_meta("shadow_opaque_rect", _full_frame_rect(frame_size))
 
 
 func _apply_polygon(source: Polygon2D) -> void:
@@ -100,6 +106,9 @@ func _apply_polygon(source: Polygon2D) -> void:
 	var bounds := Rect2(source.polygon[0], Vector2.ZERO)
 	for point in source.polygon:
 		bounds = bounds.expand(point)
+	if bounds.size.x <= 0.0 or bounds.size.y <= 0.0:
+		_clear_visual()
+		return
 	_apply_profile_projection(
 		bounds.size,
 		true,
@@ -109,6 +118,7 @@ func _apply_polygon(source: Polygon2D) -> void:
 	# Polygon fallbacks have no authored frame texture, so the canonical node may
 	# safely keep the profile mask as its non-null source identity.
 	texture = _profile_mask_texture
+	set_meta("shadow_opaque_rect", _full_frame_rect(bounds.size))
 	set_meta("shadow_source_kind", "Polygon2D")
 
 
@@ -122,7 +132,7 @@ func _apply_profile_projection(
 	var visual_size := _resolve_visual_size(frame_size, relative_transform)
 	var profile := ShadowProfiles.resolve_profile(_target, _source, _config, global_shadow_config, visual_size)
 	var mask_texture := ShadowProfiles.get_mask_texture(profile)
-	if mask_texture == null:
+	if not _is_valid_texture_size(mask_texture):
 		_clear_visual()
 		return
 	_profile_mask_texture = mask_texture
@@ -162,11 +172,15 @@ func _apply_profile_projection(
 		root_center + side_axis * half_width,
 		root_center - side_axis * half_width,
 	])
+	# Polygon2D UVs are texture-pixel coordinates, not normalized 0..1 values.
+	# Sampling 0..1 on a 64x128 mask only touched its transparent first pixel,
+	# which made every daytime profile shadow effectively invisible.
+	var mask_size := mask_texture.get_size()
 	uv = PackedVector2Array([
 		Vector2(0.0, 0.0),
-		Vector2(1.0, 0.0),
-		Vector2(1.0, 1.0),
-		Vector2(0.0, 1.0),
+		Vector2(mask_size.x, 0.0),
+		Vector2(mask_size.x, mask_size.y),
+		Vector2(0.0, mask_size.y),
 	])
 	texture = mask_texture
 	_visible_frame_size = visual_size
@@ -179,6 +193,8 @@ func _apply_profile_projection(
 	set_meta("shadow_profile_length", length)
 	set_meta("shadow_profile_root_overlap", root_overlap)
 	set_meta("shadow_profile_ignores_frame_silhouette", true)
+	set_meta("shadow_profile_uv_pixel_space", true)
+	set_meta("shadow_profile_mask_size", mask_size)
 	set_meta("shadow_southern_limit_y", contact.y)
 	set_meta("shadow_southern_limit_shift", Vector2.ZERO)
 
@@ -211,11 +227,24 @@ func _sync_render_proxy() -> void:
 		_render_proxy.texture = _profile_mask_texture
 		_render_proxy.set_meta("shadow_profile_mask", true)
 		_render_proxy.set_meta("shadow_active_frame_texture_isolated", false)
+		_render_proxy.set_meta("shadow_profile_uv_pixel_space", true)
 	_render_proxy.texture_filter = (
 		CanvasItem.TEXTURE_FILTER_NEAREST
 		if uses_legacy
 		else CanvasItem.TEXTURE_FILTER_LINEAR
 	)
+
+
+func _is_valid_texture_size(value: Texture2D) -> bool:
+	if value == null:
+		return false
+	var size := value.get_size()
+	return size.x > 0.0 and size.y > 0.0 and size.is_finite()
+
+
+func _full_frame_rect(size: Vector2) -> Rect2i:
+	var safe_size := Vector2i(maxi(int(round(size.x)), 1), maxi(int(round(size.y)), 1))
+	return Rect2i(Vector2i.ZERO, safe_size)
 
 
 func _clear_visual() -> void:
