@@ -2,7 +2,8 @@ class_name ProfiledProjectedShadow
 extends "res://scripts/effects/DynamicProjectedSpriteShadow.gd"
 
 const ShadowProfiles := preload("res://scripts/effects/ShadowProfileLibrary.gd")
-const PROJECTION_MODE := "universal_shadow_profile"
+const ShadowFootprints := preload("res://scripts/effects/ShadowFootprintResolver.gd")
+const PROJECTION_MODE := "footprint_extrusion"
 
 var _profile_mask_texture: Texture2D
 
@@ -32,9 +33,7 @@ func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
 		_source_to_target_transform(source)
 	)
 	# The canonical node is transparent and keeps the authored frame only for
-	# diagnostics. Solar profiles intentionally do not read or crop its pixels.
-	# Avoiding an AtlasTexture image read also prevents transient zero-size image
-	# errors while imported SpriteFrames are being rebuilt during content reload.
+	# diagnostics. The compositor proxy renders the footprint extrusion instead.
 	texture = frame_texture
 	set_meta("shadow_opaque_rect", _full_frame_rect(frame_size))
 	set_meta("shadow_source_kind", "AnimatedSprite2D")
@@ -115,8 +114,6 @@ func _apply_polygon(source: Polygon2D) -> void:
 		bounds.get_center(),
 		_source_to_target_transform(source)
 	)
-	# Polygon fallbacks have no authored frame texture, so the canonical node may
-	# safely keep the profile mask as its non-null source identity.
 	texture = _profile_mask_texture
 	set_meta("shadow_opaque_rect", _full_frame_rect(bounds.size))
 	set_meta("shadow_source_kind", "Polygon2D")
@@ -131,97 +128,114 @@ func _apply_profile_projection(
 	var global_shadow_config := _get_live_global_config()
 	var visual_size := _resolve_visual_size(frame_size, relative_transform)
 	var profile := ShadowProfiles.resolve_profile(_target, _source, _config, global_shadow_config, visual_size)
-	var mask_texture := ShadowProfiles.get_mask_texture(profile)
+
+	var contact := _foot_offset
+	if not contact.is_finite():
+		contact = Vector2.ZERO
+
+	# Smart-lighting style daylight shadows begin from an authored ground collider
+	# or physics footprint. The whole footprint is extruded away from the sun, and
+	# the caster sprite is rendered above it to hide the seam at the feet/trunk.
+	var footprint_data := ShadowFootprints.resolve(_target, _source, contact, visual_size, profile, _config)
+	var footprint: PackedVector2Array = footprint_data.get("points", PackedVector2Array())
+	if footprint.size() < 3:
+		_clear_visual()
+		return
+
+	var mask_texture := _get_solid_mask_texture()
 	if not _is_valid_texture_size(mask_texture):
 		_clear_visual()
 		return
 	_profile_mask_texture = mask_texture
 
-	# The runtime resolves this point from the visual node's local bottom-center,
-	# then converts it through the complete transform chain into target-local space.
-	# Vector2.ZERO is a valid contact when the sprite was authored around its feet.
-	var contact := _foot_offset
-	if not contact.is_finite():
-		contact = Vector2.ZERO
-
-	var profile_width_scale := maxf(float(_config.get("shadow_profile_width_scale", 1.0)), 0.05)
 	var profile_length_scale := maxf(float(_config.get("shadow_profile_length_scale", 1.0)), 0.05)
-	var width := maxf(
-		visual_size.x * maxf(float(profile.get("width_ratio", 0.52)), 0.05),
-		float(profile.get("minimum_width", 12.0))
-	) * _projection_width_scale * profile_width_scale
 	var length := maxf(
 		visual_size.y * maxf(float(profile.get("length_ratio", 0.92)), 0.05),
 		float(profile.get("minimum_length", 18.0))
 	) * _projection_stretch * profile_length_scale
-	var requested_root_overlap := _projection_root_overlap * maxf(float(profile.get("root_overlap_multiplier", 1.0)), 0.0)
 
-	var direction := _projection_direction.normalized()
-	if direction.length_squared() <= 0.0001:
-		direction = Vector2.UP
-	var tip_axis := direction.rotated(PI * 0.5).normalized()
+	var world_direction := _projection_direction.normalized()
+	if world_direction.length_squared() <= 0.0001:
+		world_direction = Vector2.UP
+	var extrusion := _world_vector_to_target_local(world_direction * length)
+	if extrusion.length_squared() <= 0.0001:
+		extrusion = world_direction * length
 
-	# The source X basis is the sprite's real ground/base axis expressed in the
-	# caster's coordinate space. Unlike the far edge, this axis must never rotate
-	# with the sun. This is what turns the card into an anchored skewed projection.
-	var root_axis := relative_transform.x.normalized()
-	if not root_axis.is_finite() or root_axis.length_squared() <= 0.0001:
-		root_axis = Vector2.RIGHT
+	var root_width_ratio := maxf(float(profile.get("root_width_ratio", 0.8)), 0.05)
+	var tip_width_ratio := maxf(float(profile.get("tip_width_ratio", root_width_ratio)), 0.02)
+	var default_tip_scale := clampf(tip_width_ratio / root_width_ratio, 0.30, 1.25)
+	var tip_scale := clampf(float(_config.get("shadow_footprint_tip_scale", default_tip_scale)), 0.15, 2.0)
+	var footprint_center := _average_point(footprint)
 
-	# Keep the visible contact neck narrow enough to remain underneath the feet,
-	# trunk or prop base. The profile can widen immediately after leaving the root.
-	var authored_root_ratio := clampf(float(profile.get("root_width_ratio", 0.80)), 0.05, 1.0)
-	var contact_span_ratio := clampf(
-		float(profile.get("contact_span_ratio", minf(authored_root_ratio * 0.28, 0.32))),
-		0.04,
-		0.65
-	)
-	var contact_half_width := maxf(width * contact_span_ratio * 0.5, 1.0)
+	var combined := PackedVector2Array()
+	for point in footprint:
+		combined.append(point)
+	for point in footprint:
+		combined.append(footprint_center + (point - footprint_center) * tip_scale + extrusion)
+	var projected_hull := _convex_hull(combined)
+	if projected_hull.size() < 3:
+		_clear_visual()
+		return
 
-	# The center and orientation of the contact edge are immutable. Only the far
-	# edge follows the solar direction, so the shadow stretches/shears from the
-	# exact base instead of rotating as one rigid plate around the character.
-	var root_center := contact
-	var tip_center := root_center + direction * length
-	var tip_half_width := width * 0.5
-
-	polygon = PackedVector2Array([
-		tip_center - tip_axis * tip_half_width,
-		tip_center + tip_axis * tip_half_width,
-		root_center + root_axis * contact_half_width,
-		root_center - root_axis * contact_half_width,
-	])
-	# Polygon2D UVs are texture-pixel coordinates, not normalized 0..1 values.
-	var mask_size := mask_texture.get_size()
-	uv = PackedVector2Array([
-		Vector2(0.0, 0.0),
-		Vector2(mask_size.x, 0.0),
-		Vector2(mask_size.x, mask_size.y),
-		Vector2(0.0, mask_size.y),
-	])
+	polygon = projected_hull
+	var solid_uv := PackedVector2Array()
+	for _point in projected_hull:
+		solid_uv.append(Vector2(0.5, 0.5))
+	uv = solid_uv
 	texture = mask_texture
 	_visible_frame_size = visual_size
-	_publish_projection_metadata(contact, root_center, tip_axis, visual_size)
+
+	var support: Vector2 = footprint_data.get("support", contact)
+	var root_axis: Vector2 = footprint_data.get("root_axis", Vector2.RIGHT)
+	var ground_axis: Vector2 = footprint_data.get("ground_axis", Vector2.DOWN)
+	_publish_projection_metadata(contact, contact, world_direction.rotated(PI * 0.5), visual_size)
 	set_meta("shadow_projection_mode", PROJECTION_MODE)
 	set_meta("shadow_projection_profiled", true)
 	set_meta("shadow_profile_id", str(profile.get("id", ShadowProfiles.DEFAULT_PROFILE_ID)))
 	set_meta("shadow_profile_display_name", str(profile.get("display_name", "Shadow Profile")))
-	set_meta("shadow_profile_width", width)
 	set_meta("shadow_profile_length", length)
-	set_meta("shadow_profile_requested_root_overlap", requested_root_overlap)
 	set_meta("shadow_profile_root_overlap", 0.0)
-	set_meta("shadow_profile_contact_pinned", true)
-	set_meta("shadow_profile_root_matches_contact", root_center.distance_to(contact) <= 0.001)
-	set_meta("shadow_profile_root_axis", root_axis)
-	set_meta("shadow_profile_tip_axis", tip_axis)
-	set_meta("shadow_profile_contact_span_ratio", contact_span_ratio)
-	set_meta("shadow_profile_contact_half_width", contact_half_width)
-	set_meta("shadow_profile_skewed_from_fixed_base", true)
+	set_meta("shadow_profile_contact_pinned", support.distance_to(contact) <= 0.01)
+	set_meta("shadow_profile_root_matches_contact", support.distance_to(contact) <= 0.01)
 	set_meta("shadow_profile_ignores_frame_silhouette", true)
-	set_meta("shadow_profile_uv_pixel_space", true)
-	set_meta("shadow_profile_mask_size", mask_size)
+	set_meta("shadow_profile_mask_size", mask_texture.get_size())
+	set_meta("shadow_footprint_points", footprint)
+	set_meta("shadow_footprint_support", support)
+	set_meta("shadow_footprint_root_axis", root_axis)
+	set_meta("shadow_footprint_ground_axis", ground_axis)
+	set_meta("shadow_footprint_source_kind", str(footprint_data.get("source_kind", "unknown")))
+	set_meta("shadow_footprint_source_name", str(footprint_data.get("source_name", "")))
+	set_meta("shadow_footprint_authored", bool(footprint_data.get("authored", false)))
+	set_meta("shadow_footprint_extrusion", extrusion)
+	set_meta("shadow_footprint_tip_scale", tip_scale)
+	set_meta("shadow_footprint_masked_by_caster", true)
 	set_meta("shadow_southern_limit_y", contact.y)
 	set_meta("shadow_southern_limit_shift", Vector2.ZERO)
+
+
+func _world_vector_to_target_local(world_vector: Vector2) -> Vector2:
+	if _target == null or not is_instance_valid(_target) or not _target.is_inside_tree():
+		return world_vector
+	var global_origin := _target.global_position
+	return _target.to_local(global_origin + world_vector) - _target.to_local(global_origin)
+
+
+func _average_point(points: PackedVector2Array) -> Vector2:
+	if points.is_empty():
+		return Vector2.ZERO
+	var total := Vector2.ZERO
+	for point in points:
+		total += point
+	return total / float(points.size())
+
+
+func _convex_hull(points: PackedVector2Array) -> PackedVector2Array:
+	if points.size() < 3:
+		return points
+	var hull := Geometry2D.convex_hull(points)
+	if hull.size() > 1 and hull[0].distance_to(hull[hull.size() - 1]) <= 0.001:
+		hull.resize(hull.size() - 1)
+	return hull
 
 
 func _resolve_visual_size(frame_size: Vector2, relative_transform: Transform2D) -> Vector2:
@@ -252,7 +266,7 @@ func _sync_render_proxy() -> void:
 		_render_proxy.texture = _profile_mask_texture
 		_render_proxy.set_meta("shadow_profile_mask", true)
 		_render_proxy.set_meta("shadow_active_frame_texture_isolated", false)
-		_render_proxy.set_meta("shadow_profile_uv_pixel_space", true)
+		_render_proxy.set_meta("shadow_footprint_extrusion", true)
 	_render_proxy.texture_filter = (
 		CanvasItem.TEXTURE_FILTER_NEAREST
 		if uses_legacy
