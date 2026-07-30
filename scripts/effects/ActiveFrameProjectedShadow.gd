@@ -4,7 +4,6 @@ extends "res://scripts/effects/DynamicProjectedSpriteShadow.gd"
 var _active_render_texture: Texture2D
 var _active_frame_size := Vector2.ZERO
 var _active_uv_origin := Vector2.ZERO
-var _active_frame_uses_atlas := false
 
 
 func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
@@ -30,10 +29,9 @@ func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
 		source.flip_v,
 		_source_to_target_transform(source)
 	)
-	_shift_uv_to_active_atlas_region()
-	# The canonical polygon remains tied to the authored SpriteFrames entry. The
-	# compositor uses the atlas texture with UVs restricted to this exact region,
-	# so no CPU image extraction or temporary ImageTexture is required.
+	# DynamicProjectedSpriteShadow now applies the atlas-region UV offset itself.
+	# The canonical polygon remains tied to the authored SpriteFrames entry while
+	# the compositor samples only the exact region from the original atlas.
 	texture = authored_frame_texture
 	set_meta("shadow_source_kind", "AnimatedSprite2D")
 	set_meta("shadow_source_animation", source.animation)
@@ -57,7 +55,6 @@ func _apply_sprite(source: Sprite2D) -> void:
 		source.flip_v,
 		_source_to_target_transform(source)
 	)
-	_shift_uv_to_active_atlas_region()
 	texture = authored_frame_texture
 	set_meta("shadow_source_kind", "Sprite2D")
 	set_meta("shadow_source_frame", source.frame)
@@ -69,7 +66,6 @@ func _prepare_active_frame(authored_frame_texture: Texture2D) -> bool:
 	_active_render_texture = null
 	_active_frame_size = Vector2.ZERO
 	_active_uv_origin = Vector2.ZERO
-	_active_frame_uses_atlas = false
 	if authored_frame_texture == null:
 		return false
 
@@ -91,29 +87,21 @@ func _prepare_active_frame(authored_frame_texture: Texture2D) -> bool:
 		_active_render_texture = atlas_texture.atlas
 		_active_frame_size = region.size
 		_active_uv_origin = region.position
-		_active_frame_uses_atlas = true
 	else:
 		_active_render_texture = authored_frame_texture
 	return true
 
 
 func _get_opaque_pixel_rect(_frame_texture: Texture2D) -> Rect2i:
-	# The source texture's alpha still supplies the exact visible silhouette at
-	# render time. Using the authored frame rectangle avoids Texture2D.get_image(),
-	# which can return a transient zero-sized image for compressed atlas textures.
+	# Texture alpha still supplies the exact visible silhouette at render time.
+	# The authored frame rectangle avoids all CPU image downloads and temporary
+	# ImageTexture allocation during content loading.
 	if _active_frame_size.x <= 0.0 or _active_frame_size.y <= 0.0:
 		return Rect2i()
 	return Rect2i(
 		Vector2i.ZERO,
 		Vector2i(maxi(int(round(_active_frame_size.x)), 1), maxi(int(round(_active_frame_size.y)), 1))
 	)
-
-
-func _shift_uv_to_active_atlas_region() -> void:
-	if not _active_frame_uses_atlas or _active_uv_origin.is_zero_approx():
-		return
-	for index in range(uv.size()):
-		uv[index] += _active_uv_origin
 
 
 func _sync_render_proxy() -> void:
@@ -133,5 +121,4 @@ func _clear_visual() -> void:
 	_active_render_texture = null
 	_active_frame_size = Vector2.ZERO
 	_active_uv_origin = Vector2.ZERO
-	_active_frame_uses_atlas = false
 	super._clear_visual()
