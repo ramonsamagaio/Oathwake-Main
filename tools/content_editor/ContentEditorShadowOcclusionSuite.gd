@@ -1,8 +1,12 @@
 extends "res://tools/content_editor/ContentEditorPostEffectsNavigationSuite.gd"
 
+const ShadowProfiles := preload("res://scripts/effects/ShadowProfileLibrary.gd")
 const OCCLUSION_ALPHA_FIELD := "world_occlusion_default_alpha"
 const SHADOW_SOFTNESS_FIELD := "shadow_softness"
 const SPRITE_OCCLUSION_FIELD := "sprite_fade_when_player_behind"
+const PROFILE_SYSTEM_ENABLED_FIELD := "shadow_profiles_enabled"
+const PROFILE_AUTO_CLASSIFY_FIELD := "shadow_profiles_auto_classify"
+const PROFILE_DEFAULT_FIELD := "shadow_profiles_default"
 
 
 func _build_sprite_form() -> void:
@@ -30,10 +34,47 @@ func _build_world_shadows_form() -> void:
 	if softness_control is Control:
 		(softness_control as Control).tooltip_text = "Softens the final combined shadow mask. Zero preserves the current sharp pixel-art edge."
 
+	var profile_system := _record_dictionary(shadow, "profile_system")
+	_add_subsection_title("Universal Shadow Profiles")
+	var profile_note := Label.new()
+	profile_note.text = "Solar shadows use a small library of stable artistic masks instead of deforming every sprite frame. Animated characters keep the same shadow while walking, and props are automatically classified as humanoid, creature, trunk, rock, building or thin segment."
+	profile_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(profile_note)
+	_add_check_box("Use Universal Shadow Profiles", PROFILE_SYSTEM_ENABLED_FIELD, bool(profile_system.get("enabled", true)))
+	_add_check_box("Automatically Classify Casters", PROFILE_AUTO_CLASSIFY_FIELD, bool(profile_system.get("auto_classify", true)))
+	_add_string_option_button(
+		"Fallback Shadow Profile",
+		PROFILE_DEFAULT_FIELD,
+		ShadowProfiles.get_profile_ids(),
+		str(profile_system.get("default_profile", ShadowProfiles.DEFAULT_PROFILE_ID))
+	)
+	var profile_overrides := _record_dictionary(profile_system, "profiles")
+	for profile_id in ShadowProfiles.get_profile_ids():
+		var defaults := (ShadowProfiles.DEFAULT_PROFILES.get(profile_id, {}) as Dictionary).duplicate(true)
+		var override := _record_dictionary(profile_overrides, profile_id)
+		defaults.merge(override, true)
+		var display_name := ShadowProfiles.get_profile_display_name(profile_id)
+		_add_float_spin_box(
+			"%s Width Ratio" % display_name,
+			_profile_field(profile_id, "width"),
+			float(defaults.get("width_ratio", 0.5)),
+			0.10,
+			2.50,
+			0.01
+		)
+		_add_float_spin_box(
+			"%s Length Ratio" % display_name,
+			_profile_field(profile_id, "length"),
+			float(defaults.get("length_ratio", 0.8)),
+			0.10,
+			3.00,
+			0.01
+		)
+
 	var solar := _record_dictionary(shadow, "solar")
 	_add_subsection_title("Solar Shadow Cycle")
 	var solar_note := Label.new()
-	solar_note.text = "Angles are measured from screen-up: -45° points upper-left and +45° points upper-right. Sunlight uses a pinned oblique projection: the sprite's southern edge stays fixed beneath the object while the upper silhouette is stretched in the sun-shadow direction. It keeps moving during dusk, resets only while invisible, and fades in at the morning position."
+	solar_note.text = "Angles are measured from screen-up: -45° points upper-left and +45° points upper-right. The selected profile rotates around the caster's foot pivot, continues moving during dusk, resets only while invisible, and fades in at the morning position."
 	solar_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(solar_note)
 	_add_check_box("Rotate With Day", "shadow_solar_rotate", bool(solar.get("rotate_with_day", true)))
@@ -43,19 +84,19 @@ func _build_world_shadows_form() -> void:
 	_add_float_spin_box("Dusk Fade Start", "shadow_solar_dusk_start", float(solar.get("dusk_fade_start", 0.42)), 0.05, 0.90, 0.01)
 	_add_float_spin_box("Dusk Fade End", "shadow_solar_dusk_end", float(solar.get("dusk_fade_end", 0.62)), 0.10, 0.95, 0.01)
 	_add_float_spin_box("Dawn Fade Start", "shadow_solar_dawn_start", float(solar.get("dawn_fade_start", 0.82)), 0.20, 0.99, 0.01)
-	_add_float_spin_box("Pinned Root Band", "shadow_solar_root_overlap", float(solar.get("root_overlap", shadow.get("root_overlap", 6.0))), 0.0, 64.0, 0.5)
-	_add_float_spin_box("Silhouette Width Scale", "shadow_solar_width_scale", float(solar.get("width_scale", shadow.get("width_scale", 1.0))), 0.10, 3.0, 0.01)
+	_add_float_spin_box("Root Hidden Under Caster", "shadow_solar_root_overlap", float(solar.get("root_overlap", shadow.get("root_overlap", 6.0))), 0.0, 64.0, 0.5)
+	_add_float_spin_box("Global Profile Width Scale", "shadow_solar_width_scale", float(solar.get("width_scale", shadow.get("width_scale", 1.0))), 0.10, 3.0, 0.01)
 	var root_control: Variant = field_controls.get("shadow_solar_root_overlap")
 	if root_control is Control:
-		(root_control as Control).tooltip_text = "Height in source pixels kept pinned under the caster before the sunlight stretch begins. Higher values hide more of the shadow root beneath trunks, feet and rocks."
+		(root_control as Control).tooltip_text = "Moves the beginning of every solar shadow beneath the caster so the contact seam remains hidden."
 	var width_control: Variant = field_controls.get("shadow_solar_width_scale")
 	if width_control is Control:
-		(width_control as Control).tooltip_text = "Changes only the upper projected silhouette. The southern contact edge remains fixed regardless of this value."
+		(width_control as Control).tooltip_text = "Multiplies every profile width without changing the individual profile ratios above."
 
 	var local_lights := _record_dictionary(shadow, "local_lights")
 	_add_subsection_title("Night Local-Light Shadows")
 	var local_note := Label.new()
-	local_note.text = "At night, every active PointLight2D can cast a shadow away from the light position. Local lights retain their stable point-light projection and use the shared compositor, so overlaps do not multiply darkness."
+	local_note.text = "At night, every active PointLight2D can cast a shadow away from the light position. Local lights currently retain their exact active-frame projection while the new universal profiles are evaluated for the solar pass."
 	local_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(local_note)
 	_add_check_box("Local-Light Shadows Enabled", "shadow_local_enabled", bool(local_lights.get("enabled", true)))
@@ -70,6 +111,19 @@ func _get_world_shadows_record() -> Dictionary:
 	var record := super._get_world_shadows_record()
 	var shadow := _record_dictionary(record, "directional_shadow")
 	shadow["softness"] = _get_spin_box_value(SHADOW_SOFTNESS_FIELD) if field_controls.has(SHADOW_SOFTNESS_FIELD) else 0.0
+	var existing_system := _record_dictionary(shadow, "profile_system")
+	var profile_overrides := _record_dictionary(existing_system, "profiles")
+	for profile_id in ShadowProfiles.get_profile_ids():
+		var profile_override := _record_dictionary(profile_overrides, profile_id)
+		profile_override["width_ratio"] = _get_spin_box_value(_profile_field(profile_id, "width"))
+		profile_override["length_ratio"] = _get_spin_box_value(_profile_field(profile_id, "length"))
+		profile_overrides[profile_id] = profile_override
+	shadow["profile_system"] = {
+		"enabled": _get_check_box_pressed(PROFILE_SYSTEM_ENABLED_FIELD),
+		"auto_classify": _get_check_box_pressed(PROFILE_AUTO_CLASSIFY_FIELD),
+		"default_profile": _selected_option_value(PROFILE_DEFAULT_FIELD, ShadowProfiles.DEFAULT_PROFILE_ID),
+		"profiles": profile_overrides,
+	}
 	shadow["width_scale"] = _get_spin_box_value("shadow_solar_width_scale")
 	shadow["root_overlap"] = _get_spin_box_value("shadow_solar_root_overlap")
 	shadow["solar"] = {
@@ -126,3 +180,17 @@ func _get_post_effects_record() -> Dictionary:
 	world_visuals["occlusion"] = occlusion
 	record["world_visuals"] = world_visuals
 	return record
+
+
+func _profile_field(profile_id: String, suffix: String) -> String:
+	return "shadow_profile_%s_%s" % [profile_id, suffix]
+
+
+func _selected_option_value(field_name: String, fallback: String) -> String:
+	var control: Variant = field_controls.get(field_name)
+	if not (control is OptionButton):
+		return fallback
+	var option := control as OptionButton
+	if option.selected < 0 or option.selected >= option.item_count:
+		return fallback
+	return str(option.get_item_metadata(option.selected))
