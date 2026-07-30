@@ -1,19 +1,8 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="ParticleProcessMaterial" path="res://resources/effects/particles/firefly_particles.tres" id="1_firefly_particles"]
 [ext_resource type="ShaderMaterial" path="res://resources/effects/materials/firefly_particle_palette_glow_material.tres" id="2_firefly_glow"]
-
-[sub_resource type="Gradient" id="Gradient_particle_dot"]
-offsets = PackedFloat32Array(0, 0.65, 1)
-colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.8, 1, 1, 1, 0)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_particle_dot"]
-width = 16
-height = 16
-gradient = SubResource("Gradient_particle_dot")
-fill = 1
-fill_from = Vector2(0.5, 0.5)
-fill_to = Vector2(1, 0.5)
+[ext_resource type="Texture2D" path="res://resources/effects/textures/particle_soft_dot.tres" id="3_particle_dot"]
 
 [node name="FireflyAreaNativeForwardTrail" type="GPUParticles2D"]
 emitting = true
@@ -24,7 +13,7 @@ randomness = 0.75
 visibility_rect = Rect2(-128, -96, 256, 192)
 local_coords = false
 process_material = ExtResource("1_firefly_particles")
-texture = SubResource("GradientTexture2D_particle_dot")
+texture = ExtResource("3_particle_dot")
 material = ExtResource("2_firefly_glow")
 trail_enabled = true
 trail_lifetime = 0.55
