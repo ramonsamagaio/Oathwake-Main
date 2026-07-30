@@ -42,6 +42,10 @@ static func apply_to_target(
 		shadow.visible = false
 		return shadow
 
+	var pinned_contact := local_foot_offset
+	if not pinned_contact.is_finite():
+		pinned_contact = _visual_contact_in_target(target, source)
+
 	var resolved := config.duplicate(true)
 	for projection_key in ["opacity", "stretch", "direction_degrees", "direction", "color"]:
 		if defaults.has(projection_key):
@@ -57,18 +61,20 @@ static func apply_to_target(
 	if not resolved.has("z_index"):
 		resolved["z_index"] = -1
 	resolved["enabled"] = enabled
+	resolved["contact_pinned"] = true
 
 	if shadow.has_method("configure"):
-		shadow.call("configure", target, source, resolved, local_foot_offset)
+		shadow.call("configure", target, source, resolved, pinned_contact)
 	shadow.set_meta("directional_shadow", true)
 	shadow.set_meta("shadow_bound_source_id", source.get_instance_id())
+	shadow.set_meta("shadow_pinned_contact", pinned_contact)
 	return shadow
 
 
 static func apply_to_sprite(sprite: Sprite2D, config: Dictionary = {}) -> Polygon2D:
 	if sprite == null:
 		return null
-	var foot_offset := WorldDepthRuntime.get_sprite_foot_offset(sprite) - sprite.position
+	var foot_offset := _visual_contact_in_target(sprite, sprite)
 	return apply_to_target(sprite, config, WorldDepthRuntime.get_sprite_visual_size(sprite), foot_offset, sprite)
 
 
@@ -90,15 +96,34 @@ static func estimate_target_visual_size(target: Node2D) -> Vector2:
 
 static func estimate_target_foot_offset(target: Node2D) -> Vector2:
 	var visual := find_active_visual_source(target)
+	if visual == null:
+		return Vector2.ZERO
+	return _visual_contact_in_target(target, visual)
+
+
+static func _visual_contact_in_target(target: Node2D, visual: CanvasItem) -> Vector2:
+	if target == null or visual == null or not is_instance_valid(visual):
+		return Vector2.ZERO
+	var visual_node := visual as Node2D
+	if visual_node == null:
+		return Vector2.ZERO
+	var local_contact := _visual_local_contact(visual)
+	if not local_contact.is_finite():
+		return Vector2.ZERO
+	# Convert the sprite-local ground point to the target's local space. This is
+	# stable through drawing offsets, centering, scale, rotation and nested nodes.
+	return target.to_local(visual_node.to_global(local_contact))
+
+
+static func _visual_local_contact(visual: CanvasItem) -> Vector2:
 	if visual is Sprite2D:
-		return WorldDepthRuntime.get_sprite_foot_offset(visual as Sprite2D)
+		return WorldDepthRuntime.get_sprite_local_foot_point(visual as Sprite2D)
 	if visual is AnimatedSprite2D:
-		return WorldDepthRuntime.get_animated_sprite_foot_offset(visual as AnimatedSprite2D)
+		return WorldDepthRuntime.get_animated_sprite_local_foot_point(visual as AnimatedSprite2D)
 	if visual is Polygon2D:
-		var polygon := visual as Polygon2D
-		var bounds := _polygon_bounds(polygon)
-		return polygon.position + Vector2(bounds.get_center().x, bounds.end.y)
-	return Vector2(0.0, 16.0)
+		var bounds := _polygon_bounds(visual as Polygon2D)
+		return Vector2(bounds.get_center().x, bounds.end.y)
+	return Vector2.ZERO
 
 
 static func _find_largest_visual(target: Node) -> CanvasItem:
