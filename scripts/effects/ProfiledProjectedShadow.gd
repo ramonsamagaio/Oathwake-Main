@@ -124,8 +124,8 @@ func _apply_polygon(source: Polygon2D) -> void:
 
 func _apply_profile_projection(
 	frame_size: Vector2,
-	centered: bool,
-	sprite_offset: Vector2,
+	_centered: bool,
+	_sprite_offset: Vector2,
 	relative_transform: Transform2D
 ) -> void:
 	var global_shadow_config := _get_live_global_config()
@@ -137,14 +137,12 @@ func _apply_profile_projection(
 		return
 	_profile_mask_texture = mask_texture
 
+	# The runtime resolves this point from the visual node's local bottom-center,
+	# then converts it through the complete transform chain into target-local space.
+	# Vector2.ZERO is a valid contact when the sprite was authored around its feet.
 	var contact := _foot_offset
 	if not contact.is_finite():
 		contact = Vector2.ZERO
-	if contact.is_zero_approx() and _target != _source:
-		var base_top_left := sprite_offset
-		if centered:
-			base_top_left -= frame_size * 0.5
-		contact = relative_transform * Vector2(base_top_left.x + frame_size.x * 0.5, base_top_left.y + frame_size.y)
 
 	var profile_width_scale := maxf(float(_config.get("shadow_profile_width_scale", 1.0)), 0.05)
 	var profile_length_scale := maxf(float(_config.get("shadow_profile_length_scale", 1.0)), 0.05)
@@ -156,13 +154,16 @@ func _apply_profile_projection(
 		visual_size.y * maxf(float(profile.get("length_ratio", 0.92)), 0.05),
 		float(profile.get("minimum_length", 18.0))
 	) * _projection_stretch * profile_length_scale
-	var root_overlap := _projection_root_overlap * maxf(float(profile.get("root_overlap_multiplier", 1.0)), 0.0)
+	var requested_root_overlap := _projection_root_overlap * maxf(float(profile.get("root_overlap_multiplier", 1.0)), 0.0)
 
 	var direction := _projection_direction.normalized()
 	if direction.length_squared() <= 0.0001:
 		direction = Vector2.UP
 	var side_axis := direction.rotated(PI * 0.5).normalized()
-	var root_center := contact - direction * root_overlap
+
+	# The root is the hinge. It never follows the light direction and never gets
+	# offset by seam-hiding overlap. Only the tip rotates around this ground point.
+	var root_center := contact
 	var tip_center := root_center + direction * length
 	var half_width := width * 0.5
 
@@ -173,8 +174,6 @@ func _apply_profile_projection(
 		root_center - side_axis * half_width,
 	])
 	# Polygon2D UVs are texture-pixel coordinates, not normalized 0..1 values.
-	# Sampling 0..1 on a 64x128 mask only touched its transparent first pixel,
-	# which made every daytime profile shadow effectively invisible.
 	var mask_size := mask_texture.get_size()
 	uv = PackedVector2Array([
 		Vector2(0.0, 0.0),
@@ -191,7 +190,10 @@ func _apply_profile_projection(
 	set_meta("shadow_profile_display_name", str(profile.get("display_name", "Shadow Profile")))
 	set_meta("shadow_profile_width", width)
 	set_meta("shadow_profile_length", length)
-	set_meta("shadow_profile_root_overlap", root_overlap)
+	set_meta("shadow_profile_requested_root_overlap", requested_root_overlap)
+	set_meta("shadow_profile_root_overlap", 0.0)
+	set_meta("shadow_profile_contact_pinned", true)
+	set_meta("shadow_profile_root_matches_contact", root_center.distance_to(contact) <= 0.001)
 	set_meta("shadow_profile_ignores_frame_silhouette", true)
 	set_meta("shadow_profile_uv_pixel_space", true)
 	set_meta("shadow_profile_mask_size", mask_size)
