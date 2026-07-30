@@ -10,21 +10,20 @@ const CURSOR_FRAMES := [
 const CURSOR_SEQUENCE := [0, 1, 2, 3, 2, 1]
 const CURSOR_INTERVAL := 0.1
 const MAX_CURSOR_DIMENSION := 64
-const HOTSPOT_ALPHA_THRESHOLDS := [0.60, 0.25, 0.08]
-const FALLBACK_HOTSPOT := Vector2(8.0, 2.0)
+const AUTHORED_HOTSPOT := Vector2(8.0, 2.0)
 
 var _frames: Array[Texture2D] = []
 var _sequence: Array[int] = []
 var _sequence_index := 0
 var _timer: Timer
-var _cursor_hotspot := FALLBACK_HOTSPOT
+var _cursor_hotspot := AUTHORED_HOTSPOT
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_load_frames()
 	_build_sequence()
-	_detect_shared_hotspot()
+	_apply_authored_hotspot()
 	_apply_current_cursor()
 	_start_timer()
 
@@ -68,39 +67,19 @@ func _add_sequence_values(values: Array) -> void:
 		_sequence.append(int(value))
 
 
-func _detect_shared_hotspot() -> void:
-	_cursor_hotspot = FALLBACK_HOTSPOT
+func _apply_authored_hotspot() -> void:
+	_cursor_hotspot = AUTHORED_HOTSPOT
 	if _frames.is_empty():
 		return
-	var detected := _detect_visible_tip(_frames[0])
 	var texture := _frames[0]
 	_cursor_hotspot = Vector2(
-		clampf(detected.x, 0.0, float(maxi(texture.get_width() - 1, 0))),
-		clampf(detected.y, 0.0, float(maxi(texture.get_height() - 1, 0)))
+		clampf(AUTHORED_HOTSPOT.x, 0.0, float(maxi(texture.get_width() - 1, 0))),
+		clampf(AUTHORED_HOTSPOT.y, 0.0, float(maxi(texture.get_height() - 1, 0)))
 	)
-
-
-func _detect_visible_tip(texture: Texture2D) -> Vector2:
-	if texture == null:
-		return FALLBACK_HOTSPOT
-	var image := texture.get_image()
-	if image == null or image.is_empty():
-		return FALLBACK_HOTSPOT
-	var image_size := image.get_size()
-	for threshold_value in HOTSPOT_ALPHA_THRESHOLDS:
-		var threshold := float(threshold_value)
-		for y in range(image_size.y):
-			var weighted_x := 0.0
-			var alpha_total := 0.0
-			for x in range(image_size.x):
-				var alpha := image.get_pixel(x, y).a
-				if alpha < threshold:
-					continue
-				weighted_x += float(x) * alpha
-				alpha_total += alpha
-			if alpha_total > 0.0:
-				return Vector2(roundf(weighted_x / alpha_total), float(y))
-	return FALLBACK_HOTSPOT
+	# Do not call Texture2D.get_image() here. Imported cursor textures are
+	# CompressedTexture2D resources, and during editor/headless startup their CPU
+	# image can transiently be empty. Godot then reports a zero-width Image and an
+	# invalid ImageTexture even though the cursor texture itself is perfectly valid.
 
 
 func get_cursor_hotspot() -> Vector2:
