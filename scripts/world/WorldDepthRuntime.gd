@@ -45,22 +45,36 @@ static func get_sprite_depth_y(sprite: Sprite2D, line_ratio := 0.58) -> float:
 	return sprite.to_global(Vector2(0.0, line_y)).y
 
 
+static func get_sprite_local_foot_point(sprite: Sprite2D) -> Vector2:
+	if sprite == null:
+		return Vector2.ZERO
+	# Sprite2D.get_rect() already includes centered and drawing-offset rules.
+	# Keeping this point in the sprite's own local space lets callers transform
+	# it through arbitrary scale, rotation, skew and parent hierarchies.
+	var local_rect := sprite.get_rect()
+	return Vector2(local_rect.get_center().x, local_rect.end.y)
+
+
 static func get_sprite_foot_offset(sprite: Sprite2D) -> Vector2:
 	if sprite == null:
 		return Vector2.ZERO
-	var visual_size := get_sprite_visual_size(sprite)
-	var bottom_y := sprite.offset.y + visual_size.y
+	return sprite.transform * get_sprite_local_foot_point(sprite)
+
+
+static func get_animated_sprite_local_foot_point(sprite: AnimatedSprite2D) -> Vector2:
+	if sprite == null:
+		return Vector2.ZERO
+	var frame_size := get_animated_sprite_unscaled_size(sprite)
+	var top_left := sprite.offset
 	if sprite.centered:
-		bottom_y = sprite.offset.y + visual_size.y * 0.5
-	return sprite.position + Vector2(0.0, bottom_y)
+		top_left -= frame_size * 0.5
+	return Vector2(top_left.x + frame_size.x * 0.5, top_left.y + frame_size.y)
 
 
 static func get_animated_sprite_foot_offset(sprite: AnimatedSprite2D) -> Vector2:
 	if sprite == null:
 		return Vector2.ZERO
-	var visual_size := get_animated_sprite_unscaled_size(sprite)
-	var scaled_half_height := visual_size.y * absf(sprite.scale.y) * 0.5
-	return sprite.position + Vector2(0.0, scaled_half_height)
+	return sprite.transform * get_animated_sprite_local_foot_point(sprite)
 
 
 static func get_sprite_visual_size(sprite: Sprite2D) -> Vector2:
@@ -87,7 +101,9 @@ static func get_animated_sprite_unscaled_size(sprite: AnimatedSprite2D) -> Vecto
 		if names.is_empty():
 			return Vector2(32.0, 48.0)
 		animation_name = names[0]
-	var texture := sprite.sprite_frames.get_frame_texture(animation_name, 0)
+	var frame_count := sprite.sprite_frames.get_frame_count(animation_name)
+	var frame_index := clampi(sprite.frame, 0, maxi(frame_count - 1, 0))
+	var texture := sprite.sprite_frames.get_frame_texture(animation_name, frame_index)
 	if texture == null:
 		return Vector2(32.0, 48.0)
 	return texture.get_size()
