@@ -48,6 +48,9 @@ static func get_sprite_depth_y(sprite: Sprite2D, line_ratio := 0.58) -> float:
 static func get_sprite_local_foot_point(sprite: Sprite2D) -> Vector2:
 	if sprite == null:
 		return Vector2.ZERO
+	var authored_anchor := _ground_anchor_from_object(sprite)
+	if authored_anchor != null:
+		return authored_anchor as Vector2
 	# Sprite2D.get_rect() already includes centered and drawing-offset rules.
 	# Keeping this point in the sprite's own local space lets callers transform
 	# it through arbitrary scale, rotation, skew and parent hierarchies.
@@ -68,7 +71,26 @@ static func get_animated_sprite_local_foot_point(sprite: AnimatedSprite2D) -> Ve
 	var top_left := sprite.offset
 	if sprite.centered:
 		top_left -= frame_size * 0.5
-	return Vector2(top_left.x + frame_size.x * 0.5, top_left.y + frame_size.y)
+
+	# Animation-set anchors are authored in frame pixel coordinates, measured from
+	# the frame's top-left. They are more accurate than the transparent cell edge
+	# and remain stable across every frame of a walk, attack or idle cycle.
+	var anchor_in_frame := Vector2(frame_size.x * 0.5, frame_size.y)
+	var sprite_anchor := _ground_anchor_from_object(sprite)
+	if sprite_anchor != null:
+		anchor_in_frame = sprite_anchor as Vector2
+	elif sprite.sprite_frames != null:
+		var frames_anchor := _ground_anchor_from_object(sprite.sprite_frames)
+		if frames_anchor != null:
+			anchor_in_frame = frames_anchor as Vector2
+
+	anchor_in_frame.x = clampf(anchor_in_frame.x, 0.0, frame_size.x)
+	anchor_in_frame.y = clampf(anchor_in_frame.y, 0.0, frame_size.y)
+	if sprite.flip_h:
+		anchor_in_frame.x = frame_size.x - anchor_in_frame.x
+	if sprite.flip_v:
+		anchor_in_frame.y = frame_size.y - anchor_in_frame.y
+	return top_left + anchor_in_frame
 
 
 static func get_animated_sprite_foot_offset(sprite: AnimatedSprite2D) -> Vector2:
@@ -111,3 +133,25 @@ static func get_animated_sprite_unscaled_size(sprite: AnimatedSprite2D) -> Vecto
 
 static func get_animated_sprite_visual_size(sprite: AnimatedSprite2D) -> Vector2:
 	return get_animated_sprite_unscaled_size(sprite) * Vector2(absf(sprite.scale.x), absf(sprite.scale.y))
+
+
+static func _ground_anchor_from_object(value: Object) -> Variant:
+	if value == null:
+		return null
+	for metadata_name in ["shadow_ground_anchor", "ground_anchor", "animation_anchor"]:
+		if not value.has_meta(metadata_name):
+			continue
+		var raw: Variant = value.get_meta(metadata_name)
+		if raw is Vector2:
+			var vector_value := raw as Vector2
+			if vector_value.is_finite():
+				return vector_value
+		elif raw is Dictionary:
+			var dictionary_value := raw as Dictionary
+			var vector_value := Vector2(
+				float(dictionary_value.get("x", 0.0)),
+				float(dictionary_value.get("y", 0.0))
+			)
+			if vector_value.is_finite():
+				return vector_value
+	return null
