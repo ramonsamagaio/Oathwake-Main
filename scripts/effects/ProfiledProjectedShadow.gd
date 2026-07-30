@@ -159,19 +159,37 @@ func _apply_profile_projection(
 	var direction := _projection_direction.normalized()
 	if direction.length_squared() <= 0.0001:
 		direction = Vector2.UP
-	var side_axis := direction.rotated(PI * 0.5).normalized()
+	var tip_axis := direction.rotated(PI * 0.5).normalized()
 
-	# The root is the hinge. It never follows the light direction and never gets
-	# offset by seam-hiding overlap. Only the tip rotates around this ground point.
+	# The source X basis is the sprite's real ground/base axis expressed in the
+	# caster's coordinate space. Unlike the far edge, this axis must never rotate
+	# with the sun. This is what turns the card into an anchored skewed projection.
+	var root_axis := relative_transform.x.normalized()
+	if not root_axis.is_finite() or root_axis.length_squared() <= 0.0001:
+		root_axis = Vector2.RIGHT
+
+	# Keep the visible contact neck narrow enough to remain underneath the feet,
+	# trunk or prop base. The profile can widen immediately after leaving the root.
+	var authored_root_ratio := clampf(float(profile.get("root_width_ratio", 0.80)), 0.05, 1.0)
+	var contact_span_ratio := clampf(
+		float(profile.get("contact_span_ratio", minf(authored_root_ratio * 0.28, 0.32))),
+		0.04,
+		0.65
+	)
+	var contact_half_width := maxf(width * contact_span_ratio * 0.5, 1.0)
+
+	# The center and orientation of the contact edge are immutable. Only the far
+	# edge follows the solar direction, so the shadow stretches/shears from the
+	# exact base instead of rotating as one rigid plate around the character.
 	var root_center := contact
 	var tip_center := root_center + direction * length
-	var half_width := width * 0.5
+	var tip_half_width := width * 0.5
 
 	polygon = PackedVector2Array([
-		tip_center - side_axis * half_width,
-		tip_center + side_axis * half_width,
-		root_center + side_axis * half_width,
-		root_center - side_axis * half_width,
+		tip_center - tip_axis * tip_half_width,
+		tip_center + tip_axis * tip_half_width,
+		root_center + root_axis * contact_half_width,
+		root_center - root_axis * contact_half_width,
 	])
 	# Polygon2D UVs are texture-pixel coordinates, not normalized 0..1 values.
 	var mask_size := mask_texture.get_size()
@@ -183,7 +201,7 @@ func _apply_profile_projection(
 	])
 	texture = mask_texture
 	_visible_frame_size = visual_size
-	_publish_projection_metadata(contact, root_center, side_axis, visual_size)
+	_publish_projection_metadata(contact, root_center, tip_axis, visual_size)
 	set_meta("shadow_projection_mode", PROJECTION_MODE)
 	set_meta("shadow_projection_profiled", true)
 	set_meta("shadow_profile_id", str(profile.get("id", ShadowProfiles.DEFAULT_PROFILE_ID)))
@@ -194,6 +212,11 @@ func _apply_profile_projection(
 	set_meta("shadow_profile_root_overlap", 0.0)
 	set_meta("shadow_profile_contact_pinned", true)
 	set_meta("shadow_profile_root_matches_contact", root_center.distance_to(contact) <= 0.001)
+	set_meta("shadow_profile_root_axis", root_axis)
+	set_meta("shadow_profile_tip_axis", tip_axis)
+	set_meta("shadow_profile_contact_span_ratio", contact_span_ratio)
+	set_meta("shadow_profile_contact_half_width", contact_half_width)
+	set_meta("shadow_profile_skewed_from_fixed_base", true)
 	set_meta("shadow_profile_ignores_frame_silhouette", true)
 	set_meta("shadow_profile_uv_pixel_space", true)
 	set_meta("shadow_profile_mask_size", mask_size)
