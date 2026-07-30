@@ -1,6 +1,6 @@
 extends SceneTree
 
-const DynamicShadowScript := preload("res://scripts/effects/PinnedActiveFrameProjectedShadow.gd")
+const SolarShadowScript := preload("res://scripts/effects/PinnedActiveFrameProjectedShadow.gd")
 const DayNightCycleScript := preload("res://scripts/world/DayNightCycle.gd")
 const LocalLightShadowDirectorScript := preload("res://scripts/effects/LocalLightShadowDirector.gd")
 
@@ -12,8 +12,8 @@ func _init() -> void:
 
 
 func _run() -> void:
-	await _validate_pinned_oblique_geometry()
-	await _validate_southern_caster_limit()
+	await _validate_profile_geometry_and_animation_stability()
+	await _validate_profile_auto_classification()
 	await _validate_continuous_solar_cycle()
 	await _validate_night_local_light_shadow()
 	if failures.is_empty():
@@ -25,113 +25,116 @@ func _run() -> void:
 	quit(1)
 
 
-func _validate_pinned_oblique_geometry() -> void:
-	var image := Image.create(32, 48, false, Image.FORMAT_RGBA8)
-	image.fill(Color.TRANSPARENT)
-	for y in range(4, 44):
-		for x in range(8, 24):
-			image.set_pixel(x, y, Color.WHITE)
-	var texture := ImageTexture.create_from_image(image)
+func _validate_profile_geometry_and_animation_stability() -> void:
 	var target := Node2D.new()
+	target.name = "PlayerProfileTest"
+	target.add_to_group("player")
 	root.add_child(target)
-	var sprite := Sprite2D.new()
-	sprite.texture = texture
-	target.add_child(sprite)
-	var shadow := DynamicShadowScript.new() as Polygon2D
+
+	var animated := AnimatedSprite2D.new()
+	animated.name = "AnimatedSprite2D"
+	var frames := SpriteFrames.new()
+	frames.add_animation("walk")
+	var narrow_image := Image.create(32, 48, false, Image.FORMAT_RGBA8)
+	narrow_image.fill(Color.TRANSPARENT)
+	for y in range(4, 45):
+		for x in range(12, 20):
+			narrow_image.set_pixel(x, y, Color.WHITE)
+	var wide_image := Image.create(32, 48, false, Image.FORMAT_RGBA8)
+	wide_image.fill(Color.TRANSPARENT)
+	for y in range(10, 42):
+		for x in range(3, 29):
+			wide_image.set_pixel(x, y, Color.WHITE)
+	frames.add_frame("walk", ImageTexture.create_from_image(narrow_image))
+	frames.add_frame("walk", ImageTexture.create_from_image(wide_image))
+	animated.sprite_frames = frames
+	animated.animation = "walk"
+	animated.frame = 0
+	target.add_child(animated)
+
+	var shadow := SolarShadowScript.new() as Polygon2D
 	target.add_child(shadow)
-
-	var expected_bottom_left := Vector2(-8.0, 20.0)
-	var expected_bottom_right := Vector2(8.0, 20.0)
-	var expected_length := (40.0 - 6.0) * 1.25
-	for direction_degrees in [-135.0, -112.5, -90.0, -67.5, -45.0]:
-		var direction := Vector2.RIGHT.rotated(deg_to_rad(direction_degrees)).normalized()
-		shadow.set("_config", {"local_light_shadow": false})
-		shadow.set("_projection_direction", direction)
-		shadow.set("_projection_stretch", 1.25)
-		shadow.set("_projection_width_scale", 1.0)
-		shadow.set("_projection_root_overlap", 6.0)
-		shadow.call(
-			"_apply_texture_rect",
-			texture,
-			texture.get_size(),
-			true,
-			Vector2.ZERO,
-			false,
-			false,
-			Transform2D.IDENTITY
-		)
-		if shadow.polygon.size() != 4:
-			failures.append("Pinned projection did not produce a four-corner silhouette at %s degrees." % direction_degrees)
-			continue
-		var bottom_right := shadow.polygon[2]
-		var bottom_left := shadow.polygon[3]
-		if bottom_left.distance_to(expected_bottom_left) > 0.001 or bottom_right.distance_to(expected_bottom_right) > 0.001:
-			failures.append("Sun movement displaced the pinned south edge at %s degrees: %s / %s." % [direction_degrees, bottom_left, bottom_right])
-		var left_projection := shadow.polygon[0] - bottom_left
-		var right_projection := shadow.polygon[1] - bottom_right
-		var expected_projection := direction * expected_length
-		if left_projection.distance_to(expected_projection) > 0.01 or right_projection.distance_to(expected_projection) > 0.01:
-			failures.append("Shadow was rotated as a card instead of obliquely stretched at %s degrees." % direction_degrees)
-		if absf(shadow.polygon[0].distance_to(shadow.polygon[1]) - 16.0) > 0.01:
-			failures.append("Pinned projection changed the silhouette width at %s degrees." % direction_degrees)
-		if _polygon_area(shadow.polygon) <= 100.0:
-			failures.append("Pinned projection collapsed into a line inside the solar angle range at %s degrees." % direction_degrees)
-		for point in shadow.polygon:
-			if point.y > expected_bottom_left.y + 0.001:
-				failures.append("Pinned projection crossed south of the caster at %s degrees." % direction_degrees)
-				break
-		var contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2.ZERO)
-		var anchor: Vector2 = shadow.get_meta("shadow_projection_anchor", Vector2(INF, INF))
-		if contact.distance_to(anchor) > 0.001:
-			failures.append("Pinned shadow contact and projection origin diverged at %s degrees." % direction_degrees)
-		if not bool(shadow.get_meta("shadow_projection_pinned_base", false)):
-			failures.append("Directional shadow did not publish its pinned-base projection contract.")
-		if bool(shadow.get_meta("shadow_projection_rigid_basis", true)):
-			failures.append("Directional shadow still reports the obsolete rigid rotating basis.")
-		if str(shadow.get_meta("shadow_projection_mode", "")) != "pinned_oblique_shear":
-			failures.append("Directional shadow did not use pinned oblique shear mode.")
-
-	target.queue_free()
-	await process_frame
-
-
-func _validate_southern_caster_limit() -> void:
-	var image := Image.create(64, 64, false, Image.FORMAT_RGBA8)
-	image.fill(Color.TRANSPARENT)
-	for y in range(8, 57):
-		var width := 16 + int(float(y - 8) * 0.65)
-		var left := maxi(2, 32 - width / 2)
-		var right := mini(62, 32 + width / 2)
-		for x in range(left, right):
-			image.set_pixel(x, y, Color.WHITE)
-	var target := Node2D.new()
-	root.add_child(target)
-	var sprite := Sprite2D.new()
-	sprite.texture = ImageTexture.create_from_image(image)
-	target.add_child(sprite)
-	var shadow := DynamicShadowScript.new() as Polygon2D
-	target.add_child(shadow)
-	shadow.call("configure", target, sprite, {
+	var config := {
 		"enabled": true,
 		"direction_degrees": -135.0,
 		"stretch": 1.25,
 		"width_scale": 1.0,
 		"root_overlap": 6.0,
 		"mask_weight": 1.0,
-	}, Vector2(0.0, 28.0))
+	}
+	shadow.call("configure", target, animated, config, Vector2(0.0, 24.0))
 	await process_frame
-	var southern_limit_y := float(shadow.get_meta("shadow_southern_limit_y", INF))
-	var maximum_shadow_y := -INF
-	for point in shadow.polygon:
-		maximum_shadow_y = maxf(maximum_shadow_y, point.y)
-	if maximum_shadow_y > southern_limit_y + 0.01:
-		failures.append("Solar shadow crossed the pinned lower boundary: %s > %s." % [maximum_shadow_y, southern_limit_y])
-	if not bool(shadow.get_meta("shadow_projection_pinned_base", false)):
-		failures.append("Wide caster did not use the pinned south-edge projection.")
+
+	if shadow.polygon.size() != 4:
+		failures.append("Universal profile shadow did not produce one stable four-corner card.")
+	if str(shadow.get_meta("shadow_projection_mode", "")) != "universal_shadow_profile":
+		failures.append("Solar shadow did not switch to universal profile projection.")
+	if not bool(shadow.get_meta("shadow_projection_profiled", false)):
+		failures.append("Solar shadow did not publish the profiled projection contract.")
+	if str(shadow.get_meta("shadow_profile_id", "")) != "humanoid":
+		failures.append("Player caster was not classified with the humanoid shadow profile.")
+	if not bool(shadow.get_meta("shadow_profile_ignores_frame_silhouette", false)):
+		failures.append("Profile shadow still depends on the active animation-frame silhouette.")
 	if _polygon_area(shadow.polygon) <= 100.0:
-		failures.append("Pinned southern projection distorted or collapsed the shadow.")
+		failures.append("Universal profile shadow collapsed into a line or tiny card.")
+
+	var first_polygon := shadow.polygon.duplicate()
+	var first_texture := shadow.texture
+	var first_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
+	animated.frame = 1
+	shadow.call("_refresh_silhouette")
+	await process_frame
+	if not _polygons_match(first_polygon, shadow.polygon, 0.01):
+		failures.append("Changing to a radically different animation frame changed the solar shadow geometry.")
+	if shadow.texture != first_texture:
+		failures.append("Animated frame change replaced the universal profile mask texture.")
+	var second_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2.ZERO)
+	if first_contact.distance_to(second_contact) > 0.001:
+		failures.append("Animated frame change moved the universal shadow foot pivot.")
+
+	config["direction_degrees"] = -45.0
+	shadow.call("configure", target, animated, config, Vector2(0.0, 24.0))
+	await process_frame
+	var rotated_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2.ZERO)
+	if first_contact.distance_to(rotated_contact) > 0.001:
+		failures.append("Sun rotation moved the caster pivot instead of rotating the profile around it.")
+	if absf(_polygon_area(first_polygon) - _polygon_area(shadow.polygon)) > 0.1:
+		failures.append("Universal shadow profile changed area while rotating through the solar arc.")
+	var direction: Vector2 = shadow.get_meta("shadow_projection_direction", Vector2.ZERO)
+	if direction.x <= 0.0 or direction.y >= 0.0:
+		failures.append("Evening profile shadow did not rotate to the upper-right direction.")
+
 	target.queue_free()
 	await process_frame
+
+
+func _validate_profile_auto_classification() -> void:
+	var cases := [
+		{"name": "AncientTreeStump", "size": Vector2i(96, 128), "expected": "trunk_wide"},
+		{"name": "IronOreRock", "size": Vector2i(48, 36), "expected": "rock_compact"},
+		{"name": "VillageHouseRoof", "size": Vector2i(180, 128), "expected": "building_wide"},
+		{"name": "WoodFencePost", "size": Vector2i(20, 72), "expected": "thin_segment"},
+	]
+	for case_value in cases:
+		var case := case_value as Dictionary
+		var target := Node2D.new()
+		target.name = str(case["name"])
+		root.add_child(target)
+		var sprite := Sprite2D.new()
+		var size := case["size"] as Vector2i
+		var image := Image.create(size.x, size.y, false, Image.FORMAT_RGBA8)
+		image.fill(Color.WHITE)
+		sprite.texture = ImageTexture.create_from_image(image)
+		target.add_child(sprite)
+		var shadow := SolarShadowScript.new() as Polygon2D
+		target.add_child(shadow)
+		shadow.set_meta("shadow_visual_size_hint", Vector2(size))
+		shadow.call("configure", target, sprite, {"enabled": true}, Vector2(0.0, float(size.y) * 0.5))
+		await process_frame
+		if str(shadow.get_meta("shadow_profile_id", "")) != str(case["expected"]):
+			failures.append("%s was not auto-classified as %s." % [case["name"], case["expected"]])
+		target.queue_free()
+		await process_frame
 
 
 func _validate_continuous_solar_cycle() -> void:
@@ -217,7 +220,7 @@ func _validate_night_local_light_shadow() -> void:
 	var sprite := Sprite2D.new()
 	sprite.texture = ImageTexture.create_from_image(sprite_image)
 	target.add_child(sprite)
-	var solar_caster := DynamicShadowScript.new() as Polygon2D
+	var solar_caster := SolarShadowScript.new() as Polygon2D
 	target.add_child(solar_caster)
 	solar_caster.call("configure", target, sprite, {"enabled": true}, Vector2(0.0, 18.0))
 
@@ -248,6 +251,8 @@ func _validate_night_local_light_shadow() -> void:
 					failures.append("Night local shadow is not projected away from its PointLight2D.")
 				if _polygon_area(shadow.polygon) <= 50.0:
 					failures.append("Night local shadow geometry collapsed or was not generated.")
+				if bool(shadow.get_meta("shadow_projection_profiled", false)):
+					failures.append("Night local shadow incorrectly switched to the solar-only universal profile mask.")
 				break
 
 	target.queue_free()
@@ -260,6 +265,15 @@ func _validate_night_local_light_shadow() -> void:
 	emitter.queue_free()
 	cycle.queue_free()
 	await process_frame
+
+
+func _polygons_match(a: PackedVector2Array, b: PackedVector2Array, tolerance: float) -> bool:
+	if a.size() != b.size():
+		return false
+	for index in range(a.size()):
+		if a[index].distance_to(b[index]) > tolerance:
+			return false
+	return true
 
 
 func _polygon_area(points: PackedVector2Array) -> float:
