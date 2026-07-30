@@ -198,7 +198,11 @@ static func get_mask_texture(profile: Dictionary) -> Texture2D:
 		return cached as Texture2D
 
 	var resolution := Vector2i(64, 128)
+	print_verbose("SHADOW_PROFILE_MASK_BUILD_BEGIN id=%s size=%dx%d" % [profile_id, resolution.x, resolution.y])
 	var image := Image.create(resolution.x, resolution.y, false, Image.FORMAT_RGBA8)
+	if image == null or image.is_empty() or image.get_width() != resolution.x or image.get_height() != resolution.y:
+		push_error("ShadowProfileLibrary could not allocate the %dx%d mask for '%s'." % [resolution.x, resolution.y, profile_id])
+		return null
 	image.fill(Color.TRANSPARENT)
 	var root_width_ratio := clampf(float(profile.get("root_width_ratio", 0.8)), 0.05, 1.0)
 	var tip_width_ratio := clampf(float(profile.get("tip_width_ratio", 0.4)), 0.02, 1.0)
@@ -219,7 +223,11 @@ static func get_mask_texture(profile: Dictionary) -> Texture2D:
 			if alpha > 0.001:
 				image.set_pixel(pixel_x, pixel_y, Color(1.0, 1.0, 1.0, alpha))
 
+	print_verbose("SHADOW_PROFILE_MASK_BUILD_TEXTURE id=%s image=%dx%d empty=%s" % [profile_id, image.get_width(), image.get_height(), str(image.is_empty())])
 	var texture := ImageTexture.create_from_image(image)
+	if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
+		push_error("ShadowProfileLibrary created an invalid texture for '%s'." % profile_id)
+		return null
 	_mask_texture_cache[cache_key] = texture
 	return texture
 
