@@ -29,21 +29,27 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	Input.set_custom_mouse_cursor(null, Input.CURSOR_ARROW, Vector2.ZERO)
+	if not _is_headless_display():
+		Input.set_custom_mouse_cursor(null, Input.CURSOR_ARROW, Vector2.ZERO)
 
 
 func _load_frames() -> void:
 	_frames.clear()
 	for path_value in CURSOR_FRAMES:
 		var path := str(path_value)
-		if not ResourceLoader.exists(path):
+		if not FileAccess.file_exists(path):
 			continue
-		var texture := ResourceLoader.load(path) as Texture2D
+		var image := Image.new()
+		var load_error := image.load(path)
+		if load_error != OK or image.is_empty() or image.get_width() <= 0 or image.get_height() <= 0:
+			push_warning("AnimatedCursor: ignored invalid cursor image '%s'." % path)
+			continue
+		if image.get_width() > MAX_CURSOR_DIMENSION or image.get_height() > MAX_CURSOR_DIMENSION:
+			push_warning("AnimatedCursor: cursor image '%s' exceeds %d pixels and was ignored." % [path, MAX_CURSOR_DIMENSION])
+			continue
+		var texture := ImageTexture.create_from_image(image)
 		if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
-			push_warning("AnimatedCursor: ignored invalid cursor texture '%s'." % path)
-			continue
-		if texture.get_width() > MAX_CURSOR_DIMENSION or texture.get_height() > MAX_CURSOR_DIMENSION:
-			push_warning("AnimatedCursor: cursor texture '%s' exceeds %d pixels and was ignored." % [path, MAX_CURSOR_DIMENSION])
+			push_warning("AnimatedCursor: could not create cursor texture '%s'." % path)
 			continue
 		_frames.append(texture)
 
@@ -76,10 +82,6 @@ func _apply_authored_hotspot() -> void:
 		clampf(AUTHORED_HOTSPOT.x, 0.0, float(maxi(texture.get_width() - 1, 0))),
 		clampf(AUTHORED_HOTSPOT.y, 0.0, float(maxi(texture.get_height() - 1, 0)))
 	)
-	# Do not call Texture2D.get_image() here. Imported cursor textures are
-	# CompressedTexture2D resources, and during editor/headless startup their CPU
-	# image can transiently be empty. Godot then reports a zero-width Image and an
-	# invalid ImageTexture even though the cursor texture itself is perfectly valid.
 
 
 func get_cursor_hotspot() -> Vector2:
@@ -91,7 +93,7 @@ func _start_timer() -> void:
 		_timer.queue_free()
 		_timer = null
 
-	if _sequence.size() <= 1:
+	if _sequence.size() <= 1 or _is_headless_display():
 		return
 
 	_timer = Timer.new()
@@ -110,7 +112,7 @@ func _advance_cursor_frame() -> void:
 
 
 func _apply_current_cursor() -> void:
-	if _frames.is_empty() or _sequence.is_empty():
+	if _is_headless_display() or _frames.is_empty() or _sequence.is_empty():
 		return
 	var frame_index := _sequence[_sequence_index]
 	if frame_index < 0 or frame_index >= _frames.size():
@@ -119,3 +121,7 @@ func _apply_current_cursor() -> void:
 	if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
 		return
 	Input.set_custom_mouse_cursor(texture, Input.CURSOR_ARROW, _cursor_hotspot)
+
+
+func _is_headless_display() -> bool:
+	return DisplayServer.get_name().to_lower() == "headless"
