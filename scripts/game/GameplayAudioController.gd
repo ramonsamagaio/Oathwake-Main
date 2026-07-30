@@ -20,6 +20,7 @@ var ambience_inactive_volume_db := DEFAULT_INACTIVE_VOLUME_DB
 var _volume_tween: Tween
 var _check_timer := 0.0
 var _ambience_active := false
+var _ambience_play_requested := false
 
 
 func setup(new_world: Node, new_player: Node2D) -> void:
@@ -106,6 +107,10 @@ func _set_forest_ambience_active(is_active: bool) -> void:
 	if _volume_tween != null:
 		_volume_tween.kill()
 	if is_active and not forest_ambience.playing:
+		# Record the actual playback request as well as calling play(). Headless CI
+		# has no audio output driver and may report AudioStreamPlayer.playing=false
+		# even after a valid request, while desktop gameplay does start the stream.
+		_ambience_play_requested = true
 		forest_ambience.play()
 	_volume_tween = create_tween()
 	_volume_tween.tween_property(forest_ambience, "volume_db", ambience_volume_db if is_active else ambience_inactive_volume_db, 1.0)
