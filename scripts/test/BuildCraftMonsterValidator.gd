@@ -110,7 +110,6 @@ func _validate_monster_shadow_frame(monster: Node, sprite: AnimatedSprite2D) -> 
 		return
 	if int(shadow.get_meta("shadow_bound_source_id", 0)) != sprite.get_instance_id():
 		failures.append("Animated monster shadow is not bound to its visible AnimatedSprite2D")
-	var source_texture := sprite.sprite_frames.get_frame_texture(sprite.animation, sprite.frame)
 	var proxy: Polygon2D = null
 	var proxy_id := int(shadow.get_meta("shadow_render_proxy_id", 0))
 	if proxy_id > 0:
@@ -120,17 +119,18 @@ func _validate_monster_shadow_frame(monster: Node, sprite: AnimatedSprite2D) -> 
 	if proxy == null or proxy.texture == null:
 		failures.append("Animated monster shadow has no compositor proxy texture")
 		return
-	if source_texture is AtlasTexture:
-		# The invisible canonical node may retain the authored AtlasTexture for frame
-		# identity, but the actual compositor must render an isolated ImageTexture.
-		if proxy.texture is AtlasTexture:
-			failures.append("Animated monster compositor still samples the complete sprite atlas")
-		if not bool(shadow.get_meta("shadow_source_frame_isolated", false)):
-			failures.append("Animated monster frame was not isolated before shadow projection")
-		if not bool(proxy.get_meta("shadow_active_frame_texture_isolated", false)):
-			failures.append("Animated monster compositor proxy was not marked as active-frame isolated")
+
+	if not bool(shadow.get_meta("shadow_projection_profiled", false)):
+		failures.append("Animated monster solar shadow is not using a universal profile")
+	if not bool(shadow.get_meta("shadow_profile_ignores_frame_silhouette", false)):
+		failures.append("Animated monster solar shadow still depends on the active frame silhouette")
+	if proxy.texture is AtlasTexture:
+		failures.append("Universal monster shadow compositor samples the complete sprite atlas")
+	var expected_profile := "small_creature" if str(monster.get("monster_id")) == "slime" else "humanoid"
+	if str(shadow.get_meta("shadow_profile_id", "")) != expected_profile:
+		failures.append("Monster %s did not receive expected shadow profile %s" % [str(monster.get("monster_id")), expected_profile])
 	if proxy.texture.get_size().x <= 0.0 or proxy.texture.get_size().y <= 0.0:
-		failures.append("Animated monster shadow has no valid active-frame render texture")
+		failures.append("Animated monster shadow has no valid universal profile texture")
 
 
 func _validate_offscreen_activation(monster: Node, player: Node2D) -> void:
