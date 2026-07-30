@@ -79,15 +79,19 @@ func _validate_profile_geometry_and_animation_stability() -> void:
 		failures.append("Universal profile shadow collapsed into a line or tiny card.")
 
 	var first_polygon := shadow.polygon.duplicate()
-	var first_texture := shadow.texture
+	var first_proxy := _shadow_proxy(shadow)
+	var first_profile_texture := first_proxy.texture if first_proxy != null else null
 	var first_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
 	animated.frame = 1
 	shadow.call("_refresh_silhouette")
 	await process_frame
 	if not _polygons_match(first_polygon, shadow.polygon, 0.01):
 		failures.append("Changing to a radically different animation frame changed the solar shadow geometry.")
-	if shadow.texture != first_texture:
-		failures.append("Animated frame change replaced the universal profile mask texture.")
+	var second_proxy := _shadow_proxy(shadow)
+	if first_profile_texture == null or second_proxy == null or second_proxy.texture != first_profile_texture:
+		failures.append("Animated frame change replaced the compositor's universal profile mask texture.")
+	if shadow.texture != frames.get_frame_texture("walk", 1):
+		failures.append("Canonical shadow diagnostics did not advance to the authored animation frame.")
 	var second_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2.ZERO)
 	if first_contact.distance_to(second_contact) > 0.001:
 		failures.append("Animated frame change moved the universal shadow foot pivot.")
@@ -265,6 +269,18 @@ func _validate_night_local_light_shadow() -> void:
 	emitter.queue_free()
 	cycle.queue_free()
 	await process_frame
+
+
+func _shadow_proxy(shadow: Polygon2D) -> Polygon2D:
+	if shadow == null:
+		return null
+	var proxy_id := int(shadow.get_meta("shadow_render_proxy_id", 0))
+	if proxy_id <= 0:
+		return null
+	var proxy_value: Variant = instance_from_id(proxy_id)
+	if proxy_value == null or not is_instance_valid(proxy_value):
+		return null
+	return proxy_value as Polygon2D
 
 
 func _polygons_match(a: PackedVector2Array, b: PackedVector2Array, tolerance: float) -> bool:
