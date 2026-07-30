@@ -3,6 +3,7 @@ extends SceneTree
 const SolarShadowScript := preload("res://scripts/effects/PinnedActiveFrameProjectedShadow.gd")
 const DayNightCycleScript := preload("res://scripts/world/DayNightCycle.gd")
 const LocalLightShadowDirectorScript := preload("res://scripts/effects/LocalLightShadowDirector.gd")
+const DirectionalShadowRuntimeScript := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
 
 var failures: Array[String] = []
 
@@ -13,6 +14,7 @@ func _init() -> void:
 
 func _run() -> void:
 	await _validate_profile_geometry_and_animation_stability()
+	await _validate_pinned_contact_transform()
 	await _validate_profile_auto_classification()
 	await _validate_continuous_solar_cycle()
 	await _validate_night_local_light_shadow()
@@ -82,6 +84,13 @@ func _validate_profile_geometry_and_animation_stability() -> void:
 	var first_proxy := _shadow_proxy(shadow)
 	var first_profile_texture := first_proxy.texture if first_proxy != null else null
 	var first_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
+	var first_anchor: Vector2 = shadow.get_meta("shadow_projection_anchor", Vector2(-INF, -INF))
+	if first_contact.distance_to(first_anchor) > 0.001:
+		failures.append("Universal profile root is not pinned exactly to the caster contact.")
+	if not bool(shadow.get_meta("shadow_profile_contact_pinned", false)):
+		failures.append("Universal profile did not publish its pinned-contact contract.")
+	if not bool(shadow.get_meta("shadow_profile_root_matches_contact", false)):
+		failures.append("Universal profile reported a root/contact mismatch.")
 	animated.frame = 1
 	shadow.call("_refresh_silhouette")
 	await process_frame
@@ -93,20 +102,94 @@ func _validate_profile_geometry_and_animation_stability() -> void:
 	if shadow.texture != frames.get_frame_texture("walk", 1):
 		failures.append("Canonical shadow diagnostics did not advance to the authored animation frame.")
 	var second_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2.ZERO)
+	var second_anchor: Vector2 = shadow.get_meta("shadow_projection_anchor", Vector2(INF, INF))
 	if first_contact.distance_to(second_contact) > 0.001:
 		failures.append("Animated frame change moved the universal shadow foot pivot.")
+	if second_contact.distance_to(second_anchor) > 0.001:
+		failures.append("Animated frame change detached the shadow root from the foot pivot.")
 
 	config["direction_degrees"] = -45.0
 	shadow.call("configure", target, animated, config, Vector2(0.0, 24.0))
 	await process_frame
 	var rotated_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2.ZERO)
+	var rotated_anchor: Vector2 = shadow.get_meta("shadow_projection_anchor", Vector2(INF, INF))
 	if first_contact.distance_to(rotated_contact) > 0.001:
 		failures.append("Sun rotation moved the caster pivot instead of rotating the profile around it.")
+	if rotated_contact.distance_to(rotated_anchor) > 0.001:
+		failures.append("Sun rotation moved the profile root away from its caster contact.")
 	if absf(_polygon_area(first_polygon) - _polygon_area(shadow.polygon)) > 0.1:
 		failures.append("Universal shadow profile changed area while rotating through the solar arc.")
 	var direction: Vector2 = shadow.get_meta("shadow_projection_direction", Vector2.ZERO)
 	if direction.x <= 0.0 or direction.y >= 0.0:
 		failures.append("Evening profile shadow did not rotate to the upper-right direction.")
+
+	target.queue_free()
+	await process_frame
+
+
+func _validate_pinned_contact_transform() -> void:
+	var target := Node2D.new()
+	target.name = "NestedPinnedContactTest"
+	target.position = Vector2(41.0, -23.0)
+	target.rotation = deg_to_rad(9.0)
+	target.scale = Vector2(1.08, 0.94)
+	target.add_to_group("player")
+	root.add_child(target)
+
+	var visual_rig := Node2D.new()
+	visual_rig.name = "VisualRig"
+	visual_rig.position = Vector2(7.0, -9.0)
+	visual_rig.rotation = deg_to_rad(17.0)
+	visual_rig.scale = Vector2(1.35, 0.75)
+	target.add_child(visual_rig)
+
+	var sprite := Sprite2D.new()
+	sprite.name = "TransformedSprite"
+	var image := Image.create(20, 30, false, Image.FORMAT_RGBA8)
+	image.fill(Color.WHITE)
+	sprite.texture = ImageTexture.create_from_image(image)
+	sprite.centered = true
+	sprite.offset = Vector2(3.0, -4.0)
+	sprite.position = Vector2(-5.0, 6.0)
+	sprite.rotation = deg_to_rad(-11.0)
+	sprite.scale = Vector2(1.2, 0.8)
+	visual_rig.add_child(sprite)
+	await process_frame
+
+	var sprite_rect := sprite.get_rect()
+	var local_bottom_center := Vector2(sprite_rect.get_center().x, sprite_rect.end.y)
+	var expected_contact := target.to_local(sprite.to_global(local_bottom_center))
+	var resolved_contact := DirectionalShadowRuntimeScript.estimate_target_foot_offset(target)
+	if expected_contact.distance_to(resolved_contact) > 0.001:
+		failures.append("Nested sprite contact ignored centered, offset or transform hierarchy.")
+
+	var config := {
+		"enabled": true,
+		"direction_degrees": -135.0,
+		"stretch": 1.0,
+		"root_overlap": 9.0,
+		"mask_weight": 1.0,
+	}
+	var visual_size := DirectionalShadowRuntimeScript.estimate_target_visual_size(target)
+	var shadow := DirectionalShadowRuntimeScript.apply_to_target(target, config, visual_size, resolved_contact, sprite)
+	await process_frame
+	if shadow == null:
+		failures.append("Pinned-contact transform test did not create a shadow.")
+	else:
+		var initial_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
+		var initial_anchor: Vector2 = shadow.get_meta("shadow_projection_anchor", Vector2(-INF, -INF))
+		if initial_contact.distance_to(expected_contact) > 0.001:
+			failures.append("Shadow contact was not stored in caster-local space.")
+		if initial_anchor.distance_to(expected_contact) > 0.001:
+			failures.append("Profile root was displaced from the transformed sprite base.")
+
+		config["direction_degrees"] = -45.0
+		shadow.call("configure", target, sprite, config, resolved_contact)
+		await process_frame
+		var rotated_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
+		var rotated_anchor: Vector2 = shadow.get_meta("shadow_projection_anchor", Vector2(-INF, -INF))
+		if rotated_contact.distance_to(expected_contact) > 0.001 or rotated_anchor.distance_to(expected_contact) > 0.001:
+			failures.append("Rotating the sun moved the nested sprite's pinned shadow origin.")
 
 	target.queue_free()
 	await process_frame
