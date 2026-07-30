@@ -11,12 +11,15 @@ const CURSOR_SEQUENCE := [0, 1, 2, 3, 2, 1]
 const CURSOR_INTERVAL := 0.1
 const MAX_CURSOR_DIMENSION := 64
 const AUTHORED_HOTSPOT := Vector2(8.0, 2.0)
+const SOFTWARE_CURSOR_LAYER := 4096
 
 var _frames: Array[Texture2D] = []
 var _sequence: Array[int] = []
 var _sequence_index := 0
 var _timer: Timer
 var _cursor_hotspot := AUTHORED_HOTSPOT
+var _cursor_layer: CanvasLayer
+var _cursor_sprite: Sprite2D
 
 
 func _ready() -> void:
@@ -24,32 +27,36 @@ func _ready() -> void:
 	_load_frames()
 	_build_sequence()
 	_apply_authored_hotspot()
+	_create_software_cursor()
 	_apply_current_cursor()
 	_start_timer()
+	set_process(true)
+
+
+func _process(_delta: float) -> void:
+	if _cursor_sprite == null or not is_instance_valid(_cursor_sprite):
+		return
+	_cursor_sprite.position = get_viewport().get_mouse_position() - _cursor_hotspot
+	_cursor_sprite.visible = get_window() == null or get_window().has_focus()
 
 
 func _exit_tree() -> void:
 	if not _is_headless_display():
-		Input.set_custom_mouse_cursor(null, Input.CURSOR_ARROW, Vector2.ZERO)
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func _load_frames() -> void:
 	_frames.clear()
 	for path_value in CURSOR_FRAMES:
 		var path := str(path_value)
-		if not FileAccess.file_exists(path):
+		if not ResourceLoader.exists(path):
 			continue
-		var image := Image.new()
-		var load_error := image.load(path)
-		if load_error != OK or image.is_empty() or image.get_width() <= 0 or image.get_height() <= 0:
-			push_warning("AnimatedCursor: ignored invalid cursor image '%s'." % path)
-			continue
-		if image.get_width() > MAX_CURSOR_DIMENSION or image.get_height() > MAX_CURSOR_DIMENSION:
-			push_warning("AnimatedCursor: cursor image '%s' exceeds %d pixels and was ignored." % [path, MAX_CURSOR_DIMENSION])
-			continue
-		var texture := ImageTexture.create_from_image(image)
+		var texture := ResourceLoader.load(path) as Texture2D
 		if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
-			push_warning("AnimatedCursor: could not create cursor texture '%s'." % path)
+			push_warning("AnimatedCursor: ignored invalid cursor texture '%s'." % path)
+			continue
+		if texture.get_width() > MAX_CURSOR_DIMENSION or texture.get_height() > MAX_CURSOR_DIMENSION:
+			push_warning("AnimatedCursor: cursor texture '%s' exceeds %d pixels and was ignored." % [path, MAX_CURSOR_DIMENSION])
 			continue
 		_frames.append(texture)
 
@@ -84,6 +91,24 @@ func _apply_authored_hotspot() -> void:
 	)
 
 
+func _create_software_cursor() -> void:
+	if _is_headless_display() or _frames.is_empty():
+		return
+	_cursor_layer = CanvasLayer.new()
+	_cursor_layer.name = "AnimatedCursorLayer"
+	_cursor_layer.layer = SOFTWARE_CURSOR_LAYER
+	add_child(_cursor_layer)
+
+	_cursor_sprite = Sprite2D.new()
+	_cursor_sprite.name = "AnimatedCursorSprite"
+	_cursor_sprite.centered = false
+	_cursor_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_cursor_sprite.z_index = 1
+	_cursor_sprite.position = get_viewport().get_mouse_position() - _cursor_hotspot
+	_cursor_layer.add_child(_cursor_sprite)
+	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
+
+
 func get_cursor_hotspot() -> Vector2:
 	return _cursor_hotspot
 
@@ -93,7 +118,7 @@ func _start_timer() -> void:
 		_timer.queue_free()
 		_timer = null
 
-	if _sequence.size() <= 1 or _is_headless_display():
+	if _sequence.size() <= 1 or _cursor_sprite == null:
 		return
 
 	_timer = Timer.new()
@@ -112,7 +137,7 @@ func _advance_cursor_frame() -> void:
 
 
 func _apply_current_cursor() -> void:
-	if _is_headless_display() or _frames.is_empty() or _sequence.is_empty():
+	if _cursor_sprite == null or not is_instance_valid(_cursor_sprite) or _frames.is_empty() or _sequence.is_empty():
 		return
 	var frame_index := _sequence[_sequence_index]
 	if frame_index < 0 or frame_index >= _frames.size():
@@ -120,7 +145,7 @@ func _apply_current_cursor() -> void:
 	var texture := _frames[frame_index]
 	if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
 		return
-	Input.set_custom_mouse_cursor(texture, Input.CURSOR_ARROW, _cursor_hotspot)
+	_cursor_sprite.texture = texture
 
 
 func _is_headless_display() -> bool:
