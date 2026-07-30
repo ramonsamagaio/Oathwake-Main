@@ -33,6 +33,27 @@ func _get_sprite_form_record() -> Dictionary:
 	return record
 
 
+func _load_any_image_texture(path: String) -> Texture2D:
+	# Resource textures should stay on Godot's imported path. External files need
+	# an ImageTexture, but Image.load() can transiently return OK with a zero-sized
+	# image while an editor import or preview refresh is still settling. Never pass
+	# that empty image into ImageTexture.create_from_image().
+	if path.begins_with("res://") or path.begins_with("user://"):
+		var resource := load(path)
+		if resource is Texture2D:
+			var resource_texture := resource as Texture2D
+			var resource_size := resource_texture.get_size()
+			if resource_size.x > 0.0 and resource_size.y > 0.0:
+				return resource_texture
+		return null
+
+	var image := Image.new()
+	var load_error := image.load(path)
+	if load_error != OK or image.is_empty() or image.get_width() <= 0 or image.get_height() <= 0:
+		return null
+	return ImageTexture.create_from_image(image)
+
+
 func _add_float_spin_box(
 	label_text: String,
 	field_name: String,
