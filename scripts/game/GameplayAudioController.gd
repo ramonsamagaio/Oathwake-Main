@@ -28,6 +28,16 @@ func setup(new_world: Node, new_player: Node2D) -> void:
 	reload_mix()
 	_setup_overworld_music()
 	_setup_forest_ambience()
+	# Force a terrain check on the next process frame instead of leaving the
+	# ambience at its inaudible startup value until an external caller updates it.
+	_check_timer = CHECK_INTERVAL
+	set_process(true)
+
+
+func _process(delta: float) -> void:
+	# The controller owns its own lifecycle. Game previously created it correctly,
+	# but never called update_ambience(), so Forest Day remained stopped at -80 dB.
+	update_ambience(delta)
 
 
 func reload_mix() -> void:
@@ -46,7 +56,9 @@ func reload_mix() -> void:
 
 
 func update_ambience(delta: float) -> void:
-	if player == null or world == null or forest_ambience == null or not world.has_method("get_tile_type_at_position"):
+	if not is_instance_valid(player) or not is_instance_valid(world) or forest_ambience == null:
+		return
+	if not world.has_method("get_tile_type_at_position"):
 		return
 	_check_timer += delta
 	if _check_timer < CHECK_INTERVAL:
@@ -112,6 +124,15 @@ func _load_audio_stream(path: String) -> AudioStream:
 
 func _set_stream_loop(stream: Resource, enabled: bool) -> void:
 	for property_info in stream.get_property_list():
-		if str(property_info.get("name", "")) == "loop":
+		var property_name := str(property_info.get("name", ""))
+		if property_name == "loop":
 			stream.set("loop", enabled)
+			return
+		if property_name == "loop_mode":
+			# WAV streams use loop_mode rather than the boolean loop property used
+			# by MP3 streams. Without this branch Forest Day played only once.
+			stream.set(
+				"loop_mode",
+				AudioStreamWAV.LOOP_FORWARD if enabled else AudioStreamWAV.LOOP_DISABLED
+			)
 			return
