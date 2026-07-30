@@ -3,6 +3,7 @@ extends SceneTree
 const START_AREA_SCENE := preload("res://scenes/maps/StartArea.tscn")
 const PLAYER_SCENE := preload("res://scenes/Player.tscn")
 const TREE_SCENE := preload("res://scenes/Tree.tscn")
+const CONTENT_EDITOR_SCENE := preload("res://tools/content_editor/ContentEditor.tscn")
 
 var failures: Array[String] = []
 
@@ -13,6 +14,7 @@ func _init() -> void:
 
 func _run() -> void:
 	_validate_content_contract()
+	await _validate_ambient_particle_editor_range()
 	await _validate_runtime_contract()
 	if failures.is_empty():
 		print("WORLD_ATMOSPHERE_VALIDATION_PASS")
@@ -64,9 +66,37 @@ func _validate_content_contract() -> void:
 		if not particle_text.to_lower().contains(token.to_lower()):
 			failures.append("Ambient particle field is missing world-anchor/visibility contract %s." % token)
 	var range_suite := FileAccess.get_file_as_string("res://tools/content_editor/ContentEditorControlRangesSuite.gd")
-	for token in ["AMBIENT_PARTICLE_ALPHA_MAX := 4.0", "world_particles_day_alpha", "world_particles_night_alpha"]:
+	for token in ["AMBIENT_PARTICLE_ALPHA_MAX := 4.0", "AMBIENT_PARTICLE_ALPHA_FIELDS", "resolved_maximum"]:
 		if not range_suite.contains(token):
 			failures.append("Content Editor ambient particle range is missing %s." % token)
+
+
+func _validate_ambient_particle_editor_range() -> void:
+	var editor := CONTENT_EDITOR_SCENE.instantiate()
+	root.add_child(editor)
+	await process_frame
+	await process_frame
+	editor.call("_select_section", "post_effects", true)
+	await process_frame
+	editor.call("_select_post_effect_group", "ambient_particles")
+	await process_frame
+	var controls_value: Variant = editor.get("field_controls")
+	if not (controls_value is Dictionary):
+		failures.append("Content Editor did not expose ambient particle controls at runtime.")
+	else:
+		var controls := controls_value as Dictionary
+		for field_name in ["world_particles_day_alpha", "world_particles_night_alpha"]:
+			var control_value: Variant = controls.get(field_name)
+			if not (control_value is SpinBox):
+				failures.append("Content Editor did not build %s as a SpinBox." % field_name)
+				continue
+			var spin_box := control_value as SpinBox
+			if spin_box.max_value < 3.999:
+				failures.append("Content Editor still caps %s at %s instead of 4.0." % [field_name, spin_box.max_value])
+	editor.call("prepare_for_runtime_close")
+	editor.queue_free()
+	await process_frame
+	await process_frame
 
 
 func _validate_runtime_contract() -> void:

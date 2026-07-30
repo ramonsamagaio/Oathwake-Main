@@ -1,6 +1,15 @@
 extends SceneTree
 
+const GAMEPLAY_AUDIO_CONTROLLER := preload("res://scripts/game/GameplayAudioController.gd")
+
 var _failures: Array[String] = []
+
+
+class GrassWorld:
+	extends Node2D
+
+	func get_tile_type_at_position(_global_position: Vector2) -> String:
+		return "grass"
 
 
 func _init() -> void:
@@ -11,6 +20,7 @@ func _run() -> void:
 	await _validate_game_layers()
 	_validate_world_item_shadow()
 	_validate_audio_routing()
+	await _validate_ambience_runtime()
 	_validate_fog_contract()
 	_validate_attack_audio_contract()
 	if _failures.is_empty():
@@ -85,6 +95,44 @@ func _validate_audio_routing() -> void:
 		_failures.append("generic_enemy_hit profile is missing from sfx_profiles.json.")
 	enemy.queue_free()
 	resource.queue_free()
+
+
+func _validate_ambience_runtime() -> void:
+	var world := GrassWorld.new()
+	var player := Node2D.new()
+	var controller := GAMEPLAY_AUDIO_CONTROLLER.new()
+	root.add_child(world)
+	root.add_child(player)
+	root.add_child(controller)
+	controller.setup(world, player)
+	await process_frame
+	await create_timer(0.45).timeout
+	await process_frame
+
+	var forest := controller.get("forest_ambience") as AudioStreamPlayer
+	if forest == null or forest.stream == null:
+		_failures.append("Forest ambience stream was not created from Forest Day.wav.")
+	elif not bool(controller.get("_ambience_play_requested")):
+		_failures.append("Forest ambience playback was not requested automatically while the player was on grass.")
+	else:
+		var looping := false
+		for property_info in forest.stream.get_property_list():
+			var property_name := str(property_info.get("name", ""))
+			if property_name == "loop":
+				looping = bool(forest.stream.get("loop"))
+				break
+			if property_name == "loop_mode":
+				looping = int(forest.stream.get("loop_mode")) != AudioStreamWAV.LOOP_DISABLED
+				break
+		if not looping:
+			_failures.append("Forest ambience is not configured to loop continuously.")
+	if not bool(controller.get("_ambience_active")):
+		_failures.append("Terrain-driven ambience never became active during controller processing.")
+
+	controller.queue_free()
+	player.queue_free()
+	world.queue_free()
+	await process_frame
 
 
 func _validate_fog_contract() -> void:

@@ -33,7 +33,7 @@ func _build_world_shadows_form() -> void:
 	var solar := _record_dictionary(shadow, "solar")
 	_add_subsection_title("Solar Shadow Cycle")
 	var solar_note := Label.new()
-	solar_note.text = "Angles are measured from screen-up: -45° points upper-left and +45° points upper-right. The silhouette rotates around its contact point without shearing. It keeps moving while dusk fades it out, resets only while invisible, and fades in again at the morning angle."
+	solar_note.text = "Angles are measured from screen-up: -45° points upper-left and +45° points upper-right. Sunlight uses a pinned oblique projection: the sprite's southern edge stays fixed beneath the object while the upper silhouette is stretched in the sun-shadow direction. It keeps moving during dusk, resets only while invisible, and fades in at the morning position."
 	solar_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(solar_note)
 	_add_check_box("Rotate With Day", "shadow_solar_rotate", bool(solar.get("rotate_with_day", true)))
@@ -43,13 +43,19 @@ func _build_world_shadows_form() -> void:
 	_add_float_spin_box("Dusk Fade Start", "shadow_solar_dusk_start", float(solar.get("dusk_fade_start", 0.42)), 0.05, 0.90, 0.01)
 	_add_float_spin_box("Dusk Fade End", "shadow_solar_dusk_end", float(solar.get("dusk_fade_end", 0.62)), 0.10, 0.95, 0.01)
 	_add_float_spin_box("Dawn Fade Start", "shadow_solar_dawn_start", float(solar.get("dawn_fade_start", 0.82)), 0.20, 0.99, 0.01)
-	_add_float_spin_box("Root Hidden Under Object", "shadow_solar_root_overlap", float(solar.get("root_overlap", shadow.get("root_overlap", 6.0))), 0.0, 64.0, 0.5)
+	_add_float_spin_box("Pinned Root Band", "shadow_solar_root_overlap", float(solar.get("root_overlap", shadow.get("root_overlap", 6.0))), 0.0, 64.0, 0.5)
 	_add_float_spin_box("Silhouette Width Scale", "shadow_solar_width_scale", float(solar.get("width_scale", shadow.get("width_scale", 1.0))), 0.10, 3.0, 0.01)
+	var root_control: Variant = field_controls.get("shadow_solar_root_overlap")
+	if root_control is Control:
+		(root_control as Control).tooltip_text = "Height in source pixels kept pinned under the caster before the sunlight stretch begins. Higher values hide more of the shadow root beneath trunks, feet and rocks."
+	var width_control: Variant = field_controls.get("shadow_solar_width_scale")
+	if width_control is Control:
+		(width_control as Control).tooltip_text = "Changes only the upper projected silhouette. The southern contact edge remains fixed regardless of this value."
 
 	var local_lights := _record_dictionary(shadow, "local_lights")
 	_add_subsection_title("Night Local-Light Shadows")
 	var local_note := Label.new()
-	local_note.text = "At night, every active PointLight2D can cast a shadow away from the light position. The same rigid pivot projection and shared compositor are used, so the shadows remain stable and overlaps do not multiply darkness."
+	local_note.text = "At night, every active PointLight2D can cast a shadow away from the light position. Local lights retain their stable point-light projection and use the shared compositor, so overlaps do not multiply darkness."
 	local_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(local_note)
 	_add_check_box("Local-Light Shadows Enabled", "shadow_local_enabled", bool(local_lights.get("enabled", true)))

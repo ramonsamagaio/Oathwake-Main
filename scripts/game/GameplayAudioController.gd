@@ -20,6 +20,7 @@ var ambience_inactive_volume_db := DEFAULT_INACTIVE_VOLUME_DB
 var _volume_tween: Tween
 var _check_timer := 0.0
 var _ambience_active := false
+var _ambience_play_requested := false
 
 
 func setup(new_world: Node, new_player: Node2D) -> void:
@@ -28,6 +29,16 @@ func setup(new_world: Node, new_player: Node2D) -> void:
 	reload_mix()
 	_setup_overworld_music()
 	_setup_forest_ambience()
+	# Force a terrain check on the next process frame instead of leaving the
+	# ambience at its inaudible startup value until an external caller updates it.
+	_check_timer = CHECK_INTERVAL
+	set_process(true)
+
+
+func _process(delta: float) -> void:
+	# The controller owns its own lifecycle. Game previously created it correctly,
+	# but never called update_ambience(), so Forest Day remained stopped at -80 dB.
+	update_ambience(delta)
 
 
 func reload_mix() -> void:
@@ -46,7 +57,9 @@ func reload_mix() -> void:
 
 
 func update_ambience(delta: float) -> void:
-	if player == null or world == null or forest_ambience == null or not world.has_method("get_tile_type_at_position"):
+	if not is_instance_valid(player) or not is_instance_valid(world) or forest_ambience == null:
+		return
+	if not world.has_method("get_tile_type_at_position"):
 		return
 	_check_timer += delta
 	if _check_timer < CHECK_INTERVAL:
@@ -94,6 +107,10 @@ func _set_forest_ambience_active(is_active: bool) -> void:
 	if _volume_tween != null:
 		_volume_tween.kill()
 	if is_active and not forest_ambience.playing:
+		# Record the actual playback request as well as calling play(). Headless CI
+		# has no audio output driver and may report AudioStreamPlayer.playing=false
+		# even after a valid request, while desktop gameplay does start the stream.
+		_ambience_play_requested = true
 		forest_ambience.play()
 	_volume_tween = create_tween()
 	_volume_tween.tween_property(forest_ambience, "volume_db", ambience_volume_db if is_active else ambience_inactive_volume_db, 1.0)
@@ -112,6 +129,15 @@ func _load_audio_stream(path: String) -> AudioStream:
 
 func _set_stream_loop(stream: Resource, enabled: bool) -> void:
 	for property_info in stream.get_property_list():
-		if str(property_info.get("name", "")) == "loop":
+		var property_name := str(property_info.get("name", ""))
+		if property_name == "loop":
 			stream.set("loop", enabled)
+			return
+		if property_name == "loop_mode":
+			# WAV streams use loop_mode rather than the boolean loop property used
+			# by MP3 streams. Without this branch Forest Day played only once.
+			stream.set(
+				"loop_mode",
+				AudioStreamWAV.LOOP_FORWARD if enabled else AudioStreamWAV.LOOP_DISABLED
+			)
 			return

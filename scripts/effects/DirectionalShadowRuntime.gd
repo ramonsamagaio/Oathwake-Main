@@ -1,7 +1,7 @@
 class_name DirectionalShadowRuntime
 extends RefCounted
 
-const ProjectedSpriteShadowScript := preload("res://scripts/effects/ActiveFrameProjectedShadow.gd")
+const ProjectedSpriteShadowScript := preload("res://scripts/effects/PinnedActiveFrameProjectedShadow.gd")
 const DEFAULT_DIRECTION_DEGREES := -45.0
 const DEFAULT_COLOR := Color(0.02, 0.024, 0.035, 1.0)
 
