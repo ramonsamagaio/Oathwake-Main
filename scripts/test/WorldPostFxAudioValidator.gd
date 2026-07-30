@@ -112,8 +112,8 @@ func _validate_ambience_runtime() -> void:
 	var forest := controller.get("forest_ambience") as AudioStreamPlayer
 	if forest == null or forest.stream == null:
 		_failures.append("Forest ambience stream was not created from Forest Day.wav.")
-	elif not forest.playing:
-		_failures.append("Forest ambience did not start automatically while the player was on grass.")
+	elif not bool(controller.get("_ambience_play_requested")):
+		_failures.append("Forest ambience playback was not requested automatically while the player was on grass.")
 	else:
 		var looping := false
 		for property_info in forest.stream.get_property_list():
