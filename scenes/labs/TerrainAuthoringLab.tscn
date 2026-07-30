@@ -1,17 +1,7 @@
 [gd_scene format=4 uid="uid://nv626vo0vhgp"]
 
 [ext_resource type="PackedScene" path="res://scenes/world/terrain/OathwakeGrassDirtTerrainLayer.tscn" id="1_8cul0"]
-
-[sub_resource type="Gradient" id="Gradient_dar8h"]
-colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_4vw3g"]
-gradient = SubResource("Gradient_dar8h")
-width = 384
-height = 384
-fill = 1
-fill_from = Vector2(0.5, 0.5)
-fill_to = Vector2(1, 0.5)
+[ext_resource type="Texture2D" path="res://resources/effects/textures/soft_light_radial.tres" id="2_light_texture"]
 
 [node name="TerrainAuthoringLab" type="Node2D" unique_id=373259225]
 
@@ -39,7 +29,7 @@ color = Color(0.58, 0.64, 0.78, 1)
 position = Vector2(363, 86)
 color = Color(1, 0.82, 0.57, 1)
 energy = 1.25
-texture = SubResource("GradientTexture2D_4vw3g")
+texture = ExtResource("2_light_texture")
 
 [node name="Instructions" type="CanvasLayer" parent="." unique_id=598319338]
 
