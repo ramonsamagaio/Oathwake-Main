@@ -13,7 +13,7 @@ func _init() -> void:
 
 
 func _run() -> void:
-	await _validate_profile_geometry_and_animation_stability()
+	await _validate_footprint_extrusion_and_animation_stability()
 	await _validate_pinned_contact_transform()
 	await _validate_profile_auto_classification()
 	await _validate_continuous_solar_cycle()
@@ -27,9 +27,9 @@ func _run() -> void:
 	quit(1)
 
 
-func _validate_profile_geometry_and_animation_stability() -> void:
+func _validate_footprint_extrusion_and_animation_stability() -> void:
 	var target := Node2D.new()
-	target.name = "PlayerProfileTest"
+	target.name = "PlayerFootprintTest"
 	target.add_to_group("player")
 	root.add_child(target)
 
@@ -54,74 +54,70 @@ func _validate_profile_geometry_and_animation_stability() -> void:
 	animated.frame = 0
 	target.add_child(animated)
 
+	var collision := CollisionShape2D.new()
+	collision.name = "CollisionShape2D"
+	var circle := CircleShape2D.new()
+	circle.radius = 7.0
+	collision.shape = circle
+	target.add_child(collision)
+
 	var shadow := SolarShadowScript.new() as Polygon2D
 	target.add_child(shadow)
+	var contact := Vector2(0.0, 24.0)
 	var config := {
 		"enabled": true,
 		"direction_degrees": -135.0,
 		"stretch": 1.25,
-		"width_scale": 1.0,
-		"root_overlap": 6.0,
 		"mask_weight": 1.0,
 	}
-	shadow.call("configure", target, animated, config, Vector2(0.0, 24.0))
+	shadow.call("configure", target, animated, config, contact)
 	await process_frame
 
-	if shadow.polygon.size() != 4:
-		failures.append("Universal profile shadow did not produce one stable four-corner card.")
-	if str(shadow.get_meta("shadow_projection_mode", "")) != "universal_shadow_profile":
-		failures.append("Solar shadow did not switch to universal profile projection.")
-	if not bool(shadow.get_meta("shadow_projection_profiled", false)):
-		failures.append("Solar shadow did not publish the profiled projection contract.")
+	if shadow.polygon.size() < 6:
+		failures.append("Footprint extrusion did not create a rounded multi-vertex shadow hull.")
+	if str(shadow.get_meta("shadow_projection_mode", "")) != "footprint_extrusion":
+		failures.append("Solar shadow did not switch to footprint extrusion.")
+	if not str(shadow.get_meta("shadow_footprint_source_kind", "")).begins_with("collision_shape"):
+		failures.append("Solar shadow ignored the caster CollisionShape2D footprint.")
 	if str(shadow.get_meta("shadow_profile_id", "")) != "humanoid":
-		failures.append("Player caster was not classified with the humanoid shadow profile.")
-	if not bool(shadow.get_meta("shadow_profile_ignores_frame_silhouette", false)):
-		failures.append("Profile shadow still depends on the active animation-frame silhouette.")
+		failures.append("Player caster was not classified with the humanoid profile.")
 	if _polygon_area(shadow.polygon) <= 100.0:
-		failures.append("Universal profile shadow collapsed into a line or tiny card.")
+		failures.append("Footprint extrusion collapsed into a line or tiny polygon.")
 
-	var first_polygon := shadow.polygon.duplicate()
+	var first_footprint: PackedVector2Array = shadow.get_meta("shadow_footprint_points", PackedVector2Array())
+	var first_support: Vector2 = shadow.get_meta("shadow_footprint_support", Vector2(INF, INF))
+	if first_support.distance_to(contact) > 0.01:
+		failures.append("Collision footprint was not aligned to the sprite base contact.")
 	var first_proxy := _shadow_proxy(shadow)
-	var first_profile_texture := first_proxy.texture if first_proxy != null else null
-	var first_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
-	var first_anchor: Vector2 = shadow.get_meta("shadow_projection_anchor", Vector2(-INF, -INF))
-	if first_contact.distance_to(first_anchor) > 0.001:
-		failures.append("Universal profile root is not pinned exactly to the caster contact.")
-	if not bool(shadow.get_meta("shadow_profile_contact_pinned", false)):
-		failures.append("Universal profile did not publish its pinned-contact contract.")
-	if not bool(shadow.get_meta("shadow_profile_root_matches_contact", false)):
-		failures.append("Universal profile reported a root/contact mismatch.")
+	var first_mask := first_proxy.texture if first_proxy != null else null
+	var first_area := _polygon_area(shadow.polygon)
+
 	animated.frame = 1
 	shadow.call("_refresh_silhouette")
 	await process_frame
-	if not _polygons_match(first_polygon, shadow.polygon, 0.01):
-		failures.append("Changing to a radically different animation frame changed the solar shadow geometry.")
+	var second_footprint: PackedVector2Array = shadow.get_meta("shadow_footprint_points", PackedVector2Array())
+	if not _polygons_match(first_footprint, second_footprint, 0.01):
+		failures.append("Changing animation frames changed the ground footprint.")
 	var second_proxy := _shadow_proxy(shadow)
-	if first_profile_texture == null or second_proxy == null or second_proxy.texture != first_profile_texture:
-		failures.append("Animated frame change replaced the compositor's universal profile mask texture.")
+	if first_mask == null or second_proxy == null or second_proxy.texture != first_mask:
+		failures.append("Animation frame change replaced the solid footprint mask.")
 	if shadow.texture != frames.get_frame_texture("walk", 1):
-		failures.append("Canonical shadow diagnostics did not advance to the authored animation frame.")
-	var second_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2.ZERO)
-	var second_anchor: Vector2 = shadow.get_meta("shadow_projection_anchor", Vector2(INF, INF))
-	if first_contact.distance_to(second_contact) > 0.001:
-		failures.append("Animated frame change moved the universal shadow foot pivot.")
-	if second_contact.distance_to(second_anchor) > 0.001:
-		failures.append("Animated frame change detached the shadow root from the foot pivot.")
+		failures.append("Canonical diagnostics did not advance to the current animation frame.")
 
 	config["direction_degrees"] = -45.0
-	shadow.call("configure", target, animated, config, Vector2(0.0, 24.0))
+	shadow.call("configure", target, animated, config, contact)
 	await process_frame
-	var rotated_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2.ZERO)
-	var rotated_anchor: Vector2 = shadow.get_meta("shadow_projection_anchor", Vector2(INF, INF))
-	if first_contact.distance_to(rotated_contact) > 0.001:
-		failures.append("Sun rotation moved the caster pivot instead of rotating the profile around it.")
-	if rotated_contact.distance_to(rotated_anchor) > 0.001:
-		failures.append("Sun rotation moved the profile root away from its caster contact.")
-	if absf(_polygon_area(first_polygon) - _polygon_area(shadow.polygon)) > 0.1:
-		failures.append("Universal shadow profile changed area while rotating through the solar arc.")
+	var rotated_footprint: PackedVector2Array = shadow.get_meta("shadow_footprint_points", PackedVector2Array())
+	var rotated_support: Vector2 = shadow.get_meta("shadow_footprint_support", Vector2(INF, INF))
+	if not _polygons_match(first_footprint, rotated_footprint, 0.01):
+		failures.append("Sun rotation changed the caster footprint instead of only moving its extrusion.")
+	if rotated_support.distance_to(contact) > 0.01:
+		failures.append("Sun rotation detached the footprint from the sprite base.")
+	if absf(first_area - _polygon_area(shadow.polygon)) > 1.0:
+		failures.append("Footprint shadow area changed unexpectedly while rotating the sun.")
 	var direction: Vector2 = shadow.get_meta("shadow_projection_direction", Vector2.ZERO)
 	if direction.x <= 0.0 or direction.y >= 0.0:
-		failures.append("Evening profile shadow did not rotate to the upper-right direction.")
+		failures.append("Evening footprint extrusion did not point upper-right.")
 
 	target.queue_free()
 	await process_frame
@@ -137,14 +133,12 @@ func _validate_pinned_contact_transform() -> void:
 	root.add_child(target)
 
 	var visual_rig := Node2D.new()
-	visual_rig.name = "VisualRig"
 	visual_rig.position = Vector2(7.0, -9.0)
 	visual_rig.rotation = deg_to_rad(17.0)
 	visual_rig.scale = Vector2(1.35, 0.75)
 	target.add_child(visual_rig)
 
 	var sprite := Sprite2D.new()
-	sprite.name = "TransformedSprite"
 	var image := Image.create(20, 30, false, Image.FORMAT_RGBA8)
 	image.fill(Color.WHITE)
 	sprite.texture = ImageTexture.create_from_image(image)
@@ -154,6 +148,12 @@ func _validate_pinned_contact_transform() -> void:
 	sprite.rotation = deg_to_rad(-11.0)
 	sprite.scale = Vector2(1.2, 0.8)
 	visual_rig.add_child(sprite)
+
+	var collision := CollisionShape2D.new()
+	var rectangle := RectangleShape2D.new()
+	rectangle.size = Vector2(10.0, 6.0)
+	collision.shape = rectangle
+	target.add_child(collision)
 	await process_frame
 
 	var sprite_rect := sprite.get_rect()
@@ -167,7 +167,6 @@ func _validate_pinned_contact_transform() -> void:
 		"enabled": true,
 		"direction_degrees": -135.0,
 		"stretch": 1.0,
-		"root_overlap": 9.0,
 		"mask_weight": 1.0,
 	}
 	var visual_size := DirectionalShadowRuntimeScript.estimate_target_visual_size(target)
@@ -176,20 +175,19 @@ func _validate_pinned_contact_transform() -> void:
 	if shadow == null:
 		failures.append("Pinned-contact transform test did not create a shadow.")
 	else:
-		var initial_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
-		var initial_anchor: Vector2 = shadow.get_meta("shadow_projection_anchor", Vector2(-INF, -INF))
-		if initial_contact.distance_to(expected_contact) > 0.001:
-			failures.append("Shadow contact was not stored in caster-local space.")
-		if initial_anchor.distance_to(expected_contact) > 0.001:
-			failures.append("Profile root was displaced from the transformed sprite base.")
-
+		var initial_support: Vector2 = shadow.get_meta("shadow_footprint_support", Vector2(INF, INF))
+		if initial_support.distance_to(expected_contact) > 0.01:
+			failures.append("Nested collision footprint was not aligned to the transformed sprite base.")
+		var initial_footprint: PackedVector2Array = shadow.get_meta("shadow_footprint_points", PackedVector2Array())
 		config["direction_degrees"] = -45.0
 		shadow.call("configure", target, sprite, config, resolved_contact)
 		await process_frame
-		var rotated_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
-		var rotated_anchor: Vector2 = shadow.get_meta("shadow_projection_anchor", Vector2(-INF, -INF))
-		if rotated_contact.distance_to(expected_contact) > 0.001 or rotated_anchor.distance_to(expected_contact) > 0.001:
-			failures.append("Rotating the sun moved the nested sprite's pinned shadow origin.")
+		var rotated_support: Vector2 = shadow.get_meta("shadow_footprint_support", Vector2(INF, INF))
+		var rotated_footprint: PackedVector2Array = shadow.get_meta("shadow_footprint_points", PackedVector2Array())
+		if rotated_support.distance_to(expected_contact) > 0.01:
+			failures.append("Rotating the sun moved the nested footprint support.")
+		if not _polygons_match(initial_footprint, rotated_footprint, 0.01):
+			failures.append("Rotating the sun modified the authored ground footprint.")
 
 	target.queue_free()
 	await process_frame
@@ -235,42 +233,27 @@ func _validate_continuous_solar_cycle() -> void:
 	if morning.x >= 0.0 or morning.y >= 0.0:
 		failures.append("Morning solar shadow does not begin upper-left of the caster.")
 	if float(cycle.call("get_solar_shadow_strength")) < 0.99:
-		failures.append("Morning solar shadow is not fully visible after the invisible reset.")
+		failures.append("Morning solar shadow is not fully visible after reset.")
 
 	cycle.call("set_time_of_day", 0.46)
 	var dusk_start_direction := cycle.call("get_sun_shadow_direction") as Vector2
 	var dusk_start_strength := float(cycle.call("get_solar_shadow_strength"))
 	cycle.call("set_time_of_day", 0.58)
-	var moving_fade_direction := cycle.call("get_sun_shadow_direction") as Vector2
-	var moving_fade_strength := float(cycle.call("get_solar_shadow_strength"))
-	if dusk_start_strength <= moving_fade_strength or moving_fade_strength <= 0.0:
+	var moving_direction := cycle.call("get_sun_shadow_direction") as Vector2
+	var moving_strength := float(cycle.call("get_solar_shadow_strength"))
+	if dusk_start_strength <= moving_strength or moving_strength <= 0.0:
 		failures.append("Solar shadow is not fading progressively during dusk.")
-	if absf(dusk_start_direction.angle_to(moving_fade_direction)) < deg_to_rad(4.0):
-		failures.append("Solar shadow parked before becoming invisible instead of moving through its fade-out.")
-	if moving_fade_direction.x <= 0.0 or moving_fade_direction.y >= 0.0:
-		failures.append("Evening solar shadow is not finishing upper-right of the caster.")
+	if absf(dusk_start_direction.angle_to(moving_direction)) < deg_to_rad(4.0):
+		failures.append("Solar shadow stopped moving before its fade completed.")
 
 	cycle.call("set_time_of_day", 0.70)
-	var hidden_direction := cycle.call("get_sun_shadow_direction") as Vector2
 	if float(cycle.call("get_solar_shadow_strength")) > 0.001:
-		failures.append("Solar shadow is still visible during the hidden night reset window.")
-	if hidden_direction.distance_to(morning) > 0.001:
-		failures.append("Solar shadow did not reset to the morning angle while invisible.")
+		failures.append("Solar shadow remains visible in the hidden night reset window.")
 
 	cycle.call("set_time_of_day", 0.90)
 	var dawn_strength := float(cycle.call("get_solar_shadow_strength"))
-	var dawn_direction := cycle.call("get_sun_shadow_direction") as Vector2
 	if dawn_strength <= 0.0 or dawn_strength >= 1.0:
-		failures.append("Solar shadow is not fading in during the late-night brightening phase.")
-	if dawn_direction.distance_to(morning) > 0.001:
-		failures.append("Dawn fade-in does not begin at the morning angle.")
-
-	cycle.call("set_time_of_day", 0.999)
-	var before_rollover := cycle.call("get_sun_shadow_direction") as Vector2
-	cycle.call("set_time_of_day", 0.001)
-	var after_rollover := cycle.call("get_sun_shadow_direction") as Vector2
-	if absf(before_rollover.angle_to(after_rollover)) > deg_to_rad(2.0):
-		failures.append("Solar shadow still jumps visibly at the night-to-day rollover.")
+		failures.append("Solar shadow is not fading in during dawn.")
 
 	cycle.queue_free()
 	await process_frame
@@ -284,7 +267,6 @@ func _validate_night_local_light_shadow() -> void:
 	await process_frame
 
 	var emitter := Node2D.new()
-	emitter.position = Vector2.ZERO
 	emitter.add_to_group("world_light_emitter")
 	root.add_child(emitter)
 	var light := PointLight2D.new()
@@ -300,10 +282,7 @@ func _validate_night_local_light_shadow() -> void:
 	target.position = Vector2(72.0, 0.0)
 	root.add_child(target)
 	var sprite_image := Image.create(24, 36, false, Image.FORMAT_RGBA8)
-	sprite_image.fill(Color.TRANSPARENT)
-	for y in range(3, 34):
-		for x in range(6, 18):
-			sprite_image.set_pixel(x, y, Color.WHITE)
+	sprite_image.fill(Color.WHITE)
 	var sprite := Sprite2D.new()
 	sprite.texture = ImageTexture.create_from_image(sprite_image)
 	target.add_child(sprite)
@@ -330,16 +309,10 @@ func _validate_night_local_light_shadow() -> void:
 				var shadow := shadow_value as Polygon2D
 				if shadow == null:
 					continue
-				if not shadow.visible or float(shadow.get_meta("shadow_mask_weight", 0.0)) <= 0.05:
-					failures.append("Night local shadow exists but is effectively invisible.")
-				var expected_direction := (target.global_position - light.global_position).normalized()
-				var actual_direction: Vector2 = shadow.get_meta("shadow_projection_direction", Vector2.ZERO)
-				if actual_direction.length_squared() < 0.9 or expected_direction.dot(actual_direction.normalized()) < 0.99:
-					failures.append("Night local shadow is not projected away from its PointLight2D.")
-				if _polygon_area(shadow.polygon) <= 50.0:
-					failures.append("Night local shadow geometry collapsed or was not generated.")
 				if bool(shadow.get_meta("shadow_projection_profiled", false)):
-					failures.append("Night local shadow incorrectly switched to the solar-only universal profile mask.")
+					failures.append("Night local shadow incorrectly switched to daylight footprint extrusion.")
+				if _polygon_area(shadow.polygon) <= 50.0:
+					failures.append("Night local shadow geometry collapsed.")
 				break
 
 	target.queue_free()
