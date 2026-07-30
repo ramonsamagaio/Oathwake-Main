@@ -129,8 +129,26 @@ func _validate_monster_shadow_frame(monster: Node, sprite: AnimatedSprite2D) -> 
 	var expected_profile := "small_creature" if str(monster.get("monster_id")) == "slime" else "humanoid"
 	if str(shadow.get_meta("shadow_profile_id", "")) != expected_profile:
 		failures.append("Monster %s did not receive expected shadow profile %s" % [str(monster.get("monster_id")), expected_profile])
-	if proxy.texture.get_size().x <= 0.0 or proxy.texture.get_size().y <= 0.0:
+	var mask_size := proxy.texture.get_size()
+	if mask_size.x <= 0.0 or mask_size.y <= 0.0:
 		failures.append("Animated monster shadow has no valid universal profile texture")
+	if not proxy.visible:
+		failures.append("Animated monster universal shadow proxy is not visible during daytime validation")
+	if not bool(shadow.get_meta("shadow_profile_uv_pixel_space", false)):
+		failures.append("Universal monster shadow did not publish pixel-space UV sampling")
+	if proxy.uv.size() != 4:
+		failures.append("Universal monster shadow proxy has invalid UV geometry")
+	else:
+		var expected_uv := PackedVector2Array([
+			Vector2(0.0, 0.0),
+			Vector2(mask_size.x, 0.0),
+			Vector2(mask_size.x, mask_size.y),
+			Vector2(0.0, mask_size.y),
+		])
+		for uv_index in range(expected_uv.size()):
+			if proxy.uv[uv_index].distance_to(expected_uv[uv_index]) > 0.01:
+				failures.append("Universal monster shadow samples only a fragment of its mask texture")
+				break
 
 
 func _validate_offscreen_activation(monster: Node, player: Node2D) -> void:
