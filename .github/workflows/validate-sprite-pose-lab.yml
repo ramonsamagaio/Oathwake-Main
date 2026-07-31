@@ -1,0 +1,51 @@
+name: Validate SpritePoseLab
+
+on:
+  push:
+    paths:
+      - "tools/sprite_pose_lab/**"
+      - ".github/workflows/validate-sprite-pose-lab.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.6
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "https://godot-releases.nbg1.your-objectstorage.com/4.6-stable/Godot_v4.6-stable_linux.x86_64.zip" \
+            --output godot.zip
+          unzip -q godot.zip
+          mv Godot_v4.6-stable_linux.x86_64 godot
+          chmod +x godot
+
+      - name: Build isolated validation project
+        shell: bash
+        run: |
+          mkdir -p /tmp/sprite_pose_lab_check/tools
+          cp -R tools/sprite_pose_lab /tmp/sprite_pose_lab_check/tools/
+          cat > /tmp/sprite_pose_lab_check/project.godot <<'EOF'
+          [application]
+          config/name="SpritePoseLab Validation"
+          run/main_scene="res://tools/sprite_pose_lab/scenes/SpritePoseLab.tscn"
+
+          [display]
+          window/size/viewport_width=1280
+          window/size/viewport_height=720
+
+          [rendering]
+          renderer/rendering_method="gl_compatibility"
+          renderer/rendering_method.mobile="gl_compatibility"
+          EOF
+
+      - name: Parse and initialize SpritePoseLab
+        shell: bash
+        run: |
+          ./godot --headless --path /tmp/sprite_pose_lab_check --editor --quit-after 8
