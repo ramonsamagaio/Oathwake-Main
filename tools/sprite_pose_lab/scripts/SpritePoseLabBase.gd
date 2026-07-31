@@ -326,7 +326,7 @@ func build_preview() -> void:
 	viewport.add_child(pose_canvas)
 	pose_canvas.configure(model.canvas_size, model.feet_y)
 	preview.texture = viewport.get_texture()
-	update_preview_size()
+	call("update_preview_size")
 
 
 func build_file_dialog() -> void:
