@@ -25,8 +25,8 @@ var playing := false
 var updating := false
 var file_action := FileAction.NONE
 
-var viewport: SubViewport
-var pose_canvas: Node2D
+var render_viewport: SubViewport
+var pose_canvas
 var preview: TextureRect
 var playback_timer: Timer
 var file_dialog: FileDialog
@@ -34,28 +34,30 @@ var file_dialog: FileDialog
 var direction_option: OptionButton
 var part_option: OptionButton
 var path_label: Label
-var position_x: SpinBox
-var position_y: SpinBox
-var rotation: SpinBox
-var pivot_x: SpinBox
-var pivot_y: SpinBox
-var z_index: SpinBox
-var part_visible: CheckBox
-var snap_integer: CheckBox
+var position_x_spin: SpinBox
+var position_y_spin: SpinBox
+var rotation_spin: SpinBox
+var pivot_x_spin: SpinBox
+var pivot_y_spin: SpinBox
+var z_order_spin: SpinBox
+var part_visible_check: CheckBox
+var snap_integer_check: CheckBox
 var frame_label: Label
-var frame_duration: SpinBox
+var frame_duration_spin: SpinBox
 var fps_spin: SpinBox
-var duration_mode: CheckBox
+var duration_mode_check: CheckBox
 var play_button: Button
 var width_spin: SpinBox
 var height_spin: SpinBox
 var feet_spin: SpinBox
 var zoom_option: OptionButton
-var checker: CheckBox
-var grid: CheckBox
-var axis: CheckBox
-var feet_line: CheckBox
-var onion: CheckBox
+var checker_check: CheckBox
+var grid_check: CheckBox
+var axis_check: CheckBox
+var feet_line_check: CheckBox
+var onion_check: CheckBox
+var pixel_preview_check: CheckBox
+var gizmo_check: CheckBox
 var character_edit: LineEdit
 var animation_edit: LineEdit
 var status_label: Label
@@ -64,9 +66,9 @@ var status_label: Label
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DATA_DIR))
 	model = ModelScript.new()
-	build_interface()
-	build_preview()
-	build_file_dialog()
+	_build_interface()
+	_build_preview()
+	_build_file_dialog()
 	playback_timer = Timer.new()
 	playback_timer.one_shot = true
 	playback_timer.timeout.connect(Callable(self, "on_playback_timeout"))
@@ -86,58 +88,68 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-func build_interface() -> void:
+func _build_interface() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
 	var background := ColorRect.new()
 	background.color = Color(0.035, 0.04, 0.05, 1.0)
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
+
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for side in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_%s" % side, 12)
+	for side_name in ["left", "top", "right", "bottom"]:
+		margin.add_theme_constant_override("margin_%s" % side_name, 12)
 	add_child(margin)
+
 	var root := VBoxContainer.new()
 	root.add_theme_constant_override("separation", 8)
 	margin.add_child(root)
-	root.add_child(build_header())
+	root.add_child(_build_header())
+
 	var split := HSplitContainer.new()
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	split.split_offset = 300
 	root.add_child(split)
-	var left := panel(build_transform_panel())
-	left.custom_minimum_size.x = 290
-	split.add_child(left)
+
+	var left_panel := _panel(_build_transform_panel())
+	left_panel.custom_minimum_size.x = 290
+	split.add_child(left_panel)
+
 	var inner := HSplitContainer.new()
 	inner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inner.split_offset = 760
 	split.add_child(inner)
-	inner.add_child(panel(build_preview_panel()))
-	var right := panel(build_file_panel())
-	right.custom_minimum_size.x = 270
-	inner.add_child(right)
-	root.add_child(build_timeline())
+	inner.add_child(_panel(_build_preview_panel()))
+
+	var right_panel := _panel(_build_file_panel())
+	right_panel.custom_minimum_size.x = 270
+	inner.add_child(right_panel)
+	root.add_child(_build_timeline())
 
 
-func build_header() -> Control:
+func _build_header() -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	var title := Label.new()
 	title.text = "SPRITE POSE LAB"
 	title.add_theme_font_size_override("font_size", 20)
 	row.add_child(title)
+
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
-	row.add_child(make_label("Personagem"))
+
+	row.add_child(_make_label("Personagem"))
 	character_edit = LineEdit.new()
 	character_edit.text = "player"
 	character_edit.custom_minimum_size.x = 130
 	character_edit.text_changed.connect(Callable(self, "on_character_name_changed"))
 	row.add_child(character_edit)
-	row.add_child(make_label("Animação"))
+
+	row.add_child(_make_label("Animação"))
 	animation_edit = LineEdit.new()
 	animation_edit.text = "run"
 	animation_edit.custom_minimum_size.x = 130
@@ -146,190 +158,224 @@ func build_header() -> Control:
 	return row
 
 
-func build_transform_panel() -> Control:
+func _build_transform_panel() -> Control:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 7)
-	column.add_child(section_label("CONJUNTO DE PARTES"))
+	column.add_child(_section_label("CONJUNTO DE PARTES"))
+
 	direction_option = OptionButton.new()
-	for text in DIR_LABELS:
-		direction_option.add_item(text)
+	for direction_label in DIR_LABELS:
+		direction_option.add_item(direction_label)
 	direction_option.item_selected.connect(Callable(self, "on_direction_selected"))
-	column.add_child(labeled("Direção", direction_option))
+	column.add_child(_labeled("Direção", direction_option))
+
 	part_option = OptionButton.new()
-	for text in PART_LABELS:
-		part_option.add_item(text)
+	for part_label in PART_LABELS:
+		part_option.add_item(part_label)
 	part_option.item_selected.connect(Callable(self, "on_part_selected"))
-	column.add_child(labeled("Membro", part_option))
+	column.add_child(_labeled("Membro", part_option))
+
 	var texture_row := HBoxContainer.new()
-	texture_row.add_child(make_button("Carregar PNG", Callable(self, "request_load_part")))
-	texture_row.add_child(make_button("Limpar", Callable(self, "clear_part_texture")))
+	texture_row.add_child(_make_button("Carregar PNG", Callable(self, "request_load_part")))
+	texture_row.add_child(_make_button("Limpar", Callable(self, "clear_part_texture")))
 	column.add_child(texture_row)
+
 	path_label = Label.new()
 	path_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	path_label.modulate = Color(0.72, 0.76, 0.82)
 	column.add_child(path_label)
 	column.add_child(HSeparator.new())
-	column.add_child(section_label("TRANSFORM DA POSE"))
+	column.add_child(_section_label("TRANSFORM DA POSE"))
+
 	var transform_grid := GridContainer.new()
 	transform_grid.columns = 2
-	position_x = add_spin_row(transform_grid, "Posição X", -2048, 2048, 1)
-	position_y = add_spin_row(transform_grid, "Posição Y", -2048, 2048, 1)
-	rotation = add_spin_row(transform_grid, "Rotação", -360, 360, 1)
-	rotation.suffix = "°"
-	pivot_x = add_spin_row(transform_grid, "Pivô X", -2048, 2048, 1)
-	pivot_y = add_spin_row(transform_grid, "Pivô Y", -2048, 2048, 1)
-	z_index = add_spin_row(transform_grid, "Ordem Z", -4096, 4096, 1)
+	position_x_spin = _add_spin_row(transform_grid, "Posição X", -2048, 2048, 1)
+	position_y_spin = _add_spin_row(transform_grid, "Posição Y", -2048, 2048, 1)
+	rotation_spin = _add_spin_row(transform_grid, "Rotação", -360, 360, 1)
+	rotation_spin.suffix = "°"
+	pivot_x_spin = _add_spin_row(transform_grid, "Pivô X", -2048, 2048, 1)
+	pivot_y_spin = _add_spin_row(transform_grid, "Pivô Y", -2048, 2048, 1)
+	z_order_spin = _add_spin_row(transform_grid, "Ordem Z", -4096, 4096, 1)
 	column.add_child(transform_grid)
-	for control in [position_x, position_y, rotation, pivot_x, pivot_y, z_index]:
-		control.value_changed.connect(Callable(self, "on_transform_changed"))
-	part_visible = make_check("Membro visível", true)
-	part_visible.toggled.connect(Callable(self, "on_visibility_changed"))
-	column.add_child(part_visible)
-	snap_integer = make_check("Snap para pixels inteiros", true)
-	snap_integer.toggled.connect(Callable(self, "on_snap_changed"))
-	column.add_child(snap_integer)
-	column.add_child(make_button("Resetar pose deste frame", Callable(self, "reset_current_pose")))
+
+	for transform_control in [position_x_spin, position_y_spin, rotation_spin, pivot_x_spin, pivot_y_spin, z_order_spin]:
+		transform_control.value_changed.connect(Callable(self, "on_transform_changed"))
+
+	part_visible_check = _make_check("Membro visível", true)
+	part_visible_check.toggled.connect(Callable(self, "on_visibility_changed"))
+	column.add_child(part_visible_check)
+
+	snap_integer_check = _make_check("Snap para pixels inteiros", true)
+	snap_integer_check.toggled.connect(Callable(self, "on_snap_changed"))
+	column.add_child(snap_integer_check)
+
+	column.add_child(_make_button("Resetar pose deste frame", Callable(self, "reset_current_pose")))
+
 	var note := Label.new()
-	note.text = "Esquerda e direita são anatômicas. A sobreposição é definida pelo Z."
+	note.text = "Gizmo: verde move, vermelho gira e amarelo edita o pivô. Quando o verde e o amarelo coincidirem, use Alt + arrastar para mover o pivô."
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.modulate = Color(0.62, 0.66, 0.72)
 	column.add_child(note)
 	return column
 
 
-func build_preview_panel() -> Control:
+func _build_preview_panel() -> Control:
 	var column := VBoxContainer.new()
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_theme_constant_override("separation", 7)
+
 	var settings := HBoxContainer.new()
-	width_spin = make_spin(1, 2048, 1)
+	width_spin = _make_spin(1, 2048, 1)
 	width_spin.value = 64
-	height_spin = make_spin(1, 2048, 1)
+	height_spin = _make_spin(1, 2048, 1)
 	height_spin.value = 64
-	feet_spin = make_spin(0, 2047, 1)
+	feet_spin = _make_spin(0, 2047, 1)
 	feet_spin.value = 60
-	for control in [width_spin, height_spin, feet_spin]:
-		control.custom_minimum_size.x = 75
-		control.value_changed.connect(Callable(self, "on_canvas_settings_changed"))
-	settings.add_child(make_label("Canvas"))
+	for canvas_control in [width_spin, height_spin, feet_spin]:
+		canvas_control.custom_minimum_size.x = 75
+		canvas_control.value_changed.connect(Callable(self, "on_canvas_settings_changed"))
+	settings.add_child(_make_label("Canvas"))
 	settings.add_child(width_spin)
-	settings.add_child(make_label("×"))
+	settings.add_child(_make_label("×"))
 	settings.add_child(height_spin)
-	settings.add_child(make_label("Pés"))
+	settings.add_child(_make_label("Pés"))
 	settings.add_child(feet_spin)
+
 	zoom_option = OptionButton.new()
-	for zoom in range(1, 13):
-		zoom_option.add_item("%dx" % zoom, zoom)
+	for zoom_value in range(1, 13):
+		zoom_option.add_item("%dx" % zoom_value, zoom_value)
 	zoom_option.select(5)
 	zoom_option.item_selected.connect(Callable(self, "on_zoom_selected"))
-	settings.add_child(make_label("Zoom"))
+	settings.add_child(_make_label("Zoom"))
 	settings.add_child(zoom_option)
 	column.add_child(settings)
+
 	var guide_row := HBoxContainer.new()
-	checker = make_check("Quadriculado", true)
-	grid = make_check("Grade", false)
-	axis = make_check("Eixo", true)
-	feet_line = make_check("Linha dos pés", true)
-	onion = make_check("Onion skin", false)
-	for control in [checker, grid, axis, feet_line, onion]:
-		control.toggled.connect(Callable(self, "on_guides_changed"))
-		guide_row.add_child(control)
+	checker_check = _make_check("Quadriculado", true)
+	grid_check = _make_check("Grade", false)
+	axis_check = _make_check("Eixo", true)
+	feet_line_check = _make_check("Linha dos pés", true)
+	onion_check = _make_check("Onion skin", false)
+	for guide_control in [checker_check, grid_check, axis_check, feet_line_check, onion_check]:
+		guide_control.toggled.connect(Callable(self, "on_guides_changed"))
+		guide_row.add_child(guide_control)
 	column.add_child(guide_row)
+
+	var mode_row := HBoxContainer.new()
+	pixel_preview_check = _make_check("Raster pixel-perfect", true)
+	pixel_preview_check.tooltip_text = "Renderiza na resolução nativa e aproxima o resultado à grade de pixels sem alterar o PNG original."
+	pixel_preview_check.toggled.connect(Callable(self, "on_pixel_preview_changed"))
+	mode_row.add_child(pixel_preview_check)
+	gizmo_check = _make_check("Gizmo", true)
+	gizmo_check.toggled.connect(Callable(self, "on_gizmo_changed"))
+	mode_row.add_child(gizmo_check)
+	column.add_child(mode_row)
+
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	column.add_child(scroll)
+
 	var center := CenterContainer.new()
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.add_child(center)
+
 	preview = TextureRect.new()
 	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	preview.stretch_mode = TextureRect.STRETCH_SCALE
 	preview.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview.mouse_filter = Control.MOUSE_FILTER_STOP
+	preview.gui_input.connect(Callable(self, "on_preview_gui_input"))
 	center.add_child(preview)
 	return column
 
 
-func build_file_panel() -> Control:
+func _build_file_panel() -> Control:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 7)
-	column.add_child(section_label("POSES E CICLOS"))
-	column.add_child(make_button("Salvar pose JSON", Callable(self, "request_save_pose")))
-	column.add_child(make_button("Carregar pose JSON", Callable(self, "request_load_pose")))
-	column.add_child(make_button("Salvar ciclo JSON", Callable(self, "request_save_cycle")))
-	column.add_child(make_button("Carregar ciclo JSON", Callable(self, "request_load_cycle")))
+	column.add_child(_section_label("POSES E CICLOS"))
+	column.add_child(_make_button("Salvar pose JSON", Callable(self, "request_save_pose")))
+	column.add_child(_make_button("Carregar pose JSON", Callable(self, "request_load_pose")))
+	column.add_child(_make_button("Salvar ciclo JSON", Callable(self, "request_save_cycle")))
+	column.add_child(_make_button("Carregar ciclo JSON", Callable(self, "request_load_cycle")))
 	column.add_child(HSeparator.new())
-	column.add_child(section_label("EXPORTAÇÃO"))
-	column.add_child(make_button("Exportar frame atual", Callable(self, "request_export_frame")))
-	column.add_child(make_button("Exportar frames separados", Callable(self, "request_export_all")))
-	column.add_child(make_button("Exportar sprite sheet", Callable(self, "request_export_sheet")))
+	column.add_child(_section_label("EXPORTAÇÃO"))
+	column.add_child(_make_button("Exportar frame atual", Callable(self, "request_export_frame")))
+	column.add_child(_make_button("Exportar frames separados", Callable(self, "request_export_all")))
+	column.add_child(_make_button("Exportar sprite sheet", Callable(self, "request_export_sheet")))
 	column.add_child(HSeparator.new())
+
 	status_label = Label.new()
 	status_label.text = "Pronto. Os blocos coloridos são placeholders."
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(status_label)
+
 	var note := Label.new()
-	note.text = "PNG RGBA, canvas fixo, filtro Nearest e nenhuma interpolação automática."
+	note.text = "O PNG original nunca é alterado. O preview e a exportação são snapshots rasterizados no canvas nativo."
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.modulate = Color(0.62, 0.66, 0.72)
 	column.add_child(note)
 	return column
 
 
-func build_timeline() -> Control:
+func _build_timeline() -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
-	row.add_child(make_button("◀", Callable(self, "previous_frame")))
+	row.add_child(_make_button("◀", Callable(self, "previous_frame")))
 	frame_label = Label.new()
 	frame_label.custom_minimum_size.x = 110
 	frame_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	row.add_child(frame_label)
-	row.add_child(make_button("▶", Callable(self, "next_frame")))
-	row.add_child(make_button("+ Frame", Callable(self, "add_frame")))
-	row.add_child(make_button("Duplicar", Callable(self, "duplicate_frame")))
-	row.add_child(make_button("Remover", Callable(self, "remove_frame")))
+	row.add_child(_make_button("▶", Callable(self, "next_frame")))
+	row.add_child(_make_button("+ Frame", Callable(self, "add_frame")))
+	row.add_child(_make_button("Duplicar", Callable(self, "duplicate_frame")))
+	row.add_child(_make_button("Remover", Callable(self, "remove_frame")))
+
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
-	duration_mode = make_check("Duração por frame", false)
-	duration_mode.toggled.connect(Callable(self, "on_duration_mode_changed"))
-	row.add_child(duration_mode)
-	frame_duration = make_spin(0.01, 10, 0.01)
-	frame_duration.suffix = " s"
-	frame_duration.value_changed.connect(Callable(self, "on_frame_duration_changed"))
-	row.add_child(frame_duration)
-	row.add_child(make_label("FPS"))
-	fps_spin = make_spin(1, 60, 0.5)
+
+	duration_mode_check = _make_check("Duração por frame", false)
+	duration_mode_check.toggled.connect(Callable(self, "on_duration_mode_changed"))
+	row.add_child(duration_mode_check)
+	frame_duration_spin = _make_spin(0.01, 10, 0.01)
+	frame_duration_spin.suffix = " s"
+	frame_duration_spin.value_changed.connect(Callable(self, "on_frame_duration_changed"))
+	row.add_child(frame_duration_spin)
+	row.add_child(_make_label("FPS"))
+	fps_spin = _make_spin(1, 60, 0.5)
 	fps_spin.value_changed.connect(Callable(self, "on_fps_changed"))
 	row.add_child(fps_spin)
-	play_button = make_button("Reproduzir", Callable(self, "toggle_playback"))
+	play_button = _make_button("Reproduzir", Callable(self, "toggle_playback"))
 	row.add_child(play_button)
-	return panel(row)
+	return _panel(row)
 
 
-func build_preview() -> void:
-	viewport = SubViewport.new()
-	viewport.name = "PoseRenderViewport"
-	viewport.size = model.canvas_size
-	viewport.transparent_bg = true
-	viewport.disable_3d = true
-	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	viewport.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
-	add_child(viewport)
+func _build_preview() -> void:
+	render_viewport = SubViewport.new()
+	render_viewport.name = "PoseRenderViewport"
+	render_viewport.size = model.canvas_size
+	render_viewport.transparent_bg = true
+	render_viewport.disable_3d = true
+	render_viewport.msaa_2d = Viewport.MSAA_DISABLED
+	render_viewport.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
+	render_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	render_viewport.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+	add_child(render_viewport)
+
 	pose_canvas = CanvasScript.new()
 	pose_canvas.name = "PoseCanvas"
-	viewport.add_child(pose_canvas)
+	render_viewport.add_child(pose_canvas)
 	pose_canvas.configure(model.canvas_size, model.feet_y)
-	preview.texture = viewport.get_texture()
+	preview.texture = render_viewport.get_texture()
 	call("update_preview_size")
 
 
-func build_file_dialog() -> void:
+func _build_file_dialog() -> void:
 	file_dialog = FileDialog.new()
 	file_dialog.access = FileDialog.ACCESS_FILESYSTEM
 	file_dialog.use_native_dialog = false
@@ -339,67 +385,67 @@ func build_file_dialog() -> void:
 	add_child(file_dialog)
 
 
-func panel(content: Control) -> PanelContainer:
+func _panel(content: Control) -> PanelContainer:
 	var result := PanelContainer.new()
 	var margin := MarginContainer.new()
-	for side in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_%s" % side, 10)
+	for side_name in ["left", "top", "right", "bottom"]:
+		margin.add_theme_constant_override("margin_%s" % side_name, 10)
 	result.add_child(margin)
 	margin.add_child(content)
 	return result
 
 
-func make_label(text: String) -> Label:
+func _make_label(label_text: String) -> Label:
 	var result := Label.new()
-	result.text = text
+	result.text = label_text
 	return result
 
 
-func section_label(text: String) -> Label:
-	var result := make_label(text)
+func _section_label(label_text: String) -> Label:
+	var result := _make_label(label_text)
 	result.add_theme_font_size_override("font_size", 14)
 	result.modulate = Color(0.86, 0.9, 0.95)
 	return result
 
 
-func labeled(text: String, control: Control) -> Control:
+func _labeled(label_text: String, control: Control) -> Control:
 	var result := VBoxContainer.new()
-	result.add_child(make_label(text))
+	result.add_child(_make_label(label_text))
 	result.add_child(control)
 	return result
 
 
-func make_spin(minimum: float, maximum: float, step: float) -> SpinBox:
+func _make_spin(minimum: float, maximum: float, step_value: float) -> SpinBox:
 	var result := SpinBox.new()
 	result.min_value = minimum
 	result.max_value = maximum
-	result.step = step
+	result.step = step_value
 	result.allow_greater = false
 	result.allow_lesser = false
 	return result
 
 
-func add_spin_row(parent: GridContainer, text: String, minimum: float, maximum: float, step: float) -> SpinBox:
-	var result := make_spin(minimum, maximum, step)
-	parent.add_child(make_label(text))
+func _add_spin_row(parent: GridContainer, label_text: String, minimum: float, maximum: float, step_value: float) -> SpinBox:
+	var result := _make_spin(minimum, maximum, step_value)
+	parent.add_child(_make_label(label_text))
 	parent.add_child(result)
 	return result
 
 
-func make_check(text: String, pressed: bool) -> CheckBox:
+func _make_check(label_text: String, pressed: bool) -> CheckBox:
 	var result := CheckBox.new()
-	result.text = text
+	result.text = label_text
 	result.button_pressed = pressed
 	return result
 
 
-func make_button(text: String, callback: Callable) -> Button:
+func _make_button(label_text: String, callback: Callable) -> Button:
 	var result := Button.new()
-	result.text = text
+	result.text = label_text
 	result.pressed.connect(callback)
 	return result
 
 
-func set_status(text: String, error: bool = false) -> void:
-	status_label.text = text
-	status_label.modulate = Color(1.0, 0.48, 0.42) if error else Color(0.78, 0.86, 0.8)
+func set_status(message: String, is_error: bool = false) -> void:
+	status_label.text = message
+	status_label.modulate = Color(1.0, 0.48, 0.42) if is_error else Color(0.78, 0.86, 0.8)
