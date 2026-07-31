@@ -2,62 +2,62 @@
 	"default": {
 		"acceleration": 600.0,
 		"attack_buffer_window": 0.32,
+		"camera": {
+			"default_zoom": 2.0,
+			"maximum_zoom": 3.25,
+			"minimum_zoom": 1.25,
+			"wheel_zoom_enabled": true,
+			"zoom_smoothing_speed": 10.0,
+			"zoom_step": 0.15
+		},
 		"character_id": "test_template_player",
 		"dash_cooldown": 0.34,
 		"dash_duration": 0.14,
-		"dash_smoke_end_count": 2,
+		"dash_smoke_end_count": 2.0,
 		"dash_smoke_interval": 0.035,
-		"dash_smoke_start_count": 2,
+		"dash_smoke_start_count": 2.0,
 		"dash_speed": 430.0,
 		"deceleration": 2000.0,
+		"depth_sort_offset_y": 0.0,
+		"display": {
+			"borderless_fullscreen_on_start": false
+		},
 		"invulnerability_blink_interval": 0.09,
-		"run_speed": 120.0,
+		"light": {
+			"aura_alpha": 0.3,
+			"aura_intensity": 0.75,
+			"aura_scale": 0.44,
+			"blur": 1.25,
+			"color": "#afcbffff",
+			"day_multiplier": 0.0,
+			"emission": 0.85,
+			"enabled": true,
+			"night_multiplier": 1.0,
+			"offset": {
+				"x": 0.0,
+				"y": 6.0
+			},
+			"perspective_angle_degrees": 50.0,
+			"radius_scale": 1.2,
+			"visual_aura_enabled": true
+		},
+		"run_speed": 140.0,
 		"run_stop_slide_strength": 0.5,
 		"run_stop_slide_time": 0.18,
+		"shadow": {
+			"enabled": true,
+			"offset": {
+				"x": 0.0,
+				"y": 0.0
+			},
+			"opacity": 0.3,
+			"z_index": -1.0
+		},
 		"smoke_puff_cooldown": 0.28,
 		"smoke_puff_enabled": true,
 		"visual_offset_x": 0.0,
 		"visual_offset_y": -8.0,
 		"visual_scale": 1.55,
-		"walk_speed": 70.0,
-		"depth_sort_offset_y": 0.0,
-		"shadow": {
-			"enabled": true,
-			"opacity": 0.3,
-			"offset": {
-				"x": 0.0,
-				"y": 0.0
-			},
-			"z_index": -1
-		},
-		"light": {
-			"enabled": true,
-			"visual_aura_enabled": true,
-			"color": "#AFCBFFFF",
-			"aura_intensity": 0.75,
-			"aura_alpha": 0.3,
-			"aura_scale": 0.44,
-			"blur": 1.25,
-			"emission": 0.85,
-			"radius_scale": 1.2,
-			"perspective_angle_degrees": 50.0,
-			"day_multiplier": 0.0,
-			"night_multiplier": 1.0,
-			"offset": {
-				"x": 0.0,
-				"y": 6.0
-			}
-		},
-		"camera": {
-			"wheel_zoom_enabled": true,
-			"default_zoom": 2.0,
-			"minimum_zoom": 1.25,
-			"maximum_zoom": 3.25,
-			"zoom_step": 0.15,
-			"zoom_smoothing_speed": 10.0
-		},
-		"display": {
-			"borderless_fullscreen_on_start": false
-		}
+		"walk_speed": 70.0
 	}
 }
