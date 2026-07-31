@@ -1,0 +1,28 @@
+{
+  "format": "oathwake_sprite_pose_cycle",
+  "format_version": 1,
+  "character": "player",
+  "animation": "walk_example",
+  "canvas": {"width": 64, "height": 64, "feet_y": 60},
+  "playback": {"fps": 8.0, "use_frame_durations": false},
+  "part_library": {
+    "south": {"head": "", "torso": "", "left_arm": "", "right_arm": "", "left_leg": "", "right_leg": ""},
+    "north": {"head": "", "torso": "", "left_arm": "", "right_arm": "", "left_leg": "", "right_leg": ""},
+    "east": {"head": "", "torso": "", "left_arm": "", "right_arm": "", "left_leg": "", "right_leg": ""},
+    "west": {"head": "", "torso": "", "left_arm": "", "right_arm": "", "left_leg": "", "right_leg": ""}
+  },
+  "frames": [
+    {
+      "direction": "south",
+      "duration": 0.125,
+      "parts": {
+        "head": {"position": [0, -18], "rotation_degrees": 0, "pivot": [0, 0], "z_index": 5, "visible": true},
+        "torso": {"position": [0, 0], "rotation_degrees": 0, "pivot": [0, 0], "z_index": 3, "visible": true},
+        "left_arm": {"position": [-11, 0], "rotation_degrees": 0, "pivot": [0, 0], "z_index": 4, "visible": true},
+        "right_arm": {"position": [11, 0], "rotation_degrees": 0, "pivot": [0, 0], "z_index": 2, "visible": true},
+        "left_leg": {"position": [-4, 17], "rotation_degrees": 0, "pivot": [0, 0], "z_index": 1, "visible": true},
+        "right_leg": {"position": [4, 17], "rotation_degrees": 0, "pivot": [0, 0], "z_index": 0, "visible": true}
+      }
+    }
+  ]
+}
