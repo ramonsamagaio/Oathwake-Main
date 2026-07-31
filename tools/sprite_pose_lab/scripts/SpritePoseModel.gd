@@ -150,7 +150,7 @@ func canvas_document() -> Dictionary:
 
 
 func apply_canvas_document(value: Variant) -> void:
-	if not (value is Dictionary):
+	if value is not Dictionary:
 		return
 	canvas_size = Vector2i(
 		clampi(int(value.get("width", 64)), 1, 2048),
@@ -160,7 +160,7 @@ func apply_canvas_document(value: Variant) -> void:
 
 
 func apply_pose_document(data: Dictionary, frame_index: int) -> bool:
-	if not data.get("frame", null) is Dictionary:
+	if data.get("frame", null) is not Dictionary:
 		return false
 	var frame := normalize_frame(data["frame"])
 	frames[frame_index] = frame
@@ -172,7 +172,7 @@ func apply_pose_document(data: Dictionary, frame_index: int) -> bool:
 
 
 func apply_cycle_document(data: Dictionary) -> bool:
-	if not data.get("frames", null) is Array:
+	if data.get("frames", null) is not Array:
 		return false
 	var loaded_frames: Array = []
 	for frame_data in data["frames"]:
