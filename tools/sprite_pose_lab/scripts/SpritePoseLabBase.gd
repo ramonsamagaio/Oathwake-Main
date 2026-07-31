@@ -77,13 +77,16 @@ func _ready() -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if not event.pressed or event.echo:
+	if not (event is InputEventKey):
 		return
-	if event.keycode == KEY_LEFT:
+	var key_event := event as InputEventKey
+	if not key_event.pressed or key_event.echo:
+		return
+	if key_event.keycode == KEY_LEFT:
 		call("step_frame", -1)
-	elif event.keycode == KEY_RIGHT:
+	elif key_event.keycode == KEY_RIGHT:
 		call("step_frame", 1)
-	elif event.keycode == KEY_SPACE:
+	elif key_event.keycode == KEY_SPACE:
 		call("toggle_playback")
 		get_viewport().set_input_as_handled()
 
