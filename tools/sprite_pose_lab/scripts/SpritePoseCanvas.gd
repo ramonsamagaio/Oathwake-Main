@@ -162,7 +162,7 @@ func _build_nodes() -> void:
 func _build_gizmo() -> void:
 	_gizmo_root = Node2D.new()
 	_gizmo_root.name = "Gizmo"
-	_gizmo_root.z_index = 32000
+	_gizmo_root.z_index = 4095
 	add_child(_gizmo_root)
 
 	_bounds_lines = Line2D.new()
