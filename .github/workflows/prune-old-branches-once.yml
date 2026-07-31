@@ -1,0 +1,71 @@
+name: Prune old branches once
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/branch-cleanup-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Delete branches untouched for more than five days
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          cutoff_epoch="$(date -u -d '5 days ago' +%s)"
+          deleted=()
+          kept=()
+
+          while IFS= read -r remote_ref; do
+            branch="${remote_ref#origin/}"
+
+            case "$branch" in
+              HEAD|main)
+                continue
+                ;;
+            esac
+
+            tip_epoch="$(git show -s --format=%ct "refs/remotes/origin/$branch")"
+            tip_iso="$(git show -s --format=%cI "refs/remotes/origin/$branch")"
+
+            if (( tip_epoch < cutoff_epoch )); then
+              echo "Deleting $branch (last commit: $tip_iso)"
+              git push origin --delete "$branch"
+              deleted+=("$branch|$tip_iso")
+            else
+              kept+=("$branch|$tip_iso")
+            fi
+          done < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin | sort)
+
+          {
+            echo '## Branch cleanup'
+            echo
+            echo "Cutoff: $(date -u -d '@'"$cutoff_epoch" +'%Y-%m-%dT%H:%M:%SZ')"
+            echo
+            echo '### Deleted'
+            if ((${#deleted[@]} == 0)); then
+              echo '- None'
+            else
+              for entry in "${deleted[@]}"; do
+                echo "- \`${entry%%|*}\` — ${entry#*|}"
+              done
+            fi
+            echo
+            echo '### Preserved'
+            for entry in "${kept[@]}"; do
+              echo "- \`${entry%%|*}\` — ${entry#*|}"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
