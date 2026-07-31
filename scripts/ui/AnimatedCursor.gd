@@ -10,27 +10,39 @@ const CURSOR_FRAMES := [
 const CURSOR_SEQUENCE := [0, 1, 2, 3, 2, 1]
 const CURSOR_INTERVAL := 0.1
 const MAX_CURSOR_DIMENSION := 64
-const HOTSPOT_ALPHA_THRESHOLDS := [0.60, 0.25, 0.08]
-const FALLBACK_HOTSPOT := Vector2(8.0, 2.0)
+const AUTHORED_HOTSPOT := Vector2(8.0, 2.0)
+const SOFTWARE_CURSOR_LAYER := 4096
 
 var _frames: Array[Texture2D] = []
 var _sequence: Array[int] = []
 var _sequence_index := 0
 var _timer: Timer
-var _cursor_hotspot := FALLBACK_HOTSPOT
+var _cursor_hotspot := AUTHORED_HOTSPOT
+var _cursor_layer: CanvasLayer
+var _cursor_sprite: Sprite2D
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_load_frames()
 	_build_sequence()
-	_detect_shared_hotspot()
+	_apply_authored_hotspot()
+	_create_software_cursor()
 	_apply_current_cursor()
 	_start_timer()
+	set_process(true)
+
+
+func _process(_delta: float) -> void:
+	if _cursor_sprite == null or not is_instance_valid(_cursor_sprite):
+		return
+	_cursor_sprite.position = get_viewport().get_mouse_position() - _cursor_hotspot
+	_cursor_sprite.visible = get_window() == null or get_window().has_focus()
 
 
 func _exit_tree() -> void:
-	Input.set_custom_mouse_cursor(null, Input.CURSOR_ARROW, Vector2.ZERO)
+	if not _is_headless_display():
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func _load_frames() -> void:
@@ -68,39 +80,33 @@ func _add_sequence_values(values: Array) -> void:
 		_sequence.append(int(value))
 
 
-func _detect_shared_hotspot() -> void:
-	_cursor_hotspot = FALLBACK_HOTSPOT
+func _apply_authored_hotspot() -> void:
+	_cursor_hotspot = AUTHORED_HOTSPOT
 	if _frames.is_empty():
 		return
-	var detected := _detect_visible_tip(_frames[0])
 	var texture := _frames[0]
 	_cursor_hotspot = Vector2(
-		clampf(detected.x, 0.0, float(maxi(texture.get_width() - 1, 0))),
-		clampf(detected.y, 0.0, float(maxi(texture.get_height() - 1, 0)))
+		clampf(AUTHORED_HOTSPOT.x, 0.0, float(maxi(texture.get_width() - 1, 0))),
+		clampf(AUTHORED_HOTSPOT.y, 0.0, float(maxi(texture.get_height() - 1, 0)))
 	)
 
 
-func _detect_visible_tip(texture: Texture2D) -> Vector2:
-	if texture == null:
-		return FALLBACK_HOTSPOT
-	var image := texture.get_image()
-	if image == null or image.is_empty():
-		return FALLBACK_HOTSPOT
-	var image_size := image.get_size()
-	for threshold_value in HOTSPOT_ALPHA_THRESHOLDS:
-		var threshold := float(threshold_value)
-		for y in range(image_size.y):
-			var weighted_x := 0.0
-			var alpha_total := 0.0
-			for x in range(image_size.x):
-				var alpha := image.get_pixel(x, y).a
-				if alpha < threshold:
-					continue
-				weighted_x += float(x) * alpha
-				alpha_total += alpha
-			if alpha_total > 0.0:
-				return Vector2(roundf(weighted_x / alpha_total), float(y))
-	return FALLBACK_HOTSPOT
+func _create_software_cursor() -> void:
+	if _is_headless_display() or _frames.is_empty():
+		return
+	_cursor_layer = CanvasLayer.new()
+	_cursor_layer.name = "AnimatedCursorLayer"
+	_cursor_layer.layer = SOFTWARE_CURSOR_LAYER
+	add_child(_cursor_layer)
+
+	_cursor_sprite = Sprite2D.new()
+	_cursor_sprite.name = "AnimatedCursorSprite"
+	_cursor_sprite.centered = false
+	_cursor_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_cursor_sprite.z_index = 1
+	_cursor_sprite.position = get_viewport().get_mouse_position() - _cursor_hotspot
+	_cursor_layer.add_child(_cursor_sprite)
+	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 
 
 func get_cursor_hotspot() -> Vector2:
@@ -112,7 +118,7 @@ func _start_timer() -> void:
 		_timer.queue_free()
 		_timer = null
 
-	if _sequence.size() <= 1:
+	if _sequence.size() <= 1 or _cursor_sprite == null:
 		return
 
 	_timer = Timer.new()
@@ -131,7 +137,7 @@ func _advance_cursor_frame() -> void:
 
 
 func _apply_current_cursor() -> void:
-	if _frames.is_empty() or _sequence.is_empty():
+	if _cursor_sprite == null or not is_instance_valid(_cursor_sprite) or _frames.is_empty() or _sequence.is_empty():
 		return
 	var frame_index := _sequence[_sequence_index]
 	if frame_index < 0 or frame_index >= _frames.size():
@@ -139,4 +145,8 @@ func _apply_current_cursor() -> void:
 	var texture := _frames[frame_index]
 	if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
 		return
-	Input.set_custom_mouse_cursor(texture, Input.CURSOR_ARROW, _cursor_hotspot)
+	_cursor_sprite.texture = texture
+
+
+func _is_headless_display() -> bool:
+	return DisplayServer.get_name().to_lower() == "headless"

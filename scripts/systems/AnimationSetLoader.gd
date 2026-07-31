@@ -42,6 +42,7 @@ func load_from_animation_set_id(animation_set_id: String) -> SpriteFrames:
 		push_warning("AnimationSetLoader could not find animation_set_id: %s" % animation_set_id)
 		return sprite_frames
 
+	_publish_animation_anchor(sprite_frames, animation_set_data)
 	var fallback_sprite_sheet_id := str(animation_set_data.get("sprite_sheet_id", ""))
 	var animations_value: Variant = animation_set_data.get("animations", {})
 	if not (animations_value is Dictionary):
@@ -70,6 +71,24 @@ func load_from_animation_set_id(animation_set_id: String) -> SpriteFrames:
 		)
 
 	return sprite_frames
+
+
+func _publish_animation_anchor(sprite_frames: SpriteFrames, animation_set_data: Dictionary) -> void:
+	var anchor_value: Variant = animation_set_data.get("anchor", {})
+	if not anchor_value is Dictionary:
+		return
+	var anchor_data := anchor_value as Dictionary
+	var anchor := Vector2(
+		float(anchor_data.get("x", 0.0)),
+		float(anchor_data.get("y", 0.0))
+	)
+	if not anchor.is_finite():
+		return
+	# The Content Editor stores anchors in frame-pixel space from the top-left.
+	# Publishing it on SpriteFrames lets every AnimatedSprite2D use the exact same
+	# feet/base pivot without inspecting transparent padding at runtime.
+	sprite_frames.set_meta("shadow_ground_anchor", anchor)
+	sprite_frames.set_meta("animation_anchor", anchor)
 
 
 func _get_sheet_bundle(content_db: Node, sprite_sheet_id: String, cache: Dictionary) -> Dictionary:

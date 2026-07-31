@@ -115,6 +115,11 @@ func _validate_ambience_runtime() -> void:
 	elif not bool(controller.get("_ambience_play_requested")):
 		_failures.append("Forest ambience playback was not requested automatically while the player was on grass.")
 	else:
+		var wav_stream := forest.stream as AudioStreamWAV
+		if wav_stream == null or wav_stream.format != AudioStreamWAV.FORMAT_16_BITS:
+			_failures.append("Forest ambience must remain uncompressed 16-bit PCM to avoid decoder artifacts.")
+		elif wav_stream.loop_end <= wav_stream.loop_begin:
+			_failures.append("Forest ambience loop range must cover a positive portion of the WAV.")
 		var looping := false
 		for property_info in forest.stream.get_property_list():
 			var property_name := str(property_info.get("name", ""))
@@ -128,6 +133,13 @@ func _validate_ambience_runtime() -> void:
 			_failures.append("Forest ambience is not configured to loop continuously.")
 	if not bool(controller.get("_ambience_active")):
 		_failures.append("Terrain-driven ambience never became active during controller processing.")
+	controller.call("apply_mix_values", {
+		"overworld_volume_db": -8.0,
+		"ambience_volume_db": -7.0,
+		"ambience_inactive_volume_db": -80.0,
+	})
+	if not is_equal_approx(forest.volume_db, -7.0):
+		_failures.append("Live mixer changes did not reach the active forest ambience player.")
 
 	controller.queue_free()
 	player.queue_free()

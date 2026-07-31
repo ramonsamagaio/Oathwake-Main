@@ -23,6 +23,10 @@ var _ambience_active := false
 var _ambience_play_requested := false
 
 
+func _ready() -> void:
+	add_to_group("gameplay_audio_controller")
+
+
 func setup(new_world: Node, new_player: Node2D) -> void:
 	world = new_world
 	player = new_player
@@ -53,6 +57,19 @@ func reload_mix() -> void:
 				overworld_volume_db = float(json.data.get("overworld_volume_db", DEFAULT_OVERWORLD_VOLUME_DB))
 				ambience_volume_db = float(json.data.get("ambience_volume_db", DEFAULT_AMBIENCE_VOLUME_DB))
 				ambience_inactive_volume_db = float(json.data.get("ambience_inactive_volume_db", DEFAULT_INACTIVE_VOLUME_DB))
+	_apply_loaded_mix()
+
+
+func apply_mix_values(mix: Dictionary) -> void:
+	overworld_volume_db = float(mix.get("overworld_volume_db", DEFAULT_OVERWORLD_VOLUME_DB))
+	ambience_volume_db = float(mix.get("ambience_volume_db", DEFAULT_AMBIENCE_VOLUME_DB))
+	ambience_inactive_volume_db = float(mix.get(
+		"ambience_inactive_volume_db",
+		DEFAULT_INACTIVE_VOLUME_DB
+	))
+	if _volume_tween != null:
+		_volume_tween.kill()
+		_volume_tween = null
 	_apply_loaded_mix()
 
 
@@ -101,17 +118,18 @@ func _setup_forest_ambience() -> void:
 
 
 func _set_forest_ambience_active(is_active: bool) -> void:
-	if forest_ambience == null or is_active == _ambience_active:
+	if forest_ambience == null:
+		return
+	if is_active and not forest_ambience.playing:
+		# Retry on later terrain checks if the audio device or stream was not ready
+		# when the first playback request happened.
+		_ambience_play_requested = true
+		forest_ambience.play()
+	if is_active == _ambience_active:
 		return
 	_ambience_active = is_active
 	if _volume_tween != null:
 		_volume_tween.kill()
-	if is_active and not forest_ambience.playing:
-		# Record the actual playback request as well as calling play(). Headless CI
-		# has no audio output driver and may report AudioStreamPlayer.playing=false
-		# even after a valid request, while desktop gameplay does start the stream.
-		_ambience_play_requested = true
-		forest_ambience.play()
 	_volume_tween = create_tween()
 	_volume_tween.tween_property(forest_ambience, "volume_db", ambience_volume_db if is_active else ambience_inactive_volume_db, 1.0)
 
@@ -128,16 +146,20 @@ func _load_audio_stream(path: String) -> AudioStream:
 
 
 func _set_stream_loop(stream: Resource, enabled: bool) -> void:
+	if stream is AudioStreamWAV:
+		var wav_stream := stream as AudioStreamWAV
+		if enabled:
+			wav_stream.loop_begin = 0
+			wav_stream.loop_end = maxi(
+				1,
+				int(round(wav_stream.get_length() * float(wav_stream.mix_rate)))
+			)
+		wav_stream.loop_mode = (
+			AudioStreamWAV.LOOP_FORWARD if enabled else AudioStreamWAV.LOOP_DISABLED
+		)
+		return
 	for property_info in stream.get_property_list():
 		var property_name := str(property_info.get("name", ""))
 		if property_name == "loop":
 			stream.set("loop", enabled)
-			return
-		if property_name == "loop_mode":
-			# WAV streams use loop_mode rather than the boolean loop property used
-			# by MP3 streams. Without this branch Forest Day played only once.
-			stream.set(
-				"loop_mode",
-				AudioStreamWAV.LOOP_FORWARD if enabled else AudioStreamWAV.LOOP_DISABLED
-			)
 			return

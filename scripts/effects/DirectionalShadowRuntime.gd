@@ -4,6 +4,40 @@ extends RefCounted
 const ProjectedSpriteShadowScript := preload("res://scripts/effects/PinnedActiveFrameProjectedShadow.gd")
 const DEFAULT_DIRECTION_DEGREES := -45.0
 const DEFAULT_COLOR := Color(0.02, 0.024, 0.035, 1.0)
+const EXCLUDED_SOURCE_NAME_TOKENS := [
+	"shadow",
+	"glow",
+	"aura",
+	"light",
+	"outline",
+	"mask",
+	"fog",
+	"particle",
+	"beam",
+	"shaft",
+	"occlusion",
+	"preview",
+	"highlight",
+	"flash",
+	"spark",
+	"smoke",
+	"trail",
+]
+const EXCLUDED_SOURCE_GROUPS := [
+	"persistent_content_visual",
+	"world_light_emitter",
+	"projected_shadow_caster",
+	"projected_shadow_group",
+]
+const PREFERRED_SOURCE_NAMES := [
+	"animatedsprite2d",
+	"monstersprite",
+	"contentsprite",
+	"bodyvisual",
+	"playervisual",
+	"charactersprite",
+	"sprite2d",
+]
 
 
 static func apply_to_target(
@@ -36,11 +70,16 @@ static func apply_to_target(
 		return shadow
 
 	var source := source_override
-	if source == null or not is_instance_valid(source) or not _is_valid_source(source):
+	if source == null or not is_instance_valid(source) or not _is_valid_source(source, target):
 		source = find_active_visual_source(target)
 	if source == null:
 		shadow.visible = false
+		shadow.set_meta("shadow_source_rejected", true)
 		return shadow
+
+	var pinned_contact := local_foot_offset
+	if not pinned_contact.is_finite():
+		pinned_contact = _visual_contact_in_target(target, source)
 
 	var resolved := config.duplicate(true)
 	for projection_key in ["opacity", "stretch", "direction_degrees", "direction", "color"]:
@@ -57,18 +96,23 @@ static func apply_to_target(
 	if not resolved.has("z_index"):
 		resolved["z_index"] = -1
 	resolved["enabled"] = enabled
+	resolved["contact_pinned"] = true
 
 	if shadow.has_method("configure"):
-		shadow.call("configure", target, source, resolved, local_foot_offset)
+		shadow.call("configure", target, source, resolved, pinned_contact)
 	shadow.set_meta("directional_shadow", true)
 	shadow.set_meta("shadow_bound_source_id", source.get_instance_id())
+	shadow.set_meta("shadow_pinned_contact", pinned_contact)
+	shadow.set_meta("shadow_selected_source_name", str(source.name))
+	shadow.set_meta("shadow_selected_source_path", str(target.get_path_to(source)))
+	shadow.set_meta("shadow_source_rejected", false)
 	return shadow
 
 
 static func apply_to_sprite(sprite: Sprite2D, config: Dictionary = {}) -> Polygon2D:
 	if sprite == null:
 		return null
-	var foot_offset := WorldDepthRuntime.get_sprite_foot_offset(sprite) - sprite.position
+	var foot_offset := _visual_contact_in_target(sprite, sprite)
 	return apply_to_target(sprite, config, WorldDepthRuntime.get_sprite_visual_size(sprite), foot_offset, sprite)
 
 
@@ -90,15 +134,32 @@ static func estimate_target_visual_size(target: Node2D) -> Vector2:
 
 static func estimate_target_foot_offset(target: Node2D) -> Vector2:
 	var visual := find_active_visual_source(target)
+	if visual == null:
+		return Vector2.ZERO
+	return _visual_contact_in_target(target, visual)
+
+
+static func _visual_contact_in_target(target: Node2D, visual: CanvasItem) -> Vector2:
+	if target == null or visual == null or not is_instance_valid(visual):
+		return Vector2.ZERO
+	var visual_node := visual as Node2D
+	if visual_node == null:
+		return Vector2.ZERO
+	var local_contact := _visual_local_contact(visual)
+	if not local_contact.is_finite():
+		return Vector2.ZERO
+	return target.to_local(visual_node.to_global(local_contact))
+
+
+static func _visual_local_contact(visual: CanvasItem) -> Vector2:
 	if visual is Sprite2D:
-		return WorldDepthRuntime.get_sprite_foot_offset(visual as Sprite2D)
+		return WorldDepthRuntime.get_sprite_local_foot_point(visual as Sprite2D)
 	if visual is AnimatedSprite2D:
-		return WorldDepthRuntime.get_animated_sprite_foot_offset(visual as AnimatedSprite2D)
+		return WorldDepthRuntime.get_animated_sprite_local_foot_point(visual as AnimatedSprite2D)
 	if visual is Polygon2D:
-		var polygon := visual as Polygon2D
-		var bounds := _polygon_bounds(polygon)
-		return polygon.position + Vector2(bounds.get_center().x, bounds.end.y)
-	return Vector2(0.0, 16.0)
+		var bounds := _polygon_bounds(visual as Polygon2D)
+		return Vector2(bounds.get_center().x, bounds.end.y)
+	return Vector2.ZERO
 
 
 static func _find_largest_visual(target: Node) -> CanvasItem:
@@ -112,7 +173,7 @@ static func _find_largest_visual(target: Node) -> CanvasItem:
 		var node: Node = queue.pop_front() as Node
 		if node != target:
 			var candidate := node as CanvasItem
-			if candidate != null and _is_valid_source(candidate):
+			if candidate != null and _is_valid_source(candidate, target):
 				var priority := _source_priority(candidate)
 				var size := _visual_size(candidate)
 				var area := size.x * size.y
@@ -123,25 +184,33 @@ static func _find_largest_visual(target: Node) -> CanvasItem:
 		for child in node.get_children():
 			if child is Node:
 				queue.append(child)
-	if best == null and target is CanvasItem and _is_valid_source(target as CanvasItem):
+	if best == null and target is CanvasItem and _is_valid_source(target as CanvasItem, target):
 		best = target as CanvasItem
 	return best
 
 
 static func _source_priority(candidate: CanvasItem) -> int:
+	if bool(candidate.get_meta("directional_shadow_source", false)):
+		return 1000
+	var priority := 0
 	if candidate is AnimatedSprite2D:
-		return 3
-	if candidate is Sprite2D:
-		return 2
-	if candidate is Polygon2D:
-		return 1
-	return 0
+		priority = 300
+	elif candidate is Sprite2D:
+		priority = 200
+	elif candidate is Polygon2D:
+		priority = 100
+	var normalized_name := _normalized_node_name(str(candidate.name))
+	if PREFERRED_SOURCE_NAMES.has(normalized_name):
+		priority += 80
+	elif normalized_name.contains("character") or normalized_name.contains("body") or normalized_name.contains("content"):
+		priority += 40
+	return priority
 
 
-static func _is_valid_source(candidate: CanvasItem) -> bool:
+static func _is_valid_source(candidate: CanvasItem, target: Node = null) -> bool:
 	if candidate == null or not is_instance_valid(candidate) or not candidate.visible:
 		return false
-	if str(candidate.name) == "GroundShadow" or candidate.is_in_group("persistent_content_visual"):
+	if _is_excluded_visual_branch(candidate, target):
 		return false
 	if candidate is Sprite2D:
 		var sprite := candidate as Sprite2D
@@ -163,6 +232,32 @@ static func _is_valid_source(candidate: CanvasItem) -> bool:
 	if candidate is Polygon2D:
 		return not (candidate as Polygon2D).polygon.is_empty()
 	return false
+
+
+static func _is_excluded_visual_branch(candidate: CanvasItem, target: Node = null) -> bool:
+	if candidate == null:
+		return true
+	if candidate.has_meta("directional_shadow_source"):
+		return not bool(candidate.get_meta("directional_shadow_source", false))
+	var node: Node = candidate
+	while node != null:
+		if node == target:
+			break
+		if bool(node.get_meta("exclude_from_directional_shadow", false)):
+			return true
+		for group_name in EXCLUDED_SOURCE_GROUPS:
+			if node.is_in_group(group_name):
+				return true
+		var normalized_name := _normalized_node_name(str(node.name))
+		for token in EXCLUDED_SOURCE_NAME_TOKENS:
+			if normalized_name.contains(token):
+				return true
+		node = node.get_parent()
+	return false
+
+
+static func _normalized_node_name(value: String) -> String:
+	return value.to_lower().replace(" ", "").replace("_", "").replace("-", "")
 
 
 static func _visual_size(candidate: CanvasItem) -> Vector2:

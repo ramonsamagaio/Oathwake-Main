@@ -14,7 +14,7 @@ func _init() -> void:
 func _run() -> void:
 	await _validate_sprite_frame_crop()
 	await _validate_animated_frame_switch()
-	await _validate_animated_atlas_frame_crop()
+	await _validate_animated_atlas_profile_stability()
 	await _validate_runtime_source_choice()
 	await _validate_placeholder_polygon_shadow()
 	await _validate_owner_visibility_lifecycle()
@@ -124,7 +124,7 @@ func _validate_animated_frame_switch() -> void:
 	await process_frame
 
 
-func _validate_animated_atlas_frame_crop() -> void:
+func _validate_animated_atlas_profile_stability() -> void:
 	var sheet_image := Image.create(96, 32, false, Image.FORMAT_RGBA8)
 	sheet_image.fill(Color.TRANSPARENT)
 	for y in range(6, 30):
@@ -145,6 +145,7 @@ func _validate_animated_atlas_frame_crop() -> void:
 	frames.add_frame("walk", first_atlas)
 	frames.add_frame("walk", second_atlas)
 	var target := Node2D.new()
+	target.name = "AnimatedProfileCreature"
 	root.add_child(target)
 	var sprite := AnimatedSprite2D.new()
 	sprite.sprite_frames = frames
@@ -153,20 +154,32 @@ func _validate_animated_atlas_frame_crop() -> void:
 	target.add_child(sprite)
 	var shadow := SHADOW_RUNTIME.apply_to_target(target, {"enabled": true})
 	await process_frame
-	var first_rect: Rect2i = shadow.get_meta("shadow_opaque_rect", Rect2i())
-	if first_rect != Rect2i(Vector2i(4, 6), Vector2i(10, 24)):
-		failures.append("Atlas frame 0 was scanned as the complete sheet: %s" % first_rect)
+	if shadow == null:
+		failures.append("Animated atlas frame did not create a solar profile shadow.")
+		target.queue_free()
+		await process_frame
+		return
 	if shadow.texture != first_atlas:
-		failures.append("Atlas frame 0 texture was not preserved as the active animation frame.")
+		failures.append("Atlas frame 0 was not preserved for canonical diagnostics.")
+	if shadow.get_meta("shadow_opaque_rect", Rect2i()) != Rect2i(Vector2i.ZERO, Vector2i(32, 32)):
+		failures.append("Profile shadow unexpectedly scanned atlas pixels instead of using safe frame dimensions.")
+	if not bool(shadow.get_meta("shadow_profile_ignores_frame_silhouette", false)):
+		failures.append("Animated atlas solar shadow still depends on frame alpha bounds.")
+	var first_polygon := shadow.polygon.duplicate()
+	var first_proxy := _shadow_proxy(shadow)
+	var first_mask := first_proxy.texture if first_proxy != null else null
+	_validate_profile_proxy_uv(first_proxy)
+
 	sprite.frame = 1
 	await process_frame
-	var second_rect: Rect2i = shadow.get_meta("shadow_opaque_rect", Rect2i())
-	if second_rect != Rect2i(Vector2i(10, 3), Vector2i(16, 27)):
-		failures.append("Atlas frame 1 was scanned as the complete sheet: %s" % second_rect)
 	if shadow.texture != second_atlas:
-		failures.append("Atlas frame 1 texture was not selected after the animation advanced.")
-	if second_rect.end.x > 32 or second_rect.end.y > 32:
-		failures.append("Atlas alpha bounds escaped the active frame region.")
+		failures.append("Atlas frame 1 was not selected after the animation advanced.")
+	if not _polygons_match(first_polygon, shadow.polygon, 0.01):
+		failures.append("Animated atlas frame changed universal solar shadow geometry.")
+	var second_proxy := _shadow_proxy(shadow)
+	if first_mask == null or second_proxy == null or second_proxy.texture != first_mask:
+		failures.append("Animated atlas frame replaced the universal profile mask.")
+	_validate_profile_proxy_uv(second_proxy)
 	target.queue_free()
 	await process_frame
 
@@ -307,6 +320,37 @@ func _validate_shared_compositor_and_wind() -> void:
 	for target in targets:
 		target.queue_free()
 	await process_frame
+
+
+func _validate_profile_proxy_uv(proxy: Polygon2D) -> void:
+	if proxy == null or proxy.texture == null:
+		failures.append("Universal profile shadow has no render proxy texture.")
+		return
+	var mask_size := proxy.texture.get_size()
+	var expected := PackedVector2Array([
+		Vector2(0.0, 0.0),
+		Vector2(mask_size.x, 0.0),
+		Vector2(mask_size.x, mask_size.y),
+		Vector2(0.0, mask_size.y),
+	])
+	if proxy.uv.size() != expected.size():
+		failures.append("Universal profile proxy has invalid UV geometry.")
+		return
+	for index in range(expected.size()):
+		if proxy.uv[index].distance_to(expected[index]) > 0.01:
+			failures.append("Universal profile proxy is not sampling the complete mask texture in pixel space.")
+			return
+	if not proxy.visible:
+		failures.append("Universal profile proxy is hidden during daytime validation.")
+
+
+func _polygons_match(a: PackedVector2Array, b: PackedVector2Array, tolerance: float) -> bool:
+	if a.size() != b.size():
+		return false
+	for index in range(a.size()):
+		if a[index].distance_to(b[index]) > tolerance:
+			return false
+	return true
 
 
 func _shadow_proxy(shadow: Polygon2D) -> Polygon2D:

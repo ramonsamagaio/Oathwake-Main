@@ -1,14 +1,7 @@
-[gd_resource type="GradientTexture2D" format=3 uid="uid://dqqiy50be7o1r"]
+[gd_resource type="CanvasTexture" load_steps=2 format=3 uid="uid://dqqiy50be7o1r"]
 
-[sub_resource type="Gradient" id="Gradient_particle_soft_dot"]
-offsets = PackedFloat32Array(0, 0.65, 1)
-colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.8, 1, 1, 1, 0)
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/glows/glow2.png" id="1_particle_dot"]
 
 [resource]
 resource_name = "Particle Soft Dot Texture"
-gradient = SubResource("Gradient_particle_soft_dot")
-width = 16
-height = 16
-fill = 1
-fill_from = Vector2(0.5, 0.5)
-fill_to = Vector2(0.5623932, 0.50769234)
+diffuse_texture = ExtResource("1_particle_dot")

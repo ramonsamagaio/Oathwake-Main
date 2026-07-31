@@ -7,7 +7,6 @@ const DEFAULT_EVENING_ANGLE_FROM_UP := 45.0
 const RuntimeShadowGroupScript := preload("res://scripts/effects/ProjectedShadowGroup.gd")
 
 static var _runtime_alpha_bounds_cache: Dictionary = {}
-static var _isolated_frame_texture_cache: Dictionary = {}
 static var _pending_shadow_group: CanvasGroup = null
 static var _solid_mask_texture: Texture2D = null
 
@@ -119,16 +118,12 @@ func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
 		return
 	var frame_index := clampi(source.frame, 0, frame_count - 1)
 	var source_frame_texture := source.sprite_frames.get_frame_texture(source.animation, frame_index)
-	if source_frame_texture == null:
-		_clear_visual()
-		return
-	var isolated_texture := _isolate_active_frame_texture(source_frame_texture)
-	if isolated_texture == null:
+	if not _has_valid_texture_size(source_frame_texture):
 		_clear_visual()
 		return
 	_apply_texture_rect(
-		isolated_texture,
-		isolated_texture.get_size(),
+		source_frame_texture,
+		source_frame_texture.get_size(),
 		source.centered,
 		source.offset,
 		source.flip_h,
@@ -138,21 +133,18 @@ func _apply_animated_sprite(source: AnimatedSprite2D) -> void:
 	set_meta("shadow_source_kind", "AnimatedSprite2D")
 	set_meta("shadow_source_animation", source.animation)
 	set_meta("shadow_source_frame", frame_index)
-	set_meta("shadow_source_frame_isolated", isolated_texture != source_frame_texture)
+	set_meta("shadow_source_frame_isolated", true)
+	set_meta("shadow_active_frame_region_constrained", true)
 
 
 func _apply_sprite(source: Sprite2D) -> void:
 	var source_frame_texture := _resolve_sprite_texture(source)
-	if source_frame_texture == null:
-		_clear_visual()
-		return
-	var isolated_texture := _isolate_active_frame_texture(source_frame_texture)
-	if isolated_texture == null:
+	if not _has_valid_texture_size(source_frame_texture):
 		_clear_visual()
 		return
 	_apply_texture_rect(
-		isolated_texture,
-		isolated_texture.get_size(),
+		source_frame_texture,
+		source_frame_texture.get_size(),
 		source.centered,
 		source.offset,
 		source.flip_h,
@@ -161,40 +153,15 @@ func _apply_sprite(source: Sprite2D) -> void:
 	)
 	set_meta("shadow_source_kind", "Sprite2D")
 	set_meta("shadow_source_frame", source.frame)
-	set_meta("shadow_source_frame_isolated", isolated_texture != source_frame_texture)
+	set_meta("shadow_source_frame_isolated", true)
+	set_meta("shadow_active_frame_region_constrained", true)
 
 
 func _isolate_active_frame_texture(frame_texture: Texture2D) -> Texture2D:
-	if frame_texture == null:
-		return null
-	if not (frame_texture is AtlasTexture):
-		return frame_texture
-	var atlas_texture := frame_texture as AtlasTexture
-	if atlas_texture.atlas == null:
-		return null
-	var cache_key := "isolated:%s:%s" % [str(atlas_texture.atlas.get_instance_id()), str(atlas_texture.region)]
-	if _isolated_frame_texture_cache.has(cache_key):
-		var cached: Variant = _isolated_frame_texture_cache.get(cache_key)
-		if cached is Texture2D and is_instance_valid(cached):
-			return cached as Texture2D
-	var atlas_image := atlas_texture.atlas.get_image()
-	if atlas_image == null or atlas_image.is_empty():
-		return null
-	var region := atlas_texture.region
-	var requested := Rect2i(
-		Vector2i(int(floor(region.position.x)), int(floor(region.position.y))),
-		Vector2i(int(round(region.size.x)), int(round(region.size.y)))
-	)
-	var atlas_bounds := Rect2i(Vector2i.ZERO, Vector2i(atlas_image.get_width(), atlas_image.get_height()))
-	var clipped := requested.intersection(atlas_bounds)
-	if clipped.size.x <= 0 or clipped.size.y <= 0:
-		return null
-	var frame_image := atlas_image.get_region(clipped)
-	if frame_image == null or frame_image.is_empty():
-		return null
-	var isolated := ImageTexture.create_from_image(frame_image)
-	_isolated_frame_texture_cache[cache_key] = isolated
-	return isolated
+	# Compatibility method retained for subclasses and old callers. Atlas frames
+	# are no longer copied through Texture2D.get_image() and ImageTexture creation.
+	# The renderer samples the original atlas directly using region-constrained UVs.
+	return frame_texture if _has_valid_texture_size(frame_texture) else null
 
 
 func _apply_texture_rect(
@@ -206,12 +173,32 @@ func _apply_texture_rect(
 	flip_v: bool,
 	relative_transform: Transform2D
 ) -> void:
+	if not _has_valid_texture_size(frame_texture) or frame_size.x <= 0.0 or frame_size.y <= 0.0:
+		_clear_visual()
+		return
+
+	var render_texture := frame_texture
+	var sampling_origin := Vector2.ZERO
+	if frame_texture is AtlasTexture:
+		var atlas_texture := frame_texture as AtlasTexture
+		if atlas_texture.atlas == null or not _has_valid_texture_size(atlas_texture.atlas):
+			_clear_visual()
+			return
+		if atlas_texture.region.size.x <= 0.0 or atlas_texture.region.size.y <= 0.0:
+			_clear_visual()
+			return
+		render_texture = atlas_texture.atlas
+		sampling_origin = atlas_texture.region.position
+		frame_size = atlas_texture.region.size
+
 	var opaque_rect := _get_opaque_pixel_rect(frame_texture)
+	if opaque_rect.size.x <= 0 or opaque_rect.size.y <= 0:
+		opaque_rect = _full_texture_rect(frame_size)
 	if opaque_rect.size.x <= 0 or opaque_rect.size.y <= 0:
 		_clear_visual()
 		return
 
-	texture = frame_texture
+	texture = render_texture
 	_visible_frame_size = frame_size
 	var base_top_left := sprite_offset
 	if centered:
@@ -258,13 +245,15 @@ func _apply_texture_rect(
 	var top_v := float(opaque_rect.end.y) if flip_v else float(opaque_rect.position.y)
 	var bottom_v := float(opaque_rect.position.y) if flip_v else float(opaque_rect.end.y)
 	uv = PackedVector2Array([
-		Vector2(left_u, top_v),
-		Vector2(right_u, top_v),
-		Vector2(right_u, bottom_v),
-		Vector2(left_u, bottom_v),
+		sampling_origin + Vector2(left_u, top_v),
+		sampling_origin + Vector2(right_u, top_v),
+		sampling_origin + Vector2(right_u, bottom_v),
+		sampling_origin + Vector2(left_u, bottom_v),
 	])
 	_publish_projection_metadata(contact_target, projection_anchor, side_axis, opaque_size * basis_scale)
 	set_meta("shadow_opaque_rect", opaque_rect)
+	set_meta("shadow_active_frame_uv_origin", sampling_origin)
+	set_meta("shadow_active_frame_region_constrained", true)
 	set_meta("shadow_southern_limit_y", southern_limit_y)
 	set_meta("shadow_southern_limit_shift", southern_shift)
 
@@ -319,16 +308,15 @@ func _southern_limit_shift(points: PackedVector2Array, limit_y: float) -> Vector
 		maximum_y = maxf(maximum_y, point.y)
 	if maximum_y <= limit_y:
 		return Vector2.ZERO
-	# Shift the complete rigid silhouette rather than clipping or squeezing it.
-	# The shadow keeps its dimensions while the source's two lower corners remain
-	# the southern boundary, so roots and feet hide the contact edge naturally.
 	return Vector2(0.0, limit_y - maximum_y)
 
 
 func _get_solid_mask_texture() -> Texture2D:
-	if _solid_mask_texture != null:
+	if _solid_mask_texture != null and is_instance_valid(_solid_mask_texture):
 		return _solid_mask_texture
 	var solid_image := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	if solid_image == null or solid_image.is_empty():
+		return null
 	solid_image.fill(Color.WHITE)
 	_solid_mask_texture = ImageTexture.create_from_image(solid_image)
 	return _solid_mask_texture
@@ -382,55 +370,29 @@ func _ensure_shadow_group() -> void:
 
 
 func _get_opaque_pixel_rect(frame_texture: Texture2D) -> Rect2i:
+	# Alpha cropping previously required downloading compressed textures to a CPU
+	# Image. That path could transiently yield a zero-sized image during import and
+	# then create an invalid ImageTexture. Geometry now uses the authored frame
+	# rectangle while the texture alpha still preserves the exact visible pixels.
 	if frame_texture == null:
 		return Rect2i()
-	var raw_size := frame_texture.get_size()
-	var texture_size := Vector2i(int(round(raw_size.x)), int(round(raw_size.y)))
-	if texture_size.x <= 0 or texture_size.y <= 0:
-		return Rect2i()
-	var cache_key := _alpha_cache_key(frame_texture, texture_size)
-	if _runtime_alpha_bounds_cache.has(cache_key):
-		return _runtime_alpha_bounds_cache[cache_key] as Rect2i
-
-	var result := Rect2i()
+	var size := frame_texture.get_size()
 	if frame_texture is AtlasTexture:
-		result = _get_atlas_opaque_rect(frame_texture as AtlasTexture, texture_size)
-	else:
-		var frame_image := frame_texture.get_image()
-		if frame_image == null or frame_image.is_empty():
-			result = Rect2i(Vector2i.ZERO, texture_size)
-		else:
-			result = _scan_opaque_rect(
-				frame_image,
-				Rect2i(Vector2i.ZERO, texture_size),
-				Vector2i.ZERO
-			)
-	_runtime_alpha_bounds_cache[cache_key] = result
-	return result
+		var atlas_texture := frame_texture as AtlasTexture
+		if atlas_texture.region.size.x > 0.0 and atlas_texture.region.size.y > 0.0:
+			size = atlas_texture.region.size
+	return _full_texture_rect(size)
 
 
 func _get_atlas_opaque_rect(atlas_texture: AtlasTexture, fallback_size: Vector2i) -> Rect2i:
-	if atlas_texture == null or atlas_texture.atlas == null:
-		return Rect2i(Vector2i.ZERO, fallback_size)
-	var atlas_size := atlas_texture.atlas.get_size()
-	if atlas_size.x <= 0.0 or atlas_size.y <= 0.0:
-		return Rect2i(Vector2i.ZERO, fallback_size)
-	var region := atlas_texture.region
-	var region_position := Vector2i(int(floor(region.position.x)), int(floor(region.position.y)))
-	var region_size := Vector2i(int(round(region.size.x)), int(round(region.size.y)))
-	if region_size.x <= 0 or region_size.y <= 0:
-		return Rect2i(Vector2i.ZERO, fallback_size)
-	var atlas_image := atlas_texture.atlas.get_image()
-	if atlas_image == null or atlas_image.is_empty():
-		return Rect2i(Vector2i.ZERO, fallback_size)
-	return _scan_opaque_rect(
-		atlas_image,
-		Rect2i(region_position, region_size),
-		region_position
-	)
+	if atlas_texture != null and atlas_texture.region.size.x > 0.0 and atlas_texture.region.size.y > 0.0:
+		return _full_texture_rect(atlas_texture.region.size)
+	return Rect2i(Vector2i.ZERO, fallback_size)
 
 
 func _scan_opaque_rect(image: Image, requested_rect: Rect2i, local_origin: Vector2i) -> Rect2i:
+	# Retained for compatibility with external validators. Runtime shadows no
+	# longer call this method or read texture images.
 	if image == null or image.is_empty():
 		return Rect2i()
 	var image_bounds := Rect2i(Vector2i.ZERO, Vector2i(image.get_width(), image.get_height()))
@@ -451,6 +413,21 @@ func _scan_opaque_rect(image: Image, requested_rect: Rect2i, local_origin: Vecto
 	if maximum.x < minimum.x or maximum.y < minimum.y:
 		return Rect2i()
 	return Rect2i(minimum, maximum - minimum + Vector2i.ONE)
+
+
+func _full_texture_rect(size: Vector2) -> Rect2i:
+	var width := int(round(size.x))
+	var height := int(round(size.y))
+	if width <= 0 or height <= 0:
+		return Rect2i()
+	return Rect2i(Vector2i.ZERO, Vector2i(width, height))
+
+
+func _has_valid_texture_size(value: Texture2D) -> bool:
+	if value == null:
+		return false
+	var size := value.get_size()
+	return size.x > 0.0 and size.y > 0.0 and size.is_finite()
 
 
 func _sync_proxy_material() -> void:
