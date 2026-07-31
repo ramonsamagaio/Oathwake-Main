@@ -4,6 +4,39 @@ extends RefCounted
 const ProjectedSpriteShadowScript := preload("res://scripts/effects/PinnedActiveFrameProjectedShadow.gd")
 const DEFAULT_DIRECTION_DEGREES := -45.0
 const DEFAULT_COLOR := Color(0.02, 0.024, 0.035, 1.0)
+const EXCLUDED_SOURCE_NAME_TOKENS := PackedStringArray([
+	"shadow",
+	"glow",
+	"aura",
+	"light",
+	"outline",
+	"mask",
+	"fog",
+	"particle",
+	"beam",
+	"shaft",
+	"occlusion",
+	"preview",
+	"highlight",
+	"flash",
+	"spark",
+	"smoke",
+	"trail",
+])
+const EXCLUDED_SOURCE_GROUPS := PackedStringArray([
+	"persistent_content_visual",
+	"world_light_emitter",
+	"projected_shadow_caster",
+	"projected_shadow_group",
+])
+const PREFERRED_SOURCE_NAMES := PackedStringArray([
+	"animatedsprite2d",
+	"monstersprite",
+	"contentsprite",
+	"bodyvisual",
+	"playervisual",
+	"sprite2d",
+])
 
 
 static func apply_to_target(
@@ -36,10 +69,11 @@ static func apply_to_target(
 		return shadow
 
 	var source := source_override
-	if source == null or not is_instance_valid(source) or not _is_valid_source(source):
+	if source == null or not is_instance_valid(source) or not _is_valid_source(source, target):
 		source = find_active_visual_source(target)
 	if source == null:
 		shadow.visible = false
+		shadow.set_meta("shadow_source_rejected", true)
 		return shadow
 
 	var resolved := config.duplicate(true)
@@ -62,6 +96,9 @@ static func apply_to_target(
 		shadow.call("configure", target, source, resolved, local_foot_offset)
 	shadow.set_meta("directional_shadow", true)
 	shadow.set_meta("shadow_bound_source_id", source.get_instance_id())
+	shadow.set_meta("shadow_selected_source_name", str(source.name))
+	shadow.set_meta("shadow_selected_source_path", str(target.get_path_to(source)))
+	shadow.set_meta("shadow_source_rejected", false)
 	return shadow
 
 
@@ -112,7 +149,7 @@ static func _find_largest_visual(target: Node) -> CanvasItem:
 		var node: Node = queue.pop_front() as Node
 		if node != target:
 			var candidate := node as CanvasItem
-			if candidate != null and _is_valid_source(candidate):
+			if candidate != null and _is_valid_source(candidate, target):
 				var priority := _source_priority(candidate)
 				var size := _visual_size(candidate)
 				var area := size.x * size.y
@@ -123,25 +160,33 @@ static func _find_largest_visual(target: Node) -> CanvasItem:
 		for child in node.get_children():
 			if child is Node:
 				queue.append(child)
-	if best == null and target is CanvasItem and _is_valid_source(target as CanvasItem):
+	if best == null and target is CanvasItem and _is_valid_source(target as CanvasItem, target):
 		best = target as CanvasItem
 	return best
 
 
 static func _source_priority(candidate: CanvasItem) -> int:
+	if bool(candidate.get_meta("directional_shadow_source", false)):
+		return 1000
+	var priority := 0
 	if candidate is AnimatedSprite2D:
-		return 3
-	if candidate is Sprite2D:
-		return 2
-	if candidate is Polygon2D:
-		return 1
-	return 0
+		priority = 300
+	elif candidate is Sprite2D:
+		priority = 200
+	elif candidate is Polygon2D:
+		priority = 100
+	var normalized_name := str(candidate.name).to_lower()
+	if PREFERRED_SOURCE_NAMES.has(normalized_name):
+		priority += 80
+	elif normalized_name.contains("character") or normalized_name.contains("body") or normalized_name.contains("content"):
+		priority += 40
+	return priority
 
 
-static func _is_valid_source(candidate: CanvasItem) -> bool:
+static func _is_valid_source(candidate: CanvasItem, target: Node = null) -> bool:
 	if candidate == null or not is_instance_valid(candidate) or not candidate.visible:
 		return false
-	if str(candidate.name) == "GroundShadow" or candidate.is_in_group("persistent_content_visual"):
+	if _is_excluded_visual_branch(candidate, target):
 		return false
 	if candidate is Sprite2D:
 		var sprite := candidate as Sprite2D
@@ -162,6 +207,28 @@ static func _is_valid_source(candidate: CanvasItem) -> bool:
 		return frame_texture != null and _has_positive_texture_size(frame_texture)
 	if candidate is Polygon2D:
 		return not (candidate as Polygon2D).polygon.is_empty()
+	return false
+
+
+static func _is_excluded_visual_branch(candidate: CanvasItem, target: Node = null) -> bool:
+	if candidate == null:
+		return true
+	if candidate.has_meta("directional_shadow_source"):
+		return not bool(candidate.get_meta("directional_shadow_source", false))
+	var node: Node = candidate
+	while node != null:
+		if node == target:
+			break
+		if bool(node.get_meta("exclude_from_directional_shadow", false)):
+			return true
+		for group_name in EXCLUDED_SOURCE_GROUPS:
+			if node.is_in_group(group_name):
+				return true
+		var normalized_name := str(node.name).to_lower()
+		for token in EXCLUDED_SOURCE_NAME_TOKENS:
+			if normalized_name.contains(token):
+				return true
+		node = node.get_parent()
 	return false
 
 
