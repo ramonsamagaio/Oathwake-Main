@@ -25,9 +25,18 @@ var show_grid := false
 var show_axis := true
 var show_feet_line := true
 var export_mode := false
+var pixel_perfect := true
+var selected_part := ""
+var show_gizmo := true
 
 var _parts_root: Node2D
 var _onion_root: Node2D
+var _gizmo_root: Node2D
+var _gizmo_lines: Line2D
+var _bounds_lines: Line2D
+var _move_handle: Polygon2D
+var _pivot_handle: Polygon2D
+var _rotation_handle: Polygon2D
 var _part_nodes: Dictionary = {}
 var _onion_nodes: Dictionary = {}
 var _texture_cache: Dictionary = {}
@@ -35,34 +44,47 @@ var _placeholder_cache: Dictionary = {}
 
 
 func _ready() -> void:
-	_build_part_nodes()
+	_build_nodes()
 	queue_redraw()
 
 
 func configure(new_canvas_size: Vector2i, new_feet_y: int) -> void:
 	canvas_size = Vector2i(maxi(1, new_canvas_size.x), maxi(1, new_canvas_size.y))
 	feet_y = clampi(new_feet_y, 0, canvas_size.y - 1)
+	_update_gizmo()
 	queue_redraw()
 
 
-func set_guides(checkerboard: bool, grid: bool, axis: bool, foot_line: bool) -> void:
+func set_guides(checkerboard: bool, grid_enabled: bool, axis_enabled: bool, foot_line: bool) -> void:
 	show_checkerboard = checkerboard
-	show_grid = grid
-	show_axis = axis
+	show_grid = grid_enabled
+	show_axis = axis_enabled
 	show_feet_line = foot_line
 	queue_redraw()
+
+
+func set_pixel_perfect(enabled: bool) -> void:
+	pixel_perfect = enabled
+
+
+func set_selection(part_name: String, enabled: bool) -> void:
+	selected_part = part_name
+	show_gizmo = enabled
+	_update_gizmo()
 
 
 func set_export_mode(enabled: bool) -> void:
 	export_mode = enabled
 	if _onion_root != null:
 		_onion_root.visible = not enabled
+	if _gizmo_root != null:
+		_gizmo_root.visible = show_gizmo and not enabled
 	queue_redraw()
 
 
 func apply_pose(frame_data: Dictionary, part_library: Dictionary, previous_frame: Dictionary = {}, onion_enabled: bool = false) -> void:
 	if _parts_root == null:
-		_build_part_nodes()
+		_build_nodes()
 
 	var direction := str(frame_data.get("direction", "south"))
 	var direction_library: Dictionary = part_library.get(direction, {})
@@ -73,13 +95,39 @@ func apply_pose(frame_data: Dictionary, part_library: Dictionary, previous_frame
 		_apply_part(_part_nodes[part_name], part_name, part_data, direction_library)
 
 	_apply_onion(previous_frame, part_library, onion_enabled)
+	_update_gizmo()
 
 
 func clear_texture_cache() -> void:
 	_texture_cache.clear()
 
 
-func _build_part_nodes() -> void:
+func get_gizmo_points(part_name: String) -> Dictionary:
+	if not _part_nodes.has(part_name):
+		return {}
+	var sprite: Sprite2D = _part_nodes[part_name]
+	var origin := sprite.position
+	var texture_center := sprite.position + sprite.offset.rotated(sprite.rotation)
+	var rotation_handle := origin + Vector2(0.0, -14.0).rotated(sprite.rotation)
+	return {
+		"origin": origin,
+		"move": texture_center,
+		"pivot": origin,
+		"rotate": rotation_handle,
+	}
+
+
+func hit_test_part(part_name: String, canvas_point: Vector2) -> bool:
+	if not _part_nodes.has(part_name):
+		return false
+	var sprite: Sprite2D = _part_nodes[part_name]
+	if not sprite.visible or sprite.texture == null:
+		return false
+	var local_point := sprite.to_local(canvas_point)
+	return sprite.get_rect().has_point(local_point)
+
+
+func _build_nodes() -> void:
 	if _parts_root != null:
 		return
 
@@ -108,13 +156,60 @@ func _build_part_nodes() -> void:
 		_parts_root.add_child(sprite)
 		_part_nodes[part_name] = sprite
 
+	_build_gizmo()
+
+
+func _build_gizmo() -> void:
+	_gizmo_root = Node2D.new()
+	_gizmo_root.name = "Gizmo"
+	_gizmo_root.z_index = 32000
+	add_child(_gizmo_root)
+
+	_bounds_lines = Line2D.new()
+	_bounds_lines.width = 1.0
+	_bounds_lines.default_color = Color(0.2, 0.86, 1.0, 0.8)
+	_bounds_lines.antialiased = false
+	_gizmo_root.add_child(_bounds_lines)
+
+	_gizmo_lines = Line2D.new()
+	_gizmo_lines.width = 1.0
+	_gizmo_lines.default_color = Color(1.0, 0.84, 0.24, 0.9)
+	_gizmo_lines.antialiased = false
+	_gizmo_root.add_child(_gizmo_lines)
+
+	_move_handle = _make_handle(Color(0.25, 1.0, 0.48, 1.0), false)
+	_pivot_handle = _make_handle(Color(1.0, 0.84, 0.24, 1.0), true)
+	_rotation_handle = _make_handle(Color(1.0, 0.35, 0.3, 1.0), false)
+	_gizmo_root.add_child(_move_handle)
+	_gizmo_root.add_child(_pivot_handle)
+	_gizmo_root.add_child(_rotation_handle)
+
+
+func _make_handle(color: Color, diamond: bool) -> Polygon2D:
+	var handle := Polygon2D.new()
+	if diamond:
+		handle.polygon = PackedVector2Array([
+			Vector2(0, -2.5), Vector2(2.5, 0), Vector2(0, 2.5), Vector2(-2.5, 0)
+		])
+	else:
+		handle.polygon = PackedVector2Array([
+			Vector2(-2, -2), Vector2(2, -2), Vector2(2, 2), Vector2(-2, 2)
+		])
+	handle.color = color
+	return handle
+
 
 func _apply_part(sprite: Sprite2D, part_name: String, part_data: Dictionary, direction_library: Dictionary) -> void:
 	var position_values := _vector_from_json(part_data.get("position", [0.0, 0.0]))
 	var pivot_values := _vector_from_json(part_data.get("pivot", [0.0, 0.0]))
+	if pixel_perfect:
+		position_values = position_values.round()
+		pivot_values = pivot_values.round()
 	var texture_path := str(direction_library.get(part_name, ""))
 
 	sprite.position = Vector2(canvas_size) * 0.5 + position_values
+	if pixel_perfect:
+		sprite.position = sprite.position.round()
 	sprite.rotation_degrees = float(part_data.get("rotation_degrees", 0.0))
 	sprite.offset = -pivot_values
 	sprite.z_index = int(part_data.get("z_index", 0))
@@ -141,9 +236,14 @@ func _apply_onion(previous_frame: Dictionary, part_library: Dictionary, enabled:
 		var part_data: Dictionary = parts.get(part_name, {})
 		var position_values := _vector_from_json(part_data.get("position", [0.0, 0.0]))
 		var pivot_values := _vector_from_json(part_data.get("pivot", [0.0, 0.0]))
+		if pixel_perfect:
+			position_values = position_values.round()
+			pivot_values = pivot_values.round()
 		var texture_path := str(direction_library.get(part_name, ""))
 
 		sprite.position = Vector2(canvas_size) * 0.5 + position_values
+		if pixel_perfect:
+			sprite.position = sprite.position.round()
 		sprite.rotation_degrees = float(part_data.get("rotation_degrees", 0.0))
 		sprite.offset = -pivot_values
 		sprite.z_index = int(part_data.get("z_index", 0)) - 1000
@@ -151,14 +251,48 @@ func _apply_onion(previous_frame: Dictionary, part_library: Dictionary, enabled:
 		sprite.texture = _load_texture(texture_path, part_name)
 
 
+func _update_gizmo() -> void:
+	if _gizmo_root == null:
+		return
+	var gizmo_visible := show_gizmo and not export_mode and _part_nodes.has(selected_part)
+	_gizmo_root.visible = gizmo_visible
+	if not gizmo_visible:
+		return
+
+	var points := get_gizmo_points(selected_part)
+	if points.is_empty():
+		_gizmo_root.visible = false
+		return
+	var sprite: Sprite2D = _part_nodes[selected_part]
+	var origin: Vector2 = points["origin"]
+	var move_point: Vector2 = points["move"]
+	var rotate_point: Vector2 = points["rotate"]
+	_gizmo_lines.points = PackedVector2Array([move_point, origin, rotate_point])
+	_move_handle.position = move_point
+	_pivot_handle.position = origin
+	_rotation_handle.position = rotate_point
+
+	var rect := sprite.get_rect()
+	var corners := [
+		rect.position,
+		rect.position + Vector2(rect.size.x, 0),
+		rect.position + rect.size,
+		rect.position + Vector2(0, rect.size.y),
+	]
+	var transformed := PackedVector2Array()
+	for corner in corners:
+		transformed.append(to_local(sprite.to_global(corner)))
+	transformed.append(transformed[0])
+	_bounds_lines.points = transformed
+
+
 func _load_texture(path: String, part_name: String) -> Texture2D:
 	if path.is_empty():
 		return _placeholder_texture(part_name)
-
 	if _texture_cache.has(path):
 		return _texture_cache[path]
 
-	var texture: Texture2D
+	var texture: Texture2D = null
 	if path.begins_with("res://") or path.begins_with("user://"):
 		if ResourceLoader.exists(path):
 			texture = load(path) as Texture2D
@@ -170,7 +304,6 @@ func _load_texture(path: String, part_name: String) -> Texture2D:
 	if texture == null:
 		push_warning("SpritePoseLab could not load texture: %s" % path)
 		texture = _placeholder_texture(part_name)
-
 	_texture_cache[path] = texture
 	return texture
 
@@ -212,7 +345,6 @@ func _placeholder_texture(part_name: String) -> Texture2D:
 func _draw() -> void:
 	if export_mode:
 		return
-
 	if show_checkerboard:
 		_draw_checkerboard()
 	if show_grid:
@@ -229,8 +361,8 @@ func _draw_checkerboard() -> void:
 	var color_b := Color(0.18, 0.19, 0.22, 1.0)
 	for y in range(0, canvas_size.y, cell_size):
 		for x in range(0, canvas_size.x, cell_size):
-			var checker := int(x / cell_size) + int(y / cell_size)
-			var color := color_a if checker % 2 == 0 else color_b
+			var checker_value := int(x / cell_size) + int(y / cell_size)
+			var color := color_a if checker_value % 2 == 0 else color_b
 			var width := mini(cell_size, canvas_size.x - x)
 			var height := mini(cell_size, canvas_size.y - y)
 			draw_rect(Rect2(x, y, width, height), color)
