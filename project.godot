@@ -3,7 +3,7 @@
 ; since the parameters that go here are not all obvious.
 ;
 ; Format:
-;   [section] ; section between []
+;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
 
 config_version=5
@@ -35,7 +35,6 @@ window/size/window_width_override=1600
 window/size/window_height_override=900
 window/stretch/mode="viewport"
 window/stretch/aspect="expand"
-window/stretch/scale_mode="fractional"
 
 [physics]
 

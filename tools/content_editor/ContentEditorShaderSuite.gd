@@ -478,6 +478,12 @@ func _apply_live_master_volume() -> void:
 	var bus_index := AudioServer.get_bus_index("Master")
 	if bus_index >= 0:
 		AudioServer.set_bus_volume_db(bus_index, float(audio_mix.get("master_volume_db", 0.0)))
+	var tree := get_tree()
+	if tree == null:
+		return
+	for controller in tree.get_nodes_in_group("gameplay_audio_controller"):
+		if controller.has_method("apply_mix_values"):
+			controller.call("apply_mix_values", audio_mix)
 
 
 func _connect_sfx_form_dirty_signals() -> void:

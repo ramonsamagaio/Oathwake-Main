@@ -4,7 +4,7 @@ extends RefCounted
 const ProjectedSpriteShadowScript := preload("res://scripts/effects/PinnedActiveFrameProjectedShadow.gd")
 const DEFAULT_DIRECTION_DEGREES := -45.0
 const DEFAULT_COLOR := Color(0.02, 0.024, 0.035, 1.0)
-const EXCLUDED_SOURCE_NAME_TOKENS := PackedStringArray([
+const EXCLUDED_SOURCE_NAME_TOKENS := [
 	"shadow",
 	"glow",
 	"aura",
@@ -22,14 +22,14 @@ const EXCLUDED_SOURCE_NAME_TOKENS := PackedStringArray([
 	"spark",
 	"smoke",
 	"trail",
-])
-const EXCLUDED_SOURCE_GROUPS := PackedStringArray([
+]
+const EXCLUDED_SOURCE_GROUPS := [
 	"persistent_content_visual",
 	"world_light_emitter",
 	"projected_shadow_caster",
 	"projected_shadow_group",
-])
-const PREFERRED_SOURCE_NAMES := PackedStringArray([
+]
+const PREFERRED_SOURCE_NAMES := [
 	"animatedsprite2d",
 	"monstersprite",
 	"contentsprite",
@@ -37,7 +37,7 @@ const PREFERRED_SOURCE_NAMES := PackedStringArray([
 	"playervisual",
 	"charactersprite",
 	"sprite2d",
-])
+]
 
 
 static func apply_to_target(
