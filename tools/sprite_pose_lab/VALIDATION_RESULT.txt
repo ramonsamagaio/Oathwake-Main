@@ -1,6 +1,6 @@
 Wyrdframe Studio validation
 Godot: 4.6.3-stable
-Commit: 322dcf6db1f1a1f828f5bd2abcb834132d6aa586
+Commit: 01f518ea1989dfe9c8e1c11b33fb943d71e93d60
 Individual scripts exit: 0
 Editor exit: 0
 Runtime exit: 0
@@ -17,6 +17,9 @@ Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd =====
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+===== res://tools/sprite_pose_lab/scripts/WyrdframeLauncher.gd =====
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd =====
@@ -44,15 +47,16 @@ Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 [  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
 [92m[ DONE ][39m [1mfirst_scan_filesystem[22m
 [0m
-[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (8 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (9 steps)[39m[0m
 [   0% ] [90m[1mupdate_scripts_classes[22m | WyrdframeCanvas[39m[0m
-[  11% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  22% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  33% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  44% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  55% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  66% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  77% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  10% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  20% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  30% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  40% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  50% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  60% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  70% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  80% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [92m[ DONE ][39m [1mupdate_scripts_classes[22m
 [0m
 [   0% ] [90m[1mloading_editor_layout[22m | Started Loading editor (5 steps)[39m[0m
