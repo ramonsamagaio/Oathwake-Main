@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd" id="1_wyrdframe"]
+[ext_resource type="Script" path="res://tools/sprite_pose_lab/scripts/WyrdframeApp.gd" id="1_wyrdframe"]
 
 [node name="WyrdframeStudio" type="Control"]
 layout_mode = 3
