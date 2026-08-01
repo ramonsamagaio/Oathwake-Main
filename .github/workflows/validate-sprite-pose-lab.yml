@@ -5,6 +5,8 @@ on:
     paths:
       - "tools/sprite_pose_lab/**"
       - "!tools/sprite_pose_lab/VALIDATION_RESULT.txt"
+      - "scripts/ui/AnimatedCursor.gd"
+      - "assets/ui/CURSOR/**"
       - ".github/workflows/validate-sprite-pose-lab.yml"
   workflow_dispatch:
 
@@ -35,11 +37,18 @@ jobs:
         run: |
           rm -rf /tmp/wyrdframe_check
           mkdir -p /tmp/wyrdframe_check/tools
+          mkdir -p /tmp/wyrdframe_check/scripts/ui
+          mkdir -p /tmp/wyrdframe_check/assets/ui
           cp -R tools/sprite_pose_lab /tmp/wyrdframe_check/tools/
+          cp scripts/ui/AnimatedCursor.gd /tmp/wyrdframe_check/scripts/ui/
+          cp -R assets/ui/CURSOR /tmp/wyrdframe_check/assets/ui/
           cat > /tmp/wyrdframe_check/project.godot <<'EOF'
           [application]
           config/name="Wyrdframe Validation"
           run/main_scene="res://tools/sprite_pose_lab/scenes/WyrdframeStudio.tscn"
+
+          [autoload]
+          AnimatedCursor="*res://scripts/ui/AnimatedCursor.gd"
 
           [display]
           window/size/viewport_width=1500
@@ -69,6 +78,11 @@ jobs:
             fi
           done < <(find /tmp/wyrdframe_check/tools/sprite_pose_lab/scripts -maxdepth 1 -name '*.gd' | sort)
 
+          ./godot --headless --path /tmp/wyrdframe_check --script res://scripts/ui/AnimatedCursor.gd --check-only >> /tmp/wyrdframe_scripts.log 2>&1
+          if [ "$?" -ne 0 ]; then
+            SCRIPT_EXIT=1
+          fi
+
           ./godot --headless --path /tmp/wyrdframe_check --editor --quit-after 12 > /tmp/wyrdframe_editor.log 2>&1
           EDITOR_EXIT=$?
 
@@ -82,11 +96,15 @@ jobs:
           fi
 
           if cat /tmp/wyrdframe_scripts.log /tmp/wyrdframe_editor.log /tmp/wyrdframe_runtime.log | grep -E \
-            "^ERROR:|Parse Error|Compile Error|Failed to load script|SCRIPT ERROR|Cannot call method|blocked > 0|Invalid call|Invalid access" >/dev/null; then
+            "^ERROR:|Parse Error|Compile Error|Failed to load script|SCRIPT ERROR|Cannot call method|blocked > 0|Invalid call|Invalid access|WYRD_FRAME_SYSTEM_CURSOR_FAILURE" >/dev/null; then
             EXIT_CODE=1
           fi
 
           if ! grep -F "WYRD_FRAME_SMOKE_TEST_OK" /tmp/wyrdframe_runtime.log >/dev/null; then
+            EXIT_CODE=1
+          fi
+
+          if ! grep -F "WYRD_FRAME_SYSTEM_CURSOR_OK" /tmp/wyrdframe_runtime.log >/dev/null; then
             EXIT_CODE=1
           fi
 
