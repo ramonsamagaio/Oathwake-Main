@@ -1,9 +1,11 @@
 Wyrdframe Studio validation
 Godot: 4.6.3-stable
-Commit: e6a7488c5d6ddeb5e7ee5b2e6ab017cd7a2549ed
+Commit: 3d115fcbf0beeaa166cbcb165a6351c755570a6e
+Editor exit: 0
+Runtime exit: 0
 Exit code: 1
 
---- Godot log ---
+--- Editor log ---
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
 [   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
@@ -31,6 +33,14 @@ Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 [  16% ] [90m[1mloading_editor_layout[22m | Loading docks...[39m[0m
 [92m[ DONE ][39m [1mloading_editor_layout[22m
 [0m
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:1)
+ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+
+--- Runtime smoke-test log ---
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
 SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd".
           at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:1)
 ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd" with error "Parse error".
