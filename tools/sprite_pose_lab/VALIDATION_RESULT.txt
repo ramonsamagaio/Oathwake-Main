@@ -1,6 +1,6 @@
 Wyrdframe Studio validation
 Godot: 4.6.3-stable
-Commit: e9c84028e5a73379fdb7055eeaee14b0fc5aaa01
+Commit: efa292722e7931bc4f6896ab9efdf49386cd4d89
 Individual scripts exit: 1
 Editor exit: 0
 Runtime exit: 0
@@ -13,8 +13,6 @@ Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd =====
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
-SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd".
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd:1)
 SCRIPT ERROR: Parse Error: Function "_schedule_playback()" not found in base self.
           at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd:77)
 ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd" with error "Parse error".
@@ -53,12 +51,6 @@ ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeInter
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd =====
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
-SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeUIPanels.gd".
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd:1)
-SCRIPT ERROR: Parse Error: Could not find type "WyrdframeCanvas" in the current scope.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd:12)
-ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd" with error "Parse error".
-   at: load (modules/gdscript/gdscript.cpp:2907)
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeState.gd =====
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
