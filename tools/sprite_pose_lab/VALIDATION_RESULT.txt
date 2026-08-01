@@ -1,9 +1,172 @@
 Wyrdframe Studio validation
 Godot: 4.6.3-stable
-Commit: 3d115fcbf0beeaa166cbcb165a6351c755570a6e
+Commit: 9bd03477fecc14e47e7e53a8fbe1b79d17cdc1b2
+Individual scripts exit: 1
 Editor exit: 0
 Runtime exit: 0
 Exit code: 1
+
+--- Individual script checks ---
+===== res://tools/sprite_pose_lab/scripts/WyrdframeCanvas.gd =====
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+===== res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd =====
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd:1)
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd:1)
+SCRIPT ERROR: Parse Error: Function "_schedule_playback()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd:77)
+ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+===== res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd =====
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:1)
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:1)
+SCRIPT ERROR: Parse Error: Function "_write_project()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:186)
+SCRIPT ERROR: Parse Error: Function "_project_filename()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:193)
+SCRIPT ERROR: Parse Error: Function "_frame_filename()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:210)
+SCRIPT ERROR: Parse Error: Function "_sheet_filename()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:223)
+SCRIPT ERROR: Parse Error: Function "_ensure_extension()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:238)
+SCRIPT ERROR: Parse Error: Function "_write_project()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:238)
+SCRIPT ERROR: Parse Error: Function "_load_project()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:240)
+SCRIPT ERROR: Parse Error: Function "_ensure_extension()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:242)
+SCRIPT ERROR: Parse Error: Function "_export_frame()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:242)
+SCRIPT ERROR: Parse Error: Function "_ensure_extension()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:244)
+SCRIPT ERROR: Parse Error: Function "_export_sheet()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:244)
+SCRIPT ERROR: Parse Error: Function "_export_all()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:249)
+ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+===== res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd =====
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeUIPanels.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd:1)
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeUIPanels.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd:1)
+SCRIPT ERROR: Parse Error: Could not find type "WyrdframeCanvas" in the current scope.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd:12)
+ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+===== res://tools/sprite_pose_lab/scripts/WyrdframeState.gd =====
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Could not find type "WyrdframeCanvas" in the current scope.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeState.gd:125)
+SCRIPT ERROR: Parse Error: Function "_vec()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeState.gd:309)
+ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeState.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+===== res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd =====
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:1)
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:1)
+ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+===== res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd =====
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeState.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:1)
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeState.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:1)
+SCRIPT ERROR: Parse Error: Function "_panel_card()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:80)
+SCRIPT ERROR: Parse Error: Function "_panel_card()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:86)
+SCRIPT ERROR: Parse Error: Function "_panel_card()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:87)
+SCRIPT ERROR: Parse Error: Function "_panel_card()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:88)
+SCRIPT ERROR: Parse Error: Function "_button()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:121)
+SCRIPT ERROR: Parse Error: Function "_button()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:122)
+SCRIPT ERROR: Parse Error: Function "_button()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:123)
+SCRIPT ERROR: Parse Error: Function "_button()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:124)
+SCRIPT ERROR: Parse Error: Function "_button()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:125)
+SCRIPT ERROR: Parse Error: Function "_button()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:126)
+SCRIPT ERROR: Parse Error: Function "_button()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:127)
+SCRIPT ERROR: Parse Error: Function "_section_label()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:137)
+SCRIPT ERROR: Parse Error: Function "_section_label()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:152)
+SCRIPT ERROR: Parse Error: Function "_button()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:160)
+SCRIPT ERROR: Parse Error: Function "_button()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:161)
+SCRIPT ERROR: Parse Error: Function "_button()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:175)
+SCRIPT ERROR: Parse Error: Function "_section_label()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:182)
+SCRIPT ERROR: Parse Error: Function "_button()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:190)
+SCRIPT ERROR: Parse Error: Function "_button()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:191)
+SCRIPT ERROR: Parse Error: Function "_labeled_inline()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:218)
+SCRIPT ERROR: Parse Error: Function "_labeled_inline()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:224)
+SCRIPT ERROR: Parse Error: Function "_check()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:225)
+SCRIPT ERROR: Parse Error: Function "_check()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:227)
+SCRIPT ERROR: Parse Error: Function "_check()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:232)
+SCRIPT ERROR: Parse Error: Function "_slider()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:234)
+SCRIPT ERROR: Parse Error: Function "_labeled_inline()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:235)
+SCRIPT ERROR: Parse Error: Function "_check()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:236)
+SCRIPT ERROR: Parse Error: Function "_slider()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:238)
+SCRIPT ERROR: Parse Error: Function "_labeled_inline()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:239)
+SCRIPT ERROR: Parse Error: Function "_check()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:244)
+SCRIPT ERROR: Parse Error: Function "_slider()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:246)
+SCRIPT ERROR: Parse Error: Function "_check()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:248)
+SCRIPT ERROR: Parse Error: Function "_slider()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd:250)
+ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+===== res://tools/sprite_pose_lab/scripts/WyrdframeUIPanels.gd =====
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIPanels.gd:1)
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeUIBase.gd".
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeUIPanels.gd:1)
+ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeUIPanels.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
 
 --- Editor log ---
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
