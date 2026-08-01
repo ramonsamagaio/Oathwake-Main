@@ -153,9 +153,32 @@ func _restart_hit_sparks_preview() -> void:
 
 
 func _get_hit_sparks_preview_profile() -> Dictionary:
-	var critical_multiplier := float(current_record.get("contact_light_critical_multiplier", 2.0))
+	var is_critical: bool = str(current_record.get("id", "")) == "critical_hit_sparks"
+	var base_light_record: Dictionary = current_record
+	if is_critical:
+		base_light_record = data_store.get_record(ContentEditorData.SECTION_VFX_PROFILES, "hit_sparks")
+
+	var contact_enabled: bool = bool(base_light_record.get("contact_light_enabled", true))
+	var contact_color: String = str(base_light_record.get("contact_light_color", "#FFD78AFF"))
+	var contact_energy: float = float(base_light_record.get("contact_light_energy", 0.72))
+	var contact_radius: float = float(base_light_record.get("contact_light_radius", 34.0))
+	var contact_duration: float = float(base_light_record.get("contact_light_duration", 0.055))
+	if not is_critical:
+		if field_controls.has("contact_light_enabled"):
+			contact_enabled = _get_check_box_pressed("contact_light_enabled")
+		if field_controls.has("contact_light_color"):
+			contact_color = _get_content_color_html("contact_light_color")
+		if field_controls.has("contact_light_energy"):
+			contact_energy = _get_spin_box_value("contact_light_energy")
+		if field_controls.has("contact_light_radius"):
+			contact_radius = _get_spin_box_value("contact_light_radius")
+		if field_controls.has("contact_light_duration"):
+			contact_duration = _get_spin_box_value("contact_light_duration")
+
+	var critical_multiplier: float = float(current_record.get("contact_light_critical_multiplier", 2.0))
 	if field_controls.has("contact_light_critical_multiplier"):
 		critical_multiplier = _get_spin_box_value("contact_light_critical_multiplier")
+
 	return {
 		"pixel_count": _get_spin_box_int("pixel_count"),
 		"lifetime": _get_spin_box_value("lifetime"),
@@ -171,13 +194,13 @@ func _get_hit_sparks_preview_profile() -> Dictionary:
 		"size_max": _get_spin_box_value("size_max"),
 		"gravity": _get_spin_box_value("gravity"),
 		"colors": _split_string_list(_get_line_edit_text("colors")),
-		"contact_light_enabled": _get_check_box_pressed("contact_light_enabled"),
-		"contact_light_color": _get_content_color_html("contact_light_color"),
-		"contact_light_energy": _get_spin_box_value("contact_light_energy"),
-		"contact_light_radius": _get_spin_box_value("contact_light_radius"),
-		"contact_light_duration": _get_spin_box_value("contact_light_duration"),
+		"contact_light_enabled": contact_enabled,
+		"contact_light_color": contact_color,
+		"contact_light_energy": contact_energy,
+		"contact_light_radius": contact_radius,
+		"contact_light_duration": contact_duration,
 		"contact_light_critical_multiplier": critical_multiplier,
-		"is_critical": str(current_record.get("id", "")) == "critical_hit_sparks",
+		"is_critical": is_critical,
 	}
 
 
