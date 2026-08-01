@@ -1,64 +1,107 @@
-# SpritePoseLab
+# Wyrdframe Studio
 
 Editor interno de rig e animação 2D pixel-perfect do Oathwake.
 
-## Abrir como programa independente dentro do projeto
+## Nome e extensão
 
-Abra esta cena e pressione **F6 / Executar cena atual**:
+- Programa: **Wyrdframe Studio**
+- Projeto: `*.wyrd`
+- Formato interno: JSON versionado `wyrdframe_project`, versão 3.
+
+“Wyrd” representa destino, trama e caminhos entrelaçados; “frame” é o quadro de animação. O nome combina a identidade dark fantasy do Oathwake com a função técnica do programa.
+
+## Abrir
+
+Abra e execute com **F6**:
+
+`res://tools/sprite_pose_lab/scenes/WyrdframeStudio.tscn`
+
+O caminho antigo também continua funcionando:
 
 `res://tools/sprite_pose_lab/scenes/SpritePoseLab.tscn`
 
-Ela não depende do Content Editor e não altera a cena principal do jogo.
+A cena funciona separadamente do Content Editor.
 
-## Implementado nesta versão
+## Estrutura de projeto
 
-- rig preset Humanoid Basic;
-- modo custom com adição, remoção, parent e rename de bones;
-- PNG separado por bone e direção;
-- hierarquia real de transforms;
-- gizmo de posição, rotação e pivô;
-- constraints de rotação e lock;
-- timeline estilo layers × frames;
-- keyframes com herança da pose anterior;
-- adicionar, duplicar e remover quadros;
-- clips múltiplos;
-- presets Idle 4, Walk 4 e Run 6;
-- play, loop, ping-pong e reprodução única;
-- FPS global ou duração por quadro;
-- onion anterior vermelho e posterior verde, com opacidade independente;
-- canvas configurável, linha dos pés, grade e eixo;
-- raster nativo pixel-perfect com Nearest e MSAA desligado;
-- Undo, Redo e autosave;
-- salvar e abrir projeto JSON versionado;
-- exportar frame, sequência PNG e sprite sheet horizontal.
+Um `.wyrd` representa um personagem, monstro, boss ou entidade customizada.
 
-## Timeline
+```text
+Projeto
+├── Rig
+└── Ações renomeáveis
+    ├── Sul
+    ├── Norte
+    ├── Leste
+    └── Oeste
+```
 
-- linhas são bones/layers;
-- colunas são quadros;
-- círculo azul é keyframe;
-- ponto cinza é pose herdada;
-- clique seleciona;
-- clique direito remove a key daquela célula.
+Cada ação e direção possui frames e sprites próprios. Ações sugeridas podem ser adicionadas sem apagar ações existentes.
 
-## Gizmo
+## Presets disponíveis
 
-- alça verde ou arrastar a peça: mover;
-- alça vermelha: rotacionar;
-- alça amarela: alterar pivô preservando a posição visual;
-- Alt: priorizar pivô;
-- Shift durante rotação: snap de 15 graus.
+- Idle
+- Walk
+- Run
+- Attack 1 Handed
+- Attack 2 Handed
+- Attack Bow
+- Attack genérico
+- Cast
+- Hit
+- Death
+- Phase
+- Custom
 
-## Arquitetura V2
+Presets são pontos de partida editáveis. **Custom permanece disponível em todos os fluxos.**
 
-- `SpritePoseProject.gd`: documento, rig, clips, keys, presets e serialização;
-- `SpritePoseCanvasV2.gd`: composição hierárquica, onion, guias e gizmo;
-- `SpritePoseTimeline.gd`: matriz bones × frames;
-- `SpritePoseStudioState.gd`: estado compartilhado e helpers;
-- `SpritePoseStudioLayout.gd`: layout principal;
-- `SpritePoseStudioPanels.gd`: inspector, viewport e timeline;
-- `SpritePoseStudioInteraction.gd`: rig, playback, keys e gizmo;
-- `SpritePoseStudio.gd`: arquivos, histórico, autosave e exportação;
-- `SpritePoseLab.tscn`: cena independente executável.
+## Entidades sugeridas
 
-O plano completo, as decisões técnicas e o caminho para uma futura versão standalone estão em `SPRITE_POSE_LAB_DESIGN.md`.
+- Personagem: idle, walk, run, ataques 1H, 2H, bow e custom.
+- Monstro: idle, walk, attack, hit, death e custom.
+- Boss: idle, walk, attack, cast, phase, hit, death e custom.
+- Custom: estrutura livre.
+
+Adicionar uma estrutura sugerida nunca precisa apagar o conteúdo já criado.
+
+## Interface
+
+- painel de Projeto/Ações;
+- painel de Rig;
+- canvas pixel-perfect;
+- Inspector;
+- timeline bones × frames;
+- splitters horizontais e verticais arrastáveis;
+- scrollbars nas áreas de conteúdo;
+- janela redimensionável com tamanho mínimo;
+- layout persistido entre sessões.
+
+## Frames
+
+- adicionar frame vazio;
+- duplicar frame resolvido;
+- remover frame;
+- mover frame para esquerda ou direita;
+- `Insert`: adicionar;
+- `Delete`: remover;
+- `Alt+D`: duplicar;
+- setas: navegar;
+- espaço: play/pause.
+
+## Salvamento e segurança
+
+- `Ctrl+S`: salvar `.wyrd`;
+- autosave em `user://wyrdframe/autosave.wyrd`;
+- Undo/Redo;
+- migração de projetos JSON legados;
+- PNGs de origem nunca são alterados.
+
+## Pesquisa de referência
+
+As decisões absorvidas do Pixelorama e as diferenças deliberadas estão em:
+
+`PIXELORAMA_RESEARCH.md`
+
+A visão de longo prazo do produto continua em:
+
+`SPRITE_POSE_LAB_DESIGN.md`
