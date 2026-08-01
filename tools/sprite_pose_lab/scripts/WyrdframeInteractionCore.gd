@@ -74,7 +74,7 @@ func _select_frame(frame_index_value: int) -> void:
 	_refresh_controls()
 	_rebuild_timeline()
 	_apply_render()
-	_schedule_playback()
+	call("_schedule_playback")
 
 func _first_frame() -> void:
 	_select_frame(0)
@@ -265,13 +265,7 @@ func _on_transform_changed(_value: Variant = null) -> void:
 	if pixel_snap_check.button_pressed:
 		position_value = position_value.round()
 		pivot_value = pivot_value.round()
-	var transform_data: Dictionary = _transform_dict(
-		position_value,
-		rotation_spin.value,
-		pivot_value,
-		int(z_spin.value),
-		visible_check.button_pressed
-	)
+	var transform_data: Dictionary = _transform_dict(position_value, rotation_spin.value, pivot_value, int(z_spin.value), visible_check.button_pressed)
 	var keys: Dictionary = _frame_data(current_frame).get("keys", {}) as Dictionary
 	keys[selected_bone] = transform_data
 	_mark_changed("", false)
