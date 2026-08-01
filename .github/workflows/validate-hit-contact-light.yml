@@ -1,0 +1,84 @@
+name: Validate Hit Contact Light
+
+on:
+  push:
+    paths:
+      - "scripts/effects/PixelVFX.gd"
+      - "scripts/test/HitContactLightValidator.gd"
+      - "tools/content_editor/ContentEditorControlRangesSuite.gd"
+      - "tools/content_editor/ContentEditorLivePreviewSuite.gd"
+      - "tools/content_editor/previews/HitSparksPreview.gd"
+      - ".github/workflows/validate-hit-contact-light.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.6.3
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip" \
+            --output godot.zip
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+
+      - name: Import project
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot --headless --path . --editor --quit-after 30 2>&1 | tee hit-contact-light-import.log
+
+      - name: Parse changed scripts
+        shell: bash
+        run: |
+          set -o pipefail
+          for script in \
+            res://scripts/effects/PixelVFX.gd \
+            res://tools/content_editor/ContentEditorControlRangesSuite.gd \
+            res://tools/content_editor/ContentEditorLivePreviewSuite.gd \
+            res://tools/content_editor/previews/HitSparksPreview.gd \
+            res://scripts/test/HitContactLightValidator.gd; do
+            ./godot --headless --path . --script "$script" --check-only 2>&1 | tee -a hit-contact-light-parse.log
+          done
+
+      - name: Validate runtime light and critical multiplier
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot \
+            --headless \
+            --path . \
+            --script res://scripts/test/HitContactLightValidator.gd \
+            --verbose 2>&1 | tee hit-contact-light-validator.log
+          grep -F "HIT_CONTACT_LIGHT_VALIDATION_PASS" hit-contact-light-validator.log
+
+      - name: Reject parser and runtime errors
+        if: always()
+        shell: bash
+        run: |
+          if grep -E -i \
+            'Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|HIT_CONTACT_LIGHT_VALIDATION_FAILURE' \
+            hit-contact-light-import.log hit-contact-light-parse.log hit-contact-light-validator.log; then
+            exit 1
+          fi
+
+      - name: Upload validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hit-contact-light-validation
+          path: |
+            hit-contact-light-import.log
+            hit-contact-light-parse.log
+            hit-contact-light-validator.log
