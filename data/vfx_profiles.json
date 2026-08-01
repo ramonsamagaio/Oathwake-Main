@@ -13,6 +13,7 @@
 			"#17191B",
 			"#26292D"
 		],
+		"contact_light_critical_multiplier": 2.0,
 		"display_name": "Critical Hit Sparks",
 		"distance": 34.0,
 		"fade_out_time": 0.34,
@@ -211,6 +212,11 @@
 			"#17191B",
 			"#26292D"
 		],
+		"contact_light_color": "#FFD78AFF",
+		"contact_light_duration": 0.09,
+		"contact_light_enabled": true,
+		"contact_light_energy": 1.35,
+		"contact_light_radius": 110.0,
 		"display_name": "Hit Sparks",
 		"distance": 26.0,
 		"fade_out_time": 0.26,
