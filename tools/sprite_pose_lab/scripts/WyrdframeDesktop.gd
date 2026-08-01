@@ -10,15 +10,10 @@ var _canvas_pan_start_scroll: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	super._ready()
-	_configure_desktop_window()
 	_connect_identity_commit_signals()
 
 
 func _configure_window() -> void:
-	_configure_desktop_window()
-
-
-func _configure_desktop_window() -> void:
 	var app_window: Window = get_window()
 	app_window.title = PROGRAM_NAME
 	app_window.unresizable = false
@@ -27,7 +22,6 @@ func _configure_desktop_window() -> void:
 	app_window.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
 	app_window.content_scale_factor = 1.0
 	if app_window != get_tree().root:
-		app_window.force_native = true
 		app_window.transient = false
 		app_window.exclusive = false
 		app_window.mode = Window.MODE_MAXIMIZED
