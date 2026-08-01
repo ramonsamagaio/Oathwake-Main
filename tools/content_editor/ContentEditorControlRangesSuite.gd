@@ -13,6 +13,13 @@ const HIT_CONTACT_LIGHT_ENERGY_FIELD := "contact_light_energy"
 const HIT_CONTACT_LIGHT_RADIUS_FIELD := "contact_light_radius"
 const HIT_CONTACT_LIGHT_DURATION_FIELD := "contact_light_duration"
 const HIT_CONTACT_LIGHT_CRITICAL_MULTIPLIER_FIELD := "contact_light_critical_multiplier"
+const HIT_CONTACT_LIGHT_BASE_FIELDS := [
+	HIT_CONTACT_LIGHT_ENABLED_FIELD,
+	HIT_CONTACT_LIGHT_COLOR_FIELD,
+	HIT_CONTACT_LIGHT_ENERGY_FIELD,
+	HIT_CONTACT_LIGHT_RADIUS_FIELD,
+	HIT_CONTACT_LIGHT_DURATION_FIELD,
+]
 
 
 func _build_sprite_form() -> void:
@@ -41,11 +48,17 @@ func _get_sprite_form_record() -> Dictionary:
 
 func _add_hit_sparks_profile_fields() -> void:
 	super._add_hit_sparks_profile_fields()
-	_add_subsection_title("Hit Contact Light")
 	var record_id := str(current_record.get("id", "hit_sparks"))
-	var is_critical_profile := record_id == "critical_hit_sparks"
+	if record_id == "critical_hit_sparks":
+		_build_critical_hit_contact_light_fields()
+		return
+	_build_normal_hit_contact_light_fields()
+
+
+func _build_normal_hit_contact_light_fields() -> void:
+	_add_subsection_title("Hit Contact Light")
 	var note := Label.new()
-	note.text = "Creates a very short real PointLight2D exactly at the hit contact. Critical impacts multiply Base Energy by the value below; the default multiplier is 2.0."
+	note.text = "Creates a very short real PointLight2D exactly at the contact point. These are the shared base settings for both normal and critical hits."
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(note)
 	_add_check_box(
@@ -66,7 +79,7 @@ func _add_hit_sparks_profile_fields() -> void:
 		8.0,
 		0.01
 	)
-	energy_control.tooltip_text = "Peak light energy for a normal hit. Critical hits multiply this value instead of using an unrelated second light system."
+	energy_control.tooltip_text = "Peak energy of a normal hit. Critical hits use this exact same value multiplied by their critical multiplier."
 	var radius_control := _add_float_spin_box(
 		"Radius in Pixels",
 		HIT_CONTACT_LIGHT_RADIUS_FIELD,
@@ -85,38 +98,43 @@ func _add_hit_sparks_profile_fields() -> void:
 		0.005
 	)
 	duration_control.suffix = " s"
-	duration_control.tooltip_text = "Total flash lifetime. Around 0.04 to 0.08 seconds keeps the hit crisp rather than turning it into a lingering lamp."
-	if is_critical_profile:
-		var multiplier_control := _add_float_spin_box(
-			"Critical Energy Multiplier",
-			HIT_CONTACT_LIGHT_CRITICAL_MULTIPLIER_FIELD,
-			float(current_record.get(HIT_CONTACT_LIGHT_CRITICAL_MULTIPLIER_FIELD, 2.0)),
-			1.0,
-			6.0,
-			0.05
-		)
-		multiplier_control.tooltip_text = "2.0 produces exactly twice the peak light energy on a critical hit."
+	duration_control.tooltip_text = "Around 0.04 to 0.08 seconds keeps the hit crisp instead of turning the contact into a lingering lamp."
+
+
+func _build_critical_hit_contact_light_fields() -> void:
+	_add_subsection_title("Critical Hit Contact Light")
+	var note := Label.new()
+	note.text = "Critical hits inherit Enabled, Color, Base Energy, Radius and Duration from VFX Profiles → Hit Sparks. Only the multiplier differs, so 2.0 always means exactly twice the normal peak light."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(note)
+	_add_read_only_value("Base Light Source", "VFX Profiles → Hit Sparks")
+	var multiplier_control := _add_float_spin_box(
+		"Critical Energy Multiplier",
+		HIT_CONTACT_LIGHT_CRITICAL_MULTIPLIER_FIELD,
+		float(current_record.get(HIT_CONTACT_LIGHT_CRITICAL_MULTIPLIER_FIELD, 2.0)),
+		1.0,
+		6.0,
+		0.05
+	)
+	multiplier_control.tooltip_text = "2.0 produces exactly twice the peak light energy configured in Hit Sparks."
 
 
 func _get_vfx_profile_form_record() -> Dictionary:
 	var record := super._get_vfx_profile_form_record()
 	var record_id := str(record.get("id", current_record.get("id", "")))
-	if not _is_hit_contact_light_profile(record_id):
+	if record_id == "hit_sparks":
+		record[HIT_CONTACT_LIGHT_ENABLED_FIELD] = _get_check_box_pressed(HIT_CONTACT_LIGHT_ENABLED_FIELD)
+		record[HIT_CONTACT_LIGHT_COLOR_FIELD] = _get_content_color_html(HIT_CONTACT_LIGHT_COLOR_FIELD)
+		record[HIT_CONTACT_LIGHT_ENERGY_FIELD] = _get_spin_box_value(HIT_CONTACT_LIGHT_ENERGY_FIELD)
+		record[HIT_CONTACT_LIGHT_RADIUS_FIELD] = _get_spin_box_value(HIT_CONTACT_LIGHT_RADIUS_FIELD)
+		record[HIT_CONTACT_LIGHT_DURATION_FIELD] = _get_spin_box_value(HIT_CONTACT_LIGHT_DURATION_FIELD)
+		record.erase(HIT_CONTACT_LIGHT_CRITICAL_MULTIPLIER_FIELD)
 		return record
-	record[HIT_CONTACT_LIGHT_ENABLED_FIELD] = _get_check_box_pressed(HIT_CONTACT_LIGHT_ENABLED_FIELD)
-	record[HIT_CONTACT_LIGHT_COLOR_FIELD] = _get_content_color_html(HIT_CONTACT_LIGHT_COLOR_FIELD)
-	record[HIT_CONTACT_LIGHT_ENERGY_FIELD] = _get_spin_box_value(HIT_CONTACT_LIGHT_ENERGY_FIELD)
-	record[HIT_CONTACT_LIGHT_RADIUS_FIELD] = _get_spin_box_value(HIT_CONTACT_LIGHT_RADIUS_FIELD)
-	record[HIT_CONTACT_LIGHT_DURATION_FIELD] = _get_spin_box_value(HIT_CONTACT_LIGHT_DURATION_FIELD)
-	if field_controls.has(HIT_CONTACT_LIGHT_CRITICAL_MULTIPLIER_FIELD):
+	if record_id == "critical_hit_sparks":
+		for field_name: String in HIT_CONTACT_LIGHT_BASE_FIELDS:
+			record.erase(field_name)
 		record[HIT_CONTACT_LIGHT_CRITICAL_MULTIPLIER_FIELD] = _get_spin_box_value(HIT_CONTACT_LIGHT_CRITICAL_MULTIPLIER_FIELD)
-	elif current_record.has(HIT_CONTACT_LIGHT_CRITICAL_MULTIPLIER_FIELD):
-		record[HIT_CONTACT_LIGHT_CRITICAL_MULTIPLIER_FIELD] = float(current_record.get(HIT_CONTACT_LIGHT_CRITICAL_MULTIPLIER_FIELD, 2.0))
 	return record
-
-
-func _is_hit_contact_light_profile(record_id: String) -> bool:
-	return record_id == "hit_sparks" or record_id == "critical_hit_sparks"
 
 
 func _load_any_image_texture(path: String) -> Texture2D:
