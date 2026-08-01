@@ -1,8 +1,21 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd" id="1_wyrdframe"]
+[ext_resource type="Script" path="res://tools/sprite_pose_lab/scripts/WyrdframeDesktop.gd" id="1_wyrdframe"]
 
-[node name="WyrdframeStudio" type="Control"]
+[node name="WyrdframeLauncher" type="Node"]
+
+[node name="WyrdframeWindow" type="Window" parent="."]
+title = "Wyrdframe Studio"
+position = Vector2i(120, 70)
+size = Vector2i(1500, 900)
+min_size = Vector2i(1100, 700)
+mode = 2
+unresizable = false
+force_native = true
+transient = false
+exclusive = false
+
+[node name="WyrdframeStudio" type="Control" parent="WyrdframeWindow"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
