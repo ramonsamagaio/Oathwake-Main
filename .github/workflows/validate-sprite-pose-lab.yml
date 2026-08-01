@@ -4,31 +4,36 @@ on:
   push:
     paths:
       - "tools/sprite_pose_lab/**"
+      - "!tools/sprite_pose_lab/VALIDATION_RESULT.txt"
       - ".github/workflows/validate-sprite-pose-lab.yml"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download Godot 4.6
+      - name: Download Godot 4.6.3
         shell: bash
         run: |
           curl --fail --location --retry 3 \
-            "https://godot-releases.nbg1.your-objectstorage.com/4.6-stable/Godot_v4.6-stable_linux.x86_64.zip" \
+            "https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip" \
             --output godot.zip
           unzip -q godot.zip
-          mv Godot_v4.6-stable_linux.x86_64 godot
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
           chmod +x godot
 
       - name: Build isolated validation project
         shell: bash
         run: |
+          rm -rf /tmp/wyrdframe_check
           mkdir -p /tmp/wyrdframe_check/tools
           cp -R tools/sprite_pose_lab /tmp/wyrdframe_check/tools/
           cat > /tmp/wyrdframe_check/project.godot <<'EOF'
@@ -46,6 +51,43 @@ jobs:
           EOF
 
       - name: Parse and initialize Wyrdframe
+        id: godot_check
         shell: bash
         run: |
-          ./godot --headless --path /tmp/wyrdframe_check --editor --quit-after 8
+          set +e
+          ./godot --headless --path /tmp/wyrdframe_check --editor --quit-after 10 > /tmp/wyrdframe.log 2>&1
+          EXIT_CODE=$?
+          set -e
+
+          if grep -E "Parse Error|Compile Error|Failed to load script|SCRIPT ERROR" /tmp/wyrdframe.log >/dev/null; then
+            EXIT_CODE=1
+          fi
+
+          {
+            echo "Wyrdframe Studio validation"
+            echo "Godot: 4.6.3-stable"
+            echo "Commit: $GITHUB_SHA"
+            echo "Exit code: $EXIT_CODE"
+            echo
+            echo "--- Godot log ---"
+            tail -n 500 /tmp/wyrdframe.log
+          } > tools/sprite_pose_lab/VALIDATION_RESULT.txt
+
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Publish validation report
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "Wyrdframe Validator"
+          git config user.email "actions@users.noreply.github.com"
+          git add tools/sprite_pose_lab/VALIDATION_RESULT.txt
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update Wyrdframe validation report [skip ci]"
+            git push
+          fi
+
+      - name: Fail on parser or startup error
+        if: steps.godot_check.outputs.exit_code != '0'
+        shell: bash
+        run: exit 1
