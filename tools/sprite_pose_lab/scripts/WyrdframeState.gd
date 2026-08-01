@@ -122,8 +122,7 @@ var file_dialog: FileDialog
 var playback_timer: Timer
 var autosave_timer: Timer
 var render_viewport: SubViewport
-var canvas_renderer: WyrdframeCanvas
-
+var canvas_renderer
 
 func _create_new_document(entity_type: String) -> void:
 	var safe_type: String = entity_type if ENTITY_LABELS.has(entity_type) else "custom"
@@ -378,3 +377,12 @@ func _update_window_title() -> void:
 func _texture_path(bone_id: String) -> String:
 	var textures: Dictionary = _direction_data().get("textures", {}) as Dictionary
 	return str(textures.get(bone_id, ""))
+
+func _vec(value: Variant) -> Vector2:
+	if value is Vector2:
+		return value as Vector2
+	if value is Array:
+		var values: Array = value as Array
+		if values.size() >= 2:
+			return Vector2(float(values[0]), float(values[1]))
+	return Vector2.ZERO
