@@ -57,6 +57,18 @@ jobs:
         shell: bash
         run: |
           set +e
+          : > /tmp/wyrdframe_scripts.log
+          SCRIPT_EXIT=0
+          while IFS= read -r SCRIPT_PATH; do
+            RESOURCE_PATH="res://${SCRIPT_PATH#/tmp/wyrdframe_check/}"
+            echo "===== $RESOURCE_PATH =====" >> /tmp/wyrdframe_scripts.log
+            ./godot --headless --path /tmp/wyrdframe_check --script "$RESOURCE_PATH" --check-only >> /tmp/wyrdframe_scripts.log 2>&1
+            CODE=$?
+            if [ "$CODE" -ne 0 ]; then
+              SCRIPT_EXIT=1
+            fi
+          done < <(find /tmp/wyrdframe_check/tools/sprite_pose_lab/scripts -maxdepth 1 -name '*.gd' | sort)
+
           ./godot --headless --path /tmp/wyrdframe_check --editor --quit-after 12 > /tmp/wyrdframe_editor.log 2>&1
           EDITOR_EXIT=$?
 
@@ -65,11 +77,11 @@ jobs:
           set -e
 
           EXIT_CODE=0
-          if [ "$EDITOR_EXIT" -ne 0 ] || [ "$RUNTIME_EXIT" -ne 0 ]; then
+          if [ "$SCRIPT_EXIT" -ne 0 ] || [ "$EDITOR_EXIT" -ne 0 ] || [ "$RUNTIME_EXIT" -ne 0 ]; then
             EXIT_CODE=1
           fi
 
-          if cat /tmp/wyrdframe_editor.log /tmp/wyrdframe_runtime.log | grep -E \
+          if cat /tmp/wyrdframe_scripts.log /tmp/wyrdframe_editor.log /tmp/wyrdframe_runtime.log | grep -E \
             "Parse Error|Compile Error|Failed to load script|SCRIPT ERROR|Cannot call method|blocked > 0|Invalid call|Invalid access" >/dev/null; then
             EXIT_CODE=1
           fi
@@ -82,9 +94,13 @@ jobs:
             echo "Wyrdframe Studio validation"
             echo "Godot: 4.6.3-stable"
             echo "Commit: $GITHUB_SHA"
+            echo "Individual scripts exit: $SCRIPT_EXIT"
             echo "Editor exit: $EDITOR_EXIT"
             echo "Runtime exit: $RUNTIME_EXIT"
             echo "Exit code: $EXIT_CODE"
+            echo
+            echo "--- Individual script checks ---"
+            tail -n 700 /tmp/wyrdframe_scripts.log
             echo
             echo "--- Editor log ---"
             tail -n 350 /tmp/wyrdframe_editor.log
