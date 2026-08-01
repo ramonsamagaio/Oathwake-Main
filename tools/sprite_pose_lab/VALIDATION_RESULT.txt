@@ -1,10 +1,10 @@
 Wyrdframe Studio validation
 Godot: 4.6.3-stable
-Commit: fd905ba766a1971bc01563f4004ba26d7279ca67
+Commit: 322dcf6db1f1a1f828f5bd2abcb834132d6aa586
 Individual scripts exit: 0
 Editor exit: 0
 Runtime exit: 0
-Exit code: 0
+Exit code: 1
 
 --- Individual script checks ---
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeCanvas.gd =====
