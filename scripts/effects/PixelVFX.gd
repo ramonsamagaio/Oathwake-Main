@@ -97,7 +97,7 @@ func _get_contact_light_texture() -> Texture2D:
 		return _contact_light_texture
 	var image := Image.create(CONTACT_LIGHT_TEXTURE_SIZE, CONTACT_LIGHT_TEXTURE_SIZE, false, Image.FORMAT_RGBA8)
 	var center := Vector2.ONE * (float(CONTACT_LIGHT_TEXTURE_SIZE - 1) * 0.5)
-	var maximum_distance := maxf(center.length(), 0.001)
+	var maximum_distance := maxf(center.x, 0.001)
 	for y in range(CONTACT_LIGHT_TEXTURE_SIZE):
 		for x in range(CONTACT_LIGHT_TEXTURE_SIZE):
 			var normalized_distance := Vector2(float(x), float(y)).distance_to(center) / maximum_distance
