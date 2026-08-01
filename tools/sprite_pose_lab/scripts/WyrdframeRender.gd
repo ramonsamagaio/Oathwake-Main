@@ -1,4 +1,4 @@
-extends "res://tools/sprite_pose_lab/scripts/WyrdframeUIPanels.gd"
+extends "res://tools/sprite_pose_lab/scripts/WyrdframeUI.gd"
 
 func _build_rendering() -> void:
 	render_viewport = SubViewport.new()
@@ -9,7 +9,7 @@ func _build_rendering() -> void:
 	render_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	render_viewport.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
 	add_child(render_viewport)
-	canvas_renderer = CanvasScript.new() as WyrdframeCanvas
+	canvas_renderer = CanvasScript.new()
 	render_viewport.add_child(canvas_renderer)
 	preview.texture = render_viewport.get_texture()
 	_apply_render()
@@ -260,12 +260,3 @@ func _select_option_by_metadata(option: OptionButton, metadata_value: Variant) -
 		if option.get_item_metadata(index) == metadata_value:
 			option.select(index)
 			return
-
-func _vec(value: Variant) -> Vector2:
-	if value is Vector2:
-		return value as Vector2
-	if value is Array:
-		var values: Array = value as Array
-		if values.size() >= 2:
-			return Vector2(float(values[0]), float(values[1]))
-	return Vector2.ZERO
