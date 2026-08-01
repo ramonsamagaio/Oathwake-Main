@@ -1,6 +1,6 @@
 Wyrdframe Studio validation
 Godot: 4.6.3-stable
-Commit: efa292722e7931bc4f6896ab9efdf49386cd4d89
+Commit: 4f0fb125b89aaa38c947d3c8f521c05e768ec771
 Individual scripts exit: 1
 Editor exit: 0
 Runtime exit: 0
@@ -13,15 +13,9 @@ Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd =====
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
-SCRIPT ERROR: Parse Error: Function "_schedule_playback()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd:77)
-ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd" with error "Parse error".
-   at: load (modules/gdscript/gdscript.cpp:2907)
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd =====
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
-SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd".
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:1)
 SCRIPT ERROR: Parse Error: Function "_write_project()" not found in base self.
           at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:186)
 SCRIPT ERROR: Parse Error: Function "_project_filename()" not found in base self.
