@@ -1,6 +1,6 @@
 Wyrdframe Studio validation
 Godot: 4.6.3-stable
-Commit: 4f0fb125b89aaa38c947d3c8f521c05e768ec771
+Commit: e9d8e679e69455589d7751bc44a51e8145f7ff8e
 Individual scripts exit: 1
 Editor exit: 0
 Runtime exit: 0
@@ -16,32 +16,6 @@ Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd =====
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
-SCRIPT ERROR: Parse Error: Function "_write_project()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:186)
-SCRIPT ERROR: Parse Error: Function "_project_filename()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:193)
-SCRIPT ERROR: Parse Error: Function "_frame_filename()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:210)
-SCRIPT ERROR: Parse Error: Function "_sheet_filename()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:223)
-SCRIPT ERROR: Parse Error: Function "_ensure_extension()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:238)
-SCRIPT ERROR: Parse Error: Function "_write_project()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:238)
-SCRIPT ERROR: Parse Error: Function "_load_project()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:240)
-SCRIPT ERROR: Parse Error: Function "_ensure_extension()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:242)
-SCRIPT ERROR: Parse Error: Function "_export_frame()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:242)
-SCRIPT ERROR: Parse Error: Function "_ensure_extension()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:244)
-SCRIPT ERROR: Parse Error: Function "_export_sheet()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:244)
-SCRIPT ERROR: Parse Error: Function "_export_all()" not found in base self.
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd:249)
-ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd" with error "Parse error".
-   at: load (modules/gdscript/gdscript.cpp:2907)
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd =====
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
@@ -51,8 +25,10 @@ Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd =====
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
-SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd".
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:1)
+SCRIPT ERROR: Parse Error: Function "_request_save_project()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:33)
+SCRIPT ERROR: Parse Error: Function "_request_load_project()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:35)
 ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd" with error "Parse error".
    at: load (modules/gdscript/gdscript.cpp:2907)
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeUI.gd =====
@@ -166,15 +142,19 @@ Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 [  16% ] [90m[1mloading_editor_layout[22m | Loading docks...[39m[0m
 [92m[ DONE ][39m [1mloading_editor_layout[22m
 [0m
-SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd".
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:1)
+SCRIPT ERROR: Parse Error: Function "_request_save_project()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:33)
+SCRIPT ERROR: Parse Error: Function "_request_load_project()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:35)
 ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd" with error "Parse error".
    at: load (modules/gdscript/gdscript.cpp:2907)
 
 --- Runtime smoke-test log ---
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
-SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd".
-          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:1)
+SCRIPT ERROR: Parse Error: Function "_request_save_project()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:33)
+SCRIPT ERROR: Parse Error: Function "_request_load_project()" not found in base self.
+          at: GDScript::reload (res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd:35)
 ERROR: Failed to load script "res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd" with error "Parse error".
    at: load (modules/gdscript/gdscript.cpp:2907)
