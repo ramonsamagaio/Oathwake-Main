@@ -1,25 +1,27 @@
 extends Node
 
-const CURSOR_FRAMES := [
+const CURSOR_FRAMES: Array[String] = [
 	"res://assets/ui/CURSOR/c1.png",
 	"res://assets/ui/CURSOR/c2.png",
 	"res://assets/ui/CURSOR/c3.png",
 	"res://assets/ui/CURSOR/c4.png",
 ]
 
-const CURSOR_SEQUENCE := [0, 1, 2, 3, 2, 1]
-const CURSOR_INTERVAL := 0.1
-const MAX_CURSOR_DIMENSION := 64
-const AUTHORED_HOTSPOT := Vector2(8.0, 2.0)
-const SOFTWARE_CURSOR_LAYER := 4096
+const CURSOR_SEQUENCE: Array[int] = [0, 1, 2, 3, 2, 1]
+const CURSOR_INTERVAL: float = 0.1
+const MAX_CURSOR_DIMENSION: int = 64
+const AUTHORED_HOTSPOT: Vector2 = Vector2(8.0, 2.0)
+const SOFTWARE_CURSOR_LAYER: int = 4096
 
 var _frames: Array[Texture2D] = []
 var _sequence: Array[int] = []
-var _sequence_index := 0
+var _sequence_index: int = 0
 var _timer: Timer
-var _cursor_hotspot := AUTHORED_HOTSPOT
+var _cursor_hotspot: Vector2 = AUTHORED_HOTSPOT
 var _cursor_layer: CanvasLayer
 var _cursor_sprite: Sprite2D
+var _system_cursor_requests: Dictionary = {}
+var _artistic_cursor_active: bool = false
 
 
 func _ready() -> void:
@@ -30,28 +32,71 @@ func _ready() -> void:
 	_create_software_cursor()
 	_apply_current_cursor()
 	_start_timer()
+	_apply_cursor_mode()
 	set_process(true)
 
 
 func _process(_delta: float) -> void:
+	if not _artistic_cursor_active:
+		return
 	if _cursor_sprite == null or not is_instance_valid(_cursor_sprite):
 		return
 	_cursor_sprite.position = get_viewport().get_mouse_position() - _cursor_hotspot
-	_cursor_sprite.visible = get_window() == null or get_window().has_focus()
+	var active_window: Window = get_window()
+	_cursor_sprite.visible = active_window == null or active_window.has_focus()
 
 
 func _exit_tree() -> void:
+	_system_cursor_requests.clear()
+	_artistic_cursor_active = false
+	if _cursor_sprite != null and is_instance_valid(_cursor_sprite):
+		_cursor_sprite.visible = false
 	if not _is_headless_display():
+		Input.set_custom_mouse_cursor(null, Input.CURSOR_ARROW, Vector2.ZERO)
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
+func request_system_cursor(owner_id: StringName) -> void:
+	_system_cursor_requests[owner_id] = true
+	_apply_cursor_mode()
+
+
+func release_system_cursor(owner_id: StringName) -> void:
+	_system_cursor_requests.erase(owner_id)
+	_apply_cursor_mode()
+
+
+func is_system_cursor_forced() -> bool:
+	return not _system_cursor_requests.is_empty()
+
+
+func is_artistic_cursor_active() -> bool:
+	return _artistic_cursor_active
+
+
+func _apply_cursor_mode() -> void:
+	var should_use_artistic_cursor: bool = (
+		_system_cursor_requests.is_empty()
+		and not _frames.is_empty()
+		and _cursor_sprite != null
+		and is_instance_valid(_cursor_sprite)
+		and not _is_headless_display()
+	)
+	_artistic_cursor_active = should_use_artistic_cursor
+	if _cursor_sprite != null and is_instance_valid(_cursor_sprite):
+		_cursor_sprite.visible = should_use_artistic_cursor
+	if _is_headless_display():
+		return
+	Input.set_custom_mouse_cursor(null, Input.CURSOR_ARROW, Vector2.ZERO)
+	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if should_use_artistic_cursor else Input.MOUSE_MODE_VISIBLE
 
 
 func _load_frames() -> void:
 	_frames.clear()
-	for path_value in CURSOR_FRAMES:
-		var path := str(path_value)
+	for path: String in CURSOR_FRAMES:
 		if not ResourceLoader.exists(path):
 			continue
-		var texture := ResourceLoader.load(path) as Texture2D
+		var texture: Texture2D = ResourceLoader.load(path) as Texture2D
 		if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
 			push_warning("AnimatedCursor: ignored invalid cursor texture '%s'." % path)
 			continue
@@ -76,7 +121,7 @@ func _build_sequence() -> void:
 
 
 func _add_sequence_values(values: Array) -> void:
-	for value in values:
+	for value: Variant in values:
 		_sequence.append(int(value))
 
 
@@ -84,7 +129,7 @@ func _apply_authored_hotspot() -> void:
 	_cursor_hotspot = AUTHORED_HOTSPOT
 	if _frames.is_empty():
 		return
-	var texture := _frames[0]
+	var texture: Texture2D = _frames[0]
 	_cursor_hotspot = Vector2(
 		clampf(AUTHORED_HOTSPOT.x, 0.0, float(maxi(texture.get_width() - 1, 0))),
 		clampf(AUTHORED_HOTSPOT.y, 0.0, float(maxi(texture.get_height() - 1, 0)))
@@ -106,7 +151,6 @@ func _create_software_cursor() -> void:
 	_cursor_sprite.z_index = 1
 	_cursor_sprite.position = get_viewport().get_mouse_position() - _cursor_hotspot
 	_cursor_layer.add_child(_cursor_sprite)
-	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 
 
 func get_cursor_hotspot() -> Vector2:
@@ -139,10 +183,10 @@ func _advance_cursor_frame() -> void:
 func _apply_current_cursor() -> void:
 	if _cursor_sprite == null or not is_instance_valid(_cursor_sprite) or _frames.is_empty() or _sequence.is_empty():
 		return
-	var frame_index := _sequence[_sequence_index]
+	var frame_index: int = _sequence[_sequence_index]
 	if frame_index < 0 or frame_index >= _frames.size():
 		frame_index = 0
-	var texture := _frames[frame_index]
+	var texture: Texture2D = _frames[frame_index]
 	if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
 		return
 	_cursor_sprite.texture = texture
