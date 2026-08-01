@@ -19,7 +19,7 @@ func _add_hit_sparks_profile_fields() -> void:
 	super._add_hit_sparks_profile_fields()
 	_add_subsection_title("Live Hit Pixel Preview")
 	var note := Label.new()
-	note.text = "Replays the selected hit-spark profile continuously. Changes to count, speed, distance, gravity, lifetime, size and colors appear here before saving."
+	note.text = "Replays the selected hit-spark profile and its contact light continuously. Pixel motion, fade, color, light radius, energy and duration update before saving."
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(note)
 
@@ -28,7 +28,7 @@ func _add_hit_sparks_profile_fields() -> void:
 	form_container.add_child(_hit_sparks_preview)
 
 	var replay_button := Button.new()
-	replay_button.text = "Replay Hit Pixels"
+	replay_button.text = "Replay Hit Pixels + Light"
 	replay_button.pressed.connect(_restart_hit_sparks_preview)
 	form_container.add_child(replay_button)
 
@@ -80,6 +80,12 @@ func _bind_hit_sparks_preview_controls() -> void:
 		"size_max",
 		"gravity",
 		"colors",
+		"contact_light_enabled",
+		"contact_light_color",
+		"contact_light_energy",
+		"contact_light_radius",
+		"contact_light_duration",
+		"contact_light_critical_multiplier",
 	]:
 		_connect_live_preview_control(field_controls.get(field_name), _refresh_hit_sparks_preview)
 
@@ -137,6 +143,9 @@ func _restart_hit_sparks_preview() -> void:
 
 
 func _get_hit_sparks_preview_profile() -> Dictionary:
+	var critical_multiplier := float(current_record.get("contact_light_critical_multiplier", 2.0))
+	if field_controls.has("contact_light_critical_multiplier"):
+		critical_multiplier = _get_spin_box_value("contact_light_critical_multiplier")
 	return {
 		"pixel_count": _get_spin_box_int("pixel_count"),
 		"lifetime": _get_spin_box_value("lifetime"),
@@ -152,6 +161,13 @@ func _get_hit_sparks_preview_profile() -> Dictionary:
 		"size_max": _get_spin_box_value("size_max"),
 		"gravity": _get_spin_box_value("gravity"),
 		"colors": _split_string_list(_get_line_edit_text("colors")),
+		"contact_light_enabled": _get_check_box_pressed("contact_light_enabled"),
+		"contact_light_color": _get_content_color_html("contact_light_color"),
+		"contact_light_energy": _get_spin_box_value("contact_light_energy"),
+		"contact_light_radius": _get_spin_box_value("contact_light_radius"),
+		"contact_light_duration": _get_spin_box_value("contact_light_duration"),
+		"contact_light_critical_multiplier": critical_multiplier,
+		"is_critical": str(current_record.get("id", "")) == "critical_hit_sparks",
 	}
 
 
