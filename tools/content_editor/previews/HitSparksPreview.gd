@@ -6,6 +6,7 @@ var _particles: Array[Dictionary] = []
 var _rng := RandomNumberGenerator.new()
 var _replay_elapsed := 0.0
 var _replay_delay := 0.25
+var _flash_age := 0.0
 
 
 func _ready() -> void:
@@ -24,6 +25,7 @@ func set_profile(profile: Dictionary) -> void:
 func restart() -> void:
 	_particles.clear()
 	_replay_elapsed = 0.0
+	_flash_age = 0.0
 	var count := maxi(int(_profile.get("pixel_count", 18)), 0)
 	var lifetime := maxf(float(_profile.get("lifetime", 0.38)), 0.01)
 	var speed_min := float(_profile.get("speed_min", 42.0))
@@ -58,6 +60,7 @@ func restart() -> void:
 
 
 func _process(delta: float) -> void:
+	_flash_age += delta
 	var alive := false
 	for index in range(_particles.size()):
 		var particle := _particles[index]
@@ -86,6 +89,7 @@ func _draw() -> void:
 	draw_rect(Rect2(0.0, ground_y, size.x, size.y - ground_y), Color(0.085, 0.095, 0.075, 1.0), true)
 	draw_line(Vector2(0.0, ground_y), Vector2(size.x, ground_y), Color(0.18, 0.20, 0.16, 1.0), 1.0)
 	var origin := Vector2(size.x * 0.5, size.y * 0.58)
+	_draw_contact_light(origin)
 	draw_circle(origin, 18.0, Color(0.16, 0.18, 0.20, 1.0))
 	draw_circle(origin, 11.0, Color(0.26, 0.29, 0.31, 1.0))
 	for particle in _particles:
@@ -101,6 +105,28 @@ func _draw() -> void:
 		var pixel_size := maxf(float(particle.get("size", 1.0)), 1.0)
 		var position: Vector2 = particle.get("position", Vector2.ZERO)
 		draw_rect(Rect2(position - Vector2.ONE * pixel_size * 0.5, Vector2.ONE * pixel_size), color, true)
+
+
+func _draw_contact_light(origin: Vector2) -> void:
+	if not bool(_profile.get("contact_light_enabled", true)):
+		return
+	var duration := maxf(float(_profile.get("contact_light_duration", 0.055)), 0.001)
+	if _flash_age >= duration:
+		return
+	var energy := maxf(float(_profile.get("contact_light_energy", 0.72)), 0.0)
+	if bool(_profile.get("is_critical", false)):
+		energy *= maxf(float(_profile.get("contact_light_critical_multiplier", 2.0)), 0.0)
+	var radius := maxf(float(_profile.get("contact_light_radius", 34.0)), 1.0)
+	var fade := pow(1.0 - clampf(_flash_age / duration, 0.0, 1.0), 1.65)
+	var light_color := Color.from_string(str(_profile.get("contact_light_color", "#FFD78AFF")), Color("#FFD78A"))
+	for ring_index in range(12, 0, -1):
+		var ratio := float(ring_index) / 12.0
+		var ring_color := light_color
+		ring_color.a = clampf(0.018 * energy * fade * (1.22 - ratio * 0.22), 0.0, 0.18)
+		draw_circle(origin, radius * ratio, ring_color)
+	var core_color := light_color
+	core_color.a = clampf(0.12 * energy * fade, 0.0, 0.32)
+	draw_circle(origin, maxf(radius * 0.16, 2.0), core_color)
 
 
 func _parse_colors(raw_colors: Variant) -> Array[Color]:
