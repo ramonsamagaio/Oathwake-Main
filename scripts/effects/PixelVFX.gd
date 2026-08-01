@@ -32,7 +32,10 @@ func spawn_world_hit_sparks(world_position: Vector2, is_critical := false) -> vo
 	if parent == null:
 		return
 
-	_spawn_contact_light(parent, world_position, profile, is_critical)
+	var light_profile := _get_profile("hit_sparks").duplicate(true)
+	if is_critical:
+		light_profile["contact_light_critical_multiplier"] = float(profile.get("contact_light_critical_multiplier", DEFAULT_CRITICAL_LIGHT_MULTIPLIER))
+	_spawn_contact_light(parent, world_position, light_profile, is_critical)
 
 	for _i in range(count):
 		var particle := PixelParticle2D.new()
