@@ -1,6 +1,6 @@
 Wyrdframe Studio validation
 Godot: 4.6.3-stable
-Commit: 8476edc47bb56e6062cf90499b15ee2f5742f218
+Commit: bb0f065a64b5f892a3d2ecd55a65e8cd5f447b8a
 Individual scripts exit: 0
 Editor exit: 0
 Runtime exit: 0
