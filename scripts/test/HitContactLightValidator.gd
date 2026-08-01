@@ -94,6 +94,12 @@ func _validate_runtime_contact_lights() -> void:
 
 
 func _validate_profile_inheritance() -> void:
+	var existing_content_db: Node = root.get_node_or_null("ContentDB")
+	var existing_content_db_name := ""
+	if existing_content_db != null:
+		existing_content_db_name = existing_content_db.name
+		existing_content_db.name = "ContentDBValidationBackup"
+
 	var content_db := MockContentDB.new()
 	content_db.name = "ContentDB"
 	content_db.profiles = {
@@ -145,6 +151,8 @@ func _validate_profile_inheritance() -> void:
 	pixel_vfx.queue_free()
 	content_db.queue_free()
 	await process_frame
+	if existing_content_db != null:
+		existing_content_db.name = existing_content_db_name
 
 
 func _validate_preview() -> void:
