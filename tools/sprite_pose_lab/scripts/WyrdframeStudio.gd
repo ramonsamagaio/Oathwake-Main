@@ -299,3 +299,104 @@ func _run_smoke_test() -> void:
 	_refresh_context()
 	print("WYRD_FRAME_SMOKE_TEST_OK")
 	get_tree().quit()
+
+func _request_load_texture() -> void:
+	file_action = FileAction.LOAD_TEXTURE
+	_open_dialog(FileDialog.FILE_MODE_OPEN_FILE, "Carregar sprite do bone", ["*.png ; PNG"])
+
+func _clear_texture() -> void:
+	_record_history()
+	var textures: Dictionary = _direction_data().get("textures", {}) as Dictionary
+	textures[selected_bone] = ""
+	canvas_renderer.clear_texture_cache()
+	_mark_changed("Sprite removido desta ação e direção.", false)
+
+func _request_save_project() -> void:
+	if not current_project_path.is_empty():
+		_write_project(current_project_path)
+		return
+	file_action = FileAction.SAVE_PROJECT
+	_open_dialog(
+		FileDialog.FILE_MODE_SAVE_FILE,
+		"Salvar projeto Wyrdframe",
+		["*.wyrd ; Wyrdframe Project"],
+		_project_filename()
+	)
+
+func _request_load_project() -> void:
+	file_action = FileAction.LOAD_PROJECT
+	_open_dialog(
+		FileDialog.FILE_MODE_OPEN_FILE,
+		"Abrir projeto Wyrdframe",
+		["*.wyrd ; Wyrdframe Project", "*.json ; JSON legado"]
+	)
+
+func _request_export_frame() -> void:
+	file_action = FileAction.EXPORT_FRAME
+	_open_dialog(
+		FileDialog.FILE_MODE_SAVE_FILE,
+		"Exportar frame",
+		["*.png ; PNG"],
+		_frame_filename(current_frame)
+	)
+
+func _request_export_all() -> void:
+	file_action = FileAction.EXPORT_ALL
+	_open_dialog(FileDialog.FILE_MODE_OPEN_DIR, "Exportar sequência PNG", [])
+
+func _request_export_sheet() -> void:
+	file_action = FileAction.EXPORT_SHEET
+	_open_dialog(
+		FileDialog.FILE_MODE_SAVE_FILE,
+		"Exportar sprite sheet",
+		["*.png ; PNG"],
+		_sheet_filename()
+	)
+
+func _open_dialog(mode: FileDialog.FileMode, title_text: String, filters: Array[String], suggested: String = "") -> void:
+	file_dialog.file_mode = mode
+	file_dialog.title = title_text
+	file_dialog.filters = PackedStringArray(filters)
+	file_dialog.current_dir = ProjectSettings.globalize_path(DATA_DIR)
+	file_dialog.current_file = suggested
+	file_dialog.popup_centered_ratio(0.8)
+
+func _on_file_selected(path: String) -> void:
+	if file_action == FileAction.LOAD_TEXTURE:
+		_load_texture_path(path)
+	elif file_action == FileAction.SAVE_PROJECT:
+		_write_project(_ensure_extension(path, FILE_EXTENSION))
+	elif file_action == FileAction.LOAD_PROJECT:
+		_load_project(path)
+	elif file_action == FileAction.EXPORT_FRAME:
+		await _export_frame(_ensure_extension(path, "png"))
+	elif file_action == FileAction.EXPORT_SHEET:
+		await _export_sheet(_ensure_extension(path, "png"))
+	file_action = FileAction.NONE
+
+func _on_directory_selected(path: String) -> void:
+	if file_action == FileAction.EXPORT_ALL:
+		await _export_all(path)
+	file_action = FileAction.NONE
+
+func _on_file_dialog_canceled() -> void:
+	file_action = FileAction.NONE
+
+func _load_texture_path(path: String) -> void:
+	var test_image: Image = Image.new()
+	if test_image.load(path) != OK:
+		_set_status("Não foi possível carregar o PNG.", true)
+		return
+	var project_root: String = ProjectSettings.globalize_path("res://")
+	var stored_path: String = ProjectSettings.localize_path(path) if path.begins_with(project_root) else path
+	_record_history()
+	var textures: Dictionary = _direction_data().get("textures", {}) as Dictionary
+	textures[selected_bone] = stored_path
+	canvas_renderer.clear_texture_cache()
+	_mark_changed(
+		"PNG associado a %s / %s." % [
+			_action_data().get("name", current_action),
+			DIRECTION_LABELS[current_direction],
+		],
+		false
+	)
