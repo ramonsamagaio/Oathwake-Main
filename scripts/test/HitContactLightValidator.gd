@@ -7,6 +7,19 @@ const HitSparksPreviewScript: Script = preload("res://tools/content_editor/previ
 var failures: Array[String] = []
 
 
+class MockContentDB:
+	extends Node
+
+	var profiles: Dictionary = {}
+
+	func has_vfx_profile(profile_id: String) -> bool:
+		return profiles.has(profile_id)
+
+	func get_vfx_profile(profile_id: String) -> Dictionary:
+		var value: Variant = profiles.get(profile_id, {})
+		return (value as Dictionary).duplicate(true) if value is Dictionary else {}
+
+
 func _init() -> void:
 	call_deferred("_run")
 
@@ -14,6 +27,7 @@ func _init() -> void:
 func _run() -> void:
 	_validate_script_chain()
 	await _validate_runtime_contact_lights()
+	await _validate_profile_inheritance()
 	await _validate_preview()
 	if failures.is_empty():
 		print("HIT_CONTACT_LIGHT_VALIDATION_PASS")
@@ -77,6 +91,60 @@ func _validate_runtime_contact_lights() -> void:
 	await process_frame
 	world.queue_free()
 	pixel_vfx.queue_free()
+
+
+func _validate_profile_inheritance() -> void:
+	var content_db := MockContentDB.new()
+	content_db.name = "ContentDB"
+	content_db.profiles = {
+		"hit_sparks": {
+			"pixel_count": 0,
+			"contact_light_enabled": true,
+			"contact_light_color": "#FFD78AFF",
+			"contact_light_energy": 0.8,
+			"contact_light_radius": 40.0,
+			"contact_light_duration": 1.0,
+		},
+		"critical_hit_sparks": {
+			"pixel_count": 0,
+			"contact_light_energy": 9.0,
+			"contact_light_radius": 200.0,
+			"contact_light_duration": 5.0,
+			"contact_light_critical_multiplier": 2.0,
+		},
+	}
+	root.add_child(content_db)
+
+	var pixel_vfx := PixelVFXScript.new() as Node
+	pixel_vfx.name = "ProfileInheritancePixelVFX"
+	root.add_child(pixel_vfx)
+	pixel_vfx.call("spawn_world_hit_sparks", Vector2(80.0, 96.0), false)
+	pixel_vfx.call("spawn_world_hit_sparks", Vector2(100.0, 96.0), true)
+	await process_frame
+
+	var normal_light := root.get_node_or_null("HitContactLight") as PointLight2D
+	var critical_light := root.get_node_or_null("CriticalHitContactLight") as PointLight2D
+	if normal_light == null or critical_light == null:
+		failures.append("Profile-driven hit path did not create both contact lights.")
+	else:
+		var normal_peak := float(normal_light.get_meta("peak_energy", -1.0))
+		var critical_peak := float(critical_light.get_meta("peak_energy", -1.0))
+		if not is_equal_approx(normal_peak, 0.8):
+			failures.append("Normal profile base energy was not used by the real hit path.")
+		if not is_equal_approx(critical_peak, normal_peak * 2.0):
+			failures.append("Critical hit did not inherit normal base energy before multiplying it.")
+		if not is_equal_approx(float(critical_light.get_meta("radius", -1.0)), 40.0):
+			failures.append("Critical hit did not inherit the normal contact-light radius.")
+		if not is_equal_approx(float(critical_light.get_meta("duration", -1.0)), 1.0):
+			failures.append("Critical hit did not inherit the normal contact-light duration.")
+
+	if normal_light != null:
+		normal_light.queue_free()
+	if critical_light != null:
+		critical_light.queue_free()
+	pixel_vfx.queue_free()
+	content_db.queue_free()
+	await process_frame
 
 
 func _validate_preview() -> void:
