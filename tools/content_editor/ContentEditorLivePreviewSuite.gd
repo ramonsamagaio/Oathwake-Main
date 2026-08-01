@@ -61,13 +61,6 @@ func _build_building_form() -> void:
 	_campfire_preview.name = "CampfireLivePreview"
 	form_container.add_child(_campfire_preview)
 
-	var replay_button := Button.new()
-	replay_button.text = "Replay Hit Pixels + Light"
-	replay_button.pressed.connect(_restart_hit_sparks_preview)
-	form_container.add_child(replay_button)
-
-	_hit_sparks_preview = _hit_sparks_preview
-
 	_campfire_night_slider = HSlider.new()
 	_campfire_night_slider.min_value = 0.0
 	_campfire_night_slider.max_value = 1.0
