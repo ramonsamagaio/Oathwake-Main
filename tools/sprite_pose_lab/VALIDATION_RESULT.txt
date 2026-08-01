@@ -1,10 +1,10 @@
 Wyrdframe Studio validation
 Godot: 4.6.3-stable
-Commit: 01f518ea1989dfe9c8e1c11b33fb943d71e93d60
+Commit: f01cfe1ae5c503690a8ef7127b5b81df6e7956c3
 Individual scripts exit: 0
 Editor exit: 0
 Runtime exit: 0
-Exit code: 1
+Exit code: 0
 
 --- Individual script checks ---
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeCanvas.gd =====
@@ -64,12 +64,8 @@ Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 [  16% ] [90m[1mloading_editor_layout[22m | Loading docks...[39m[0m
 [92m[ DONE ][39m [1mloading_editor_layout[22m
 [0m
-ERROR: Can't change "force_native" while a window is displayed. Consider hiding window before changing this value.
-   at: set_force_native (scene/main/window.cpp:1385)
 
 --- Runtime smoke-test log ---
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
-ERROR: Can't change "force_native" while a window is displayed. Consider hiding window before changing this value.
-   at: set_force_native (scene/main/window.cpp:1385)
 WYRD_FRAME_SMOKE_TEST_OK
