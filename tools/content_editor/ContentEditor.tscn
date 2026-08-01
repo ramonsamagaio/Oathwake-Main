@@ -1,10 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://cn6juf8fptk0e"]
+[gd_scene load_steps=4 format=3 uid="uid://cn6juf8fptk0e"]
 
 ; ContentEditorControlRangesSuite.gd extends ContentEditorLightEmittersSuite.gd.
 ; The inherited chain includes ContentEditorRuntimeTuningSuite.gd and centralizes
 ; light-only authoring, runtime-safe tuning, workspace scrolling and post effects.
 [ext_resource type="Script" path="res://tools/content_editor/ContentEditorControlRangesSuite.gd" id="1_content_editor_script"]
 [ext_resource type="Script" path="res://scripts/test/RuntimeContentEditorContractProbe.gd" id="2_contract_probe"]
+[ext_resource type="Script" path="res://tools/content_editor/StandaloneSystemCursorGuard.gd" id="3_cursor_guard"]
 
 [node name="ContentEditor" type="Control" unique_id=47190531]
 custom_minimum_size = Vector2(800, 500)
@@ -15,6 +16,9 @@ offset_bottom = 900.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_content_editor_script")
+
+[node name="StandaloneSystemCursorGuard" type="Node" parent="."]
+script = ExtResource("3_cursor_guard")
 
 [node name="RuntimeContractProbe" type="Node" parent="."]
 script = ExtResource("2_contract_probe")
