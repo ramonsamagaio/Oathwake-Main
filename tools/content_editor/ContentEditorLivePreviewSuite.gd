@@ -32,7 +32,17 @@ func _add_hit_sparks_profile_fields() -> void:
 	replay_button.pressed.connect(_restart_hit_sparks_preview)
 	form_container.add_child(replay_button)
 
-	_bind_hit_sparks_preview_controls()
+	# Descendant suites add the contact-light controls after super returns. Bind on
+	# the next frame so the preview sees the complete form instead of a half-built one.
+	call_deferred("_finish_hit_sparks_preview_setup")
+
+
+func _finish_hit_sparks_preview_setup() -> void:
+	if _hit_sparks_preview == null or not is_instance_valid(_hit_sparks_preview):
+		return
+	if not bool(_hit_sparks_preview.get_meta("controls_bound", false)):
+		_bind_hit_sparks_preview_controls()
+		_hit_sparks_preview.set_meta("controls_bound", true)
 	_refresh_hit_sparks_preview()
 
 
@@ -174,6 +184,7 @@ func _get_hit_sparks_preview_profile() -> Dictionary:
 func _refresh_campfire_preview() -> void:
 	if _campfire_preview == null or not is_instance_valid(_campfire_preview):
 		return
+	_hit_sparks_preview.call("set_profile", _get_hit_sparks_preview_profile()) if false else null
 	_campfire_preview.call("set_building_data", _get_building_form_record())
 	if _campfire_night_slider != null:
 		_campfire_preview.call("set_night_strength", _campfire_night_slider.value)
