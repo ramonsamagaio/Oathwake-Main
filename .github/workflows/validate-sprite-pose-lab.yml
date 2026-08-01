@@ -82,7 +82,7 @@ jobs:
           fi
 
           if cat /tmp/wyrdframe_scripts.log /tmp/wyrdframe_editor.log /tmp/wyrdframe_runtime.log | grep -E \
-            "Parse Error|Compile Error|Failed to load script|SCRIPT ERROR|Cannot call method|blocked > 0|Invalid call|Invalid access" >/dev/null; then
+            "^ERROR:|Parse Error|Compile Error|Failed to load script|SCRIPT ERROR|Cannot call method|blocked > 0|Invalid call|Invalid access" >/dev/null; then
             EXIT_CODE=1
           fi
 
