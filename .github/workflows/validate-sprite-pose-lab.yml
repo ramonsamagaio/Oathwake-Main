@@ -1,4 +1,4 @@
-name: Validate SpritePoseLab
+name: Validate Wyrdframe Studio
 
 on:
   push:
@@ -29,23 +29,23 @@ jobs:
       - name: Build isolated validation project
         shell: bash
         run: |
-          mkdir -p /tmp/sprite_pose_lab_check/tools
-          cp -R tools/sprite_pose_lab /tmp/sprite_pose_lab_check/tools/
-          cat > /tmp/sprite_pose_lab_check/project.godot <<'EOF'
+          mkdir -p /tmp/wyrdframe_check/tools
+          cp -R tools/sprite_pose_lab /tmp/wyrdframe_check/tools/
+          cat > /tmp/wyrdframe_check/project.godot <<'EOF'
           [application]
-          config/name="SpritePoseLab Validation"
-          run/main_scene="res://tools/sprite_pose_lab/scenes/SpritePoseLab.tscn"
+          config/name="Wyrdframe Validation"
+          run/main_scene="res://tools/sprite_pose_lab/scenes/WyrdframeStudio.tscn"
 
           [display]
-          window/size/viewport_width=1280
-          window/size/viewport_height=720
+          window/size/viewport_width=1500
+          window/size/viewport_height=900
 
           [rendering]
           renderer/rendering_method="gl_compatibility"
           renderer/rendering_method.mobile="gl_compatibility"
           EOF
 
-      - name: Parse and initialize SpritePoseLab
+      - name: Parse and initialize Wyrdframe
         shell: bash
         run: |
-          ./godot --headless --path /tmp/sprite_pose_lab_check --editor --quit-after 8
+          ./godot --headless --path /tmp/wyrdframe_check --editor --quit-after 8
