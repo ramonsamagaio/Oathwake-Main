@@ -490,3 +490,58 @@ func _select_bone(bone_id: String) -> void:
 func _clear_smart_rotation_cache() -> void:
 	if canvas_renderer != null and canvas_renderer.has_method("clear_pixel_rotation_cache"):
 		canvas_renderer.clear_pixel_rotation_cache()
+
+
+func _run_smoke_test() -> void:
+	await get_tree().process_frame
+	var test_image: Image = Image.create_empty(9, 17, false, Image.FORMAT_RGBA8)
+	test_image.fill(Color.TRANSPARENT)
+	for y_value: int in range(1, 16):
+		for x_value: int in range(2, 7):
+			var border: bool = x_value == 2 or x_value == 6 or y_value == 1 or y_value == 15
+			var pixel_color: Color = Color(0.06, 0.07, 0.08, 1.0) if border else Color(0.34, 0.62, 0.42, 1.0)
+			test_image.set_pixel(x_value, y_value, pixel_color)
+
+	var smoke_bone: String = "left_arm" if not _bone_by_id("left_arm").is_empty() else selected_bone
+	var detected: Dictionary = _detect_pin_axis(test_image, smoke_bone, false)
+	var detected_start: Vector2 = _vec(detected.get("start", [0.0, 0.0]))
+	var detected_end: Vector2 = _vec(detected.get("end", [0.0, 0.0]))
+	if detected_start.distance_to(detected_end) < 8.0:
+		push_error("WYRD_FRAME_PIXEL_GUARDS_FAIL: pin axis was not detected")
+		get_tree().quit(91)
+		return
+
+	var test_texture: Texture2D = ImageTexture.create_from_image(test_image)
+	var rotated: Dictionary = canvas_renderer._smart_rotated_texture(
+		test_texture,
+		"wyrdframe_pixel_guard_smoke",
+		deg_to_rad(33.0),
+		true,
+		true
+	)
+	var rotated_texture: Texture2D = rotated.get("texture") as Texture2D
+	if rotated_texture == null:
+		push_error("WYRD_FRAME_PIXEL_GUARDS_FAIL: smart rotation returned no texture")
+		get_tree().quit(92)
+		return
+	var rotated_image: Image = rotated_texture.get_image()
+	var opaque_count: int = 0
+	var dark_count: int = 0
+	for y_value: int in range(rotated_image.get_height()):
+		for x_value: int in range(rotated_image.get_width()):
+			var color_value: Color = rotated_image.get_pixel(x_value, y_value)
+			if color_value.a <= 0.05:
+				continue
+			opaque_count += 1
+			if color_value.get_luminance() <= 0.20:
+				dark_count += 1
+	if opaque_count < 55 or dark_count < 12:
+		push_error("WYRD_FRAME_PIXEL_GUARDS_FAIL: rotated silhouette or outline was lost")
+		get_tree().quit(93)
+		return
+
+	preserve_thickness_check.button_pressed = true
+	preserve_outline_check.button_pressed = true
+	_on_view_setting_changed()
+	print("WYRD_FRAME_PIXEL_GUARDS_OK")
+	await super._run_smoke_test()
