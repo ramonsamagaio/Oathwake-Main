@@ -1,6 +1,6 @@
 Wyrdframe Studio validation
 Godot: 4.6.3-stable
-Commit: bb0f065a64b5f892a3d2ecd55a65e8cd5f447b8a
+Commit: 55a7559ec6230a8af394966aa9f943df901ea151
 Individual scripts exit: 0
 Editor exit: 0
 Runtime exit: 0
@@ -26,6 +26,9 @@ Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeLauncher.gd =====
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+===== res://tools/sprite_pose_lab/scripts/WyrdframePixelCanvas.gd =====
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
 ===== res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd =====
@@ -55,19 +58,20 @@ Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 [  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
 [92m[ DONE ][39m [1mfirst_scan_filesystem[22m
 [0m
-[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (12 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (13 steps)[39m[0m
 [   0% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [   7% ] [90m[1mupdate_scripts_classes[22m | WyrdframeAdvancedCanvas[39m[0m
-[  15% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  23% ] [90m[1mupdate_scripts_classes[22m | WyrdframeCanvas[39m[0m
-[  30% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  38% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  46% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  53% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  61% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  69% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  76% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  84% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  14% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  21% ] [90m[1mupdate_scripts_classes[22m | WyrdframeCanvas[39m[0m
+[  28% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  35% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  42% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  50% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  57% ] [90m[1mupdate_scripts_classes[22m | WyrdframePixelCanvas[39m[0m
+[  64% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  71% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  78% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  85% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [92m[ DONE ][39m [1mupdate_scripts_classes[22m
 [0m
 [   0% ] [90m[1m_update_scan_actions[22m | Started Scanning actions... (4 steps)[39m[0m
