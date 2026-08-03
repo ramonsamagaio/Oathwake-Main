@@ -1,6 +1,6 @@
 Wyrdframe Studio validation
 Godot: 4.6.3-stable
-Commit: 49dcbdce097bb1e018f328458f3cafeb2c5fa876
+Commit: 1fa2038ecbf06762c1e18ffd63531aebee592e5d
 Individual scripts exit: 0
 Editor exit: 0
 Runtime exit: 0
@@ -112,4 +112,5 @@ Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
 WYRD_FRAME_SYSTEM_CURSOR_OK
+WYRD_FRAME_PIXEL_GUARDS_OK
 WYRD_FRAME_SMOKE_TEST_OK
