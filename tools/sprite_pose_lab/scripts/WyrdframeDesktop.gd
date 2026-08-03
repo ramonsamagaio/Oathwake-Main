@@ -1,4 +1,4 @@
-extends "res://tools/sprite_pose_lab/scripts/WyrdframeAdvancedStudio.gd"
+extends "res://tools/sprite_pose_lab/scripts/WyrdframePixelStudio.gd"
 
 const MIN_DESKTOP_SIZE: Vector2i = Vector2i(1100, 700)
 
