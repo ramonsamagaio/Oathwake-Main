@@ -7,118 +7,23 @@ Runtime exit: 0
 Exit code: 0
 
 --- Individual script checks ---
-===== res://tools/sprite_pose_lab/scripts/WyrdframeAdvancedCanvas.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframeAdvancedStudio.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframeCanvas.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframeDesktop.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframeInteractionCore.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframeInteractionView.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframeLauncher.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframePixelCanvas.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframePixelStudio.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframeRender.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframeSmartPixelCanvas.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframeSmartStudio.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframeState.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframeStudio.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-===== res://tools/sprite_pose_lab/scripts/WyrdframeUI.gd =====
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-
---- Editor log ---
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
-[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
-[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
-[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
-[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
-[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
-[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
-[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
-[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
-[0m
-[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (16 steps)[39m[0m
-[   0% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[   5% ] [90m[1mupdate_scripts_classes[22m | WyrdframeAdvancedCanvas[39m[0m
-[  11% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  17% ] [90m[1mupdate_scripts_classes[22m | WyrdframeCanvas[39m[0m
-[  23% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  29% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  35% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  41% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  47% ] [90m[1mupdate_scripts_classes[22m | WyrdframePixelCanvas[39m[0m
-[  52% ] [90m[1mupdate_scripts_classes[22m | WyrdframePixelStudio[39m[0m
-[  58% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  64% ] [90m[1mupdate_scripts_classes[22m | WyrdframeSmartPixelCanvas[39m[0m
-[  70% ] [90m[1mupdate_scripts_classes[22m | WyrdframeSmartStudio[39m[0m
-[  76% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  82% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  88% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[92m[ DONE ][39m [1mupdate_scripts_classes[22m
-[0m
-[   0% ] [90m[1m_update_scan_actions[22m | Started Scanning actions... (4 steps)[39m[0m
-[   0% ] [90m[1m_update_scan_actions[22m | c1.png[39m[0m
-[  20% ] [90m[1m_update_scan_actions[22m | c2.png[39m[0m
-[  40% ] [90m[1m_update_scan_actions[22m | c3.png[39m[0m
-[  60% ] [90m[1m_update_scan_actions[22m | c4.png[39m[0m
-[92m[ DONE ][39m [1m_update_scan_actions[22m
-[0m
-[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (4 steps)[39m[0m
-[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  20% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  40% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  60% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[   0% ] [90m[1mreimport[22m | Executing pre-reimport operations...[39m[0m
-[   0% ] [90m[1mreimport[22m | c1.png[39m[0m
-[  20% ] [90m[1mreimport[22m | c2.png[39m[0m
-[  40% ] [90m[1mreimport[22m | c3.png[39m[0m
-[  60% ] [90m[1mreimport[22m | c4.png[39m[0m
-[  80% ] [90m[1mreimport[22m | Finalizing Asset Import...[39m[0m
-[92m[ DONE ][39m [1mreimport[22m
-[0m
-[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (4 steps)[39m[0m
-[   0% ] [90m[1mreimport[22m | Executing post-reimport operations...[39m[0m
-[92m[ DONE ][39m [1mreimport[22m
-[0m
-[   0% ] [90m[1mloading_editor_layout[22m | Started Loading editor (5 steps)[39m[0m
-[   0% ] [90m[1mloading_editor_layout[22m | Loading editor layout...[39m[0m
-[  16% ] [90m[1mloading_editor_layout[22m | Loading docks...[39m[0m
-[92m[ DONE ][39m [1mloading_editor_layout[22m
-[0m
+WyrdframeAdvancedCanvas.gd: OK
+WyrdframeAdvancedStudio.gd: OK
+WyrdframeCanvas.gd: OK
+WyrdframeDesktop.gd: OK
+WyrdframeInteractionCore.gd: OK
+WyrdframeInteractionView.gd: OK
+WyrdframeLauncher.gd: OK
+WyrdframePixelCanvas.gd: OK
+WyrdframePixelStudio.gd: OK
+WyrdframeRender.gd: OK
+WyrdframeSmartPixelCanvas.gd: OK
+WyrdframeSmartStudio.gd: OK
+WyrdframeState.gd: OK
+WyrdframeStudio.gd: OK
+WyrdframeUI.gd: OK
 
 --- Runtime smoke-test log ---
-Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
-
 WYRD_FRAME_SYSTEM_CURSOR_OK
 WYRD_FRAME_GRID_LOCK_TWEEN_CLEANUP_OK
 WYRD_FRAME_PIXEL_GUARDS_OK
