@@ -6,21 +6,28 @@ const PLAYER_NODE_NAME := "AuthoringLabPlayer"
 const DEFAULT_SPAWN_POSITION := Vector2.ZERO
 const PLAYTEST_CAMERA_ZOOM := Vector2(1.15, 1.15)
 
+var _observed_scene_instance_id := 0
+
 
 func _ready() -> void:
-	var tree := get_tree()
-	var callback := Callable(self, "_on_current_scene_changed")
-	if not tree.current_scene_changed.is_connected(callback):
-		tree.current_scene_changed.connect(callback)
-	call_deferred("_inject_current_scene")
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	set_process(true)
+	call_deferred("_inspect_current_scene")
 
 
-func _on_current_scene_changed(scene: Node) -> void:
-	call_deferred("_inject_into_scene", scene)
+func _process(_delta: float) -> void:
+	var scene := get_tree().current_scene
+	var scene_instance_id := scene.get_instance_id() if scene != null else 0
+	if scene_instance_id == _observed_scene_instance_id:
+		return
+	_observed_scene_instance_id = scene_instance_id
+	_inject_into_scene(scene)
 
 
-func _inject_current_scene() -> void:
-	_inject_into_scene(get_tree().current_scene)
+func _inspect_current_scene() -> void:
+	var scene := get_tree().current_scene
+	_observed_scene_instance_id = scene.get_instance_id() if scene != null else 0
+	_inject_into_scene(scene)
 
 
 func _inject_into_scene(scene: Node) -> void:
