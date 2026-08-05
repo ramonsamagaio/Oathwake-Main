@@ -1,5 +1,6 @@
 extends Node
 
+# Temporary parser validation marker.
 const MIN_BUTTON_HEIGHT := 42.0
 const MIN_FIELD_HEIGHT := 38.0
 const MIN_BUTTON_WIDTH := 92.0
