@@ -130,3 +130,5 @@ func _panel_style(background: Color, border: Color, width: int) -> StyleBoxFlat:
 	style.content_margin_top = 8.0
 	style.content_margin_bottom = 8.0
 	return style
+
+# Validation marker for the temporary CI branch.
