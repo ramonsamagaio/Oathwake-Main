@@ -3,6 +3,10 @@ extends "res://scripts/buildings/Building.gd"
 const ContentGlowRuntime := preload("res://scripts/effects/ContentGlowRuntime.gd")
 const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
 const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
+const EmberEmitterScript := preload("res://scripts/effects/EmberEmitter.gd")
+const EnvironmentalHazardScript := preload("res://scripts/systems/EnvironmentalHazard.gd")
+
+const CAMPFIRE_ID := "campfire"
 
 
 func _ready() -> void:
@@ -37,3 +41,59 @@ func _apply_content_presentation() -> void:
 	var visual_size := DirectionalShadowRuntime.estimate_target_visual_size(self)
 	var foot_offset := DirectionalShadowRuntime.estimate_target_foot_offset(self)
 	DirectionalShadowRuntime.apply_to_target(self, shadow_config, visual_size, foot_offset)
+	_apply_runtime_building_features()
+
+
+func _apply_runtime_building_features() -> void:
+	if building_id == CAMPFIRE_ID:
+		_ensure_campfire_effects()
+		return
+	remove_from_group("campfire")
+	_disable_runtime_child("EmberEmitter")
+	_disable_runtime_child("ElementalHazard")
+
+
+func _ensure_campfire_effects() -> void:
+	add_to_group("campfire")
+	var ember_emitter := get_node_or_null("EmberEmitter") as Node2D
+	if ember_emitter == null:
+		ember_emitter = EmberEmitterScript.new()
+		ember_emitter.name = "EmberEmitter"
+		add_child(ember_emitter)
+	if ember_emitter.has_method("apply_small_campfire_preset"):
+		ember_emitter.call("apply_small_campfire_preset")
+	ember_emitter.position = Vector2(-1.0, -16.0)
+	ember_emitter.z_index = 26
+	ember_emitter.visible = true
+	ember_emitter.set_process(true)
+
+	var hazard := get_node_or_null("ElementalHazard") as Area2D
+	if hazard == null:
+		hazard = EnvironmentalHazardScript.new()
+		hazard.name = "ElementalHazard"
+		add_child(hazard)
+	hazard.position = Vector2(0.0, -7.0)
+	hazard.call("configure", {
+		"condition_id": "burning",
+		"condition_duration": 4.0,
+		"condition_potency": 1.0,
+		"reapply_interval": 0.45,
+		"radius": 20.0,
+		"avoidance_radius": 52.0,
+		"hazard_cost": 1.0,
+		"affects_groups": ["player", "enemy"],
+	})
+	hazard.monitoring = true
+	hazard.set_physics_process(true)
+
+
+func _disable_runtime_child(child_name: String) -> void:
+	var child := get_node_or_null(child_name)
+	if child == null:
+		return
+	if child is CanvasItem:
+		(child as CanvasItem).visible = false
+	child.set_process(false)
+	child.set_physics_process(false)
+	if child is Area2D:
+		(child as Area2D).monitoring = false

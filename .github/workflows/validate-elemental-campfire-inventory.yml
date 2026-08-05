@@ -1,0 +1,93 @@
+name: Validate Elemental Campfire AI Inventory
+
+on:
+  pull_request:
+    paths:
+      - "assets/sprites/characters/2D-Pixel-Art-Character-Template/**"
+      - "data/buildings.json"
+      - "scripts/Player.gd"
+      - "scripts/player/PlayerLifeAnimationSuite.gd"
+      - "scripts/buildings/Building.gd"
+      - "scripts/buildings/BuildingLightingSuite.gd"
+      - "scripts/effects/EmberEmitter.gd"
+      - "scripts/enemies/EnemyBase.gd"
+      - "scripts/enemies/MonsterLocomotion.gd"
+      - "scripts/systems/CombatCalculator.gd"
+      - "scripts/systems/ElementalDamageResolver.gd"
+      - "scripts/systems/ElementalConditionController.gd"
+      - "scripts/systems/EnvironmentalHazard.gd"
+      - "scripts/ui/InventoryUI.gd"
+      - "scripts/ui/OathwakeTextStyle.gd"
+      - "scripts/test/ElementalCampfireInventoryValidator.gd"
+      - ".github/workflows/validate-elemental-campfire-inventory.yml"
+  push:
+    branches: [main]
+    paths:
+      - "assets/sprites/characters/2D-Pixel-Art-Character-Template/**"
+      - "data/buildings.json"
+      - "scripts/Player.gd"
+      - "scripts/player/PlayerLifeAnimationSuite.gd"
+      - "scripts/buildings/Building.gd"
+      - "scripts/buildings/BuildingLightingSuite.gd"
+      - "scripts/enemies/EnemyBase.gd"
+      - "scripts/enemies/MonsterLocomotion.gd"
+      - "scripts/systems/CombatCalculator.gd"
+      - "scripts/systems/ElementalDamageResolver.gd"
+      - "scripts/systems/ElementalConditionController.gd"
+      - "scripts/systems/EnvironmentalHazard.gd"
+      - "scripts/ui/InventoryUI.gd"
+      - "scripts/ui/OathwakeTextStyle.gd"
+      - "scripts/test/ElementalCampfireInventoryValidator.gd"
+      - ".github/workflows/validate-elemental-campfire-inventory.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot 4.6.3
+        run: |
+          curl -L --fail --retry 3 \
+            -o /tmp/godot.zip \
+            https://github.com/godotengine/godot/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.6.3-stable_linux.x86_64
+
+      - name: Import full project
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 240 /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --path "$GITHUB_WORKSPACE" \
+            --import \
+            2>&1 | tee /tmp/godot-elemental-import.log
+          if grep -E "Parse Error|SCRIPT ERROR|Failed to load script|Failed to create an autoload|Error parsing" /tmp/godot-elemental-import.log; then
+            echo "Godot import reported a parser or autoload failure."
+            exit 1
+          fi
+
+      - name: Run elemental campfire AI inventory validation
+        shell: bash
+        run: |
+          set -o pipefail
+          /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --path "$GITHUB_WORKSPACE" \
+            --script res://scripts/test/ElementalCampfireInventoryValidator.gd \
+            2>&1 | tee /tmp/godot-elemental-runtime.log
+          if grep -E "Parse Error|SCRIPT ERROR|Failed to load script|Invalid access|Invalid call|ELEMENTAL_CAMPFIRE_INVENTORY_VALIDATION_FAILURE" /tmp/godot-elemental-runtime.log; then
+            echo "Godot reported an elemental campfire/AI/inventory failure."
+            exit 1
+          fi
+
+      - name: Upload validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: elemental-campfire-ai-inventory-validation
+          path: |
+            /tmp/godot-elemental-import.log
+            /tmp/godot-elemental-runtime.log

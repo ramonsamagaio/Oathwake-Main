@@ -155,6 +155,7 @@ func _apply_collision() -> void:
 	var collision = building_data.get("collision", {})
 	var enabled := true
 	var size := Vector2(28, 24)
+	var offset := Vector2.ZERO
 	if collision is Dictionary:
 		enabled = bool(collision.get("enabled", true))
 		var size_data = collision.get("size", {})
@@ -162,6 +163,12 @@ func _apply_collision() -> void:
 			size = Vector2(
 				float(size_data.get("w", size.x)),
 				float(size_data.get("h", size.y))
+			)
+		var offset_data = collision.get("offset", {})
+		if offset_data is Dictionary:
+			offset = Vector2(
+				float(offset_data.get("x", 0.0)),
+				float(offset_data.get("y", 0.0))
 			)
 
 	if collision_shape == null:
@@ -174,6 +181,7 @@ func _apply_collision() -> void:
 	var rectangle := RectangleShape2D.new()
 	rectangle.size = size
 	collision_shape.shape = rectangle
+	collision_shape.position = offset
 	collision_shape.disabled = not enabled
 
 
