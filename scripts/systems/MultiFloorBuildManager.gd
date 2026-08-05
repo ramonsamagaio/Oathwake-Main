@@ -527,7 +527,7 @@ func _pick_valid_landing(preferred: Vector2i, fallback: Vector2i) -> Vector2i:
 	if _is_cell_inside_map(preferred):
 		return preferred
 	for direction in CARDINAL_DIRECTIONS:
-		var candidate := fallback + direction
+		var candidate: Vector2i = fallback + Vector2i(direction)
 		if _is_cell_inside_map(candidate):
 			return candidate
 	return fallback
