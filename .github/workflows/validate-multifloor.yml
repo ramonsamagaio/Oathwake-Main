@@ -23,6 +23,7 @@ on:
       - "scripts/ui/WorkbenchUISafe.gd"
       - "data/buildings.json"
       - "project.godot"
+      - ".github/workflows/validate-multifloor.yml"
 
 jobs:
   validate:
@@ -42,8 +43,10 @@ jobs:
           unzip -q /tmp/godot.zip -d /tmp/godot
           chmod +x /tmp/godot/Godot_v4.6.3-stable_linux.x86_64
 
-      - name: Parse changed systems inside the real project
+      - name: Parse changed scripts and inspect Godot log
+        shell: bash
         run: |
+          set -o pipefail
           cat > /tmp/validate_oathwake_changes.gd <<'EOF'
           extends SceneTree
 
@@ -58,15 +61,38 @@ jobs:
 
           func _init() -> void:
               for script_path in SCRIPT_PATHS:
-                  var script_resource := load(script_path)
+                  var script_resource: Resource = load(script_path)
                   if script_resource == null:
-                      push_error("Could not parse %s" % script_path)
+                      push_error("Could not load %s" % script_path)
                       quit(1)
                       return
-              print("Multi-floor and UI scripts parsed successfully.")
+              print("Requested scripts loaded.")
               quit(0)
           EOF
+
           /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
             --headless \
             --path "$GITHUB_WORKSPACE" \
-            --script /tmp/validate_oathwake_changes.gd
+            --script /tmp/validate_oathwake_changes.gd \
+            2>&1 | tee /tmp/godot-script-validation.log
+
+          if grep -E "Parse Error|Failed to load script|Failed to create an autoload|Could not load res://" /tmp/godot-script-validation.log; then
+            echo "Godot reported a script compilation failure."
+            exit 1
+          fi
+
+      - name: Boot the real project editor and inspect autoloads
+        shell: bash
+        run: |
+          set -o pipefail
+          /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --editor \
+            --path "$GITHUB_WORKSPACE" \
+            --quit-after 3 \
+            2>&1 | tee /tmp/godot-editor-validation.log
+
+          if grep -E "Parse Error|Failed to load script|Failed to create an autoload" /tmp/godot-editor-validation.log; then
+            echo "Godot editor boot reported a parser or autoload failure."
+            exit 1
+          fi
