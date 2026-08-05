@@ -120,3 +120,13 @@ jobs:
             echo "Godot reported a WIP player runtime failure."
             exit 1
           fi
+
+      - name: Upload WIP validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wip-player-validation-logs
+          path: |
+            /tmp/godot-wip-import.log
+            /tmp/godot-wip-runtime.log
+          if-no-files-found: warn
