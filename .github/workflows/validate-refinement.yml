@@ -1,0 +1,229 @@
+name: Validate Anvil Refinement
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/systems/RefinementCalculator.gd"
+      - "scripts/systems/PlayerStatsResolver.gd"
+      - "scripts/player/PlayerLightPerspectiveSuite.gd"
+      - "scripts/ui/AnvilRefinementWorkbenchUI.gd"
+      - "scripts/ui/RefinedInventorySlot.gd"
+      - "scripts/ui/RefinedEquipmentSlot.gd"
+      - "scenes/ui/WorkbenchUI.tscn"
+      - "scenes/ui/InventorySlot.tscn"
+      - "scenes/ui/EquipmentSlot.tscn"
+      - ".github/workflows/validate-refinement.yml"
+  pull_request:
+    paths:
+      - "scripts/systems/RefinementCalculator.gd"
+      - "scripts/systems/PlayerStatsResolver.gd"
+      - "scripts/player/PlayerLightPerspectiveSuite.gd"
+      - "scripts/ui/AnvilRefinementWorkbenchUI.gd"
+      - "scripts/ui/RefinedInventorySlot.gd"
+      - "scripts/ui/RefinedEquipmentSlot.gd"
+      - "scenes/ui/WorkbenchUI.tscn"
+      - "scenes/ui/InventorySlot.tscn"
+      - "scenes/ui/EquipmentSlot.tscn"
+      - ".github/workflows/validate-refinement.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot 4.6.3
+        run: |
+          curl -L --fail --retry 3 \
+            -o /tmp/godot.zip \
+            https://github.com/godotengine/godot/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.6.3-stable_linux.x86_64
+
+      - name: Import full project
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 240 /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --path "$GITHUB_WORKSPACE" \
+            --import \
+            2>&1 | tee /tmp/godot-refinement-import.log
+
+          if grep -E "Parse Error|Failed to load script|Failed to create an autoload" /tmp/godot-refinement-import.log; then
+            echo "Godot import reported a parser or autoload failure."
+            exit 1
+          fi
+
+      - name: Run refinement smoke tests
+        shell: bash
+        run: |
+          set -o pipefail
+          cat > /tmp/validate_refinement.gd <<'EOF'
+          extends SceneTree
+
+          class FakeInventory:
+              extends RefCounted
+              var amounts := {}
+
+              func has_item(item_id: String, amount: int) -> bool:
+                  return int(amounts.get(item_id, 0)) >= amount
+
+              func remove_item(item_id: String, amount: int) -> bool:
+                  if not has_item(item_id, amount):
+                      return false
+                  amounts[item_id] = int(amounts.get(item_id, 0)) - amount
+                  return true
+
+          const SCRIPT_PATHS := [
+              "res://scripts/systems/RefinementCalculator.gd",
+              "res://scripts/systems/PlayerStatsResolver.gd",
+              "res://scripts/player/PlayerLightPerspectiveSuite.gd",
+              "res://scripts/ui/AnvilRefinementWorkbenchUI.gd",
+              "res://scripts/ui/RefinedInventorySlot.gd",
+              "res://scripts/ui/RefinedEquipmentSlot.gd",
+          ]
+
+          func _init() -> void:
+              call_deferred("_run_tests")
+
+          func _fail(message: String) -> void:
+              push_error(message)
+              quit(1)
+
+          func _run_tests() -> void:
+              await process_frame
+              for script_path in SCRIPT_PATHS:
+                  var script_resource: Resource = load(script_path)
+                  if script_resource == null:
+                      _fail("Could not load %s" % script_path)
+                      return
+
+              var calculator_script = load("res://scripts/systems/RefinementCalculator.gd")
+              var calculator = calculator_script.new()
+              var slot := {
+                  "item_id": "bronze_sword",
+                  "amount": 1,
+                  "metadata": {"current_durability": 200},
+              }
+              if not calculator.is_refinable(slot):
+                  _fail("Bronze Sword was not recognized as refinable.")
+                  return
+              if calculator.get_max_refinement_level(slot) != 10:
+                  _fail("Default maximum refinement is not +10.")
+                  return
+
+              var cost: Array = calculator.get_refinement_cost(slot)
+              if cost.is_empty():
+                  _fail("Refinement cost was empty.")
+                  return
+              var fake_inventory := FakeInventory.new()
+              var before_amounts := {}
+              for entry_variant in cost:
+                  var entry: Dictionary = entry_variant
+                  var resource := str(entry.get("resource", ""))
+                  var amount := int(entry.get("amount", 0))
+                  fake_inventory.amounts[resource] = amount + 5
+                  before_amounts[resource] = amount + 5
+
+              var content_db := get_root().get_node_or_null("ContentDB")
+              if content_db == null:
+                  _fail("ContentDB autoload is missing.")
+                  return
+              var base_weapon: Dictionary = content_db.get_item("bronze_sword")
+              var base_attack := int((base_weapon.get("combat", {}) as Dictionary).get("attack_power", 0))
+              if not calculator.refine_item(slot, fake_inventory):
+                  _fail("Refinement transaction failed with sufficient materials.")
+                  return
+              if calculator_script.get_refinement_level(slot) != 1:
+                  _fail("Refinement level was not stored as +1 in item metadata.")
+                  return
+              for entry_variant in cost:
+                  var entry: Dictionary = entry_variant
+                  var resource := str(entry.get("resource", ""))
+                  var amount := int(entry.get("amount", 0))
+                  if int(fake_inventory.amounts.get(resource, 0)) != int(before_amounts[resource]) - amount:
+                      _fail("Refinement did not consume the exact material cost for %s." % resource)
+                      return
+
+              var refined_weapon: Dictionary = calculator_script.apply_refinement_to_item_data(base_weapon, slot)
+              var refined_attack := int((refined_weapon.get("combat", {}) as Dictionary).get("attack_power", 0))
+              if refined_attack <= base_attack:
+                  _fail("Weapon attack did not increase after refinement.")
+                  return
+              if str(refined_weapon.get("display_name", "")) != "Bronze Sword +1":
+                  _fail("Refined weapon display name is incorrect.")
+                  return
+
+              var armor_slot := {
+                  "item_id": "cloth_armor",
+                  "amount": 1,
+                  "metadata": {"current_durability": 80, "refinement_level": 5},
+              }
+              var base_armor: Dictionary = content_db.get_item("cloth_armor")
+              var refined_armor: Dictionary = calculator_script.apply_refinement_to_item_data(base_armor, armor_slot)
+              if int(refined_armor.get("defense", 0)) <= int(base_armor.get("defense", 0)):
+                  _fail("Armor defense did not increase after refinement.")
+                  return
+              if int(refined_armor.get("max_hp_bonus", 0)) <= int(base_armor.get("max_hp_bonus", 0)):
+                  _fail("Armor max HP bonus did not increase after refinement.")
+                  return
+
+              var inventory_script = load("res://scripts/Inventory.gd")
+              var real_inventory = inventory_script.new(2)
+              real_inventory.set_slot(0, "bronze_sword", 1, {"refinement_level": 3})
+              var stored_slot: Dictionary = real_inventory.get_slot(0)
+              if calculator_script.get_refinement_level(stored_slot) != 3:
+                  _fail("Inventory did not preserve refinement metadata.")
+                  return
+
+              var equipment_script = load("res://scripts/systems/EquipmentSystem.gd")
+              var equipment = equipment_script.new()
+              equipment.set_equipped_slot("armor", armor_slot)
+              if calculator_script.get_refinement_level(equipment.get_equipped_slot("armor")) != 5:
+                  _fail("Equipment system did not preserve refinement metadata.")
+                  return
+
+              var workbench_scene: PackedScene = load("res://scenes/ui/WorkbenchUI.tscn")
+              if workbench_scene == null:
+                  _fail("Could not load WorkbenchUI scene.")
+                  return
+              var workbench := workbench_scene.instantiate()
+              get_root().add_child(workbench)
+              await process_frame
+              var refine_tab := workbench.get("refine_tab_button") as Button
+              if refine_tab == null:
+                  _fail("Refine tab was not created.")
+                  return
+              workbench.set("current_workstation_id", "workbench")
+              workbench.call("_update_refinement_availability")
+              if refine_tab.visible:
+                  _fail("Refine tab is visible outside the anvil.")
+                  return
+              workbench.set("current_workstation_id", "anvil")
+              workbench.call("_update_refinement_availability")
+              if not refine_tab.visible:
+                  _fail("Refine tab did not appear at the anvil.")
+                  return
+              workbench.call("_switch_tab", "refine")
+              if str(workbench.get("current_tab")) != "refine":
+                  _fail("Refine tab could not be opened at the anvil.")
+                  return
+
+              workbench.queue_free()
+              print("Anvil refinement calculations, metadata, bonuses and UI smoke tests passed.")
+              quit(0)
+          EOF
+
+          /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --path "$GITHUB_WORKSPACE" \
+            --script /tmp/validate_refinement.gd \
+            2>&1 | tee /tmp/godot-refinement-test.log
+
+          if grep -E "Parse Error|SCRIPT ERROR|Failed to load script|Failed to create an autoload|Invalid access|Invalid get index|Could not load res://" /tmp/godot-refinement-test.log; then
+            echo "Godot reported a refinement script or runtime failure."
+            exit 1
+          fi
