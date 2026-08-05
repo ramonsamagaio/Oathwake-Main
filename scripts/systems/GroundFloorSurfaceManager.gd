@@ -5,6 +5,8 @@ const FEEDBACK_UI_PATH := "/root/BuildMenuOverlay"
 const BUILD_TYPE_FLOOR := "floor"
 const SURFACE_COLOR := Color(0.33, 0.24, 0.16, 1.0)
 const SURFACE_BORDER_COLOR := Color(0.46, 0.33, 0.20, 0.92)
+const VALID_PREVIEW_COLOR := Color(0.42, 0.30, 0.18, 0.68)
+const INVALID_PREVIEW_COLOR := Color(0.90, 0.12, 0.10, 0.55)
 
 var _floor_manager: Node
 var _build_system: Node
@@ -19,7 +21,9 @@ var _last_active_floor := -1
 
 
 func _ready() -> void:
-	process_priority = 880
+	# MultiFloorBuildManager validates previews at priority 1000. Run after it so
+	# ground-floor surfaces receive their own valid/invalid preview result.
+	process_priority = 1100
 	call_deferred("_resolve_context")
 
 
@@ -34,6 +38,7 @@ func _process(_delta: float) -> void:
 		_last_active_floor = active_floor
 		_last_signature = signature
 		_rebuild_visuals()
+	_refresh_ground_floor_preview()
 
 
 func handles_current_selection() -> bool:
@@ -136,6 +141,28 @@ func _has_valid_context() -> bool:
 		and _ground_layer != null and is_instance_valid(_ground_layer)
 
 
+func _refresh_ground_floor_preview() -> void:
+	if not handles_current_selection():
+		return
+	var preview := _build_system.get("preview") as Polygon2D
+	if preview == null:
+		return
+	var cell: Vector2i = _build_system.call("_get_mouse_tile")
+	preview.color = VALID_PREVIEW_COLOR if _can_place_at_cell(cell) else INVALID_PREVIEW_COLOR
+
+
+func _can_place_at_cell(cell: Vector2i) -> bool:
+	if bool(_floor_manager.call("_has_surface", 0, cell)):
+		return false
+	if not _is_cell_inside_map(cell):
+		return false
+	if _obstacle_layer != null and _obstacle_layer.get_cell_source_id(cell) != -1:
+		return false
+	if _is_resource_at_cell(cell):
+		return false
+	return bool(_build_system.call("_can_spend_building_cost", BUILD_TYPE_FLOOR))
+
+
 func _rebuild_visuals() -> void:
 	if _visual_root == null or not is_instance_valid(_visual_root) or _floor_manager == null:
 		return
@@ -191,7 +218,8 @@ func _is_resource_at_cell(cell: Vector2i) -> bool:
 		return false
 	for resource_node in _resources_root.get_children():
 		if resource_node is Node2D and not resource_node.is_queued_for_deletion():
-			var resource_cell: Vector2i = _build_system.call("_global_position_to_grid_cell", resource_node.global_position)
+			var resource_2d := resource_node as Node2D
+			var resource_cell: Vector2i = _build_system.call("_global_position_to_grid_cell", resource_2d.global_position)
 			if resource_cell == cell:
 				return true
 	return false
