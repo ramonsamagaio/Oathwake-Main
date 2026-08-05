@@ -6,7 +6,9 @@ on:
     paths:
       - "scripts/systems/MultiFloorBuildManager.gd"
       - "scripts/systems/MultiFloorRuntimeBridge.gd"
+      - "scripts/systems/GroundFloorSurfaceManager.gd"
       - "scripts/systems/MultiFloorInputRouter.gd"
+      - "scripts/systems/BuildingInteractionManager.gd"
       - "scripts/ui/UIInteractionPolish.gd"
       - "scripts/ui/BuildMenuOverlay.gd"
       - "scripts/ui/WorkbenchUISafe.gd"
@@ -18,7 +20,9 @@ on:
     paths:
       - "scripts/systems/MultiFloorBuildManager.gd"
       - "scripts/systems/MultiFloorRuntimeBridge.gd"
+      - "scripts/systems/GroundFloorSurfaceManager.gd"
       - "scripts/systems/MultiFloorInputRouter.gd"
+      - "scripts/systems/BuildingInteractionManager.gd"
       - "scripts/ui/UIInteractionPolish.gd"
       - "scripts/ui/BuildMenuOverlay.gd"
       - "scripts/ui/WorkbenchUISafe.gd"
@@ -60,17 +64,36 @@ jobs:
             exit 1
           fi
 
-      - name: Parse scripts and run UI interaction smoke tests
+      - name: Parse scripts and run UI and bed interaction smoke tests
         shell: bash
         run: |
           set -o pipefail
           cat > /tmp/validate_oathwake_changes.gd <<'EOF'
           extends SceneTree
 
+          class FakeBedPlayer:
+              extends CharacterBody2D
+              var saved_respawn := Vector2.INF
+
+              func set_respawn_point(position: Vector2) -> void:
+                  saved_respawn = position
+
+          class FakeBedBuildSystem:
+              extends Node
+              var player: CharacterBody2D
+              var main: Node
+              var build_mode_enabled := false
+              var bed_position := Vector2(48.0, 32.0)
+
+              func get_nearest_bed_position(_from_position: Vector2, _max_distance: float) -> Vector2:
+                  return bed_position
+
           const SCRIPT_PATHS := [
               "res://scripts/systems/MultiFloorBuildManager.gd",
               "res://scripts/systems/MultiFloorRuntimeBridge.gd",
+              "res://scripts/systems/GroundFloorSurfaceManager.gd",
               "res://scripts/systems/MultiFloorInputRouter.gd",
+              "res://scripts/systems/BuildingInteractionManager.gd",
               "res://scripts/ui/UIInteractionPolish.gd",
               "res://scripts/ui/BuildMenuOverlay.gd",
               "res://scripts/ui/WorkbenchUISafe.gd",
@@ -80,31 +103,31 @@ jobs:
           func _init() -> void:
               call_deferred("_run_tests")
 
+          func _fail(message: String) -> void:
+              push_error(message)
+              quit(1)
+
           func _run_tests() -> void:
               await process_frame
               for script_path in SCRIPT_PATHS:
                   var script_resource: Resource = load(script_path)
                   if script_resource == null:
-                      push_error("Could not load %s" % script_path)
-                      quit(1)
+                      _fail("Could not load %s" % script_path)
                       return
 
               var polish := get_root().get_node_or_null("UIInteractionPolish")
               if polish == null:
-                  push_error("UIInteractionPolish autoload is missing.")
-                  quit(1)
+                  _fail("UIInteractionPolish autoload is missing.")
                   return
 
               var texture_button := TextureButton.new()
               texture_button.name = "InventoryTextureButton"
               polish.call("_polish_button", texture_button)
               if texture_button.mouse_filter != Control.MOUSE_FILTER_STOP:
-                  push_error("TextureButton did not receive a clickable mouse filter.")
-                  quit(1)
+                  _fail("TextureButton did not receive a clickable mouse filter.")
                   return
               if texture_button.custom_minimum_size.x < 92.0 or texture_button.custom_minimum_size.y < 42.0:
-                  push_error("TextureButton click target was not enlarged.")
-                  quit(1)
+                  _fail("TextureButton click target was not enlarged.")
                   return
 
               var close_button := Button.new()
@@ -112,8 +135,7 @@ jobs:
               close_button.text = "X"
               polish.call("_polish_button", close_button)
               if close_button.custom_minimum_size.x < 42.0 or close_button.custom_minimum_size.y < 42.0:
-                  push_error("Close button click target was not enlarged.")
-                  quit(1)
+                  _fail("Close button click target was not enlarged.")
                   return
 
               var hotbar_root := Control.new()
@@ -126,36 +148,74 @@ jobs:
               await process_frame
               await process_frame
               if hotbar_slot.has_theme_stylebox_override("normal"):
-                  push_error("Global UI polish painted over the authored hotbar slot style.")
-                  quit(1)
+                  _fail("Global UI polish painted over the authored hotbar slot style.")
                   return
               if hotbar_slot.custom_minimum_size != Vector2.ZERO:
-                  push_error("Global UI polish resized the authored hotbar slot.")
-                  quit(1)
+                  _fail("Global UI polish resized the authored hotbar slot.")
                   return
 
               var build_menu := get_root().get_node_or_null("BuildMenuOverlay")
               if build_menu == null or not build_menu.has_method("show_feedback"):
-                  push_error("BuildMenuOverlay feedback API is missing.")
-                  quit(1)
+                  _fail("BuildMenuOverlay feedback API is missing.")
                   return
+              if str(build_menu.call("_get_entry_category", {"id": "wall", "building_type": "wall"})) != "Walls":
+                  _fail("Wall was not categorized in Walls.")
+                  return
+              if str(build_menu.call("_get_entry_category", {"id": "workbench", "building_type": "workstation"})) != "Benches":
+                  _fail("Workbench was not categorized in Benches.")
+                  return
+              if str(build_menu.call("_get_entry_category", {"id": "floor", "building_type": "floor"})) != "Floors":
+                  _fail("Floor tile was not categorized in Floors.")
+                  return
+              if str(build_menu.call("_get_entry_category", {"id": "bed", "building_type": "bed"})) != "Furniture":
+                  _fail("Bed was not categorized in Furniture.")
+                  return
+
               build_menu.call("show_feedback", "Not enough resources to build Campfire. Required: 1 Stone, 3 Wood.", true, 1.0)
+              build_menu.call("set_interaction_hint", "[E / R]  Use Bed · Set Respawn", "test")
               await process_frame
               var feedback_panel := build_menu.get_node_or_null("BuildMenuRoot/BuildFeedbackToast") as Control
               if feedback_panel == null or not feedback_panel.visible:
-                  push_error("Build feedback toast did not become visible.")
-                  quit(1)
+                  _fail("Build feedback toast did not become visible.")
                   return
               var feedback_label := feedback_panel.get_node_or_null("BuildFeedbackLabel") as Label
               if feedback_label == null or not feedback_label.text.contains("Not enough resources"):
-                  push_error("Build feedback toast did not display the resource message.")
-                  quit(1)
+                  _fail("Build feedback toast did not display the resource message.")
+                  return
+              var hint_panel := build_menu.get_node_or_null("BuildMenuRoot/WorldInteractionHint") as Control
+              if hint_panel == null or not hint_panel.visible:
+                  _fail("World interaction hint did not become visible.")
+                  return
+
+              var interaction_manager := get_root().get_node_or_null("BuildingInteractionManager")
+              if interaction_manager == null:
+                  _fail("BuildingInteractionManager autoload is missing.")
+                  return
+              var fake_floor_manager := Node.new()
+              var fake_player := FakeBedPlayer.new()
+              var fake_build_system := FakeBedBuildSystem.new()
+              fake_build_system.player = fake_player
+              get_root().add_child(fake_floor_manager)
+              get_root().add_child(fake_player)
+              get_root().add_child(fake_build_system)
+              interaction_manager.set("_floor_manager", fake_floor_manager)
+              interaction_manager.set("_build_system", fake_build_system)
+              interaction_manager.set("_player", fake_player)
+              interaction_manager.set("_main", null)
+              if not bool(interaction_manager.call("try_use_nearby_bed")):
+                  _fail("Nearby bed interaction returned false.")
+                  return
+              if fake_player.saved_respawn != fake_build_system.bed_position:
+                  _fail("Bed interaction did not set the player respawn point.")
                   return
 
               texture_button.free()
               close_button.free()
               hotbar_root.queue_free()
-              print("Requested scripts, hotbar preservation and build feedback smoke tests passed.")
+              fake_floor_manager.queue_free()
+              fake_player.queue_free()
+              fake_build_system.queue_free()
+              print("Building sectors, authored hotbar, ground-floor scripts and bed interaction smoke tests passed.")
               quit(0)
           EOF
 
