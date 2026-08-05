@@ -3,18 +3,24 @@ name: Validate Player Night Readability
 on:
   pull_request:
     paths:
+      - "scenes/Player.tscn"
       - "scripts/player/PlayerLightPerspectiveSuite.gd"
       - "scripts/effects/ScreenEffects.gd"
+      - "scripts/buildings/BuildingLightingSuite.gd"
       - "shaders/gaussian_glow_screen.gdshader"
       - "scripts/test/WorldPostProcessingValidator.gd"
+      - "scripts/test/PlayerHaloCampfireLayerValidator.gd"
       - ".github/workflows/validate-player-night-readability.yml"
   push:
     branches: [main]
     paths:
+      - "scenes/Player.tscn"
       - "scripts/player/PlayerLightPerspectiveSuite.gd"
       - "scripts/effects/ScreenEffects.gd"
+      - "scripts/buildings/BuildingLightingSuite.gd"
       - "shaders/gaussian_glow_screen.gdshader"
       - "scripts/test/WorldPostProcessingValidator.gd"
+      - "scripts/test/PlayerHaloCampfireLayerValidator.gd"
       - ".github/workflows/validate-player-night-readability.yml"
 
 jobs:
@@ -60,6 +66,20 @@ jobs:
             exit 1
           fi
 
+      - name: Validate no halo and campfire foreground embers
+        shell: bash
+        run: |
+          set -o pipefail
+          /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --path "$GITHUB_WORKSPACE" \
+            --script res://scripts/test/PlayerHaloCampfireLayerValidator.gd \
+            2>&1 | tee /tmp/player-halo-campfire-layer.log
+          if grep -E "PLAYER_HALO_CAMPFIRE_LAYER_VALIDATION_FAILURE|Parse Error|SCRIPT ERROR|Invalid access|Invalid call" /tmp/player-halo-campfire-layer.log; then
+            echo "Player halo or campfire ember layering validation failed."
+            exit 1
+          fi
+
       - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -68,3 +88,4 @@ jobs:
           path: |
             /tmp/player-night-import.log
             /tmp/player-night-runtime.log
+            /tmp/player-halo-campfire-layer.log
