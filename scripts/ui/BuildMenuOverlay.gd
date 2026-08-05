@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 const RecipeBookScript := preload("res://scripts/systems/RecipeBook.gd")
+const CAMPFIRE_ID := "campfire"
 
 var _build_system: Node
 var _floor_manager: Node
@@ -14,6 +15,7 @@ var _recipe_book := RecipeBookScript.new()
 var _last_build_mode := false
 var _last_selected_type := ""
 var _last_floor := -1
+var _affordability_timer := 0.0
 
 
 func _ready() -> void:
@@ -23,7 +25,7 @@ func _ready() -> void:
 	call_deferred("_resolve_context")
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _build_system == null or not is_instance_valid(_build_system):
 		_resolve_context()
 		return
@@ -42,6 +44,11 @@ func _process(_delta: float) -> void:
 	_last_build_mode = true
 	_last_selected_type = selected_type
 	_last_floor = floor_index
+
+	_affordability_timer -= delta
+	if _affordability_timer <= 0.0:
+		_affordability_timer = 0.2
+		_refresh_affordability()
 
 
 func _build_interface() -> void:
@@ -101,8 +108,7 @@ func _build_interface() -> void:
 	floor_up.pressed.connect(_change_floor.bind(1))
 	floor_controls.add_child(floor_up)
 
-	var separator := HSeparator.new()
-	layout.add_child(separator)
+	layout.add_child(HSeparator.new())
 
 	var scroll := ScrollContainer.new()
 	scroll.name = "BuildButtonsScroll"
@@ -118,7 +124,6 @@ func _build_interface() -> void:
 	scroll.add_child(_button_list)
 
 	_cost_label = Label.new()
-	_cost_label.text = ""
 	_cost_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_cost_label.custom_minimum_size.y = 52.0
 	layout.add_child(_cost_label)
@@ -144,7 +149,6 @@ func _rebuild_buttons() -> void:
 	for child in _button_list.get_children():
 		child.queue_free()
 	_buttons.clear()
-
 	var entries := _get_building_entries()
 	entries.sort_custom(_compare_buildings)
 	for entry_variant in entries:
@@ -154,7 +158,6 @@ func _rebuild_buttons() -> void:
 		var building_id := str(entry.get("id", ""))
 		if building_id.is_empty() or building_id == "stairs_down":
 			continue
-
 		var button := Button.new()
 		button.name = "Build_%s" % building_id
 		button.toggle_mode = true
@@ -176,14 +179,12 @@ func _get_building_entries() -> Array:
 		if buildings is Dictionary:
 			for building_id_variant in buildings.keys():
 				var data: Variant = buildings[building_id_variant]
-				if not data is Dictionary:
-					continue
-				var entry: Dictionary = data.duplicate(true)
-				entry["id"] = str(building_id_variant)
-				entries.append(entry)
+				if data is Dictionary:
+					var entry: Dictionary = data.duplicate(true)
+					entry["id"] = str(building_id_variant)
+					entries.append(entry)
 	if not entries.is_empty():
 		return entries
-
 	for recipe_variant in _recipe_book.get_recipes_by_type("building"):
 		if recipe_variant is Dictionary:
 			entries.append((recipe_variant as Dictionary).duplicate(true))
@@ -202,22 +203,21 @@ func _compare_buildings(a: Variant, b: Variant) -> bool:
 
 func _get_button_text(building_id: String, entry: Dictionary) -> String:
 	var display_name := str(entry.get("display_name", building_id.capitalize()))
-	var key_value := int(entry.get("build_key", 0))
-	var key_text := _key_text(key_value)
-	var cost_text := _get_cost_text(building_id)
+	var key_text := _key_text(int(entry.get("build_key", 0)))
 	var prefix := "%s  " % key_text if not key_text.is_empty() else ""
-	return "%s%s\n     %s" % [prefix, display_name, cost_text]
+	return "%s%s\n     %s" % [prefix, display_name, _get_cost_text(building_id)]
 
 
 func _key_text(keycode: int) -> String:
-	if keycode >= KEY_0 and keycode <= KEY_9:
-		return "[%s]" % char(keycode)
-	if keycode == KEY_MINUS:
-		return "[-]"
-	return ""
+	if keycode == 0:
+		return ""
+	var key_name := OS.get_keycode_string(keycode)
+	return "[%s]" % key_name if not key_name.is_empty() else ""
 
 
 func _get_cost_text(building_id: String) -> String:
+	if building_id == CAMPFIRE_ID and _has_retrieved_campfire():
+		return "1 Campfire item (or raw resources)"
 	if _build_system == null or not _build_system.has_method("_get_building_cost"):
 		return ""
 	var costs: Variant = _build_system.call("_get_building_cost", building_id)
@@ -225,10 +225,9 @@ func _get_cost_text(building_id: String) -> String:
 		return "Free"
 	var parts: PackedStringArray = []
 	for cost_variant in costs:
-		if not cost_variant is Dictionary:
-			continue
-		var cost: Dictionary = cost_variant
-		parts.append("%d %s" % [int(cost.get("amount", 0)), str(cost.get("resource", "")).capitalize()])
+		if cost_variant is Dictionary:
+			var cost: Dictionary = cost_variant
+			parts.append("%d %s" % [int(cost.get("amount", 0)), str(cost.get("resource", "")).capitalize()])
 	return ", ".join(parts)
 
 
@@ -256,9 +255,31 @@ func _refresh_state(selected_type: String, floor_index: int) -> void:
 	for building_id_variant in _buttons.keys():
 		var building_id := str(building_id_variant)
 		var button := _buttons[building_id] as Button
-		if button == null:
-			continue
-		button.set_pressed_no_signal(building_id == selected_type)
-		button.disabled = _build_system != null and _build_system.has_method("_can_spend_building_cost") and not bool(_build_system.call("_can_spend_building_cost", building_id))
+		if button != null:
+			button.set_pressed_no_signal(building_id == selected_type)
+	_refresh_affordability()
 	if _cost_label != null:
 		_cost_label.text = "Selected: %s\nCost: %s" % [selected_type.capitalize(), _get_cost_text(selected_type)]
+
+
+func _refresh_affordability() -> void:
+	if _build_system == null:
+		return
+	for building_id_variant in _buttons.keys():
+		var building_id := str(building_id_variant)
+		var button := _buttons[building_id] as Button
+		if button == null:
+			continue
+		var can_afford := false
+		if building_id == CAMPFIRE_ID and _has_retrieved_campfire():
+			can_afford = true
+		elif _build_system.has_method("_can_spend_building_cost"):
+			can_afford = bool(_build_system.call("_can_spend_building_cost", building_id))
+		button.disabled = not can_afford
+
+
+func _has_retrieved_campfire() -> bool:
+	if _build_system == null:
+		return false
+	var main := _build_system.get("main") as Node
+	return main != null and main.has_method("can_spend_resource") and bool(main.call("can_spend_resource", CAMPFIRE_ID, 1))
