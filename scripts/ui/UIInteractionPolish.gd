@@ -3,6 +3,7 @@ extends Node
 const MIN_BUTTON_HEIGHT := 42.0
 const MIN_FIELD_HEIGHT := 38.0
 const MIN_BUTTON_WIDTH := 92.0
+const CLOSE_BUTTON_SIZE := 42.0
 
 var _queued_nodes: Dictionary = {}
 
@@ -68,8 +69,10 @@ func _polish_button(button: BaseButton) -> void:
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	button.focus_mode = Control.FOCUS_ALL
+	var is_close_button := button.name.to_lower().contains("close") or button.text.strip_edges() == "X"
+	var minimum_width := CLOSE_BUTTON_SIZE if is_close_button else MIN_BUTTON_WIDTH
 	button.custom_minimum_size = Vector2(
-		maxf(button.custom_minimum_size.x, MIN_BUTTON_WIDTH),
+		maxf(button.custom_minimum_size.x, minimum_width),
 		maxf(button.custom_minimum_size.y, MIN_BUTTON_HEIGHT)
 	)
 	button.add_theme_stylebox_override("normal", _button_style(Color(0.20, 0.15, 0.11, 0.98), Color(0.55, 0.39, 0.23, 1.0), 2))
