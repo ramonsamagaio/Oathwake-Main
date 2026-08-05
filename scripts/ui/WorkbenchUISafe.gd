@@ -43,6 +43,9 @@ func _get_workbench_recipes() -> Array:
 		if not recipe_variant is Dictionary:
 			continue
 		var recipe: Dictionary = recipe_variant
+		var recipe_id := str(recipe.get("id", ""))
+		if recipe_id == "campfire":
+			continue
 		if not bool(recipe.get("craftable", true)):
 			continue
 		if bool(recipe.get("build_direct", false)):
