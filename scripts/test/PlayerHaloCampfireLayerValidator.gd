@@ -35,6 +35,11 @@ func _validate_player_halo_and_readability() -> void:
 	if night_light == null:
 		failures.append("Player is missing NightLight node used by the readability system.")
 	else:
+		# The isolated validator has no DayNightCycle node. Explicitly put the
+		# reusable GlowOverlay into full night before reading PointLight2D state.
+		if night_light.has_method("set_day_night_strength"):
+			night_light.call("set_day_night_strength", 1.0)
+		await process_frame
 		if bool(night_light.get("visual_enabled")):
 			failures.append("Player texture aura should stay disabled to avoid a visible hard-edged disc.")
 		if not bool(night_light.get("use_point_light")):
