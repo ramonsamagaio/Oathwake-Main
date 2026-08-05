@@ -6,6 +6,7 @@ on:
     paths:
       - "scripts/systems/MultiFloorBuildManager.gd"
       - "scripts/systems/MultiFloorRuntimeBridge.gd"
+      - "scripts/systems/MultiFloorInputRouter.gd"
       - "scripts/ui/UIInteractionPolish.gd"
       - "scripts/ui/BuildMenuOverlay.gd"
       - "scripts/ui/WorkbenchUISafe.gd"
@@ -16,6 +17,7 @@ on:
     paths:
       - "scripts/systems/MultiFloorBuildManager.gd"
       - "scripts/systems/MultiFloorRuntimeBridge.gd"
+      - "scripts/systems/MultiFloorInputRouter.gd"
       - "scripts/ui/UIInteractionPolish.gd"
       - "scripts/ui/BuildMenuOverlay.gd"
       - "scripts/ui/WorkbenchUISafe.gd"
@@ -48,6 +50,7 @@ jobs:
           const SCRIPT_PATHS := [
               "res://scripts/systems/MultiFloorBuildManager.gd",
               "res://scripts/systems/MultiFloorRuntimeBridge.gd",
+              "res://scripts/systems/MultiFloorInputRouter.gd",
               "res://scripts/ui/UIInteractionPolish.gd",
               "res://scripts/ui/BuildMenuOverlay.gd",
               "res://scripts/ui/WorkbenchUISafe.gd",
