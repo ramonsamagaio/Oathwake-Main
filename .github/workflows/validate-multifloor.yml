@@ -10,6 +10,7 @@ on:
       - "scripts/ui/UIInteractionPolish.gd"
       - "scripts/ui/BuildMenuOverlay.gd"
       - "scripts/ui/WorkbenchUISafe.gd"
+      - "scripts/ui/HotbarUI.gd"
       - "data/buildings.json"
       - "project.godot"
       - ".github/workflows/validate-multifloor.yml"
@@ -21,6 +22,7 @@ on:
       - "scripts/ui/UIInteractionPolish.gd"
       - "scripts/ui/BuildMenuOverlay.gd"
       - "scripts/ui/WorkbenchUISafe.gd"
+      - "scripts/ui/HotbarUI.gd"
       - "data/buildings.json"
       - "project.godot"
       - ".github/workflows/validate-multifloor.yml"
@@ -72,9 +74,14 @@ jobs:
               "res://scripts/ui/UIInteractionPolish.gd",
               "res://scripts/ui/BuildMenuOverlay.gd",
               "res://scripts/ui/WorkbenchUISafe.gd",
+              "res://scripts/ui/HotbarUI.gd",
           ]
 
           func _init() -> void:
+              call_deferred("_run_tests")
+
+          func _run_tests() -> void:
+              await process_frame
               for script_path in SCRIPT_PATHS:
                   var script_resource: Resource = load(script_path)
                   if script_resource == null:
@@ -82,8 +89,11 @@ jobs:
                       quit(1)
                       return
 
-              var polish_script: Script = load("res://scripts/ui/UIInteractionPolish.gd")
-              var polish: Node = polish_script.new()
+              var polish := get_root().get_node_or_null("UIInteractionPolish")
+              if polish == null:
+                  push_error("UIInteractionPolish autoload is missing.")
+                  quit(1)
+                  return
 
               var texture_button := TextureButton.new()
               texture_button.name = "InventoryTextureButton"
@@ -106,10 +116,46 @@ jobs:
                   quit(1)
                   return
 
+              var hotbar_root := Control.new()
+              hotbar_root.name = "HotbarUI"
+              hotbar_root.add_to_group("hotbar_ui")
+              var hotbar_slot := Button.new()
+              hotbar_slot.name = "Slot01"
+              hotbar_root.add_child(hotbar_slot)
+              get_root().add_child(hotbar_root)
+              await process_frame
+              await process_frame
+              if hotbar_slot.has_theme_stylebox_override("normal"):
+                  push_error("Global UI polish painted over the authored hotbar slot style.")
+                  quit(1)
+                  return
+              if hotbar_slot.custom_minimum_size != Vector2.ZERO:
+                  push_error("Global UI polish resized the authored hotbar slot.")
+                  quit(1)
+                  return
+
+              var build_menu := get_root().get_node_or_null("BuildMenuOverlay")
+              if build_menu == null or not build_menu.has_method("show_feedback"):
+                  push_error("BuildMenuOverlay feedback API is missing.")
+                  quit(1)
+                  return
+              build_menu.call("show_feedback", "Not enough resources to build Campfire. Required: 1 Stone, 3 Wood.", true, 1.0)
+              await process_frame
+              var feedback_panel := build_menu.get_node_or_null("BuildMenuRoot/BuildFeedbackToast") as Control
+              if feedback_panel == null or not feedback_panel.visible:
+                  push_error("Build feedback toast did not become visible.")
+                  quit(1)
+                  return
+              var feedback_label := feedback_panel.get_node_or_null("BuildFeedbackLabel") as Label
+              if feedback_label == null or not feedback_label.text.contains("Not enough resources"):
+                  push_error("Build feedback toast did not display the resource message.")
+                  quit(1)
+                  return
+
               texture_button.free()
               close_button.free()
-              polish.free()
-              print("Requested scripts and UI interaction smoke tests passed.")
+              hotbar_root.queue_free()
+              print("Requested scripts, hotbar preservation and build feedback smoke tests passed.")
               quit(0)
           EOF
 
