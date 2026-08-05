@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://ocffh2angc1c"]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/WIPPlayer.gd" id="1_wip_player_script"]
 [ext_resource type="Script" uid="uid://dmhcm7eaub50u" path="res://scripts/camera/CameraShake2D.gd" id="2_camera_shake_script"]
@@ -11,7 +11,7 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_player_collision"]
 radius = 12.0
 
-[node name="Player" type="CharacterBody2D"]
+[node name="WIP" type="CharacterBody2D"]
 position = Vector2(0, -3)
 script = ExtResource("1_wip_player_script")
 

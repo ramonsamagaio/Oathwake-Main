@@ -1,0 +1,132 @@
+name: Validate WIP Player
+
+on:
+  pull_request:
+    paths:
+      - "scripts/player/WIPPlayer.gd"
+      - "scenes/WIP.tscn"
+      - "scenes/Player.tscn"
+      - "scenes/PlayerBase.tscn"
+      - "assets/sprites/characters/WIP/**"
+      - ".github/workflows/validate-wip-player.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/player/WIPPlayer.gd"
+      - "scenes/WIP.tscn"
+      - "scenes/Player.tscn"
+      - "scenes/PlayerBase.tscn"
+      - "assets/sprites/characters/WIP/**"
+      - ".github/workflows/validate-wip-player.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot 4.6.3
+        run: |
+          curl -L --fail --retry 3 \
+            -o /tmp/godot.zip \
+            https://github.com/godotengine/godot/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.6.3-stable_linux.x86_64
+
+      - name: Import full project
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 240 /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --path "$GITHUB_WORKSPACE" \
+            --import \
+            2>&1 | tee /tmp/godot-wip-import.log
+
+          if grep -E "Parse Error|Failed to load script|Failed to create an autoload|Error parsing" /tmp/godot-wip-import.log; then
+            echo "Godot import reported a parser or scene failure."
+            exit 1
+          fi
+
+      - name: Run WIP player smoke test
+        shell: bash
+        run: |
+          set -o pipefail
+          cat > /tmp/validate_wip_player.gd <<'EOF'
+          extends SceneTree
+
+          func _init() -> void:
+              call_deferred("_run")
+
+          func _fail(message: String) -> void:
+              push_error(message)
+              quit(1)
+
+          func _run() -> void:
+              await process_frame
+              var packed := load("res://scenes/Player.tscn") as PackedScene
+              if packed == null:
+                  _fail("Player.tscn could not be loaded.")
+                  return
+              var player := packed.instantiate()
+              if player == null:
+                  _fail("Player.tscn could not be instantiated.")
+                  return
+              get_root().add_child(player)
+              await process_frame
+
+              if not player.has_method("is_wip_south_ready"):
+                  _fail("Active Player.tscn is not routed through WIPPlayer.")
+                  return
+              if player.get_node_or_null("AnimatedSprite2D") == null:
+                  _fail("WIP player lost the authored fallback AnimatedSprite2D.")
+                  return
+              if player.get_node_or_null("WIPSouthSprite") == null:
+                  _fail("WIP player is missing WIPSouthSprite.")
+                  return
+
+              var test_frames := SpriteFrames.new()
+              if test_frames.has_animation("default"):
+                  test_frames.remove_animation("default")
+              var textures: Array[Texture2D] = []
+              for index in range(6):
+                  var image := Image.create(128, 128, false, Image.FORMAT_RGBA8)
+                  image.fill(Color(float(index + 1) / 6.0, 0.2, 0.4, 1.0))
+                  textures.append(ImageTexture.create_from_image(image))
+              player.call("_add_wip_animation", test_frames, &"idle_down", textures, 7.0)
+              if not test_frames.has_animation("idle_down"):
+                  _fail("WIP animation builder did not create idle_down.")
+                  return
+              if test_frames.get_frame_count("idle_down") != 6:
+                  _fail("WIP animation builder did not preserve all six frames.")
+                  return
+              if not is_equal_approx(test_frames.get_animation_speed("idle_down"), 7.0):
+                  _fail("WIP idle FPS was not applied.")
+                  return
+
+              player.queue_free()
+              print("WIP player scene, fallback and six-frame animation builder passed.")
+              quit(0)
+          EOF
+
+          /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --path "$GITHUB_WORKSPACE" \
+            --script /tmp/validate_wip_player.gd \
+            2>&1 | tee /tmp/godot-wip-runtime.log
+
+          if grep -E "Parse Error|Failed to load script|Invalid access|Invalid call|Could not be loaded|could not be instantiated" /tmp/godot-wip-runtime.log; then
+            echo "Godot reported a WIP player runtime failure."
+            exit 1
+          fi
+
+      - name: Upload WIP validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wip-player-validation-logs
+          path: |
+            /tmp/godot-wip-import.log
+            /tmp/godot-wip-runtime.log
+          if-no-files-found: warn
