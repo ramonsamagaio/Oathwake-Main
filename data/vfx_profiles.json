@@ -226,6 +226,9 @@
 				"night_saturation": 0.84,
 				"night_shadow_lift": 0.045,
 				"night_tint": "#b8c8ffff",
+				"player_readability_mask_enabled": false,
+				"player_readability_protection": 0.0,
+				"player_readability_scene_lift": 0.0,
 				"selective_bloom_enabled": true,
 				"warm_emissive_boost": 0.34,
 				"warm_light_preservation": 0.82
