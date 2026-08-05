@@ -1,6 +1,8 @@
 extends Node
 
 const MANAGER_PATH := "/root/MultiFloorBuildManager"
+const BUILD_MENU_PATH := "/root/BuildMenuOverlay"
+const CAMPFIRE_ID := "campfire"
 
 
 func _ready() -> void:
@@ -64,8 +66,54 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not build_mode or not event is InputEventMouseButton or not event.pressed:
 		return
 	if event.button_index == MOUSE_BUTTON_LEFT:
+		if not _can_afford_selected_building(build_system):
+			_show_feedback(_get_missing_resources_message(build_system))
+			get_viewport().set_input_as_handled()
+			return
 		manager.call("_try_place_current_selection")
 		get_viewport().set_input_as_handled()
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
 		manager.call("_try_remove_at_cursor")
 		get_viewport().set_input_as_handled()
+
+
+func _can_afford_selected_building(build_system: Node) -> bool:
+	var building_id := str(build_system.get("selected_build_type"))
+	var main := build_system.get("main") as Node
+	if building_id == CAMPFIRE_ID and main != null and main.has_method("can_spend_resource"):
+		if bool(main.call("can_spend_resource", CAMPFIRE_ID, 1)):
+			return true
+	if not build_system.has_method("_can_spend_building_cost"):
+		return true
+	return bool(build_system.call("_can_spend_building_cost", building_id))
+
+
+func _get_missing_resources_message(build_system: Node) -> String:
+	var building_id := str(build_system.get("selected_build_type"))
+	var display_name := building_id.capitalize()
+	if build_system.has_method("_get_building_display_name"):
+		display_name = str(build_system.call("_get_building_display_name", building_id))
+
+	var required: PackedStringArray = []
+	if build_system.has_method("_get_building_cost"):
+		var costs: Variant = build_system.call("_get_building_cost", building_id)
+		if costs is Array:
+			for cost_variant in costs:
+				if cost_variant is Dictionary:
+					var cost: Dictionary = cost_variant
+					var amount := int(cost.get("amount", 0))
+					var resource_name := str(cost.get("resource", "")).capitalize()
+					if amount > 0 and not resource_name.is_empty():
+						required.append("%d %s" % [amount, resource_name])
+
+	if required.is_empty():
+		return "Not enough resources to build %s." % display_name
+	return "Not enough resources to build %s. Required: %s." % [display_name, ", ".join(required)]
+
+
+func _show_feedback(message: String) -> void:
+	var build_menu := get_node_or_null(BUILD_MENU_PATH)
+	if build_menu != null and build_menu.has_method("show_feedback"):
+		build_menu.call("show_feedback", message, true)
+	else:
+		print(message)
