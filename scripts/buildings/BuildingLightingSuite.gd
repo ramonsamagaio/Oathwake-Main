@@ -7,6 +7,7 @@ const EmberEmitterScript := preload("res://scripts/effects/EmberEmitter.gd")
 const EnvironmentalHazardScript := preload("res://scripts/systems/EnvironmentalHazard.gd")
 
 const CAMPFIRE_ID := "campfire"
+const CAMPFIRE_EMBER_Z_INDEX := 80
 
 
 func _ready() -> void:
@@ -63,7 +64,12 @@ func _ensure_campfire_effects() -> void:
 	if ember_emitter.has_method("apply_small_campfire_preset"):
 		ember_emitter.call("apply_small_campfire_preset")
 	ember_emitter.position = Vector2(-1.0, -16.0)
-	ember_emitter.z_index = 26
+	ember_emitter.z_as_relative = true
+	# EmberEmitter reapplies z_index_value every frame, so both values must be
+	# configured. Setting only z_index made the particles fall back under the
+	# campfire on the next process tick.
+	ember_emitter.set("z_index_value", CAMPFIRE_EMBER_Z_INDEX)
+	ember_emitter.z_index = CAMPFIRE_EMBER_Z_INDEX
 	ember_emitter.visible = true
 	ember_emitter.set_process(true)
 
