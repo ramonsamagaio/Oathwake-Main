@@ -64,6 +64,8 @@ func _validate_shader_contract() -> void:
 		"apply_world_grading", "night_strength", "warm_light_preservation",
 		"night_cool_shadow_strength", "local_light_grading_mask_enabled",
 		"oath_local_light_mask", "local_light_grading_protection",
+		"player_readability_mask_enabled", "oath_player_readability_mask",
+		"player_readability_protection", "player_readability_radius_uv",
 	]:
 		if not shader_text.contains(token):
 			failures.append("Unified screen shader is missing %s." % token)
@@ -78,6 +80,7 @@ func _validate_runtime_contract(post: Dictionary) -> void:
 	root.add_child(screen_effects)
 	await process_frame
 	await process_frame
+	_validate_player_unshaded_contract(player)
 	var compositor := screen_effects.get_node_or_null("GaussianGlow") as ColorRect
 	var back_buffer := screen_effects.get_node_or_null("BackBufferCopy") as BackBufferCopy
 	if compositor == null or not (compositor.material is ShaderMaterial):
@@ -99,6 +102,8 @@ func _validate_runtime_contract(post: Dictionary) -> void:
 		failures.append("Runtime warm light preservation does not match content data.")
 	if not bool(material.get_shader_parameter("local_light_grading_mask_enabled")):
 		failures.append("Runtime local-light grading mask is disabled.")
+	if not bool(material.get_shader_parameter("player_readability_mask_enabled")):
+		failures.append("Runtime player-only readability mask is disabled.")
 
 	if screen_effects.has_method("set_day_night_strength"):
 		screen_effects.set_process(false)
@@ -107,27 +112,67 @@ func _validate_runtime_contract(post: Dictionary) -> void:
 			player_light.call("set_day_night_strength", 1.0)
 		screen_effects.call("set_day_night_strength", 1.0)
 		screen_effects.call("_sync_local_light_grading_mask")
+		screen_effects.call("_sync_player_readability_mask")
 		if not is_equal_approx(float(material.get_shader_parameter("night_strength")), 1.0):
 			failures.append("Screen compositor did not receive full night strength.")
 		if not bool(material.get_shader_parameter("local_light_source_active")):
-			failures.append("Player PointLight2D did not activate the night-grading protection mask.")
-		var mask_radius_value: Variant = material.get_shader_parameter("local_light_radius_uv")
-		if not (mask_radius_value is Vector2) or (mask_radius_value as Vector2).x <= 0.0 or (mask_radius_value as Vector2).y <= 0.0:
-			failures.append("Player light protection mask has no elliptical radius.")
-		elif player_light is Node2D and (player_light as Node2D).scale.y < (player_light as Node2D).scale.x:
+			failures.append("Player PointLight2D did not activate the night-grading environment mask.")
+		if not bool(material.get_shader_parameter("player_readability_source_active")):
+			failures.append("Player body did not activate its compact night-readability mask.")
+		var local_radius := _validated_radius(material.get_shader_parameter("local_light_radius_uv"), "Player light protection mask")
+		var player_radius := _validated_radius(material.get_shader_parameter("player_readability_radius_uv"), "Player body readability mask")
+		if local_radius != Vector2.ZERO and player_light is Node2D and (player_light as Node2D).scale.y < (player_light as Node2D).scale.x:
 			var viewport_size := root.get_visible_rect().size
-			var pixel_radius := Vector2((mask_radius_value as Vector2).x * viewport_size.x, (mask_radius_value as Vector2).y * viewport_size.y)
+			var pixel_radius := Vector2(local_radius.x * viewport_size.x, local_radius.y * viewport_size.y)
 			if pixel_radius.y >= pixel_radius.x:
-				failures.append("Player night mask did not follow the emitted light perspective ellipse.")
+				failures.append("Player night environment mask did not follow the emitted light perspective ellipse.")
+		if local_radius != Vector2.ZERO and player_radius != Vector2.ZERO:
+			if player_radius.x >= local_radius.x or player_radius.y >= local_radius.y:
+				failures.append("Player readability mask is not compact relative to the surrounding light halo.")
 		if float(material.get_shader_parameter("local_light_source_strength")) <= 0.0:
-			failures.append("Player light protection mask has no strength.")
+			failures.append("Player light environment mask has no strength.")
+		var environment_protection := float(material.get_shader_parameter("local_light_grading_protection"))
+		var player_protection := float(material.get_shader_parameter("player_readability_protection"))
+		if environment_protection > 0.30:
+			failures.append("Night grading is still being removed too strongly from the environment around the player.")
+		if player_protection < 0.95:
+			failures.append("Player body is not protected strongly enough from night grading.")
+		if player_protection <= environment_protection:
+			failures.append("Player body protection is not stronger than the surrounding light-area protection.")
 		screen_effects.call("set_day_night_strength", 0.0)
+		screen_effects.call("_sync_local_light_grading_mask")
+		screen_effects.call("_sync_player_readability_mask")
 		if not is_equal_approx(float(material.get_shader_parameter("night_strength")), 0.0):
 			failures.append("Screen compositor did not return to day grading.")
+		if bool(material.get_shader_parameter("player_readability_source_active")):
+			failures.append("Player readability mask remained active during daytime.")
 	else:
 		failures.append("ScreenEffects does not expose day/night strength control.")
 	_cleanup(screen_effects, player)
 	await process_frame
+
+
+func _validate_player_unshaded_contract(player: Node) -> void:
+	if not player.has_method("is_player_night_readability_enabled") or not bool(player.call("is_player_night_readability_enabled")):
+		failures.append("Player does not expose an active night-readability material contract.")
+	for visual_path in [NodePath("Body"), NodePath("AnimatedSprite2D"), NodePath("WIPSouthSprite")]:
+		var visual := player.get_node_or_null(visual_path) as CanvasItem
+		if visual == null:
+			continue
+		var canvas_material := visual.material as CanvasItemMaterial
+		if canvas_material == null or canvas_material.light_mode != CanvasItemMaterial.LIGHT_MODE_UNSHADED:
+			failures.append("Player visual %s still receives the global CanvasModulate night tint." % visual_path)
+
+
+func _validated_radius(value: Variant, label: String) -> Vector2:
+	if not (value is Vector2):
+		failures.append("%s has no elliptical radius." % label)
+		return Vector2.ZERO
+	var radius := value as Vector2
+	if radius.x <= 0.0 or radius.y <= 0.0:
+		failures.append("%s has an invalid elliptical radius." % label)
+		return Vector2.ZERO
+	return radius
 
 
 func _cleanup(screen_effects: Node, player: Node) -> void:
