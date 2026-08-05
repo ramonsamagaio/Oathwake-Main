@@ -69,8 +69,8 @@ func _polish_button(button: BaseButton) -> void:
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	button.focus_mode = Control.FOCUS_ALL
-	var is_close_button := button.name.to_lower().contains("close") or button.text.strip_edges() == "X"
-	var minimum_width := CLOSE_BUTTON_SIZE if is_close_button else MIN_BUTTON_WIDTH
+	var is_close_button: bool = button.name.to_lower().contains("close") or button.text.strip_edges() == "X"
+	var minimum_width: float = CLOSE_BUTTON_SIZE if is_close_button else MIN_BUTTON_WIDTH
 	button.custom_minimum_size = Vector2(
 		maxf(button.custom_minimum_size.x, minimum_width),
 		maxf(button.custom_minimum_size.y, MIN_BUTTON_HEIGHT)
