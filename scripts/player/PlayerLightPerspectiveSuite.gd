@@ -70,7 +70,10 @@ func _configure_player_environment_halo(light: Node2D) -> void:
 	light.visible = true
 	light.set("visual_enabled", false)
 	light.set("alpha", 0.0)
-	light.set("intensity", 0.0)
+	# GlowOverlay uses intensity as part of the PointLight energy calculation too.
+	# Keep it at one while visual_enabled stays false, so no texture disc appears.
+	light.set("intensity", 1.0)
+	light.set("scale_multiplier", 1.0)
 	light.set("use_point_light", true)
 	light.set("light_uses_aura_alpha", false)
 	light.set("glow_color", Color.from_string(str(_content_light_config.get("color", "#FFE6AAFF")), DEFAULT_HALO_COLOR))
