@@ -58,7 +58,7 @@ jobs:
             exit 1
           fi
 
-      - name: Parse changed scripts and inspect Godot log
+      - name: Parse scripts and run UI interaction smoke tests
         shell: bash
         run: |
           set -o pipefail
@@ -81,7 +81,35 @@ jobs:
                       push_error("Could not load %s" % script_path)
                       quit(1)
                       return
-              print("Requested scripts loaded.")
+
+              var polish_script: Script = load("res://scripts/ui/UIInteractionPolish.gd")
+              var polish: Node = polish_script.new()
+
+              var texture_button := TextureButton.new()
+              texture_button.name = "InventoryTextureButton"
+              polish.call("_polish_button", texture_button)
+              if texture_button.mouse_filter != Control.MOUSE_FILTER_STOP:
+                  push_error("TextureButton did not receive a clickable mouse filter.")
+                  quit(1)
+                  return
+              if texture_button.custom_minimum_size.x < 92.0 or texture_button.custom_minimum_size.y < 42.0:
+                  push_error("TextureButton click target was not enlarged.")
+                  quit(1)
+                  return
+
+              var close_button := Button.new()
+              close_button.name = "CloseButton"
+              close_button.text = "X"
+              polish.call("_polish_button", close_button)
+              if close_button.custom_minimum_size.x < 42.0 or close_button.custom_minimum_size.y < 42.0:
+                  push_error("Close button click target was not enlarged.")
+                  quit(1)
+                  return
+
+              texture_button.free()
+              close_button.free()
+              polish.free()
+              print("Requested scripts and UI interaction smoke tests passed.")
               quit(0)
           EOF
 
@@ -91,7 +119,7 @@ jobs:
             --script /tmp/validate_oathwake_changes.gd \
             2>&1 | tee /tmp/godot-script-validation.log
 
-          if grep -E "Parse Error|Failed to load script|Failed to create an autoload|Could not load res://" /tmp/godot-script-validation.log; then
-            echo "Godot reported a script compilation failure."
+          if grep -E "Parse Error|Failed to load script|Failed to create an autoload|Invalid access to property|Invalid get index|Could not load res://" /tmp/godot-script-validation.log; then
+            echo "Godot reported a script compilation or runtime UI failure."
             exit 1
           fi
