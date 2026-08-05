@@ -1,5 +1,6 @@
 extends "res://scripts/player/PlayerLifeAnimationSuite.gd"
 
+const RefinementCalculatorScript := preload("res://scripts/systems/RefinementCalculator.gd")
 const MIN_LIGHT_PERSPECTIVE_ANGLE := 15.0
 const MAX_LIGHT_PERSPECTIVE_ANGLE := 90.0
 const DEFAULT_LIGHT_PERSPECTIVE_ANGLE := 50.0
@@ -22,3 +23,11 @@ func _apply_player_light_tuning() -> void:
 	light.scale = Vector2(1.0, vertical_projection)
 	light.set_meta("player_light_perspective_angle", perspective_angle)
 	light.set_meta("player_light_vertical_projection", vertical_projection)
+
+
+func _get_current_held_item_data() -> Dictionary:
+	var item_data := super._get_current_held_item_data()
+	if item_data.is_empty():
+		return item_data
+	var slot_data := _get_hotbar_slot_data(current_hotbar_slot_index)
+	return RefinementCalculatorScript.apply_refinement_to_item_data(item_data, slot_data)
