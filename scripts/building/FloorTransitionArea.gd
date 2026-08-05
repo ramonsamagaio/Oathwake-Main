@@ -43,7 +43,8 @@ func _transition(body: Node2D) -> void:
 	if Time.get_ticks_msec() < _cooldown_until_msec:
 		return
 	_cooldown_until_msec = Time.get_ticks_msec() + int(transition_cooldown * 1000.0)
-	FloorManager.set_active_floor(building_id, target_floor)
+	if not FloorManager.set_active_floor(building_id, target_floor):
+		return
 
 	var marker := get_node_or_null(destination_marker) as Node2D
 	if marker != null:
