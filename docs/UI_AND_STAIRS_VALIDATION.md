@@ -7,3 +7,5 @@
 - Stairs support `R` or `E`, have a larger interaction radius and trigger automatically when stepped on.
 - Building stairs creates a free upper landing surface and moves the player away from the stair cell after transitioning.
 - Lower floors remain visible as dark, non-interactive ghost layers.
+
+Validation branch marker.
