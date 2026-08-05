@@ -57,6 +57,40 @@ func _apply_player_light_tuning() -> void:
 	light.scale = Vector2(1.0, vertical_projection)
 	light.set_meta("player_light_perspective_angle", perspective_angle)
 	light.set_meta("player_light_vertical_projection", vertical_projection)
+	_disable_player_ground_halo(light)
+
+
+func _disable_player_ground_halo(light: Node2D) -> void:
+	# The player remains readable through its compact compositor mask and
+	# unshaded authored sprites. It must not use the reusable GlowOverlay as a
+	# visible aura or ground PointLight, even if an older save/content reload
+	# attempts to restore the previous player light tuning.
+	light.set("visual_enabled", false)
+	light.set("alpha", 0.0)
+	light.set("intensity", 0.0)
+	light.set("use_point_light", false)
+	light.set("point_light_energy", 0.0)
+	light.set("day_light_multiplier", 0.0)
+	light.set("night_light_multiplier", 0.0)
+	var texture_glow := light.get_node_or_null("TextureGlow") as Sprite2D
+	if texture_glow != null:
+		texture_glow.visible = false
+	var procedural_glow := light.get_node_or_null("ProceduralGlow") as Sprite2D
+	if procedural_glow != null:
+		procedural_glow.visible = false
+	var point_light := light.get_node_or_null("PointLight2D") as PointLight2D
+	if point_light != null:
+		point_light.visible = false
+		point_light.enabled = false
+		point_light.energy = 0.0
+		point_light.texture = null
+	if light.has_method("refresh_from_config"):
+		light.call("refresh_from_config")
+	set_meta("player_ground_halo_disabled", true)
+
+
+func is_player_ground_halo_disabled() -> bool:
+	return bool(get_meta("player_ground_halo_disabled", false))
 
 
 func get_current_tool() -> String:
