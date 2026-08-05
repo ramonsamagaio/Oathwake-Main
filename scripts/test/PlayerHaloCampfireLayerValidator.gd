@@ -1,5 +1,7 @@
 extends SceneTree
 
+# Covers the wide environment halo, compact player clarity, animated campfire flame,
+# foreground embers and connected upper-floor visibility behavior.
 const PLAYER_SCENE := preload("res://scenes/Player.tscn")
 const BUILDING_SCENE := preload("res://scenes/buildings/Building.tscn")
 const FLOOR_VISIBILITY_SCRIPT := preload("res://scripts/systems/TibiaFloorVisibilityController.gd")
