@@ -29,19 +29,20 @@ sprite_frames = SubResource("SpriteFrames_wip_empty")
 
 [node name="NightLight" parent="." instance=ExtResource("3_player_light")]
 position = Vector2(0, 6)
-visual_enabled = true
+visual_enabled = false
 visual_uses_day_night_multiplier = true
 glow_color = Color(0.686, 0.796, 1, 1)
 intensity = 0.75
-alpha = 0.3
+alpha = 0.0
 scale_multiplier = 0.44
 blur_amount = 1.25
 stretch = Vector2(1, 1)
+use_point_light = false
 light_uses_aura_alpha = false
-point_light_energy = 0.85
+point_light_energy = 0.0
 point_light_scale = 1.2
 day_light_multiplier = 0.0
-night_light_multiplier = 1.0
+night_light_multiplier = 0.0
 z_index_value = 18
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
