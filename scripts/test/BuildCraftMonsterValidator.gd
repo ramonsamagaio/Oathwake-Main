@@ -58,9 +58,9 @@ func _validate_runtime() -> void:
 	await process_frame
 	var light := player.get_node_or_null("NightLight")
 	if light == null or not bool(light.get("use_point_light")) or float(light.get("point_light_energy")) <= 0.0:
-		failures.append("Player small point light is disabled")
-	elif not bool(light.get("visual_enabled")):
-		failures.append("Player visible aura is disabled")
+		failures.append("Player ground light is disabled")
+	elif bool(light.get("visual_enabled")):
+		failures.append("Player compact visible aura was re-enabled")
 
 	var campfire := BUILDING_SCENE.instantiate()
 	root.add_child(campfire)
@@ -121,34 +121,45 @@ func _validate_monster_shadow_frame(monster: Node, sprite: AnimatedSprite2D) -> 
 		return
 
 	if not bool(shadow.get_meta("shadow_projection_profiled", false)):
-		failures.append("Animated monster solar shadow is not using a universal profile")
-	if not bool(shadow.get_meta("shadow_profile_ignores_frame_silhouette", false)):
-		failures.append("Animated monster solar shadow still depends on the active frame silhouette")
-	if proxy.texture is AtlasTexture:
-		failures.append("Universal monster shadow compositor samples the complete sprite atlas")
+		failures.append("Animated monster solar shadow is not using a projection profile")
+	if not bool(shadow.get_meta("shadow_profile_uses_active_frame_alpha", false)):
+		failures.append("Animated monster solar shadow does not use the active frame silhouette")
+	if not bool(shadow.get_meta("shadow_source_frame_isolated", false)):
+		failures.append("Animated monster solar shadow did not isolate the current animation frame")
+	if not bool(shadow.get_meta("shadow_active_frame_region_constrained", false)):
+		failures.append("Animated monster solar shadow can sample outside the active frame region")
+	if not bool(proxy.get_meta("shadow_active_frame_texture_isolated", false)):
+		failures.append("Monster shadow compositor did not preserve active-frame isolation")
 	var expected_profile := "small_creature" if str(monster.get("monster_id")) == "slime" else "humanoid"
 	if str(shadow.get_meta("shadow_profile_id", "")) != expected_profile:
 		failures.append("Monster %s did not receive expected shadow profile %s" % [str(monster.get("monster_id")), expected_profile])
-	var mask_size := proxy.texture.get_size()
-	if mask_size.x <= 0.0 or mask_size.y <= 0.0:
-		failures.append("Animated monster shadow has no valid universal profile texture")
+	var texture_size := proxy.texture.get_size()
+	if texture_size.x <= 0.0 or texture_size.y <= 0.0:
+		failures.append("Animated monster shadow has no valid render texture")
 	if not proxy.visible:
-		failures.append("Animated monster universal shadow proxy is not visible during daytime validation")
-	if not bool(shadow.get_meta("shadow_profile_uv_pixel_space", false)):
-		failures.append("Universal monster shadow did not publish pixel-space UV sampling")
+		failures.append("Animated monster shadow proxy is not visible during daytime validation")
 	if proxy.uv.size() != 4:
-		failures.append("Universal monster shadow proxy has invalid UV geometry")
-	else:
-		var expected_uv := PackedVector2Array([
-			Vector2(0.0, 0.0),
-			Vector2(mask_size.x, 0.0),
-			Vector2(mask_size.x, mask_size.y),
-			Vector2(0.0, mask_size.y),
-		])
-		for uv_index in range(expected_uv.size()):
-			if proxy.uv[uv_index].distance_to(expected_uv[uv_index]) > 0.01:
-				failures.append("Universal monster shadow samples only a fragment of its mask texture")
-				break
+		failures.append("Animated monster shadow proxy has invalid UV geometry")
+		return
+
+	var frame_texture := sprite.sprite_frames.get_frame_texture(sprite.animation, sprite.frame)
+	var allowed_region := Rect2(Vector2.ZERO, texture_size)
+	if frame_texture is AtlasTexture:
+		allowed_region = (frame_texture as AtlasTexture).region
+	var minimum_uv := proxy.uv[0]
+	var maximum_uv := proxy.uv[0]
+	for point in proxy.uv:
+		minimum_uv.x = minf(minimum_uv.x, point.x)
+		minimum_uv.y = minf(minimum_uv.y, point.y)
+		maximum_uv.x = maxf(maximum_uv.x, point.x)
+		maximum_uv.y = maxf(maximum_uv.y, point.y)
+	if minimum_uv.x < allowed_region.position.x - 0.01 \
+		or minimum_uv.y < allowed_region.position.y - 0.01 \
+		or maximum_uv.x > allowed_region.end.x + 0.01 \
+		or maximum_uv.y > allowed_region.end.y + 0.01:
+		failures.append("Animated monster shadow samples outside the active frame region")
+	if maximum_uv.x - minimum_uv.x <= 0.01 or maximum_uv.y - minimum_uv.y <= 0.01:
+		failures.append("Animated monster shadow active-frame UV region is empty")
 
 
 func _validate_offscreen_activation(monster: Node, player: Node2D) -> void:
