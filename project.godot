@@ -3,7 +3,7 @@
 ; since the parameters that go here are not all obvious.
 ;
 ; Format:
-;   [section] ; section goes between []
+;   [section] ; section between []
 ;   param=value ; assign values to parameters
 
 config_version=5
@@ -22,6 +22,8 @@ ContentDB="*res://scripts/systems/ContentDB.gd"
 SaveSlotManager="*res://scripts/systems/SaveSlotManager.gd"
 GameSession="*res://scripts/game/GameSession.gd"
 FloorManager="*res://scripts/building/FloorManager.gd"
+MultiFloorBuildManager="*res://scripts/systems/MultiFloorBuildManager.gd"
+MultiFloorRuntimeBridge="*res://scripts/systems/MultiFloorRuntimeBridge.gd"
 SettingsManager="*res://scripts/systems/SettingsManager.gd"
 AnimatedCursor="*res://scripts/ui/AnimatedCursor.gd"
 DebugSidePanelRestorer="*res://scripts/ui/DebugSidePanelRestorer.gd"
