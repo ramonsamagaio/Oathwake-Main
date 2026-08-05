@@ -285,3 +285,5 @@ func _has_retrieved_campfire() -> bool:
 		return false
 	var main := _build_system.get("main") as Node
 	return main != null and main.has_method("can_spend_resource") and bool(main.call("can_spend_resource", CAMPFIRE_ID, 1))
+
+# Validation marker for the temporary CI branch.
