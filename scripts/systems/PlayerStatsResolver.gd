@@ -1,5 +1,7 @@
 extends RefCounted
 
+const RefinementCalculatorScript := preload("res://scripts/systems/RefinementCalculator.gd")
+
 const DEFAULT_STATS := {
 	"str": 5, "dex": 5, "agi": 5,
 	"vit": 5, "wis": 5, "int": 5, "luk": 5,
@@ -44,6 +46,7 @@ func get_equipment_bonus(equipment_system) -> Dictionary:
 		if content_db.has_method("has_item") and not content_db.has_item(item_id):
 			continue
 		var item_data: Dictionary = content_db.get_item(item_id)
+		item_data = RefinementCalculatorScript.apply_refinement_to_item_data(item_data, slot_data)
 		var item_type := str(item_data.get("item_type", "")).to_lower()
 		if item_type == "tool" or item_type == "weapon":
 			continue
@@ -142,7 +145,8 @@ func _get_equipped_item_data(equipment_system, slot_id: String) -> Dictionary:
 	var content_db := _get_content_db()
 	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
 		return {}
-	return content_db.get_item(item_id)
+	var item_data: Dictionary = content_db.get_item(item_id)
+	return RefinementCalculatorScript.apply_refinement_to_item_data(item_data, slot_data)
 
 
 func _get_content_db() -> Node:
