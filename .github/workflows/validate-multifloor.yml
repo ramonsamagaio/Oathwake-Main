@@ -6,6 +6,9 @@ on:
     paths:
       - "scripts/systems/MultiFloorBuildManager.gd"
       - "scripts/systems/MultiFloorRuntimeBridge.gd"
+      - "scripts/ui/UIInteractionPolish.gd"
+      - "scripts/ui/BuildMenuOverlay.gd"
+      - "scripts/ui/WorkbenchUISafe.gd"
       - "data/buildings.json"
       - "project.godot"
       - ".github/workflows/validate-multifloor.yml"
@@ -13,13 +16,16 @@ on:
     paths:
       - "scripts/systems/MultiFloorBuildManager.gd"
       - "scripts/systems/MultiFloorRuntimeBridge.gd"
+      - "scripts/ui/UIInteractionPolish.gd"
+      - "scripts/ui/BuildMenuOverlay.gd"
+      - "scripts/ui/WorkbenchUISafe.gd"
       - "data/buildings.json"
       - "project.godot"
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
 
@@ -34,31 +40,30 @@ jobs:
           unzip -q /tmp/godot.zip -d /tmp/godot
           chmod +x /tmp/godot/Godot_v4.6.3-stable_linux.x86_64
 
-      - name: Parse multi-floor scripts with Godot
+      - name: Parse changed systems inside the real project
         run: |
-          mkdir -p /tmp/multifloor-validation
-          cp scripts/systems/MultiFloorBuildManager.gd /tmp/multifloor-validation/
-          cp scripts/systems/MultiFloorRuntimeBridge.gd /tmp/multifloor-validation/
-          cat > /tmp/multifloor-validation/project.godot <<'EOF'
-          [application]
-          config/name="MultiFloorValidation"
-          [rendering]
-          renderer/rendering_method="gl_compatibility"
-          EOF
-          cat > /tmp/multifloor-validation/validate.gd <<'EOF'
+          cat > /tmp/validate_oathwake_changes.gd <<'EOF'
           extends SceneTree
 
+          const SCRIPT_PATHS := [
+              "res://scripts/systems/MultiFloorBuildManager.gd",
+              "res://scripts/systems/MultiFloorRuntimeBridge.gd",
+              "res://scripts/ui/UIInteractionPolish.gd",
+              "res://scripts/ui/BuildMenuOverlay.gd",
+              "res://scripts/ui/WorkbenchUISafe.gd",
+          ]
+
           func _init() -> void:
-              var manager_script := load("res://MultiFloorBuildManager.gd")
-              var bridge_script := load("res://MultiFloorRuntimeBridge.gd")
-              if manager_script == null or bridge_script == null:
-                  push_error("Could not parse multi-floor scripts.")
-                  quit(1)
-                  return
-              print("Multi-floor scripts parsed successfully.")
+              for script_path in SCRIPT_PATHS:
+                  var script_resource := load(script_path)
+                  if script_resource == null:
+                      push_error("Could not parse %s" % script_path)
+                      quit(1)
+                      return
+              print("Multi-floor and UI scripts parsed successfully.")
               quit(0)
           EOF
           /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
             --headless \
-            --path /tmp/multifloor-validation \
-            --script validate.gd
+            --path "$GITHUB_WORKSPACE" \
+            --script /tmp/validate_oathwake_changes.gd
