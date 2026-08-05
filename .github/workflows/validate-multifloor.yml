@@ -1,5 +1,6 @@
 name: Validate Multi-floor Construction
 
+# Temporary PR validation marker for UI and stair usability.
 on:
   push:
     branches: [main]
