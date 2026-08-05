@@ -49,13 +49,12 @@ jobs:
           set -o pipefail
           timeout 240 /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
             --headless \
-            --editor \
             --path "$GITHUB_WORKSPACE" \
-            --quit-after 10 \
+            --import \
             2>&1 | tee /tmp/godot-editor-validation.log
 
           if grep -E "Parse Error|Failed to load script|Failed to create an autoload" /tmp/godot-editor-validation.log; then
-            echo "Godot editor boot reported a parser or autoload failure."
+            echo "Godot import reported a parser or autoload failure."
             exit 1
           fi
 
