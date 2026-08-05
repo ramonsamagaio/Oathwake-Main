@@ -127,7 +127,7 @@ func _validate_authoring_lab_player() -> void:
 			failures.append("Terrain Authoring Lab camera was not configured for map playtesting.")
 		if instructions.get_node_or_null("PlaytestHelp") == null:
 			failures.append("Terrain Authoring Lab did not receive movement instructions.")
-		var duplicate := bootstrap.call("ensure_player_for_test", lab)
+		var duplicate: Node = bootstrap.call("ensure_player_for_test", lab) as Node
 		if duplicate != player:
 			failures.append("Terrain Authoring Lab bootstrap created duplicate player instances.")
 	bootstrap.free()
