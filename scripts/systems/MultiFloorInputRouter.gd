@@ -69,3 +69,5 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
 		manager.call("_try_remove_at_cursor")
 		get_viewport().set_input_as_handled()
+
+# Validation marker for the temporary CI branch.
