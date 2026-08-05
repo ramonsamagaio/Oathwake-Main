@@ -1,0 +1,64 @@
+name: Validate Multi-floor Construction
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/systems/MultiFloorBuildManager.gd"
+      - "scripts/systems/MultiFloorRuntimeBridge.gd"
+      - "data/buildings.json"
+      - "project.godot"
+      - ".github/workflows/validate-multifloor.yml"
+  pull_request:
+    paths:
+      - "scripts/systems/MultiFloorBuildManager.gd"
+      - "scripts/systems/MultiFloorRuntimeBridge.gd"
+      - "data/buildings.json"
+      - "project.godot"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate building data JSON
+        run: python -m json.tool data/buildings.json > /dev/null
+
+      - name: Download Godot 4.6.3
+        run: |
+          curl -L --fail --retry 3 \
+            -o /tmp/godot.zip \
+            https://github.com/godotengine/godot/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.6.3-stable_linux.x86_64
+
+      - name: Parse multi-floor scripts with Godot
+        run: |
+          mkdir -p /tmp/multifloor-validation
+          cp scripts/systems/MultiFloorBuildManager.gd /tmp/multifloor-validation/
+          cp scripts/systems/MultiFloorRuntimeBridge.gd /tmp/multifloor-validation/
+          cat > /tmp/multifloor-validation/project.godot <<'EOF'
+          [application]
+          config/name="MultiFloorValidation"
+          [rendering]
+          renderer/rendering_method="gl_compatibility"
+          EOF
+          cat > /tmp/multifloor-validation/validate.gd <<'EOF'
+          extends SceneTree
+
+          func _init() -> void:
+              var manager_script := load("res://MultiFloorBuildManager.gd")
+              var bridge_script := load("res://MultiFloorRuntimeBridge.gd")
+              if manager_script == null or bridge_script == null:
+                  push_error("Could not parse multi-floor scripts.")
+                  quit(1)
+                  return
+              print("Multi-floor scripts parsed successfully.")
+              quit(0)
+          EOF
+          /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --path /tmp/multifloor-validation \
+            --script validate.gd
