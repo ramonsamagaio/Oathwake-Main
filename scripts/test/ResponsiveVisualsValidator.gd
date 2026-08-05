@@ -164,8 +164,10 @@ func _validate_world_lighting_contract() -> void:
 	root.add_child(player)
 	await process_frame
 	var night_light := player.get_node_or_null("NightLight")
-	if night_light == null or not bool(night_light.get("use_point_light")) or not bool(night_light.get("visual_enabled")):
-		failures.append("Player light must emit real light and draw its tuning-controlled small aura.")
+	if night_light == null or not bool(night_light.get("use_point_light")):
+		failures.append("Player ground light must emit real environment light at night.")
+	elif bool(night_light.get("visual_enabled")):
+		failures.append("Player light re-enabled the removed compact aura behind the character.")
 	player.queue_free()
 	await process_frame
 
