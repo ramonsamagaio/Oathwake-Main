@@ -6,6 +6,7 @@ const REQUIRED_STABLE_FRAMES := 6
 var _stable_context_frames := 0
 var _bootstrap_pending := false
 var _label_cleanup_pending := false
+var _save_sync_pending := false
 
 
 func _ready() -> void:
@@ -38,13 +39,18 @@ func _process(_delta: float) -> void:
 			_bootstrap_pending = true
 			call_deferred("_bootstrap_manager")
 
-	if initialized and not _label_cleanup_pending:
-		_label_cleanup_pending = true
-		call_deferred("_cleanup_generated_build_menu_entry")
+	if initialized:
+		_connect_manager_signals(manager)
+		if not _label_cleanup_pending:
+			_label_cleanup_pending = true
+			call_deferred("_cleanup_generated_build_menu_entry")
 
 
 func _bootstrap_manager() -> void:
 	var manager := get_node_or_null(MANAGER_PATH)
+	var build_system := get_tree().get_first_node_in_group("build_system")
+	if build_system != null:
+		_ensure_complete_save_exists(build_system)
 	if manager != null and not bool(manager.get("_initialized")):
 		manager.call_deferred("_bootstrap")
 
@@ -70,6 +76,61 @@ func _reset_manager_context(manager: Node) -> void:
 	manager.set("_connected_load_button", null)
 	_stable_context_frames = 0
 	_bootstrap_pending = false
+	_save_sync_pending = false
+
+
+func _connect_manager_signals(manager: Node) -> void:
+	var floor_changed_callback := Callable(self, "_on_floor_changed")
+	if not manager.is_connected("floor_changed", floor_changed_callback):
+		manager.connect("floor_changed", floor_changed_callback)
+
+	var floor_data_callback := Callable(self, "_on_floor_data_changed")
+	if not manager.is_connected("floor_data_changed", floor_data_callback):
+		manager.connect("floor_data_changed", floor_data_callback)
+
+
+func _on_floor_changed(_previous_floor: int, _current_floor: int) -> void:
+	_queue_full_save_sync()
+
+
+func _on_floor_data_changed(_floor_index: int) -> void:
+	_queue_full_save_sync()
+
+
+func _queue_full_save_sync() -> void:
+	if _save_sync_pending:
+		return
+	_save_sync_pending = true
+	call_deferred("_synchronize_complete_save")
+
+
+func _synchronize_complete_save() -> void:
+	var manager := get_node_or_null(MANAGER_PATH)
+	if manager == null or not bool(manager.get("_initialized")):
+		_save_sync_pending = false
+		return
+
+	var main := manager.get("_main") as Node
+	if main != null and main.has_method("save_game"):
+		main.call("save_game")
+		await get_tree().process_frame
+
+	if manager.has_method("save_now"):
+		manager.call("save_now")
+	_save_sync_pending = false
+
+
+func _ensure_complete_save_exists(build_system: Node) -> void:
+	var slot_manager := get_node_or_null("/root/SaveSlotManager")
+	if slot_manager == null or not slot_manager.has_method("get_active_save_path"):
+		return
+	var save_path := str(slot_manager.call("get_active_save_path"))
+	if save_path.is_empty() or FileAccess.file_exists(save_path):
+		return
+
+	var main := build_system.get("main") as Node
+	if main != null and main.has_method("save_game"):
+		main.call("save_game")
 
 
 func _cleanup_generated_build_menu_entry() -> void:
