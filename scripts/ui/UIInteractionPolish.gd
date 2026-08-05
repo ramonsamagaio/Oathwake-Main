@@ -69,12 +69,22 @@ func _polish_button(button: BaseButton) -> void:
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	button.focus_mode = Control.FOCUS_ALL
-	var is_close_button: bool = button.name.to_lower().contains("close") or button.text.strip_edges() == "X"
+
+	var visible_text := ""
+	if button is Button:
+		visible_text = (button as Button).text.strip_edges()
+	var is_close_button: bool = button.name.to_lower().contains("close") or visible_text == "X"
 	var minimum_width: float = CLOSE_BUTTON_SIZE if is_close_button else MIN_BUTTON_WIDTH
 	button.custom_minimum_size = Vector2(
 		maxf(button.custom_minimum_size.x, minimum_width),
 		maxf(button.custom_minimum_size.y, MIN_BUTTON_HEIGHT)
 	)
+
+	# TextureButton uses textures for its visual states. Keep its larger hit area,
+	# pointer cursor and keyboard focus without trying to style it as a text button.
+	if button is TextureButton:
+		return
+
 	button.add_theme_stylebox_override("normal", _button_style(Color(0.20, 0.15, 0.11, 0.98), Color(0.55, 0.39, 0.23, 1.0), 2))
 	button.add_theme_stylebox_override("hover", _button_style(Color(0.30, 0.21, 0.14, 1.0), Color(0.88, 0.64, 0.31, 1.0), 3))
 	button.add_theme_stylebox_override("pressed", _button_style(Color(0.12, 0.10, 0.085, 1.0), Color(0.96, 0.72, 0.34, 1.0), 3))
