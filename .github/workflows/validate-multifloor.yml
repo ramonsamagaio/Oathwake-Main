@@ -1,4 +1,5 @@
 name: Validate Multi-floor Construction
+# Temporary CI trigger for TextureButton runtime smoke coverage.
 
 on:
   push:
