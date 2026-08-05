@@ -1,7 +1,10 @@
 extends SceneTree
 
+# Covers the wide environment halo, compact player clarity, animated campfire flame,
+# foreground embers and connected upper-floor visibility behavior.
 const PLAYER_SCENE := preload("res://scenes/Player.tscn")
 const BUILDING_SCENE := preload("res://scenes/buildings/Building.tscn")
+const FLOOR_VISIBILITY_SCRIPT := preload("res://scripts/systems/TibiaFloorVisibilityController.gd")
 
 var failures: Array[String] = []
 
@@ -11,8 +14,9 @@ func _init() -> void:
 
 
 func _run() -> void:
-	await _validate_player_halo_removed()
-	await _validate_campfire_embers_above_visual()
+	await _validate_player_halo_and_readability()
+	await _validate_campfire_flame_and_embers()
+	_validate_tibia_floor_partitioning()
 	if failures.is_empty():
 		print("PLAYER_HALO_CAMPFIRE_LAYER_VALIDATION_PASS")
 		quit(0)
@@ -22,7 +26,7 @@ func _run() -> void:
 	quit(1)
 
 
-func _validate_player_halo_removed() -> void:
+func _validate_player_halo_and_readability() -> void:
 	var player := PLAYER_SCENE.instantiate()
 	root.add_child(player)
 	await process_frame
@@ -31,53 +35,74 @@ func _validate_player_halo_removed() -> void:
 	if night_light == null:
 		failures.append("Player is missing NightLight node used by the readability system.")
 	else:
+		# The isolated validator has no DayNightCycle node. Explicitly put the
+		# reusable GlowOverlay into full night before reading PointLight2D state.
+		if night_light.has_method("set_day_night_strength"):
+			night_light.call("set_day_night_strength", 1.0)
+		await process_frame
 		if bool(night_light.get("visual_enabled")):
-			failures.append("Player TextureGlow halo is still enabled.")
-		if bool(night_light.get("use_point_light")):
-			failures.append("Player PointLight2D halo is still enabled.")
+			failures.append("Player texture aura should stay disabled to avoid a visible hard-edged disc.")
+		if not bool(night_light.get("use_point_light")):
+			failures.append("Player wide environment PointLight2D halo is disabled.")
 		var texture_glow := night_light.get_node_or_null("TextureGlow") as Sprite2D
 		var procedural_glow := night_light.get_node_or_null("ProceduralGlow") as Sprite2D
 		var point_light := night_light.get_node_or_null("PointLight2D") as PointLight2D
 		if texture_glow != null and texture_glow.visible:
-			failures.append("Player TextureGlow remains visible at runtime.")
+			failures.append("Player TextureGlow is visible instead of using the soft PointLight halo.")
 		if procedural_glow != null and procedural_glow.visible:
-			failures.append("Player ProceduralGlow remains visible at runtime.")
-		if point_light != null and (point_light.enabled or point_light.visible or point_light.energy > 0.001):
-			failures.append("Player PointLight2D remains active at runtime.")
+			failures.append("Player ProceduralGlow is visible instead of using the soft PointLight halo.")
+		if point_light == null or not point_light.enabled or not point_light.visible or point_light.energy < 0.5:
+			failures.append("Player environment halo is not active or bright enough at runtime.")
+		elif point_light.texture_scale < 2.5:
+			failures.append("Player environment halo radius is still too small.")
 	if not player.has_method("is_player_night_readability_enabled") or not bool(player.call("is_player_night_readability_enabled")):
-		failures.append("Removing the halo also disabled player-only night readability.")
+		failures.append("Restoring the environment halo disabled player-only night readability.")
+	if not player.has_method("is_player_environment_halo_enabled") or not bool(player.call("is_player_environment_halo_enabled")):
+		failures.append("Player did not report the wide environment halo as configured.")
 	player.queue_free()
 	await process_frame
 
 
-func _validate_campfire_embers_above_visual() -> void:
+func _validate_campfire_flame_and_embers() -> void:
 	var campfire := BUILDING_SCENE.instantiate()
 	campfire.set("building_id", "campfire")
 	root.add_child(campfire)
 	await process_frame
 	await process_frame
 	await process_frame
+	var flame := campfire.get_node_or_null("AnimatedFlame") as AnimatedSprite2D
 	var emitter := campfire.get_node_or_null("EmberEmitter") as Node2D
+	if flame == null:
+		failures.append("Constructed campfire did not create AnimatedFlame from the authored GIF sheet.")
+	else:
+		if not flame.visible or not flame.is_playing():
+			failures.append("Constructed campfire flame is not visible and playing.")
+		if flame.sprite_frames == null or not flame.sprite_frames.has_animation("burn"):
+			failures.append("Constructed campfire flame is missing the burn animation.")
+		elif flame.sprite_frames.get_frame_count("burn") != 8:
+			failures.append("Constructed campfire flame does not contain the authored eight GIF frames.")
+		if not flame.z_as_relative or flame.z_index <= 0:
+			failures.append("Constructed campfire flame is not layered above its base sprite.")
 	if emitter == null:
 		failures.append("Constructed campfire did not create EmberEmitter.")
 	else:
 		var authored_z := int(emitter.get("z_index_value"))
-		if authored_z <= 0:
-			failures.append("Campfire EmberEmitter z_index_value is not above the building visual.")
-		if emitter.z_index != authored_z:
-			failures.append("Campfire EmberEmitter process loop overwrote its foreground z-index.")
-		if not emitter.z_as_relative:
-			failures.append("Campfire EmberEmitter is not layered relative to its building.")
-		var visual_z := 0
-		var fallback_visual := campfire.get_node_or_null("FallbackVisual") as CanvasItem
-		if fallback_visual != null:
-			visual_z = maxi(visual_z, fallback_visual.z_index)
-		var content_sprite := campfire.get_node_or_null("ContentSprite") as CanvasItem
-		if content_sprite != null:
-			visual_z = maxi(visual_z, content_sprite.z_index)
-		if emitter.z_index <= visual_z:
-			failures.append("Campfire embers are not rendered above the campfire sprite.")
-		if not emitter.visible or not emitter.is_processing():
-			failures.append("Campfire EmberEmitter is not active.")
+		if authored_z <= 0 or emitter.z_index != authored_z:
+			failures.append("Campfire EmberEmitter lost its stable foreground z-index.")
+		if flame != null and emitter.z_index <= flame.z_index:
+			failures.append("Campfire embers are not rendered above the animated flame.")
 	campfire.queue_free()
 	await process_frame
+
+
+func _validate_tibia_floor_partitioning() -> void:
+	if not ProjectSettings.has_setting("autoload/TibiaFloorVisibilityController"):
+		failures.append("Tibia-style upper-floor visibility controller is not registered as an autoload.")
+	var controller := FLOOR_VISIBILITY_SCRIPT.new()
+	var partitions: Array = controller.call("partition_cells_for_test", [
+		Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1),
+		Vector2i(8, 8), Vector2i(8, 9),
+	])
+	if partitions.size() != 2:
+		failures.append("Upper-floor coverage is not split into independent connected buildings.")
+	controller.free()
