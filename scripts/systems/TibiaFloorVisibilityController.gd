@@ -37,6 +37,7 @@ func _bootstrap() -> void:
 func _process(delta: float) -> void:
 	if not _has_context():
 		_resolve_context()
+		_connect_floor_signals()
 		if not _has_context():
 			return
 	var target_floor := int(_floor_manager.call("get_current_floor")) + 1
@@ -169,8 +170,9 @@ func _partition_connected_cells(cells: Array) -> Array:
 		while not queue.is_empty():
 			var current: Vector2i = queue.pop_front()
 			component.append(current)
-			for direction in CARDINAL_DIRECTIONS:
-				var neighbor := current + direction
+			for direction_variant in CARDINAL_DIRECTIONS:
+				var direction: Vector2i = Vector2i(direction_variant)
+				var neighbor: Vector2i = current + direction
 				if remaining.has(neighbor):
 					remaining.erase(neighbor)
 					queue.append(neighbor)
