@@ -49,7 +49,10 @@ func _ensure_player(scene: Node) -> Node:
 	var existing := scene.get_node_or_null(PLAYER_NODE_NAME)
 	if existing != null:
 		return existing
-	var player := PLAYER_SCENE.instantiate()
+	var player := PLAYER_SCENE.instantiate() as CharacterBody2D
+	if player == null:
+		push_error("TerrainAuthoringPlaytestBootstrap could not instantiate Player.tscn.")
+		return null
 	player.name = PLAYER_NODE_NAME
 	player.position = DEFAULT_SPAWN_POSITION
 	player.set_meta("authoring_lab_playtest_player", true)
