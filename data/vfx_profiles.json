@@ -36,17 +36,74 @@
 		"critical_text_duration": 1.6,
 		"critical_white_hit_flash_duration": 0.1,
 		"dash_glint_alpha": 0.24,
-		"dash_glint_count": 3,
+		"dash_glint_count": 3.0,
 		"dash_glint_lifetime": 0.12,
 		"dash_glint_spread": 7.0,
 		"directional_shadow": {
-			"color": "#050609FF",
+			"color": "#050609ff",
 			"direction_degrees": -45.0,
 			"enabled": true,
+			"local_lights": {
+				"distance_falloff": 1.25,
+				"emitter_cache_interval": 0.5,
+				"enabled": true,
+				"max_emitters_per_caster": 4,
+				"maximum_mask_weight": 0.85,
+				"opacity_multiplier": 0.72,
+				"reference_energy": 0.25,
+				"root_overlap": 4.0,
+				"stretch": 0.7,
+				"update_interval": 0.08,
+				"width_scale": 1.0
+			},
 			"opacity": 0.3,
-			"softness": 0.0,
+			"profile_system": {
+				"auto_classify": true,
+				"default_profile": "humanoid",
+				"enabled": true,
+				"profiles": {
+					"building_wide": {
+						"length_ratio": 0.58,
+						"width_ratio": 0.92
+					},
+					"humanoid": {
+						"length_ratio": 0.92,
+						"width_ratio": 0.52
+					},
+					"rock_compact": {
+						"length_ratio": 0.38,
+						"width_ratio": 0.9
+					},
+					"small_creature": {
+						"length_ratio": 0.48,
+						"width_ratio": 0.82
+					},
+					"thin_segment": {
+						"length_ratio": 0.88,
+						"width_ratio": 0.42
+					},
+					"trunk_wide": {
+						"length_ratio": 0.84,
+						"width_ratio": 0.7
+					}
+				}
+			},
+			"root_overlap": 6.0,
+			"softness": 2.0,
+			"solar": {
+				"dawn_fade_start": 0.82,
+				"dusk_fade_end": 0.62,
+				"dusk_fade_start": 0.42,
+				"evening_angle_from_up_degrees": 45.0,
+				"fade_with_night": true,
+				"morning_angle_from_up_degrees": -45.0,
+				"root_overlap": 6.0,
+				"rotate_with_day": true,
+				"width_scale": 1.0
+			},
 			"stretch": 1.25,
-			"z_index": -1.0
+			"width_scale": 1.0,
+			"z_index": -1
 		},
 		"display_name": "",
 		"floating_text_duration": 1.45,
@@ -100,7 +157,7 @@
 				},
 				"drift_speed": 0.045,
 				"enabled": true,
-				"intensity": 0.32,
+				"intensity": 0.5,
 				"night_multiplier": 0.08,
 				"noise_strength": 0.28,
 				"softness": 0.16,
@@ -131,24 +188,24 @@
 					"x": 896.0,
 					"y": 528.0
 				},
-				"day_alpha": 0.52,
+				"day_alpha": 4.0,
 				"enabled": true,
 				"firefly_color": "#ffe286ff",
-				"firefly_count": 8,
+				"firefly_count": 10.0,
 				"leaf_color": "#758b4dff",
-				"leaf_count": 5,
-				"night_alpha": 0.86,
+				"leaf_count": 20.0,
+				"night_alpha": 4.0,
 				"pollen_color": "#d8d19aff",
-				"pollen_count": 22,
-				"z_index": 3600
+				"pollen_count": 30.0,
+				"z_index": 3600.0
 			},
 			"post_processing": {
 				"bloom_enabled": true,
 				"bloom_intensity": 1.15,
-				"bloom_threshold": 0.72,
-				"blur_iterations": 1,
+				"bloom_threshold": 0.5,
+				"blur_iterations": 1.0,
 				"blur_size": 0.0036,
-				"blur_subdivisions": 8,
+				"blur_subdivisions": 8.0,
 				"colored_glow_boost": 0.34,
 				"day_brightness": 0.01,
 				"day_contrast": 1.03,
@@ -161,7 +218,7 @@
 				"local_light_grading_mask_enabled": true,
 				"local_light_grading_protection": 0.82,
 				"local_light_mask_softness": 0.72,
-				"local_light_scene_lift": 0.018,
+				"local_light_scene_lift": 0.02,
 				"neutral_suppression": 0.88,
 				"night_brightness": -0.02,
 				"night_contrast": 1.1,
@@ -169,9 +226,6 @@
 				"night_saturation": 0.84,
 				"night_shadow_lift": 0.045,
 				"night_tint": "#b8c8ffff",
-				"player_readability_mask_enabled": false,
-				"player_readability_protection": 0.0,
-				"player_readability_scene_lift": 0.0,
 				"selective_bloom_enabled": true,
 				"warm_emissive_boost": 0.34,
 				"warm_light_preservation": 0.82

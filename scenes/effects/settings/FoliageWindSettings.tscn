@@ -6,6 +6,8 @@
 script = ExtResource("1_settings_script")
 large_resource_ids = PackedStringArray("ash_tree", "ebony_tree", "ironwood_tree", "maple_tree", "oak_tree", "tree", "walnut_tree")
 small_resource_ids = PackedStringArray("berry_bush", "fiber_bush", "herb_bush")
-large_amplitude = 0.2
-time_scale = 1.0
-noise_scale = 0.0005
+large_amplitude = 0.5
+large_rotation_strength = 0.2
+large_rotation_pivot = Vector2(0.5, 0.7)
+time_scale = 0.6
+noise_scale = 0.00019999999999999998
