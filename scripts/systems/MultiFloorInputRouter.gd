@@ -1,6 +1,7 @@
 extends Node
 
 const MANAGER_PATH := "/root/MultiFloorBuildManager"
+const GROUND_SURFACE_MANAGER_PATH := "/root/GroundFloorSurfaceManager"
 const BUILD_MENU_PATH := "/root/BuildMenuOverlay"
 const CAMPFIRE_ID := "campfire"
 
@@ -65,7 +66,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if not build_mode or not event is InputEventMouseButton or not event.pressed:
 		return
+
+	var ground_surface_manager := get_node_or_null(GROUND_SURFACE_MANAGER_PATH)
 	if event.button_index == MOUSE_BUTTON_LEFT:
+		if ground_surface_manager != null \
+			and ground_surface_manager.has_method("handles_current_selection") \
+			and bool(ground_surface_manager.call("handles_current_selection")):
+			ground_surface_manager.call("try_place_at_cursor")
+			get_viewport().set_input_as_handled()
+			return
 		if not _can_afford_selected_building(build_system):
 			_show_feedback(_get_missing_resources_message(build_system))
 			get_viewport().set_input_as_handled()
@@ -73,6 +82,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		manager.call("_try_place_current_selection")
 		get_viewport().set_input_as_handled()
 	elif event.button_index == MOUSE_BUTTON_RIGHT:
+		if ground_surface_manager != null \
+			and ground_surface_manager.has_method("has_surface_at_cursor") \
+			and bool(ground_surface_manager.call("has_surface_at_cursor")):
+			var tile_position: Vector2i = build_system.call("_get_mouse_tile")
+			var building_type := str(build_system.call("_get_building_type_at_tile", tile_position))
+			if building_type.is_empty():
+				ground_surface_manager.call("try_remove_at_cursor")
+				get_viewport().set_input_as_handled()
+				return
 		manager.call("_try_remove_at_cursor")
 		get_viewport().set_input_as_handled()
 
