@@ -24,22 +24,22 @@
 		},
 		"invulnerability_blink_interval": 0.09,
 		"light": {
-			"aura_alpha": 0.3,
-			"aura_intensity": 0.75,
+			"aura_alpha": 0.0,
+			"aura_intensity": 0.0,
 			"aura_scale": 0.44,
 			"blur": 1.25,
 			"color": "#afcbffff",
 			"day_multiplier": 0.0,
-			"emission": 0.85,
-			"enabled": true,
-			"night_multiplier": 1.0,
+			"emission": 0.0,
+			"enabled": false,
+			"night_multiplier": 0.0,
 			"offset": {
 				"x": 0.0,
 				"y": 6.0
 			},
 			"perspective_angle_degrees": 50.0,
 			"radius_scale": 1.2,
-			"visual_aura_enabled": true
+			"visual_aura_enabled": false
 		},
 		"run_speed": 140.0,
 		"run_stop_slide_strength": 0.5,
