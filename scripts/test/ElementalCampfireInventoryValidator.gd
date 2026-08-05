@@ -174,7 +174,7 @@ func _validate_inventory_details() -> void:
 		item_data,
 		{"refinement_level": 3, "current_durability": 131}
 	))
-	for token in ["[b]Stone Sword[/b]", "+3", "[b]Attack:[/b]", ">19<", "[b]Refinement:[/b]", "[b]Rarity:[/b]"]:
+	for token in ["[b]Stone Sword[/b]", "+3", "[b]Attack:[/b]", "[b]19[/b]", "[b]Refinement:[/b]", "[b]Rarity:[/b]"]:
 		if not text.contains(token):
 			failures.append("Inventory refined detail is missing token: %s" % token)
 	inventory_ui.queue_free()
