@@ -27,6 +27,7 @@ TibiaFloorVisibilityController="*res://scripts/systems/TibiaFloorVisibilityContr
 GroundFloorSurfaceManager="*res://scripts/systems/GroundFloorSurfaceManager.gd"
 MultiFloorInputRouter="*res://scripts/systems/MultiFloorInputRouter.gd"
 BuildingInteractionManager="*res://scripts/systems/BuildingInteractionManager.gd"
+TerrainAuthoringPlaytestBootstrap="*res://scripts/systems/TerrainAuthoringPlaytestBootstrap.gd"
 UIInteractionPolish="*res://scripts/ui/UIInteractionPolish.gd"
 BuildMenuOverlay="*res://scripts/ui/BuildMenuOverlay.gd"
 SettingsManager="*res://scripts/systems/SettingsManager.gd"

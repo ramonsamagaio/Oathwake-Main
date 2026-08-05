@@ -5,8 +5,10 @@ const MIN_LIGHT_PERSPECTIVE_ANGLE := 15.0
 const MAX_LIGHT_PERSPECTIVE_ANGLE := 90.0
 const DEFAULT_LIGHT_PERSPECTIVE_ANGLE := 50.0
 const DEFAULT_HALO_COLOR := Color(1.0, 0.90, 0.67, 1.0)
-const DEFAULT_HALO_ENERGY := 0.72
-const DEFAULT_HALO_RADIUS_SCALE := 3.0
+const DEFAULT_HALO_ENERGY := 0.52
+const DEFAULT_HALO_RADIUS_SCALE := 4.2
+const DEFAULT_HALO_GROUND_STRETCH := Vector2(2.0, 0.75)
+const DEFAULT_HALO_GROUND_OFFSET := Vector2(0.0, 12.0)
 const NIGHT_READABILITY_VISUAL_PATHS := [
 	NodePath("Body"),
 	NodePath("AnimatedSprite2D"),
@@ -53,20 +55,29 @@ func _apply_player_light_tuning() -> void:
 		MIN_LIGHT_PERSPECTIVE_ANGLE,
 		MAX_LIGHT_PERSPECTIVE_ANGLE
 	)
-	# Ninety degrees represents a zenith camera and keeps the light circular.
-	# Lower top-down camera angles compress the light vertically into the same
-	# ground-plane ellipse that the player would produce in perspective.
+	# The player light is projected onto the ground plane, not wrapped around the
+	# character. Horizontal expansion establishes the broad footprint while the
+	# camera angle compresses its vertical axis to sell top-down depth.
 	var vertical_projection := clampf(sin(deg_to_rad(perspective_angle)), 0.20, 1.0)
-	light.scale = Vector2(1.0, vertical_projection)
+	var authored_stretch := _light_vector_config("ground_ellipse_scale", DEFAULT_HALO_GROUND_STRETCH)
+	var ground_stretch := Vector2(
+		maxf(authored_stretch.x, 1.0),
+		clampf(authored_stretch.y, 0.20, 1.0)
+	)
+	var projected_scale := Vector2(ground_stretch.x, ground_stretch.y * vertical_projection)
+	light.scale = projected_scale
+	light.position = _light_vector_config("ground_ellipse_offset", DEFAULT_HALO_GROUND_OFFSET)
 	light.set_meta("player_light_perspective_angle", perspective_angle)
 	light.set_meta("player_light_vertical_projection", vertical_projection)
+	light.set_meta("player_light_ground_stretch", ground_stretch)
+	light.set_meta("player_light_projected_scale", projected_scale)
 	_configure_player_environment_halo(light)
 
 
 func _configure_player_environment_halo(light: Node2D) -> void:
 	# The wide PointLight reveals the nearby world. The texture/procedural aura
 	# stays disabled so the halo has a soft falloff instead of a visible disc.
-	# Player-body clarity remains independent through the compact readability mask.
+	# Player-body clarity remains independent through the unshaded character material.
 	light.visible = true
 	light.set("visual_enabled", false)
 	light.set("alpha", 0.0)
@@ -91,6 +102,19 @@ func _configure_player_environment_halo(light: Node2D) -> void:
 		light.call("refresh_from_config")
 	set_meta("player_environment_halo_enabled", true)
 	set_meta("player_ground_halo_disabled", false)
+
+
+func _light_vector_config(key: String, fallback: Vector2) -> Vector2:
+	var value: Variant = _content_light_config.get(key, fallback)
+	if value is Vector2:
+		return value as Vector2
+	if value is Dictionary:
+		var dictionary := value as Dictionary
+		return Vector2(
+			float(dictionary.get("x", fallback.x)),
+			float(dictionary.get("y", fallback.y))
+		)
+	return fallback
 
 
 func is_player_environment_halo_enabled() -> bool:

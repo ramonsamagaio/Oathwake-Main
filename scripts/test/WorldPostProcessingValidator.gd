@@ -38,7 +38,7 @@ func _validate_content_contract() -> Dictionary:
 	for required_key in [
 		"bloom_enabled", "selective_bloom_enabled", "emissive_chroma_threshold",
 		"neutral_suppression", "grading_enabled", "day_tint", "night_tint",
-		"warm_light_preservation",
+		"warm_light_preservation", "player_readability_mask_enabled",
 	]:
 		if not post_data.has(required_key):
 			failures.append("post_processing is missing %s." % required_key)
@@ -46,6 +46,8 @@ func _validate_content_contract() -> Dictionary:
 		failures.append("Selective bloom is disabled in the default profile.")
 	if not bool(post_data.get("grading_enabled", false)):
 		failures.append("Time-aware grading is disabled in the default profile.")
+	if bool(post_data.get("player_readability_mask_enabled", true)):
+		failures.append("Compact player background halo is enabled instead of relying on the unshaded character material.")
 	if float(post_data.get("neutral_suppression", 0.0)) <= 0.0:
 		failures.append("Neutral terrain suppression is disabled.")
 	if float(post_data.get("warm_light_preservation", 0.0)) <= 0.0:
@@ -102,8 +104,10 @@ func _validate_runtime_contract(post: Dictionary) -> void:
 		failures.append("Runtime warm light preservation does not match content data.")
 	if not bool(material.get_shader_parameter("local_light_grading_mask_enabled")):
 		failures.append("Runtime local-light grading mask is disabled.")
-	if not bool(material.get_shader_parameter("player_readability_mask_enabled")):
-		failures.append("Runtime player-only readability mask is disabled.")
+	if bool(material.get_shader_parameter("player_readability_mask_enabled")):
+		failures.append("Runtime compact player background halo is still enabled.")
+	if float(material.get_shader_parameter("local_light_mask_softness")) < 0.60:
+		failures.append("Player ground light edge is too hard and will read as a visible disc.")
 
 	if screen_effects.has_method("set_day_night_strength"):
 		screen_effects.set_process(false)
@@ -117,28 +121,25 @@ func _validate_runtime_contract(post: Dictionary) -> void:
 			failures.append("Screen compositor did not receive full night strength.")
 		if not bool(material.get_shader_parameter("local_light_source_active")):
 			failures.append("Player PointLight2D did not activate the night-grading environment mask.")
-		if not bool(material.get_shader_parameter("player_readability_source_active")):
-			failures.append("Player body did not activate its compact night-readability mask.")
+		if bool(material.get_shader_parameter("player_readability_source_active")):
+			failures.append("Compact player readability mask still activates and brightens the background behind the character.")
 		var local_radius := _validated_radius(material.get_shader_parameter("local_light_radius_uv"), "Player light protection mask")
-		var player_radius := _validated_radius(material.get_shader_parameter("player_readability_radius_uv"), "Player body readability mask")
-		if local_radius != Vector2.ZERO and player_light is Node2D and (player_light as Node2D).scale.y < (player_light as Node2D).scale.x:
+		if player_light is Node2D:
+			var projected_light := player_light as Node2D
+			if projected_light.scale.x < projected_light.scale.y * 2.5:
+				failures.append("Player light is not flattened enough to read as a ground-plane ellipse.")
+			if projected_light.position.y < 8.0:
+				failures.append("Player light is not displaced toward the ground beneath the character.")
+		if local_radius != Vector2.ZERO:
 			var viewport_size := root.get_visible_rect().size
 			var pixel_radius := Vector2(local_radius.x * viewport_size.x, local_radius.y * viewport_size.y)
-			if pixel_radius.y >= pixel_radius.x:
-				failures.append("Player night environment mask did not follow the emitted light perspective ellipse.")
-		if local_radius != Vector2.ZERO and player_radius != Vector2.ZERO:
-			if player_radius.x >= local_radius.x or player_radius.y >= local_radius.y:
-				failures.append("Player readability mask is not compact relative to the surrounding light halo.")
+			if pixel_radius.x < pixel_radius.y * 2.5:
+				failures.append("Player night environment mask did not preserve the wide projected ellipse.")
 		if float(material.get_shader_parameter("local_light_source_strength")) <= 0.0:
 			failures.append("Player light environment mask has no strength.")
 		var environment_protection := float(material.get_shader_parameter("local_light_grading_protection"))
-		var player_protection := float(material.get_shader_parameter("player_readability_protection"))
 		if environment_protection > 0.30:
 			failures.append("Night grading is still being removed too strongly from the environment around the player.")
-		if player_protection < 0.95:
-			failures.append("Player body is not protected strongly enough from night grading.")
-		if player_protection <= environment_protection:
-			failures.append("Player body protection is not stronger than the surrounding light-area protection.")
 		screen_effects.call("set_day_night_strength", 0.0)
 		screen_effects.call("_sync_local_light_grading_mask")
 		screen_effects.call("_sync_player_readability_mask")
