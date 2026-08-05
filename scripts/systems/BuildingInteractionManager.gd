@@ -1,5 +1,6 @@
 extends Node
 
+# CI validation branch: runtime bed interaction smoke test.
 const FLOOR_MANAGER_PATH := "/root/MultiFloorBuildManager"
 const FEEDBACK_UI_PATH := "/root/BuildMenuOverlay"
 const HINT_OWNER := "building_interaction"
