@@ -92,6 +92,28 @@ static func apply_profile_to_control(control: Control, profile_id: String, overr
 	control.add_theme_color_override("font_color", parse_color(profile.get("font_color", ""), Color.WHITE))
 
 
+static func apply_profile_to_rich_text(label: RichTextLabel, profile_id: String, override_font_size: int = -1) -> void:
+	if label == null:
+		return
+	var profile := get_profile(profile_id)
+	var normal_font := load_font_from_path(str(profile.get("font_path", "")))
+	var bold_font := load_font_from_path("res://assets/fonts/PixeloidSans-Bold.ttf")
+	if normal_font != null:
+		for font_name in ["normal_font", "italics_font", "mono_font"]:
+			label.add_theme_font_override(font_name, normal_font)
+	if bold_font == null:
+		bold_font = normal_font
+	if bold_font != null:
+		for font_name in ["bold_font", "bold_italics_font"]:
+			label.add_theme_font_override(font_name, bold_font)
+	var font_size := override_font_size if override_font_size > 0 else int(profile.get("font_size", 14))
+	for size_name in ["normal_font_size", "bold_font_size", "italics_font_size", "bold_italics_font_size", "mono_font_size"]:
+		label.add_theme_font_size_override(size_name, font_size)
+	label.add_theme_color_override("default_color", parse_color(profile.get("font_color", ""), Color.WHITE))
+	label.add_theme_color_override("font_outline_color", parse_color(profile.get("outline_color", ""), Color.BLACK))
+	label.add_theme_constant_override("outline_size", int(profile.get("outline_size", 0)))
+
+
 static func parse_color(value: Variant, fallback: Color) -> Color:
 	if value is Color:
 		return value

@@ -50,6 +50,7 @@ func apply_combat_result(combat_result: Dictionary) -> void:
 func _die() -> void:
 	if _death_animation_active:
 		return
+	clear_all_conditions()
 	_death_animation_active = true
 	_hurt_animation_active = false
 	_hurt_animation_time_left = 0.0

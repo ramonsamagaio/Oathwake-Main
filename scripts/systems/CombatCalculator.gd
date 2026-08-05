@@ -98,25 +98,33 @@ func roll_critical(attacker_derived: Dictionary, held_item_data: Dictionary = {}
 func calculate_damage(attacker_data: Dictionary, target_data: Dictionary, held_item_data: Dictionary = {}) -> Dictionary:
 	var attacker_derived: Dictionary = calculate_derived_stats(attacker_data, held_item_data)
 	var target_derived: Dictionary = calculate_derived_stats(target_data)
+	var combat: Dictionary = _get_dictionary(held_item_data, "combat")
+	var damage_type := str(combat.get("damage_type", attacker_data.get("damage_type", "physical"))).strip_edges().to_lower()
+	if damage_type.is_empty():
+		damage_type = "physical"
+
+	var result := {
+		"hit": false,
+		"miss": true,
+		"damage": 0,
+		"is_critical": false,
+		"damage_type": damage_type,
+	}
+	_copy_condition_payload(result, attacker_data, held_item_data, combat)
 	if not roll_hit(attacker_derived, target_derived):
-		return {
-			"hit": false,
-			"miss": true,
-			"damage": 0,
-			"is_critical": false,
-			"damage_type": "physical",
-		}
+		return result
 
 	var is_critical: bool = roll_critical(attacker_derived, held_item_data)
 	var raw_attack: float = max(float(attacker_derived.get("physical_attack", 1.0)), 1.0)
-	var target_defense: float = max(float(target_derived.get("defense", 0.0)), 0.0)
+	var defense_stat := "defense" if damage_type == "physical" else "magic_defense"
+	var target_defense: float = max(float(target_derived.get(defense_stat, 0.0)), 0.0)
 	var effective_defense: float = target_defense * (0.45 if is_critical else 1.0)
 	var defense_ratio: float = 0.0
 	if effective_defense > 0.0:
 		defense_ratio = effective_defense / (effective_defense + max(raw_attack * 2.0, 8.0))
 	defense_ratio = clamp(defense_ratio, 0.0, 0.75)
 	var base_damage: float = max(1.0, raw_attack * (1.0 - defense_ratio))
-	var variance: float = float(_get_dictionary(held_item_data, "combat").get("attack_variance", 0.15))
+	var variance: float = float(combat.get("attack_variance", 0.15))
 	var dex: float = _get_stat(_get_dictionary(attacker_data, "base_stats"), "dex")
 	var min_multiplier_bonus: float = min(dex * 0.002, 0.10)
 	var min_multiplier: float = min(1.0 - variance + min_multiplier_bonus, 1.0 + variance)
@@ -126,13 +134,23 @@ func calculate_damage(attacker_data: Dictionary, target_data: Dictionary, held_i
 		damage = int(round(float(damage) * float(attacker_derived.get("crit_damage", 1.5))))
 	damage = max(damage, 1)
 
-	return {
-		"hit": true,
-		"miss": false,
-		"damage": damage,
-		"is_critical": is_critical,
-		"damage_type": "physical",
-	}
+	result["hit"] = true
+	result["miss"] = false
+	result["damage"] = damage
+	result["is_critical"] = is_critical
+	return result
+
+
+func _copy_condition_payload(result: Dictionary, attacker_data: Dictionary, held_item_data: Dictionary, combat: Dictionary) -> void:
+	var conditions: Variant = combat.get("conditions", held_item_data.get("conditions", attacker_data.get("conditions", [])))
+	if conditions is Array or conditions is Dictionary:
+		result["conditions"] = conditions
+	var condition_id := str(combat.get("condition", held_item_data.get("condition", attacker_data.get("condition", ""))))
+	if condition_id.is_empty():
+		return
+	result["condition"] = condition_id
+	result["condition_duration"] = float(combat.get("condition_duration", held_item_data.get("condition_duration", attacker_data.get("condition_duration", -1.0))))
+	result["condition_potency"] = float(combat.get("condition_potency", held_item_data.get("condition_potency", attacker_data.get("condition_potency", 1.0))))
 
 
 func _calculate_scaling_bonus(base_stats: Dictionary, stat_scaling: Dictionary) -> float:

@@ -8,6 +8,7 @@ const UILayoutConfig = preload("res://scripts/ui/UILayoutConfig.gd")
 const UILayoutApplier = preload("res://scripts/ui/UILayoutApplier.gd")
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
 const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
+const RefinementCalculatorScript := preload("res://scripts/systems/RefinementCalculator.gd")
 
 const INVENTORY_TEXTURE_PATH := "res://assets/ui/HUDUI/INVENTORY.png"
 const INVENTORY_HOVER_TEXTURE_PATH := "res://assets/ui/HUDUI/INVENTORY_HOVER.png"
@@ -39,7 +40,7 @@ var equipment_system
 var slots := []
 var equipment_slot_nodes := []
 var grid: GridContainer
-var details_label: Label
+var details_label: RichTextLabel
 var selected_slot_index := -1
 var selected_equip_slot_id := ""
 var sprite_resolver := SpriteResolver.new()
@@ -158,10 +159,15 @@ func _build_ui() -> void:
 	trash.size = trash_rect.size
 	_window_panel.add_child(trash)
 
-	details_label = Label.new()
+	details_label = RichTextLabel.new()
 	details_label.name = "TooltipText"
+	details_label.bbcode_enabled = true
 	details_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	details_label.clip_text = true
+	details_label.fit_content = false
+	details_label.scroll_active = false
+	details_label.selection_enabled = false
+	details_label.context_menu_enabled = false
+	details_label.clip_contents = true
 	details_label.text = "Select an item."
 	var tooltip_rect := _get_layout_rect("inventory.tooltip_area", Rect2(_window_rect.position + Vector2(751, 62), Vector2(163, 269)))
 	details_label.position = tooltip_rect.position - _window_rect.position
@@ -397,7 +403,7 @@ func _clamp_window_panel_to_viewport() -> void:
 func _apply_inventory_ui_fonts() -> void:
 	_apply_inventory_ui_fonts_recursive(self)
 	if details_label != null:
-		OathwakeTextStyle.apply_profile_to_label(details_label, "item_tooltip")
+		OathwakeTextStyle.apply_profile_to_rich_text(details_label, "item_tooltip")
 
 
 func _apply_inventory_ui_fonts_recursive(node: Node) -> void:
@@ -613,24 +619,7 @@ func _on_equipment_drag_dropped_to_inventory(from_slot_id: String, _to_slot_inde
 
 
 func _get_equip_details_text(item_id: String, quantity: int, slot_id: String, item_data: Dictionary, metadata: Dictionary) -> String:
-	var lines := [
-		str(item_data.get("display_name", item_id.capitalize())),
-		"Slot: %s" % slot_id.capitalize(),
-		"Type: %s | Tier: %s" % [str(item_data.get("item_type", "N/A")), str(item_data.get("tier", "N/A"))],
-	]
-	if quantity > 0:
-		lines.append("Amount: %d" % quantity)
-	if item_data.has("durability"):
-		var max_dura := float(item_data.get("durability", 0.0))
-		var current_dura := float(metadata.get("current_durability", max_dura))
-		lines.append("Durability: %.0f / %.0f" % [current_dura, max_dura])
-	if str(item_data.get("item_type", "")) == "tool":
-		lines.append("Tool: %s T%s | Damage: %s" % [str(item_data.get("tool_type", "N/A")), str(item_data.get("tool_tier", "N/A")), str(item_data.get("tool_damage", "N/A"))])
-	var combat_value: Variant = item_data.get("combat", {})
-	if combat_value is Dictionary:
-		var combat: Dictionary = combat_value
-		lines.append("Attack: %s | %s" % [str(combat.get("attack_power", "N/A")), str(combat.get("damage_type", "N/A"))])
-	return "\n".join(lines.slice(0, 6))
+	return _build_item_details_bbcode(item_id, quantity, slot_id, item_data, metadata)
 
 
 func _on_sort_inventory_pressed() -> void:
@@ -792,27 +781,91 @@ func _get_item_details_text(item_id: String, quantity: int, slot_index: int) -> 
 	var slot_data: Dictionary = inventory.get_slot(slot_index) if inventory != null else {}
 	var raw_metadata: Variant = slot_data.get("metadata", {})
 	var metadata: Dictionary = raw_metadata if raw_metadata is Dictionary else {}
-	var lines := [
-		str(item_data.get("display_name", item_id.capitalize())),
-		"Amount: %d | Stack: %d" % [quantity, int(item_data.get("stack_size", 99))],
-		"Tier: %s | Type: %s" % [str(item_data.get("tier", "N/A")), str(item_data.get("item_type", "N/A"))],
+	return _build_item_details_bbcode(item_id, quantity, str(item_data.get("equipment_slot", "")), item_data, metadata)
+
+
+func _build_item_details_bbcode(item_id: String, quantity: int, slot_id: String, item_data: Dictionary, metadata: Dictionary) -> String:
+	var item_slot := {
+		"item_id": item_id,
+		"amount": maxi(quantity, 1),
+		"metadata": metadata.duplicate(true),
+	}
+	var refined_data := RefinementCalculatorScript.apply_refinement_to_item_data(item_data, item_slot)
+	var refinement_level := RefinementCalculatorScript.get_refinement_level(item_slot)
+	var base_name := _bbcode_escape(str(item_data.get("display_name", item_id.capitalize())))
+	var title := "[b]%s[/b]" % base_name
+	if refinement_level > 0:
+		title += " [color=#F2D15B][b]+%d[/b][/color]" % refinement_level
+
+	var tier := maxi(int(round(float(refined_data.get("tier", 1)))), 1)
+	var rarity := _get_rarity_for_tier(tier)
+	var rarity_name := _bbcode_escape(str(rarity.get("name", "Common")))
+	var rarity_color := str(rarity.get("color", "#D8D2C4"))
+	var lines: Array[String] = [
+		title,
+		"[b]Amount:[/b] %d   [b]Stack:[/b] %d" % [quantity, int(refined_data.get("stack_size", 99))],
+		"[b]Rarity:[/b] [color=%s]%s[/color]  [b]Tier:[/b] %d" % [rarity_color, rarity_name, tier],
+		"[b]Type:[/b] %s" % _bbcode_escape(str(refined_data.get("item_type", "N/A")).capitalize()),
 	]
 
-	var family := str(item_data.get("material_family", ""))
+	var resolved_slot := slot_id if not slot_id.is_empty() else str(refined_data.get("equipment_slot", ""))
+	if not resolved_slot.is_empty():
+		lines.append("[b]Slot:[/b] %s" % _bbcode_escape(resolved_slot.capitalize()))
+
+	var family := str(refined_data.get("material_family", ""))
 	if not family.is_empty() and family != "N/A":
-		lines.append("Family: %s" % family.capitalize())
+		lines.append("[b]Family:[/b] %s" % _bbcode_escape(family.capitalize()))
 
-	if str(item_data.get("item_type", "")) == "tool":
-		lines.append("Tool: %s T%s | Damage: %s" % [str(item_data.get("tool_type", "N/A")), str(item_data.get("tool_tier", "N/A")), str(item_data.get("tool_damage", "N/A"))])
-
-	var max_dura := int(item_data.get("durability", 0))
+	var max_dura := int(round(float(refined_data.get("durability", 0))))
 	if max_dura > 0:
-		var current_dura := int(metadata.get("current_durability", max_dura))
-		lines.append("Durability: %s" % ("BROKEN" if current_dura <= 0 else "%d / %d" % [current_dura, max_dura]))
+		var current_dura := int(round(float(metadata.get("current_durability", max_dura))))
+		var durability_text := "[color=#E76B5E][b]BROKEN[/b][/color]" if current_dura <= 0 else "%d / %d" % [current_dura, max_dura]
+		lines.append("[b]Durability:[/b] %s" % durability_text)
 
-	var combat_value: Variant = item_data.get("combat", {})
+	var combat_value: Variant = refined_data.get("combat", {})
 	if combat_value is Dictionary:
-		var combat: Dictionary = combat_value
-		lines.append("Attack: %s | %s" % [str(combat.get("attack_power", "N/A")), str(combat.get("damage_type", "N/A"))])
+		var combat := combat_value as Dictionary
+		var attack_value := int(round(float(combat.get("attack_power", 0))))
+		if attack_value > 0:
+			lines.append("[b]Attack:[/b] [color=#F3C86A][b]%d[/b][/color]" % attack_value)
+		var damage_type := str(combat.get("damage_type", ""))
+		if not damage_type.is_empty():
+			lines.append("[b]Damage Type:[/b] %s" % _bbcode_escape(damage_type.capitalize()))
+		var crit_bonus := float(combat.get("crit_chance_bonus", 0.0))
+		if crit_bonus > 0.0:
+			lines.append("[b]Critical Chance:[/b] +%.1f%%" % (crit_bonus * 100.0))
 
-	return "\n".join(lines.slice(0, 6))
+	var defense := int(round(float(refined_data.get("defense", 0))))
+	if defense > 0:
+		lines.append("[b]Defense:[/b] [color=#79C9FF]%d[/color]" % defense)
+	var magic_defense := int(round(float(refined_data.get("magic_defense", 0))))
+	if magic_defense > 0:
+		lines.append("[b]Magic Defense:[/b] [color=#B79CFF]%d[/color]" % magic_defense)
+
+	if refinement_level > 0:
+		var max_refinement := int(item_data.get("max_refinement_level", 10))
+		lines.append("[b]Refinement:[/b] [color=#F2D15B][b]+%d[/b][/color] / +%d" % [refinement_level, max_refinement])
+
+	return "\n".join(lines)
+
+
+func _get_rarity_for_tier(tier: int) -> Dictionary:
+	match tier:
+		1:
+			return {"name": "Common", "color": "#D8D2C4"}
+		2:
+			return {"name": "Uncommon", "color": "#78D66B"}
+		3:
+			return {"name": "Rare", "color": "#61A9FF"}
+		4:
+			return {"name": "Epic", "color": "#C783FF"}
+		5:
+			return {"name": "Legendary", "color": "#F2C14E"}
+		6:
+			return {"name": "Mythic", "color": "#FF6D62"}
+		_:
+			return {"name": "Ascendant", "color": "#62E6DD"}
+
+
+func _bbcode_escape(value: String) -> String:
+	return value.replace("[", "(").replace("]", ")")

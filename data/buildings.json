@@ -45,7 +45,16 @@
 		"build_key": "2",
 		"building_type": "light",
 		"collision": {
-			"enabled": false
+			"enabled": true,
+			"shape": "rectangle",
+			"size": {
+				"w": 26,
+				"h": 16
+			},
+			"offset": {
+				"x": 0,
+				"y": -7
+			}
 		},
 		"destroy_vfx_profile": "building_destroy_puff",
 		"display_name": "Campfire",
@@ -55,9 +64,9 @@
 			"visual_mode": "texture",
 			"blend_mode": "additive",
 			"color": "#FF7A20FF",
-			"intensity": 1.35,
-			"alpha": 0.72,
-			"scale": 0.38,
+			"intensity": 0.35,
+			"alpha": 1.0,
+			"scale": 0.6,
 			"stretch": {
 				"x": 1.1,
 				"y": 0.95
@@ -67,8 +76,8 @@
 				"y": -5.0
 			},
 			"flicker_enabled": true,
-			"flicker_amount": 0.12,
-			"flicker_speed": 4.2,
+			"flicker_amount": 0.04,
+			"flicker_speed": 12.0,
 			"overlay_z": 24,
 			"light_enabled": true,
 			"light_energy": 1.5,

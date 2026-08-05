@@ -6,6 +6,8 @@ const OverheadNameplateScene := preload("res://scenes/ui/OverheadNameplate.tscn"
 const MonsterAnimatorScript := preload("res://scripts/enemies/MonsterAnimator.gd")
 const MonsterLocomotionScript := preload("res://scripts/enemies/MonsterLocomotion.gd")
 const WorldItemSpawner := preload("res://scripts/systems/WorldItemSpawner.gd")
+const ElementalDamageResolverScript := preload("res://scripts/systems/ElementalDamageResolver.gd")
+const ElementalConditionControllerScript := preload("res://scripts/systems/ElementalConditionController.gd")
 
 signal attack_started
 signal attack_hit_frame
@@ -51,6 +53,7 @@ var _attack_in_progress := false
 var _motion_state := "idle"
 var _monster_animator
 var _monster_locomotion
+var _elemental_conditions: Node2D
 
 @onready var damage_area: Area2D = $DamageArea
 
@@ -59,6 +62,7 @@ func _ready() -> void:
 	add_to_group("enemy")
 	original_scale = scale
 	_load_monster_data()
+	_setup_elemental_conditions()
 	_setup_motion_systems()
 	health = max_health
 	_setup_nameplate()
@@ -147,7 +151,8 @@ func apply_combat_result(combat_result: Dictionary) -> void:
 			FloatingCombatTextSpawner.show_miss(global_position + Vector2(0, -28))
 		return
 
-	var amount := int(combat_result.get("damage", 0))
+	var damage_type := ElementalDamageResolverScript.normalize_element(combat_result.get("damage_type", "physical"))
+	var amount := ElementalDamageResolverScript.resolve_damage(float(combat_result.get("damage", 0)), damage_type, get_combat_data())
 	if amount <= 0:
 		return
 
@@ -160,13 +165,83 @@ func apply_combat_result(combat_result: Dictionary) -> void:
 	_play_forced_animation("hurt")
 	if show_floating_damage:
 		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), is_critical, "enemy")
+	_apply_conditions_from_combat_result(combat_result)
 
 	if health == 0:
 		_die()
 
 
+func _setup_elemental_conditions() -> void:
+	_elemental_conditions = get_node_or_null("ElementalConditions") as Node2D
+	if _elemental_conditions == null:
+		_elemental_conditions = ElementalConditionControllerScript.new()
+		_elemental_conditions.name = "ElementalConditions"
+		add_child(_elemental_conditions)
+
+
+func apply_condition(condition_id: String, duration := -1.0, potency := 1.0, source: Node = null) -> bool:
+	_setup_elemental_conditions()
+	return bool(_elemental_conditions.call("apply_condition", condition_id, duration, potency, source))
+
+
+func remove_condition(condition_id: String) -> void:
+	if _elemental_conditions != null and is_instance_valid(_elemental_conditions):
+		_elemental_conditions.call("remove_condition", condition_id)
+
+
+func clear_all_conditions() -> void:
+	if _elemental_conditions != null and is_instance_valid(_elemental_conditions):
+		_elemental_conditions.call("clear_all_conditions")
+
+
+func has_condition(condition_id: String) -> bool:
+	return _elemental_conditions != null and is_instance_valid(_elemental_conditions) and bool(_elemental_conditions.call("has_condition", condition_id))
+
+
+func get_condition_movement_multiplier() -> float:
+	if _elemental_conditions == null or not is_instance_valid(_elemental_conditions):
+		return 1.0
+	return float(_elemental_conditions.call("get_movement_multiplier"))
+
+
+func take_elemental_damage(amount: int, element := "physical", _source: Node = null, condition_id := "") -> void:
+	if is_dead or amount <= 0:
+		return
+	var resolved := ElementalDamageResolverScript.resolve_damage(amount, element, get_combat_data())
+	if resolved <= 0:
+		return
+	health = max(health - resolved, 0)
+	_update_nameplate()
+	_show_nameplate_after_damage()
+	_play_hit_feedback(false)
+	_play_forced_animation("hurt")
+	var color := ElementalDamageResolverScript.get_element_color(element)
+	FloatingCombatTextSpawner.show_text("-%d %s" % [resolved, str(condition_id if not condition_id.is_empty() else element).to_upper()], global_position + Vector2(0, -28), color, false, "damage_number")
+	if health == 0:
+		_die()
+
+
+func _apply_conditions_from_combat_result(combat_result: Dictionary) -> void:
+	var conditions_value: Variant = combat_result.get("conditions", [])
+	if conditions_value is Dictionary:
+		conditions_value = [conditions_value]
+	if conditions_value is Array:
+		for entry_variant in conditions_value:
+			if entry_variant is String:
+				apply_condition(str(entry_variant))
+			elif entry_variant is Dictionary:
+				var entry := entry_variant as Dictionary
+				var condition_id := str(entry.get("id", entry.get("condition_id", "")))
+				if not condition_id.is_empty():
+					apply_condition(condition_id, float(entry.get("duration", -1.0)), float(entry.get("potency", 1.0)))
+	var single_condition := str(combat_result.get("condition", ""))
+	if not single_condition.is_empty():
+		apply_condition(single_condition, float(combat_result.get("condition_duration", -1.0)), float(combat_result.get("condition_potency", 1.0)))
+
+
 func _die() -> void:
 	is_dead = true
+	clear_all_conditions()
 	_show_xp_reward()
 	_drop_loot()
 	damage_area.monitoring = false
@@ -301,7 +376,10 @@ func _update_movement(delta: float) -> Dictionary:
 			"facing_direction": facing_direction,
 			"visual_offset": Vector2.ZERO,
 		}
-	return _monster_locomotion.update(delta, self, player)
+	var result: Dictionary = _monster_locomotion.update(delta, self, player)
+	var resolved_velocity: Vector2 = result.get("velocity", Vector2.ZERO)
+	result["velocity"] = resolved_velocity * get_condition_movement_multiplier()
+	return result
 
 
 func _update_motion_animation(visual_offset: Vector2, motion_state: String) -> void:

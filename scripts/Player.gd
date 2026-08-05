@@ -14,6 +14,8 @@ const CombatCalculatorScript = preload("res://scripts/systems/CombatCalculator.g
 const FloatingCombatTextSpawner := preload("res://scripts/ui/FloatingCombatTextSpawner.gd")
 const ItemInstanceHelper = preload("res://scripts/systems/ItemInstanceHelper.gd")
 const PlayerStatsResolverScript = preload("res://scripts/systems/PlayerStatsResolver.gd")
+const ElementalDamageResolverScript := preload("res://scripts/systems/ElementalDamageResolver.gd")
+const ElementalConditionControllerScript := preload("res://scripts/systems/ElementalConditionController.gd")
 const SmokePuffScene := preload("res://scenes/effects/SmokePuff.tscn")
 const WALK_FOOTSTEP_PATHS := [
 	"res://assets/audio/sfx/footsteps/Dirt Walk 1.wav",
@@ -91,6 +93,7 @@ var _footstep_player: AudioStreamPlayer2D
 var _footstep_timer := 0.0
 var _last_walk_footstep_index := -1
 var _last_run_footstep_index := -1
+var _elemental_conditions: Node2D
 
 @onready var body_visual: CanvasItem = $Body
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
@@ -98,6 +101,7 @@ var _last_run_footstep_index := -1
 
 func _ready() -> void:
 	add_to_group("player")
+	_setup_elemental_conditions()
 	_load_player_tuning()
 	_setup_character_visual()
 	_setup_footstep_audio()
@@ -168,7 +172,7 @@ func _physics_process(delta: float) -> void:
 	is_running = has_input and wants_to_run
 
 	if has_input:
-		var current_speed := run_speed if is_running else walk_speed
+		var current_speed := (run_speed if is_running else walk_speed) * get_condition_movement_multiplier()
 		var target_velocity := direction * current_speed
 		velocity = velocity.move_toward(target_velocity, acceleration * delta)
 		last_move_direction = direction
@@ -385,7 +389,8 @@ func apply_combat_result(combat_result: Dictionary) -> void:
 			FloatingCombatTextSpawner.show_miss(global_position + Vector2(0, -28))
 		return
 
-	var amount := int(combat_result.get("damage", 0))
+	var damage_type := ElementalDamageResolverScript.normalize_element(combat_result.get("damage_type", "physical"))
+	var amount := ElementalDamageResolverScript.resolve_damage(float(combat_result.get("damage", 0)), damage_type, _get_combat_data())
 	if amount <= 0:
 		return
 
@@ -395,9 +400,84 @@ func apply_combat_result(combat_result: Dictionary) -> void:
 	_play_hit_flash(Color(1.0, 0.35, 0.35, 1.0))
 	if show_floating_damage:
 		FloatingCombatTextSpawner.show_damage(amount, global_position + Vector2(0, -28), bool(combat_result.get("is_critical", false)), "player")
+	_apply_conditions_from_combat_result(combat_result)
 
 	if health == 0:
 		_die()
+
+
+func _setup_elemental_conditions() -> void:
+	_elemental_conditions = get_node_or_null("ElementalConditions") as Node2D
+	if _elemental_conditions == null:
+		_elemental_conditions = ElementalConditionControllerScript.new()
+		_elemental_conditions.name = "ElementalConditions"
+		add_child(_elemental_conditions)
+
+
+func apply_condition(condition_id: String, duration := -1.0, potency := 1.0, source: Node = null) -> bool:
+	_setup_elemental_conditions()
+	return bool(_elemental_conditions.call("apply_condition", condition_id, duration, potency, source))
+
+
+func remove_condition(condition_id: String) -> void:
+	if _elemental_conditions != null and is_instance_valid(_elemental_conditions):
+		_elemental_conditions.call("remove_condition", condition_id)
+
+
+func clear_all_conditions() -> void:
+	if _elemental_conditions != null and is_instance_valid(_elemental_conditions):
+		_elemental_conditions.call("clear_all_conditions")
+
+
+func has_condition(condition_id: String) -> bool:
+	return _elemental_conditions != null and is_instance_valid(_elemental_conditions) and bool(_elemental_conditions.call("has_condition", condition_id))
+
+
+func get_active_conditions() -> Dictionary:
+	if _elemental_conditions == null or not is_instance_valid(_elemental_conditions):
+		return {}
+	return _elemental_conditions.call("get_active_conditions") as Dictionary
+
+
+func get_condition_movement_multiplier() -> float:
+	if _elemental_conditions == null or not is_instance_valid(_elemental_conditions):
+		return 1.0
+	return float(_elemental_conditions.call("get_movement_multiplier"))
+
+
+func take_elemental_damage(amount: int, element := "physical", _source: Node = null, condition_id := "") -> void:
+	if amount <= 0:
+		return
+	var resolved := ElementalDamageResolverScript.resolve_damage(amount, element, _get_combat_data())
+	if resolved <= 0:
+		return
+	health = max(health - resolved, 0)
+	health_changed.emit(health, max_health)
+	var color := ElementalDamageResolverScript.get_element_color(element)
+	FloatingCombatTextSpawner.show_hit_impact(global_position + Vector2(0, -18), false)
+	FloatingCombatTextSpawner.show_text("-%d %s" % [resolved, str(condition_id if not condition_id.is_empty() else element).to_upper()], global_position + Vector2(0, -28), color, false, "damage_number")
+	if health > 0 and has_method("_start_hurt_animation"):
+		call("_start_hurt_animation")
+	if health == 0:
+		_die()
+
+
+func _apply_conditions_from_combat_result(combat_result: Dictionary) -> void:
+	var conditions_value: Variant = combat_result.get("conditions", [])
+	if conditions_value is Dictionary:
+		conditions_value = [conditions_value]
+	if conditions_value is Array:
+		for entry_variant in conditions_value:
+			if entry_variant is String:
+				apply_condition(str(entry_variant))
+			elif entry_variant is Dictionary:
+				var entry := entry_variant as Dictionary
+				var condition_id := str(entry.get("id", entry.get("condition_id", "")))
+				if not condition_id.is_empty():
+					apply_condition(condition_id, float(entry.get("duration", -1.0)), float(entry.get("potency", 1.0)))
+	var single_condition := str(combat_result.get("condition", ""))
+	if not single_condition.is_empty():
+		apply_condition(single_condition, float(combat_result.get("condition_duration", -1.0)), float(combat_result.get("condition_potency", 1.0)))
 
 
 func get_progression_data() -> Dictionary:
