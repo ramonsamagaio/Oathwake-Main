@@ -28,7 +28,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +42,22 @@ jobs:
             https://github.com/godotengine/godot/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
           unzip -q /tmp/godot.zip -d /tmp/godot
           chmod +x /tmp/godot/Godot_v4.6.3-stable_linux.x86_64
+
+      - name: Import the real project and inspect autoloads
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 240 /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --editor \
+            --path "$GITHUB_WORKSPACE" \
+            --quit-after 10 \
+            2>&1 | tee /tmp/godot-editor-validation.log
+
+          if grep -E "Parse Error|Failed to load script|Failed to create an autoload" /tmp/godot-editor-validation.log; then
+            echo "Godot editor boot reported a parser or autoload failure."
+            exit 1
+          fi
 
       - name: Parse changed scripts and inspect Godot log
         shell: bash
@@ -78,21 +94,5 @@ jobs:
 
           if grep -E "Parse Error|Failed to load script|Failed to create an autoload|Could not load res://" /tmp/godot-script-validation.log; then
             echo "Godot reported a script compilation failure."
-            exit 1
-          fi
-
-      - name: Boot the real project editor and inspect autoloads
-        shell: bash
-        run: |
-          set -o pipefail
-          /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
-            --headless \
-            --editor \
-            --path "$GITHUB_WORKSPACE" \
-            --quit-after 3 \
-            2>&1 | tee /tmp/godot-editor-validation.log
-
-          if grep -E "Parse Error|Failed to load script|Failed to create an autoload" /tmp/godot-editor-validation.log; then
-            echo "Godot editor boot reported a parser or autoload failure."
             exit 1
           fi
