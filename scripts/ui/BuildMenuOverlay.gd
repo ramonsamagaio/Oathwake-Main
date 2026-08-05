@@ -275,7 +275,9 @@ func _refresh_affordability() -> void:
 			can_afford = true
 		elif _build_system.has_method("_can_spend_building_cost"):
 			can_afford = bool(_build_system.call("_can_spend_building_cost", building_id))
-		button.disabled = not can_afford
+		button.disabled = false
+		button.modulate = Color.WHITE if can_afford else Color(0.68, 0.65, 0.60, 1.0)
+		button.tooltip_text = "%s\n%s" % ["Can build" if can_afford else "Missing resources", _get_cost_text(building_id)]
 
 
 func _has_retrieved_campfire() -> bool:
