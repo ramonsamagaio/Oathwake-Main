@@ -4,6 +4,9 @@ const RefinementCalculatorScript := preload("res://scripts/systems/RefinementCal
 const MIN_LIGHT_PERSPECTIVE_ANGLE := 15.0
 const MAX_LIGHT_PERSPECTIVE_ANGLE := 90.0
 const DEFAULT_LIGHT_PERSPECTIVE_ANGLE := 50.0
+const DEFAULT_HALO_COLOR := Color(1.0, 0.90, 0.67, 1.0)
+const DEFAULT_HALO_ENERGY := 0.72
+const DEFAULT_HALO_RADIUS_SCALE := 3.0
 const NIGHT_READABILITY_VISUAL_PATHS := [
 	NodePath("Body"),
 	NodePath("AnimatedSprite2D"),
@@ -57,40 +60,43 @@ func _apply_player_light_tuning() -> void:
 	light.scale = Vector2(1.0, vertical_projection)
 	light.set_meta("player_light_perspective_angle", perspective_angle)
 	light.set_meta("player_light_vertical_projection", vertical_projection)
-	_disable_player_ground_halo(light)
+	_configure_player_environment_halo(light)
 
 
-func _disable_player_ground_halo(light: Node2D) -> void:
-	# The player remains readable through its compact compositor mask and
-	# unshaded authored sprites. It must not use the reusable GlowOverlay as a
-	# visible aura or ground PointLight, even if an older save/content reload
-	# attempts to restore the previous player light tuning.
+func _configure_player_environment_halo(light: Node2D) -> void:
+	# The wide PointLight reveals the nearby world. The texture/procedural aura
+	# stays disabled so the halo has a soft falloff instead of a visible disc.
+	# Player-body clarity remains independent through the compact readability mask.
+	light.visible = true
 	light.set("visual_enabled", false)
 	light.set("alpha", 0.0)
 	light.set("intensity", 0.0)
-	light.set("use_point_light", false)
-	light.set("point_light_energy", 0.0)
+	light.set("use_point_light", true)
+	light.set("light_uses_aura_alpha", false)
+	light.set("glow_color", Color.from_string(str(_content_light_config.get("color", "#FFE6AAFF")), DEFAULT_HALO_COLOR))
+	light.set("point_light_energy", maxf(float(_content_light_config.get("emission", DEFAULT_HALO_ENERGY)), DEFAULT_HALO_ENERGY))
+	light.set("point_light_scale", maxf(float(_content_light_config.get("radius_scale", DEFAULT_HALO_RADIUS_SCALE)), DEFAULT_HALO_RADIUS_SCALE))
 	light.set("day_light_multiplier", 0.0)
-	light.set("night_light_multiplier", 0.0)
+	light.set("night_light_multiplier", maxf(float(_content_light_config.get("night_multiplier", 1.0)), 1.0))
 	var texture_glow := light.get_node_or_null("TextureGlow") as Sprite2D
 	if texture_glow != null:
 		texture_glow.visible = false
 	var procedural_glow := light.get_node_or_null("ProceduralGlow") as Sprite2D
 	if procedural_glow != null:
 		procedural_glow.visible = false
-	var point_light := light.get_node_or_null("PointLight2D") as PointLight2D
-	if point_light != null:
-		point_light.visible = false
-		point_light.enabled = false
-		point_light.energy = 0.0
-		point_light.texture = null
 	if light.has_method("refresh_from_config"):
 		light.call("refresh_from_config")
-	set_meta("player_ground_halo_disabled", true)
+	set_meta("player_environment_halo_enabled", true)
+	set_meta("player_ground_halo_disabled", false)
+
+
+func is_player_environment_halo_enabled() -> bool:
+	return bool(get_meta("player_environment_halo_enabled", false))
 
 
 func is_player_ground_halo_disabled() -> bool:
-	return bool(get_meta("player_ground_halo_disabled", false))
+	# Kept for compatibility with older debug tools.
+	return false
 
 
 func get_current_tool() -> String:

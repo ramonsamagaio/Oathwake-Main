@@ -4,9 +4,11 @@ const ContentGlowRuntime := preload("res://scripts/effects/ContentGlowRuntime.gd
 const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
 const DirectionalShadowRuntime := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
 const EmberEmitterScript := preload("res://scripts/effects/EmberEmitter.gd")
+const CampfireFlameAnimatorScript := preload("res://scripts/effects/CampfireFlameAnimator.gd")
 const EnvironmentalHazardScript := preload("res://scripts/systems/EnvironmentalHazard.gd")
 
 const CAMPFIRE_ID := "campfire"
+const CAMPFIRE_FLAME_Z_INDEX := 70
 const CAMPFIRE_EMBER_Z_INDEX := 80
 
 
@@ -50,12 +52,15 @@ func _apply_runtime_building_features() -> void:
 		_ensure_campfire_effects()
 		return
 	remove_from_group("campfire")
+	_disable_runtime_child("AnimatedFlame")
 	_disable_runtime_child("EmberEmitter")
 	_disable_runtime_child("ElementalHazard")
 
 
 func _ensure_campfire_effects() -> void:
 	add_to_group("campfire")
+	_ensure_campfire_animated_flame()
+
 	var ember_emitter := get_node_or_null("EmberEmitter") as Node2D
 	if ember_emitter == null:
 		ember_emitter = EmberEmitterScript.new()
@@ -91,6 +96,23 @@ func _ensure_campfire_effects() -> void:
 	})
 	hazard.monitoring = true
 	hazard.set_physics_process(true)
+
+
+func _ensure_campfire_animated_flame() -> void:
+	var flame := get_node_or_null("AnimatedFlame") as AnimatedSprite2D
+	if flame == null:
+		flame = CampfireFlameAnimatorScript.new()
+		flame.name = "AnimatedFlame"
+		add_child(flame)
+	flame.position = Vector2(0.0, -20.0)
+	flame.z_as_relative = true
+	flame.z_index = CAMPFIRE_FLAME_Z_INDEX
+	flame.visible = true
+	flame.process_mode = Node.PROCESS_MODE_INHERIT
+	if flame.has_method("configure_from_sheet"):
+		flame.call("configure_from_sheet")
+	if flame.sprite_frames != null and flame.sprite_frames.has_animation("burn"):
+		flame.play("burn")
 
 
 func _disable_runtime_child(child_name: String) -> void:
