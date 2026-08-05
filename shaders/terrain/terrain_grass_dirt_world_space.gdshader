@@ -26,11 +26,22 @@ vec2 mirrored_world_uv(vec2 world_pixels, vec2 repeat_pixels) {
     return mix(local, vec2(1.0) - local, flip);
 }
 
+vec2 horizontally_mirrored_world_uv(vec2 world_pixels, vec2 repeat_pixels) {
+    vec2 normalized = world_pixels / max(repeat_pixels, vec2(1.0));
+    vec2 cell = floor(normalized);
+    vec2 local = fract(normalized);
+    float flip_x = mod(cell.x, 2.0);
+    return vec2(mix(local.x, 1.0 - local.x, flip_x), local.y);
+}
+
 void fragment() {
     vec4 tile_data = texture(TEXTURE, UV);
     vec4 detail = texture(edge_overlay, UV);
 
-    vec2 grass_uv = mirrored_world_uv(world_position + world_offset, grass_repeat_pixels);
+    // Grass tufts are directional artwork. Mirroring only on X keeps repetition
+    // varied without ever turning blades and clumps upside down.
+    vec2 grass_uv = horizontally_mirrored_world_uv(world_position + world_offset, grass_repeat_pixels);
+    // Dirt has no vertical reading, so two-axis mirroring remains useful there.
     vec2 dirt_uv = mirrored_world_uv(world_position + world_offset, dirt_repeat_pixels);
 
     vec3 grass = texture(grass_texture, grass_uv).rgb;
