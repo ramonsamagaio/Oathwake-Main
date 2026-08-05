@@ -36,14 +36,27 @@ uniform float warm_light_preservation : hint_range(0.0, 1.0, 0.01) = 0.78;
 uniform float night_shadow_lift : hint_range(0.0, 0.25, 0.005) = 0.035;
 uniform float night_cool_shadow_strength : hint_range(0.0, 1.0, 0.01) = 0.32;
 
+// Broad light-area protection. This intentionally remains weak so the grass,
+// rocks and nearby enemies still read as nighttime inside the player's halo.
 uniform bool local_light_grading_mask_enabled = true;
 uniform bool local_light_source_active = false;
 uniform vec2 local_light_screen_position = vec2(0.5, 0.5);
 uniform vec2 local_light_radius_uv = vec2(0.16);
 uniform float local_light_source_strength : hint_range(0.0, 1.0, 0.001) = 0.0;
-uniform float local_light_grading_protection : hint_range(0.0, 1.0, 0.01) = 0.92;
+uniform float local_light_grading_protection : hint_range(0.0, 1.0, 0.01) = 0.24;
 uniform float local_light_mask_softness : hint_range(0.01, 1.0, 0.01) = 0.42;
-uniform float local_light_scene_lift : hint_range(0.0, 0.25, 0.005) = 0.035;
+uniform float local_light_scene_lift : hint_range(0.0, 0.25, 0.005) = 0.01;
+
+// Compact player-only protection. Player visuals are rendered unshaded before
+// this pass, then this ellipse removes almost all remaining blue grading only
+// over the character's body rather than over the surrounding environment.
+uniform bool player_readability_mask_enabled = true;
+uniform bool player_readability_source_active = false;
+uniform vec2 player_readability_screen_position = vec2(0.5, 0.5);
+uniform vec2 player_readability_radius_uv = vec2(0.035, 0.075);
+uniform float player_readability_protection : hint_range(0.0, 1.0, 0.001) = 0.985;
+uniform float player_readability_mask_softness : hint_range(0.01, 1.0, 0.01) = 0.22;
+uniform float player_readability_scene_lift : hint_range(0.0, 0.15, 0.001) = 0.012;
 
 float oath_luminance(vec3 color_value) {
 	return dot(color_value, vec3(0.2126, 0.7152, 0.0722));
@@ -60,16 +73,38 @@ float oath_warm_mask(vec3 color_value) {
 		* smoothstep(0.10, 0.76, max(max(color_value.r, color_value.g), color_value.b));
 }
 
+float oath_ellipse_mask(vec2 uv, vec2 center, vec2 radius, float softness) {
+	vec2 safe_radius = max(radius, vec2(0.001));
+	vec2 normalized_delta = (uv - center) / safe_radius;
+	float safe_softness = clamp(softness, 0.01, 1.0);
+	float inner_radius = 1.0 - safe_softness;
+	return 1.0 - smoothstep(inner_radius, 1.0, length(normalized_delta));
+}
+
 float oath_local_light_mask(vec2 uv) {
 	if (!local_light_grading_mask_enabled || !local_light_source_active) {
 		return 0.0;
 	}
-	vec2 radius = max(local_light_radius_uv, vec2(0.001));
-	vec2 normalized_delta = (uv - local_light_screen_position) / radius;
-	float softness = clamp(local_light_mask_softness, 0.01, 1.0);
-	float inner_radius = 1.0 - softness;
-	float radial = 1.0 - smoothstep(inner_radius, 1.0, length(normalized_delta));
+	float radial = oath_ellipse_mask(
+		uv,
+		local_light_screen_position,
+		local_light_radius_uv,
+		local_light_mask_softness
+	);
 	return radial * clamp(local_light_source_strength, 0.0, 1.0) * clamp(night_strength, 0.0, 1.0);
+}
+
+float oath_player_readability_mask(vec2 uv) {
+	if (!player_readability_mask_enabled || !player_readability_source_active) {
+		return 0.0;
+	}
+	float radial = oath_ellipse_mask(
+		uv,
+		player_readability_screen_position,
+		player_readability_radius_uv,
+		player_readability_mask_softness
+	);
+	return radial * clamp(night_strength, 0.0, 1.0);
 }
 
 vec3 apply_world_grading(vec3 input_color) {
@@ -127,13 +162,23 @@ vec3 glow_bright_pass(vec3 color_value) {
 void fragment() {
 	vec4 base_color = textureLod(screen_texture, SCREEN_UV, 0.0);
 	vec3 graded_rgb = apply_world_grading(base_color.rgb);
+
 	float local_light_mask = oath_local_light_mask(SCREEN_UV);
-	vec3 protected_scene = max(base_color.rgb + vec3(local_light_scene_lift * local_light_mask), vec3(0.0));
+	vec3 locally_lit_scene = max(base_color.rgb + vec3(local_light_scene_lift * local_light_mask), vec3(0.0));
 	graded_rgb = mix(
 		graded_rgb,
-		protected_scene,
+		locally_lit_scene,
 		clamp(local_light_mask * local_light_grading_protection, 0.0, 1.0)
 	);
+
+	float player_mask = oath_player_readability_mask(SCREEN_UV);
+	vec3 readable_player_scene = max(base_color.rgb + vec3(player_readability_scene_lift * player_mask), vec3(0.0));
+	graded_rgb = mix(
+		graded_rgb,
+		readable_player_scene,
+		clamp(player_mask * player_readability_protection, 0.0, 1.0)
+	);
+
 	vec3 output_rgb = graded_rgb;
 	if (enabled && bloom_enabled && bloom_intensity > 0.0 && mix_amount > 0.0) {
 		float blur_lod = clamp(

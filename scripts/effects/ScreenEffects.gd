@@ -6,11 +6,17 @@ extends CanvasLayer
 @onready var gaussian_glow: ColorRect = $GaussianGlow
 @onready var speed_lines: ColorRect = $SpeedLines
 
+const DEFAULT_PLAYER_READABILITY_RADIUS_WORLD := Vector2(22.0, 38.0)
+const DEFAULT_PLAYER_READABILITY_OFFSET_WORLD := Vector2(0.0, -1.0)
+const MAX_ENVIRONMENT_GRADING_PROTECTION := 0.28
+const MAX_ENVIRONMENT_SCENE_LIFT := 0.012
+
 var _dash_tween: Tween
 var _post_processing_config: Dictionary = {}
 var _night_strength := 0.0
 var _last_applied_night_strength := -1.0
 var _local_light_source: Node2D
+var _player_readability_source: Node2D
 
 
 func _ready() -> void:
@@ -32,6 +38,7 @@ func _process(_delta: float) -> void:
 		target_strength = clampf(float(cycle.call("get_night_strength")), 0.0, 1.0)
 	set_day_night_strength(target_strength)
 	_sync_local_light_grading_mask()
+	_sync_player_readability_mask()
 
 
 func set_day_night_strength(strength: float) -> void:
@@ -172,11 +179,22 @@ func _sync_glow_material() -> void:
 	shader_material.set_shader_parameter("night_shadow_lift", _float_setting("night_shadow_lift"))
 	shader_material.set_shader_parameter("night_cool_shadow_strength", _float_setting("night_cool_shadow_strength"))
 	shader_material.set_shader_parameter("local_light_grading_mask_enabled", bool(_post_processing_config.get("local_light_grading_mask_enabled", true)))
-	shader_material.set_shader_parameter("local_light_grading_protection", float(_post_processing_config.get("local_light_grading_protection", 0.92)))
+	var authored_environment_protection := float(_post_processing_config.get("local_light_grading_protection", 0.92))
+	var environment_protection_scale := float(_post_processing_config.get("local_light_environment_protection_scale", 0.26))
+	var environment_protection := clampf(authored_environment_protection * environment_protection_scale, 0.0, MAX_ENVIRONMENT_GRADING_PROTECTION)
+	var authored_environment_lift := float(_post_processing_config.get("local_light_scene_lift", 0.035))
+	var environment_lift_scale := float(_post_processing_config.get("local_light_environment_lift_scale", 0.30))
+	var environment_lift := clampf(authored_environment_lift * environment_lift_scale, 0.0, MAX_ENVIRONMENT_SCENE_LIFT)
+	shader_material.set_shader_parameter("local_light_grading_protection", environment_protection)
 	shader_material.set_shader_parameter("local_light_mask_softness", float(_post_processing_config.get("local_light_mask_softness", 0.42)))
-	shader_material.set_shader_parameter("local_light_scene_lift", float(_post_processing_config.get("local_light_scene_lift", 0.035)))
+	shader_material.set_shader_parameter("local_light_scene_lift", environment_lift)
+	shader_material.set_shader_parameter("player_readability_mask_enabled", bool(_post_processing_config.get("player_readability_mask_enabled", true)))
+	shader_material.set_shader_parameter("player_readability_protection", float(_post_processing_config.get("player_readability_protection", 0.985)))
+	shader_material.set_shader_parameter("player_readability_mask_softness", float(_post_processing_config.get("player_readability_mask_softness", 0.22)))
+	shader_material.set_shader_parameter("player_readability_scene_lift", float(_post_processing_config.get("player_readability_scene_lift", 0.012)))
 	_sync_dynamic_grading()
 	_sync_local_light_grading_mask()
+	_sync_player_readability_mask()
 
 
 func _sync_dynamic_grading() -> void:
@@ -226,6 +244,41 @@ func _sync_local_light_grading_mask() -> void:
 	material.set_meta("local_light_mask_scale", source_scale)
 
 
+func _sync_player_readability_mask() -> void:
+	if gaussian_glow == null or not (gaussian_glow.material is ShaderMaterial):
+		return
+	var material := gaussian_glow.material as ShaderMaterial
+	if not bool(_post_processing_config.get("player_readability_mask_enabled", true)) or _night_strength <= 0.001:
+		material.set_shader_parameter("player_readability_source_active", false)
+		return
+	if _player_readability_source == null or not is_instance_valid(_player_readability_source):
+		_player_readability_source = get_tree().get_first_node_in_group("player") as Node2D
+	if _player_readability_source == null or not is_instance_valid(_player_readability_source):
+		material.set_shader_parameter("player_readability_source_active", false)
+		return
+	var viewport_size := get_viewport().get_visible_rect().size
+	if viewport_size.x <= 1.0 or viewport_size.y <= 1.0:
+		material.set_shader_parameter("player_readability_source_active", false)
+		return
+	var canvas_transform := get_viewport().get_canvas_transform()
+	var offset_world := _vector_config("player_readability_offset_world", DEFAULT_PLAYER_READABILITY_OFFSET_WORLD)
+	var source_position := _player_readability_source.global_position + offset_world
+	var screen_position := canvas_transform * source_position
+	var screen_uv := Vector2(screen_position.x / viewport_size.x, screen_position.y / viewport_size.y)
+	var source_scale := Vector2(absf(_player_readability_source.global_scale.x), absf(_player_readability_source.global_scale.y))
+	var radius_world := _vector_config("player_readability_radius_world", DEFAULT_PLAYER_READABILITY_RADIUS_WORLD) * source_scale
+	var radius_pixels := Vector2(
+		radius_world.x * canvas_transform.x.length(),
+		radius_world.y * canvas_transform.y.length()
+	)
+	var radius_uv := Vector2(radius_pixels.x / viewport_size.x, radius_pixels.y / viewport_size.y)
+	material.set_shader_parameter("player_readability_source_active", true)
+	material.set_shader_parameter("player_readability_screen_position", screen_uv)
+	material.set_shader_parameter("player_readability_radius_uv", radius_uv.max(Vector2(0.001, 0.001)))
+	material.set_meta("player_readability_radius_world", radius_world)
+	material.set_meta("player_readability_source_id", _player_readability_source.get_instance_id())
+
+
 func _float_setting(key: String) -> float:
 	return float(_post_processing_config.get(key, settings.get(key)))
 
@@ -236,3 +289,13 @@ func _color_setting(key: String) -> Color:
 	if value is Color:
 		return value
 	return Color.from_string(str(value), fallback as Color)
+
+
+func _vector_config(key: String, fallback: Vector2) -> Vector2:
+	var value: Variant = _post_processing_config.get(key, fallback)
+	if value is Vector2:
+		return value as Vector2
+	if value is Dictionary:
+		var data := value as Dictionary
+		return Vector2(float(data.get("x", fallback.x)), float(data.get("y", fallback.y)))
+	return fallback

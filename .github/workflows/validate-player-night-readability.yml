@@ -1,0 +1,70 @@
+name: Validate Player Night Readability
+
+on:
+  pull_request:
+    paths:
+      - "scripts/player/PlayerLightPerspectiveSuite.gd"
+      - "scripts/effects/ScreenEffects.gd"
+      - "shaders/gaussian_glow_screen.gdshader"
+      - "scripts/test/WorldPostProcessingValidator.gd"
+      - ".github/workflows/validate-player-night-readability.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/player/PlayerLightPerspectiveSuite.gd"
+      - "scripts/effects/ScreenEffects.gd"
+      - "shaders/gaussian_glow_screen.gdshader"
+      - "scripts/test/WorldPostProcessingValidator.gd"
+      - ".github/workflows/validate-player-night-readability.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot 4.6.3
+        run: |
+          curl -L --fail --retry 3 \
+            -o /tmp/godot.zip \
+            https://github.com/godotengine/godot/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.6.3-stable_linux.x86_64
+
+      - name: Import full project
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 240 /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --path "$GITHUB_WORKSPACE" \
+            --import \
+            2>&1 | tee /tmp/player-night-import.log
+          if grep -E "Parse Error|SCRIPT ERROR|Shader compilation failed|Failed to load script|Error parsing" /tmp/player-night-import.log; then
+            echo "Godot import reported a parser or shader failure."
+            exit 1
+          fi
+
+      - name: Validate player-only night treatment
+        shell: bash
+        run: |
+          set -o pipefail
+          /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --path "$GITHUB_WORKSPACE" \
+            --script res://scripts/test/WorldPostProcessingValidator.gd \
+            2>&1 | tee /tmp/player-night-runtime.log
+          if grep -E "WORLD_POST_PROCESSING_VALIDATION_FAILURE|Parse Error|SCRIPT ERROR|Shader compilation failed|Invalid access|Invalid call" /tmp/player-night-runtime.log; then
+            echo "Player night-readability validation failed."
+            exit 1
+          fi
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: player-night-readability-validation
+          path: |
+            /tmp/player-night-import.log
+            /tmp/player-night-runtime.log
