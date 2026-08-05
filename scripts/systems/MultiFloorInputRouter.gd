@@ -12,21 +12,21 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	var manager := get_node_or_null(MANAGER_PATH)
+	var manager := _get_live_node(MANAGER_PATH)
 	if manager == null:
 		return
 	if manager.is_processing_input():
 		manager.set_process_input(false)
-	var build_system := manager.get("_build_system") as Node
+	var build_system := _get_live_object_property(manager, "_build_system")
 	if build_system != null and build_system.is_processing_unhandled_input():
 		build_system.set_process_unhandled_input(false)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	var manager := get_node_or_null(MANAGER_PATH)
+	var manager := _get_live_node(MANAGER_PATH)
 	if manager == null or not bool(manager.get("_initialized")):
 		return
-	var build_system := manager.get("_build_system") as Node
+	var build_system := _get_live_object_property(manager, "_build_system")
 	if build_system == null:
 		return
 	var build_mode := bool(build_system.get("build_mode_enabled"))
@@ -93,6 +93,25 @@ func _unhandled_input(event: InputEvent) -> void:
 				return
 		manager.call("_try_remove_at_cursor")
 		get_viewport().set_input_as_handled()
+
+
+func _get_live_node(path: NodePath) -> Node:
+	var node := get_node_or_null(path)
+	if node == null or not is_instance_valid(node) or node.is_queued_for_deletion():
+		return null
+	return node
+
+
+func _get_live_object_property(owner: Object, property_name: StringName) -> Node:
+	if owner == null or not is_instance_valid(owner):
+		return null
+	var value: Variant = owner.get(property_name)
+	if typeof(value) != TYPE_OBJECT or not is_instance_valid(value):
+		return null
+	var node := value as Node
+	if node == null or node.is_queued_for_deletion():
+		return null
+	return node
 
 
 func _can_afford_selected_building(build_system: Node) -> bool:
