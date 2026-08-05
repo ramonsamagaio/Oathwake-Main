@@ -33,6 +33,12 @@ func _validate_footprint_extrusion_and_animation_stability() -> void:
 	target.add_to_group("player")
 	root.add_child(target)
 
+	var cycle := DayNightCycleScript.new()
+	root.add_child(cycle)
+	cycle.set_process(false)
+	cycle.call("set_time_of_day", 0.0)
+	await process_frame
+
 	var animated := AnimatedSprite2D.new()
 	animated.name = "AnimatedSprite2D"
 	var frames := SpriteFrames.new()
@@ -115,7 +121,7 @@ func _validate_footprint_extrusion_and_animation_stability() -> void:
 
 	var frame_one_polygon := shadow.polygon.duplicate()
 	var frame_one_contact := second_contact
-	config["direction_degrees"] = -45.0
+	cycle.call("set_time_of_day", 0.58)
 	shadow.call("configure", target, animated, config, contact_hint)
 	await process_frame
 	var rotated_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
@@ -128,6 +134,7 @@ func _validate_footprint_extrusion_and_animation_stability() -> void:
 		failures.append("Evening active-frame projection did not point upper-right.")
 
 	target.queue_free()
+	cycle.queue_free()
 	await process_frame
 
 
@@ -139,6 +146,12 @@ func _validate_pinned_contact_transform() -> void:
 	target.scale = Vector2(1.08, 0.94)
 	target.add_to_group("player")
 	root.add_child(target)
+
+	var cycle := DayNightCycleScript.new()
+	root.add_child(cycle)
+	cycle.set_process(false)
+	cycle.call("set_time_of_day", 0.0)
+	await process_frame
 
 	var visual_rig := Node2D.new()
 	visual_rig.position = Vector2(7.0, -9.0)
@@ -189,7 +202,7 @@ func _validate_pinned_contact_transform() -> void:
 		if bool(shadow.get_meta("shadow_profile_uses_collision_footprint", true)):
 			failures.append("Nested active-frame shadow incorrectly used the collision footprint.")
 		var initial_polygon := shadow.polygon.duplicate()
-		config["direction_degrees"] = -45.0
+		cycle.call("set_time_of_day", 0.58)
 		shadow.call("configure", target, sprite, config, resolved_contact)
 		await process_frame
 		var rotated_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
@@ -199,6 +212,7 @@ func _validate_pinned_contact_transform() -> void:
 			failures.append("Rotating the sun did not rotate the nested active-frame projection.")
 
 	target.queue_free()
+	cycle.queue_free()
 	await process_frame
 
 
