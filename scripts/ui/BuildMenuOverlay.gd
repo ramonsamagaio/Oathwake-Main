@@ -2,6 +2,7 @@ extends CanvasLayer
 
 const RecipeBookScript := preload("res://scripts/systems/RecipeBook.gd")
 const CAMPFIRE_ID := "campfire"
+const CATEGORY_ORDER := ["All", "Walls", "Benches", "Floors", "Furniture", "Utility"]
 
 var _build_system: Node
 var _floor_manager: Node
@@ -9,9 +10,13 @@ var _panel: PanelContainer
 var _title_label: Label
 var _floor_label: Label
 var _cost_label: Label
+var _category_grid: GridContainer
 var _button_list: VBoxContainer
 var _buttons: Dictionary = {}
+var _category_buttons: Dictionary = {}
+var _entries_by_id: Dictionary = {}
 var _recipe_book := RecipeBookScript.new()
+var _active_category := "All"
 var _last_build_mode := false
 var _last_selected_type := ""
 var _last_floor := -1
@@ -20,6 +25,9 @@ var _legacy_build_label: CanvasItem
 var _feedback_panel: PanelContainer
 var _feedback_label: Label
 var _feedback_tween: Tween
+var _interaction_hint_panel: PanelContainer
+var _interaction_hint_label: Label
+var _interaction_hint_owner := ""
 
 
 func _ready() -> void:
@@ -35,8 +43,6 @@ func _process(delta: float) -> void:
 		_resolve_context()
 		return
 
-	# The old BuildLabel duplicates the entire menu on the right side. The clickable
-	# overlay is now the single source of truth for building selection and hints.
 	if _legacy_build_label != null and is_instance_valid(_legacy_build_label):
 		_legacy_build_label.visible = false
 
@@ -71,8 +77,8 @@ func _build_interface() -> void:
 	_panel = PanelContainer.new()
 	_panel.name = "BuildMenuPanel"
 	_panel.offset_left = 16.0
-	_panel.offset_top = 228.0
-	_panel.offset_right = 364.0
+	_panel.offset_top = 204.0
+	_panel.offset_right = 390.0
 	_panel.offset_bottom = 844.0
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_panel.visible = false
@@ -88,17 +94,17 @@ func _build_interface() -> void:
 	var layout := VBoxContainer.new()
 	layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	layout.add_theme_constant_override("separation", 8)
+	layout.add_theme_constant_override("separation", 7)
 	margin.add_child(layout)
 
 	_title_label = Label.new()
 	_title_label.text = "BUILDING"
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title_label.custom_minimum_size.y = 30.0
+	_title_label.custom_minimum_size.y = 28.0
 	layout.add_child(_title_label)
 
 	_floor_label = Label.new()
-	_floor_label.text = "Floor 0"
+	_floor_label.text = "CURRENT FLOOR: 0"
 	_floor_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layout.add_child(_floor_label)
 
@@ -107,16 +113,29 @@ func _build_interface() -> void:
 	layout.add_child(floor_controls)
 
 	var floor_down := Button.new()
+	floor_down.name = "FloorDownButton"
 	floor_down.text = "Floor -"
 	floor_down.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	floor_down.pressed.connect(_change_floor.bind(-1))
 	floor_controls.add_child(floor_down)
 
 	var floor_up := Button.new()
+	floor_up.name = "FloorUpButton"
 	floor_up.text = "Floor +"
 	floor_up.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	floor_up.pressed.connect(_change_floor.bind(1))
 	floor_controls.add_child(floor_up)
+
+	layout.add_child(HSeparator.new())
+
+	_category_grid = GridContainer.new()
+	_category_grid.name = "BuildCategoryGrid"
+	_category_grid.columns = 3
+	_category_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_category_grid.add_theme_constant_override("h_separation", 6)
+	_category_grid.add_theme_constant_override("v_separation", 6)
+	layout.add_child(_category_grid)
+	_create_category_buttons()
 
 	layout.add_child(HSeparator.new())
 
@@ -129,21 +148,42 @@ func _build_interface() -> void:
 	layout.add_child(scroll)
 
 	_button_list = VBoxContainer.new()
+	_button_list.name = "BuildButtonList"
 	_button_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_button_list.add_theme_constant_override("separation", 7)
 	scroll.add_child(_button_list)
 
 	_cost_label = Label.new()
+	_cost_label.name = "SelectedBuildCost"
 	_cost_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_cost_label.custom_minimum_size.y = 52.0
+	_cost_label.custom_minimum_size.y = 48.0
 	layout.add_child(_cost_label)
 
 	var hint := Label.new()
-	hint.text = "Left click: build\nRight click: retrieve/remove\nR or E: use stairs"
+	hint.text = "Left click: build\nRight click: retrieve/remove\nE or R: use stairs and beds"
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	layout.add_child(hint)
 
 	_create_feedback_toast(root)
+	_create_interaction_hint(root)
+
+
+func _create_category_buttons() -> void:
+	if _category_grid == null:
+		return
+	_category_buttons.clear()
+	for category in CATEGORY_ORDER:
+		var button := Button.new()
+		button.name = "Category_%s" % category
+		button.toggle_mode = true
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.custom_minimum_size = Vector2(104.0, 38.0)
+		button.text = category
+		button.tooltip_text = "Show %s" % category.to_lower()
+		button.pressed.connect(_set_category.bind(category))
+		_category_grid.add_child(button)
+		_category_buttons[category] = button
+	_update_category_button_states()
 
 
 func _create_feedback_toast(root: Control) -> void:
@@ -180,6 +220,39 @@ func _create_feedback_toast(root: Control) -> void:
 	_feedback_panel.add_child(_feedback_label)
 
 
+func _create_interaction_hint(root: Control) -> void:
+	_interaction_hint_panel = PanelContainer.new()
+	_interaction_hint_panel.name = "WorldInteractionHint"
+	_interaction_hint_panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_interaction_hint_panel.offset_left = -230.0
+	_interaction_hint_panel.offset_top = -178.0
+	_interaction_hint_panel.offset_right = 230.0
+	_interaction_hint_panel.offset_bottom = -126.0
+	_interaction_hint_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_interaction_hint_panel.visible = false
+	_interaction_hint_panel.z_index = 450
+	_interaction_hint_panel.set_meta("ui_interaction_polished", true)
+	root.add_child(_interaction_hint_panel)
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.035, 0.032, 0.03, 0.94)
+	style.border_color = Color(0.71, 0.50, 0.27, 0.95)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	style.content_margin_left = 18.0
+	style.content_margin_right = 18.0
+	style.content_margin_top = 9.0
+	style.content_margin_bottom = 9.0
+	_interaction_hint_panel.add_theme_stylebox_override("panel", style)
+
+	_interaction_hint_label = Label.new()
+	_interaction_hint_label.name = "WorldInteractionHintLabel"
+	_interaction_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_interaction_hint_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_interaction_hint_label.add_theme_color_override("font_color", Color(1.0, 0.90, 0.68, 1.0))
+	_interaction_hint_panel.add_child(_interaction_hint_label)
+
+
 func show_feedback(message: String, is_error := true, duration := 2.4) -> void:
 	if _feedback_panel == null or _feedback_label == null or message.strip_edges().is_empty():
 		return
@@ -197,6 +270,22 @@ func show_feedback(message: String, is_error := true, duration := 2.4) -> void:
 	_feedback_tween.tween_interval(maxf(duration, 0.8))
 	_feedback_tween.tween_property(_feedback_panel, "modulate:a", 0.0, 0.35)
 	_feedback_tween.tween_callback(_hide_feedback)
+
+
+func set_interaction_hint(message: String, owner := "") -> void:
+	if _interaction_hint_panel == null or _interaction_hint_label == null:
+		return
+	_interaction_hint_owner = owner
+	_interaction_hint_label.text = message
+	_interaction_hint_panel.visible = not message.strip_edges().is_empty()
+
+
+func clear_interaction_hint(owner := "") -> void:
+	if not owner.is_empty() and owner != _interaction_hint_owner:
+		return
+	_interaction_hint_owner = ""
+	if _interaction_hint_panel != null:
+		_interaction_hint_panel.visible = false
 
 
 func _hide_feedback() -> void:
@@ -218,11 +307,7 @@ func _resolve_context() -> void:
 
 
 func _rebuild_buttons() -> void:
-	if _button_list == null:
-		return
-	for child in _button_list.get_children():
-		child.queue_free()
-	_buttons.clear()
+	_entries_by_id.clear()
 	var entries := _get_building_entries()
 	entries.sort_custom(_compare_buildings)
 	for entry_variant in entries:
@@ -232,17 +317,73 @@ func _rebuild_buttons() -> void:
 		var building_id := str(entry.get("id", ""))
 		if building_id.is_empty() or building_id == "stairs_down":
 			continue
+		_entries_by_id[building_id] = entry
+	_refresh_category_counts()
+	_rebuild_visible_buttons()
+
+
+func _rebuild_visible_buttons() -> void:
+	if _button_list == null:
+		return
+	for child in _button_list.get_children():
+		child.queue_free()
+	_buttons.clear()
+
+	var entries: Array = _entries_by_id.values()
+	entries.sort_custom(_compare_buildings)
+	for entry_variant in entries:
+		if not entry_variant is Dictionary:
+			continue
+		var entry: Dictionary = entry_variant
+		if _active_category != "All" and _get_entry_category(entry) != _active_category:
+			continue
+		var building_id := str(entry.get("id", ""))
 		var button := Button.new()
 		button.name = "Build_%s" % building_id
 		button.toggle_mode = true
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.custom_minimum_size = Vector2(300.0, 54.0)
+		button.custom_minimum_size = Vector2(326.0, 54.0)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.text = _get_button_text(building_id, entry)
 		button.tooltip_text = "Select %s" % str(entry.get("display_name", building_id.capitalize()))
 		button.pressed.connect(_select_building.bind(building_id))
 		_button_list.add_child(button)
 		_buttons[building_id] = button
+
+	if _build_system != null:
+		_refresh_state(str(_build_system.get("selected_build_type")), _last_floor if _last_floor >= 0 else 0)
+
+
+func _set_category(category: String) -> void:
+	if not CATEGORY_ORDER.has(category):
+		return
+	_active_category = category
+	_update_category_button_states()
+	_rebuild_visible_buttons()
+
+
+func _update_category_button_states() -> void:
+	for category_variant in _category_buttons.keys():
+		var category := str(category_variant)
+		var button := _category_buttons[category] as Button
+		if button != null:
+			button.set_pressed_no_signal(category == _active_category)
+
+
+func _refresh_category_counts() -> void:
+	var counts: Dictionary = {}
+	for category in CATEGORY_ORDER:
+		counts[category] = 0
+	for entry_variant in _entries_by_id.values():
+		if entry_variant is Dictionary:
+			var category := _get_entry_category(entry_variant)
+			counts[category] = int(counts.get(category, 0)) + 1
+			counts["All"] = int(counts.get("All", 0)) + 1
+	for category_variant in _category_buttons.keys():
+		var category := str(category_variant)
+		var button := _category_buttons[category] as Button
+		if button != null:
+			button.text = "%s (%d)" % [category, int(counts.get(category, 0))]
 
 
 func _get_building_entries() -> Array:
@@ -263,6 +404,24 @@ func _get_building_entries() -> Array:
 		if recipe_variant is Dictionary:
 			entries.append((recipe_variant as Dictionary).duplicate(true))
 	return entries
+
+
+func _get_entry_category(entry: Dictionary) -> String:
+	var explicit := str(entry.get("build_category", "")).strip_edges()
+	if CATEGORY_ORDER.has(explicit) and explicit != "All":
+		return explicit
+
+	var building_id := str(entry.get("id", ""))
+	var building_type := str(entry.get("building_type", ""))
+	if building_id == "wall" or building_id == "door" or building_type == "wall" or building_type == "door":
+		return "Walls"
+	if building_id == "floor" or building_id.begins_with("stairs_") or building_type == "floor" or building_type == "stairs":
+		return "Floors"
+	if building_type == "workstation" or not str(entry.get("workstation_id", "")).is_empty():
+		return "Benches"
+	if building_id == "bed" or building_id == "chest" or building_type == "bed" or building_type == "storage":
+		return "Furniture"
+	return "Utility"
 
 
 func _compare_buildings(a: Variant, b: Variant) -> bool:
