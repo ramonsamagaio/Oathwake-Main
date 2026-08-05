@@ -266,5 +266,63 @@
 			"fade_power": 1.5,
 			"z_index": -1
 		}
+	},
+	"floor": {
+		"build_key": "7",
+		"building_type": "floor",
+		"collision": {
+			"enabled": false
+		},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Floor Tile",
+		"placement_cost": {
+			"wood": 2
+		},
+		"scene_path": "res://scenes/buildings/Building.tscn",
+		"sprite_id": "",
+		"tags": [
+			"structure",
+			"floor_support"
+		],
+		"workstation_id": ""
+	},
+	"stairs_up": {
+		"build_key": "8",
+		"building_type": "stairs",
+		"collision": {
+			"enabled": false
+		},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Stairs Up",
+		"placement_cost": {
+			"stone": 2,
+			"wood": 4
+		},
+		"scene_path": "res://scenes/buildings/Building.tscn",
+		"sprite_id": "",
+		"tags": [
+			"structure",
+			"floor_transition",
+			"stairs_up"
+		],
+		"workstation_id": ""
+	},
+	"stairs_down": {
+		"building_type": "stairs",
+		"collision": {
+			"enabled": false
+		},
+		"destroy_vfx_profile": "building_destroy_puff",
+		"display_name": "Stairs Down",
+		"placement_cost": {},
+		"scene_path": "res://scenes/buildings/Building.tscn",
+		"sprite_id": "",
+		"tags": [
+			"structure",
+			"floor_transition",
+			"stairs_down",
+			"generated"
+		],
+		"workstation_id": ""
 	}
 }
