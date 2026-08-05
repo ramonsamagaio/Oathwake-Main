@@ -25,6 +25,15 @@ func _apply_player_light_tuning() -> void:
 	light.set_meta("player_light_vertical_projection", vertical_projection)
 
 
+func get_current_tool() -> String:
+	var item_id := _get_current_held_item_id()
+	if item_id.is_empty():
+		return super.get_current_tool()
+	var item_data := _get_item_data(item_id)
+	var slot_data := _get_hotbar_slot_data(current_hotbar_slot_index)
+	return RefinementCalculatorScript.get_refined_display_name(item_data, slot_data)
+
+
 func _get_current_held_item_data() -> Dictionary:
 	var item_data := super._get_current_held_item_data()
 	if item_data.is_empty():
