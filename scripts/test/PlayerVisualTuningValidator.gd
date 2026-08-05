@@ -57,7 +57,7 @@ func _validate_tuning_values(tuning: Dictionary) -> void:
 		failures.append("Player tuning light record is missing.")
 		return
 	var light := light_value as Dictionary
-	for key in ["enabled", "visual_aura_enabled", "color", "aura_intensity", "aura_alpha", "aura_scale", "blur", "emission", "radius_scale", "perspective_angle_degrees", "day_multiplier", "night_multiplier", "offset"]:
+	for key in ["enabled", "visual_aura_enabled", "color", "aura_intensity", "aura_alpha", "aura_scale", "blur", "emission", "radius_scale", "perspective_angle_degrees", "ground_ellipse_scale", "ground_ellipse_offset", "day_multiplier", "night_multiplier", "offset"]:
 		if not light.has(key):
 			failures.append("Player light tuning is missing %s." % key)
 	var perspective_angle := float(light.get("perspective_angle_degrees", 0.0))
@@ -108,8 +108,20 @@ func _validate_player_scene(tuning: Dictionary) -> void:
 			failures.append("Player light blur does not match Player Tuning.")
 		var perspective_angle := clampf(float(light_config.get("perspective_angle_degrees", 50.0)), 15.0, 90.0)
 		var expected_vertical_projection := clampf(sin(deg_to_rad(perspective_angle)), 0.20, 1.0)
-		if absf(night_light.scale.y - expected_vertical_projection) > 0.001 or not is_equal_approx(night_light.scale.x, 1.0):
-			failures.append("Player light is not projected to the configured camera angle: %s." % night_light.scale)
+		var ellipse_scale_value: Variant = light_config.get("ground_ellipse_scale", {})
+		var ellipse_scale := Vector2.ONE
+		if ellipse_scale_value is Dictionary:
+			var ellipse_scale_record := ellipse_scale_value as Dictionary
+			ellipse_scale = Vector2(
+				maxf(float(ellipse_scale_record.get("x", 1.0)), 0.05),
+				maxf(float(ellipse_scale_record.get("y", 1.0)), 0.05)
+			)
+		var expected_light_scale := Vector2(
+			ellipse_scale.x,
+			ellipse_scale.y * expected_vertical_projection
+		)
+		if not night_light.scale.is_equal_approx(expected_light_scale):
+			failures.append("Player light is not projected to the configured ground ellipse: %s; expected %s." % [night_light.scale, expected_light_scale])
 		if perspective_angle < 89.0 and night_light.scale.y >= night_light.scale.x:
 			failures.append("Non-zenith player light remains circular instead of elliptical.")
 	if not (player as Node2D).scale.is_equal_approx(Vector2.ONE):

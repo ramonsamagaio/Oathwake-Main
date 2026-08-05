@@ -45,8 +45,10 @@ func _validate_content_contract() -> void:
 		if not (world_visuals as Dictionary).get(key, {}) is Dictionary:
 			failures.append("world_visuals is missing %s configuration." % key)
 	var occlusion := (world_visuals as Dictionary).get("occlusion", {}) as Dictionary
-	if not occlusion.has("default_alpha"):
-		failures.append("World occlusion has no unified hidden alpha.")
+	var has_unified_alpha := occlusion.has("default_alpha")
+	var has_per_kind_alpha := occlusion.has("tree_alpha") and occlusion.has("roof_alpha")
+	if not has_unified_alpha and not has_per_kind_alpha:
+		failures.append("World occlusion has neither unified nor per-kind hidden alpha values.")
 	var wind := (world_visuals as Dictionary).get("wind", {}) as Dictionary
 	if float(wind.get("strength", 0.0)) <= 0.0:
 		failures.append("Shared world wind has no strength.")

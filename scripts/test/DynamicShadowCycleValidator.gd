@@ -29,9 +29,15 @@ func _run() -> void:
 
 func _validate_footprint_extrusion_and_animation_stability() -> void:
 	var target := Node2D.new()
-	target.name = "PlayerFootprintTest"
+	target.name = "PlayerActiveFrameTest"
 	target.add_to_group("player")
 	root.add_child(target)
+
+	var cycle := DayNightCycleScript.new()
+	root.add_child(cycle)
+	cycle.set_process(false)
+	cycle.call("set_time_of_day", 0.0)
+	await process_frame
 
 	var animated := AnimatedSprite2D.new()
 	animated.name = "AnimatedSprite2D"
@@ -54,6 +60,8 @@ func _validate_footprint_extrusion_and_animation_stability() -> void:
 	animated.frame = 0
 	target.add_child(animated)
 
+	# A gameplay collider is present deliberately. Solar shadows must ignore it
+	# and project only the alpha silhouette of the currently displayed frame.
 	var collision := CollisionShape2D.new()
 	collision.name = "CollisionShape2D"
 	var circle := CircleShape2D.new()
@@ -63,63 +71,70 @@ func _validate_footprint_extrusion_and_animation_stability() -> void:
 
 	var shadow := SolarShadowScript.new() as Polygon2D
 	target.add_child(shadow)
-	var contact := Vector2(0.0, 24.0)
+	var contact_hint := Vector2(0.0, 24.0)
 	var config := {
 		"enabled": true,
 		"direction_degrees": -135.0,
 		"stretch": 1.25,
 		"mask_weight": 1.0,
 	}
-	shadow.call("configure", target, animated, config, contact)
+	shadow.call("configure", target, animated, config, contact_hint)
 	await process_frame
 
-	if shadow.polygon.size() < 6:
-		failures.append("Footprint extrusion did not create a rounded multi-vertex shadow hull.")
-	if str(shadow.get_meta("shadow_projection_mode", "")) != "footprint_extrusion":
-		failures.append("Solar shadow did not switch to footprint extrusion.")
-	if not str(shadow.get_meta("shadow_footprint_source_kind", "")).begins_with("collision_shape"):
-		failures.append("Solar shadow ignored the caster CollisionShape2D footprint.")
+	if shadow.polygon.size() != 4:
+		failures.append("Active-frame solar projection did not create its four-point silhouette warp.")
+	if str(shadow.get_meta("shadow_projection_mode", "")) != "ground_contact_silhouette":
+		failures.append("Solar shadow did not use ground-contact active-frame projection.")
+	if bool(shadow.get_meta("shadow_profile_uses_collision_footprint", true)):
+		failures.append("Solar shadow incorrectly used the gameplay CollisionShape2D footprint.")
+	if not bool(shadow.get_meta("shadow_profile_uses_active_frame_alpha", false)):
+		failures.append("Solar shadow ignored the active animation frame alpha silhouette.")
+	if not bool(shadow.get_meta("shadow_source_frame_isolated", false)):
+		failures.append("Solar shadow sampled more than the current animation frame.")
 	if str(shadow.get_meta("shadow_profile_id", "")) != "humanoid":
 		failures.append("Player caster was not classified with the humanoid profile.")
-	if _polygon_area(shadow.polygon) <= 100.0:
-		failures.append("Footprint extrusion collapsed into a line or tiny polygon.")
+	if _polygon_area(shadow.polygon) <= 50.0:
+		failures.append("Active-frame solar projection collapsed into a line or tiny polygon.")
 
-	var first_footprint: PackedVector2Array = shadow.get_meta("shadow_footprint_points", PackedVector2Array())
-	var first_support: Vector2 = shadow.get_meta("shadow_footprint_support", Vector2(INF, INF))
-	if first_support.distance_to(contact) > 0.01:
-		failures.append("Collision footprint was not aligned to the sprite base contact.")
+	var first_polygon := shadow.polygon.duplicate()
+	var first_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
 	var first_proxy := _shadow_proxy(shadow)
-	var first_mask := first_proxy.texture if first_proxy != null else null
-	var first_area := _polygon_area(shadow.polygon)
+	var first_texture := first_proxy.texture if first_proxy != null else null
+	if first_proxy == null or first_texture != frames.get_frame_texture("walk", 0):
+		failures.append("Frame 0 was not isolated in the shared shadow compositor.")
+	if not first_contact.is_finite():
+		failures.append("Frame 0 did not publish a valid ground-contact point.")
 
 	animated.frame = 1
 	shadow.call("_refresh_silhouette")
 	await process_frame
-	var second_footprint: PackedVector2Array = shadow.get_meta("shadow_footprint_points", PackedVector2Array())
-	if not _polygons_match(first_footprint, second_footprint, 0.01):
-		failures.append("Changing animation frames changed the ground footprint.")
+	var second_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
 	var second_proxy := _shadow_proxy(shadow)
-	if first_mask == null or second_proxy == null or second_proxy.texture != first_mask:
-		failures.append("Animation frame change replaced the solid footprint mask.")
-	if shadow.texture != frames.get_frame_texture("walk", 1):
-		failures.append("Canonical diagnostics did not advance to the current animation frame.")
+	if _polygons_match(first_polygon, shadow.polygon, 0.01):
+		failures.append("Changing animation frames did not update the projected silhouette.")
+	if first_contact.distance_to(second_contact) <= 0.01:
+		failures.append("Changing animation frames did not update the alpha-derived contact point.")
+	if first_texture == null or second_proxy == null or second_proxy.texture != frames.get_frame_texture("walk", 1):
+		failures.append("Animation frame change did not replace the compositor with frame 1.")
+	if int(shadow.get_meta("shadow_source_frame", -1)) != 1:
+		failures.append("Canonical diagnostics did not advance to animation frame 1.")
 
-	config["direction_degrees"] = -45.0
-	shadow.call("configure", target, animated, config, contact)
+	var frame_one_polygon := shadow.polygon.duplicate()
+	var frame_one_contact := second_contact
+	cycle.call("set_time_of_day", 0.58)
+	shadow.call("configure", target, animated, config, contact_hint)
 	await process_frame
-	var rotated_footprint: PackedVector2Array = shadow.get_meta("shadow_footprint_points", PackedVector2Array())
-	var rotated_support: Vector2 = shadow.get_meta("shadow_footprint_support", Vector2(INF, INF))
-	if not _polygons_match(first_footprint, rotated_footprint, 0.01):
-		failures.append("Sun rotation changed the caster footprint instead of only moving its extrusion.")
-	if rotated_support.distance_to(contact) > 0.01:
-		failures.append("Sun rotation detached the footprint from the sprite base.")
-	if absf(first_area - _polygon_area(shadow.polygon)) > 1.0:
-		failures.append("Footprint shadow area changed unexpectedly while rotating the sun.")
+	var rotated_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
+	if rotated_contact.distance_to(frame_one_contact) > 0.01:
+		failures.append("Rotating the sun detached the shadow from the active-frame ground contact.")
+	if _polygons_match(frame_one_polygon, shadow.polygon, 0.01):
+		failures.append("Rotating the sun did not rotate the active-frame projection.")
 	var direction: Vector2 = shadow.get_meta("shadow_projection_direction", Vector2.ZERO)
 	if direction.x <= 0.0 or direction.y >= 0.0:
-		failures.append("Evening footprint extrusion did not point upper-right.")
+		failures.append("Evening active-frame projection did not point upper-right.")
 
 	target.queue_free()
+	cycle.queue_free()
 	await process_frame
 
 
@@ -131,6 +146,12 @@ func _validate_pinned_contact_transform() -> void:
 	target.scale = Vector2(1.08, 0.94)
 	target.add_to_group("player")
 	root.add_child(target)
+
+	var cycle := DayNightCycleScript.new()
+	root.add_child(cycle)
+	cycle.set_process(false)
+	cycle.call("set_time_of_day", 0.0)
+	await process_frame
 
 	var visual_rig := Node2D.new()
 	visual_rig.position = Vector2(7.0, -9.0)
@@ -175,21 +196,23 @@ func _validate_pinned_contact_transform() -> void:
 	if shadow == null:
 		failures.append("Pinned-contact transform test did not create a shadow.")
 	else:
-		var initial_support: Vector2 = shadow.get_meta("shadow_footprint_support", Vector2(INF, INF))
-		if initial_support.distance_to(expected_contact) > 0.01:
-			failures.append("Nested collision footprint was not aligned to the transformed sprite base.")
-		var initial_footprint: PackedVector2Array = shadow.get_meta("shadow_footprint_points", PackedVector2Array())
-		config["direction_degrees"] = -45.0
+		var initial_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
+		if initial_contact.distance_to(expected_contact) > 0.01:
+			failures.append("Nested active-frame shadow was not aligned to the transformed sprite base.")
+		if bool(shadow.get_meta("shadow_profile_uses_collision_footprint", true)):
+			failures.append("Nested active-frame shadow incorrectly used the collision footprint.")
+		var initial_polygon := shadow.polygon.duplicate()
+		cycle.call("set_time_of_day", 0.58)
 		shadow.call("configure", target, sprite, config, resolved_contact)
 		await process_frame
-		var rotated_support: Vector2 = shadow.get_meta("shadow_footprint_support", Vector2(INF, INF))
-		var rotated_footprint: PackedVector2Array = shadow.get_meta("shadow_footprint_points", PackedVector2Array())
-		if rotated_support.distance_to(expected_contact) > 0.01:
-			failures.append("Rotating the sun moved the nested footprint support.")
-		if not _polygons_match(initial_footprint, rotated_footprint, 0.01):
-			failures.append("Rotating the sun modified the authored ground footprint.")
+		var rotated_contact: Vector2 = shadow.get_meta("shadow_projection_contact", Vector2(INF, INF))
+		if rotated_contact.distance_to(expected_contact) > 0.01:
+			failures.append("Rotating the sun moved the nested active-frame contact.")
+		if _polygons_match(initial_polygon, shadow.polygon, 0.01):
+			failures.append("Rotating the sun did not rotate the nested active-frame projection.")
 
 	target.queue_free()
+	cycle.queue_free()
 	await process_frame
 
 

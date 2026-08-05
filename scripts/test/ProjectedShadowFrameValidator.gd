@@ -159,27 +159,29 @@ func _validate_animated_atlas_profile_stability() -> void:
 		target.queue_free()
 		await process_frame
 		return
-	if shadow.texture != first_atlas:
-		failures.append("Atlas frame 0 was not preserved for canonical diagnostics.")
-	if shadow.get_meta("shadow_opaque_rect", Rect2i()) != Rect2i(Vector2i.ZERO, Vector2i(32, 32)):
-		failures.append("Profile shadow unexpectedly scanned atlas pixels instead of using safe frame dimensions.")
-	if not bool(shadow.get_meta("shadow_profile_ignores_frame_silhouette", false)):
-		failures.append("Animated atlas solar shadow still depends on frame alpha bounds.")
+	if int(shadow.get_meta("shadow_source_frame", -1)) != 0:
+		failures.append("Animated atlas shadow did not bind frame 0.")
+	if not bool(shadow.get_meta("shadow_profile_uses_active_frame_alpha", false)):
+		failures.append("Animated atlas shadow does not use active-frame alpha.")
+	if not bool(shadow.get_meta("shadow_source_frame_isolated", false)):
+		failures.append("Animated atlas shadow did not isolate frame 0.")
 	var first_polygon := shadow.polygon.duplicate()
 	var first_proxy := _shadow_proxy(shadow)
-	var first_mask := first_proxy.texture if first_proxy != null else null
-	_validate_profile_proxy_uv(first_proxy)
+	var first_uv := first_proxy.uv.duplicate() if first_proxy != null else PackedVector2Array()
+	_validate_active_frame_proxy_uv(first_proxy, first_atlas)
 
 	sprite.frame = 1
 	await process_frame
-	if shadow.texture != second_atlas:
-		failures.append("Atlas frame 1 was not selected after the animation advanced.")
-	if not _polygons_match(first_polygon, shadow.polygon, 0.01):
-		failures.append("Animated atlas frame changed universal solar shadow geometry.")
+	if int(shadow.get_meta("shadow_source_frame", -1)) != 1:
+		failures.append("Animated atlas shadow did not advance to frame 1.")
+	if _polygons_match(first_polygon, shadow.polygon, 0.01):
+		failures.append("Animated atlas frame did not update the projected active-frame silhouette.")
 	var second_proxy := _shadow_proxy(shadow)
-	if first_mask == null or second_proxy == null or second_proxy.texture != first_mask:
-		failures.append("Animated atlas frame replaced the universal profile mask.")
-	_validate_profile_proxy_uv(second_proxy)
+	if second_proxy == null:
+		failures.append("Animated atlas frame 1 lost its compositor proxy.")
+	elif _uvs_match(first_uv, second_proxy.uv, 0.01):
+		failures.append("Animated atlas frame switch did not update the constrained UV region.")
+	_validate_active_frame_proxy_uv(second_proxy, second_atlas)
 	target.queue_free()
 	await process_frame
 
@@ -322,26 +324,41 @@ func _validate_shared_compositor_and_wind() -> void:
 	await process_frame
 
 
-func _validate_profile_proxy_uv(proxy: Polygon2D) -> void:
+func _validate_active_frame_proxy_uv(proxy: Polygon2D, frame_texture: Texture2D) -> void:
 	if proxy == null or proxy.texture == null:
-		failures.append("Universal profile shadow has no render proxy texture.")
+		failures.append("Active-frame profile shadow has no render proxy texture.")
 		return
-	var mask_size := proxy.texture.get_size()
-	var expected := PackedVector2Array([
-		Vector2(0.0, 0.0),
-		Vector2(mask_size.x, 0.0),
-		Vector2(mask_size.x, mask_size.y),
-		Vector2(0.0, mask_size.y),
-	])
-	if proxy.uv.size() != expected.size():
-		failures.append("Universal profile proxy has invalid UV geometry.")
+	if proxy.uv.size() != 4:
+		failures.append("Active-frame profile proxy has invalid UV geometry.")
 		return
-	for index in range(expected.size()):
-		if proxy.uv[index].distance_to(expected[index]) > 0.01:
-			failures.append("Universal profile proxy is not sampling the complete mask texture in pixel space.")
-			return
+	var allowed_region := Rect2(Vector2.ZERO, proxy.texture.get_size())
+	if frame_texture is AtlasTexture:
+		allowed_region = (frame_texture as AtlasTexture).region
+	var minimum_uv := proxy.uv[0]
+	var maximum_uv := proxy.uv[0]
+	for point in proxy.uv:
+		minimum_uv.x = minf(minimum_uv.x, point.x)
+		minimum_uv.y = minf(minimum_uv.y, point.y)
+		maximum_uv.x = maxf(maximum_uv.x, point.x)
+		maximum_uv.y = maxf(maximum_uv.y, point.y)
+	if minimum_uv.x < allowed_region.position.x - 0.01 \
+		or minimum_uv.y < allowed_region.position.y - 0.01 \
+		or maximum_uv.x > allowed_region.end.x + 0.01 \
+		or maximum_uv.y > allowed_region.end.y + 0.01:
+		failures.append("Active-frame profile proxy samples outside its atlas region.")
+	if maximum_uv.x - minimum_uv.x <= 0.01 or maximum_uv.y - minimum_uv.y <= 0.01:
+		failures.append("Active-frame profile proxy has an empty sampled region.")
 	if not proxy.visible:
-		failures.append("Universal profile proxy is hidden during daytime validation.")
+		failures.append("Active-frame profile proxy is hidden during daytime validation.")
+
+
+func _uvs_match(a: PackedVector2Array, b: PackedVector2Array, tolerance: float) -> bool:
+	if a.size() != b.size():
+		return false
+	for index in range(a.size()):
+		if a[index].distance_to(b[index]) > tolerance:
+			return false
+	return true
 
 
 func _polygons_match(a: PackedVector2Array, b: PackedVector2Array, tolerance: float) -> bool:
