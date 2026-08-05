@@ -24,11 +24,11 @@ func _exit_tree() -> void:
 	FloorManager.unregister_floor_layer(building_id, floor_index, self)
 
 
-func apply_floor_state(active_floor: int) -> void:
-	var should_be_visible := floor_index == active_floor or (show_lower_floors and floor_index < active_floor)
+func apply_floor_state(active_floor: int, is_built: bool) -> void:
+	var should_be_visible := is_built and (floor_index == active_floor or (show_lower_floors and floor_index < active_floor))
 	visible = should_be_visible
 
-	var is_active := floor_index == active_floor
+	var is_active := is_built and floor_index == active_floor
 	for collision_object: CollisionObject2D in _collision_nodes:
 		if is_instance_valid(collision_object):
 			collision_object.set_deferred("collision_layer", collision_object.get_meta("floor_original_collision_layer", collision_object.collision_layer) if is_active else 0)
