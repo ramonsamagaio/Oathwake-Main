@@ -42,6 +42,10 @@ func _polish_branch(node: Node) -> void:
 
 
 func _polish_control(control: Control) -> void:
+	# The HUD has its own authored textures and transparent hit targets. Applying the
+	# generic menu skin here would paint over HOTBAR.png and the slot artwork.
+	if _must_preserve_authored_hud(control):
+		return
 	if control.has_meta("ui_interaction_polished"):
 		return
 	control.set_meta("ui_interaction_polished", true)
@@ -65,23 +69,33 @@ func _polish_control(control: Control) -> void:
 		control.mouse_filter = Control.MOUSE_FILTER_STOP
 
 
+func _must_preserve_authored_hud(control: Control) -> bool:
+	var current: Node = control
+	while current != null:
+		if current.is_in_group("hotbar_ui"):
+			return true
+		var lowered_name := current.name.to_lower()
+		if lowered_name == "hotbarui" or lowered_name == "hotbarpanel" or lowered_name == "hotbarbackground":
+			return true
+		current = current.get_parent()
+	return false
+
+
 func _polish_button(button: BaseButton) -> void:
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	button.focus_mode = Control.FOCUS_ALL
-
-	var visible_text := ""
+	var button_text := ""
 	if button is Button:
-		visible_text = (button as Button).text.strip_edges()
-	var is_close_button: bool = button.name.to_lower().contains("close") or visible_text == "X"
+		button_text = (button as Button).text.strip_edges()
+	var is_close_button: bool = button.name.to_lower().contains("close") or button_text == "X"
 	var minimum_width: float = CLOSE_BUTTON_SIZE if is_close_button else MIN_BUTTON_WIDTH
 	button.custom_minimum_size = Vector2(
 		maxf(button.custom_minimum_size.x, minimum_width),
 		maxf(button.custom_minimum_size.y, MIN_BUTTON_HEIGHT)
 	)
 
-	# TextureButton uses textures for its visual states. Keep its larger hit area,
-	# pointer cursor and keyboard focus without trying to style it as a text button.
+	# TextureButton has authored textures rather than text-button theme boxes.
 	if button is TextureButton:
 		return
 
