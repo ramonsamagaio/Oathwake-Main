@@ -1,4 +1,4 @@
-extends "res://scripts/player/PlayerLifeAnimationSuite.gd"
+extends "res://scripts/player/PlayerCombatGuardPetSuite.gd"
 
 const RefinementCalculatorScript := preload("res://scripts/systems/RefinementCalculator.gd")
 const MIN_LIGHT_PERSPECTIVE_ANGLE := 15.0
