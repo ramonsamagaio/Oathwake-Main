@@ -53,7 +53,7 @@
 			},
 			"perspective_angle_degrees": 50.0,
 			"radius_scale": 4.2,
-			"visual_aura_enabled": false
+			"visual_aura_enabled": true
 		},
 		"max_stamina": 100.0,
 		"parry_stun_seconds": 1.0,
@@ -71,6 +71,7 @@
 		},
 		"smoke_puff_cooldown": 0.28,
 		"smoke_puff_enabled": true,
+		"stamina_regeneration_delay_seconds": 0.65,
 		"stamina_regeneration_per_second": 30.0,
 		"visual_offset_x": 0.0,
 		"visual_offset_y": -8.0,
