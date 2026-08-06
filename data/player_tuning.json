@@ -14,6 +14,7 @@
 		"dash_cooldown": 0.34,
 		"dash_duration": 0.14,
 		"dash_smoke_end_count": 0.0,
+		"dash_smoke_facing": "right",
 		"dash_smoke_interval": 1.14,
 		"dash_smoke_scale": 0.55,
 		"dash_smoke_start_count": 0.0,
