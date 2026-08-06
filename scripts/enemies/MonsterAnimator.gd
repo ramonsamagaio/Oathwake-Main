@@ -11,19 +11,36 @@ var _current_animation_name := ""
 var _current_flip_h := false
 var _current_flip_v := false
 var _uses_scene_sprite := false
+var _horizontal_flip_with_facing := false
+var _front_facing := "left"
 
 
 func configure(owner: Node2D, monster_data: Dictionary, animations_data: Dictionary, direction_mode: String, fallback_nodes: Array) -> void:
 	_owner = owner
 	_direction_mode = direction_mode if not direction_mode.is_empty() else "single"
 	_fallback_nodes = fallback_nodes.duplicate()
+	_current_animation_name = ""
+	_current_flip_h = false
+	_current_flip_v = false
+	var is_butterfly := str(monster_data.get("content_group", "")) == "butterflies"
+	_horizontal_flip_with_facing = bool(monster_data.get("horizontal_flip_with_facing", is_butterfly))
+	_front_facing = _normalize_horizontal_facing(str(monster_data.get("front_facing", "left" if is_butterfly else "right")))
 	_ensure_sprite()
-	if _sprite != null and _sprite.sprite_frames != null and not _sprite.sprite_frames.get_animation_names().is_empty():
+
+	# Explicit data animations always win over whatever SpriteFrames happen to be
+	# left on the scene node. Live reloads previously adopted stale frames, which
+	# could make butterflies inherit the old player/slime animation set.
+	if not animations_data.is_empty():
+		_build_sprite_frames(animations_data)
+		_uses_scene_sprite = false
+	elif _sprite != null and _sprite.sprite_frames != null and not _sprite.sprite_frames.get_animation_names().is_empty():
 		_sprite_frames = _sprite.sprite_frames
 		_uses_scene_sprite = true
 	else:
-		_build_sprite_frames(animations_data)
+		_sprite_frames = SpriteFrames.new()
+		_sprite.sprite_frames = _sprite_frames
 		_uses_scene_sprite = false
+
 	_apply_visual_config(monster_data)
 	_set_fallback_visible(_sprite_frames == null or _sprite_frames.get_animation_names().is_empty())
 
@@ -42,7 +59,7 @@ func play_state(state: String, facing_direction: String) -> void:
 	var resolved := _resolve_animation_name(state, facing_direction)
 	if str(resolved.get("name", "")).is_empty():
 		if _sprite_frames.has_animation("idle"):
-			resolved = {"name": "idle", "flip_h": false, "flip_v": false}
+			resolved = {"name": "idle", "flip_h": _single_direction_flip(facing_direction), "flip_v": false}
 		else:
 			_sprite.visible = true
 			_set_fallback_visible(false)
@@ -87,6 +104,8 @@ func _ensure_sprite() -> void:
 
 func _build_sprite_frames(animations_data: Dictionary) -> void:
 	_sprite_frames = SpriteFrames.new()
+	if _sprite_frames.has_animation("default"):
+		_sprite_frames.remove_animation("default")
 	if animations_data.is_empty():
 		_sprite.sprite_frames = _sprite_frames
 		return
@@ -156,7 +175,7 @@ func _resolve_animation_name(state: String, facing_direction: String) -> Diction
 	if _sprite_frames == null:
 		return {}
 	var candidates: Array = []
-	candidates.append({"name": state, "flip_h": false, "flip_v": false})
+	candidates.append({"name": state, "flip_h": _single_direction_flip(facing_direction), "flip_v": false})
 
 	if _direction_mode == "4dir" and not facing_direction.is_empty() and facing_direction != "single":
 		candidates.append({"name": "%s_%s" % [state, facing_direction], "flip_h": false, "flip_v": false})
@@ -176,10 +195,24 @@ func _resolve_animation_name(state: String, facing_direction: String) -> Diction
 	return {}
 
 
+func _single_direction_flip(facing_direction: String) -> bool:
+	if _direction_mode != "single" or not _horizontal_flip_with_facing:
+		return false
+	var horizontal_facing := facing_direction
+	if horizontal_facing != "left" and horizontal_facing != "right":
+		return _current_flip_h
+	return horizontal_facing != _front_facing
+
+
+func _normalize_horizontal_facing(value: String) -> String:
+	return "right" if value.strip_edges().to_lower() == "right" else "left"
+
+
 func _set_fallback_visible(visible_state: bool) -> void:
 	for node in _fallback_nodes:
 		if node is CanvasItem and is_instance_valid(node):
 			(node as CanvasItem).visible = visible_state
+
 
 func _apply_visual_config(monster_data: Dictionary) -> void:
 	if _sprite == null:
@@ -191,8 +224,10 @@ func _apply_visual_config(monster_data: Dictionary) -> void:
 		_visual_offset = Vector2(float(offset_value.get("x", 0.0)), float(offset_value.get("y", 0.0)))
 	_sprite.position = _visual_offset + _motion_visual_offset
 
+
 func has_animation(animation_name: String) -> bool:
 	return _sprite_frames != null and _sprite_frames.has_animation(animation_name)
+
 
 func get_animation_duration(animation_name: String) -> float:
 	if not has_animation(animation_name):
