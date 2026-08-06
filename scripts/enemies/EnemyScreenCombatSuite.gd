@@ -35,6 +35,9 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
+	if _attack_in_progress and not is_visible_for_activation():
+		_cancel_active_attack()
+
 	# Attack timing is asynchronous. Holding the body still here prevents the AI
 	# locomotion pass from sliding a monster through its windup and recovery.
 	if _attack_in_progress:
@@ -49,14 +52,21 @@ func _physics_process(delta: float) -> void:
 
 
 func _update_movement(delta: float) -> Dictionary:
-	if is_stunned() or _attack_in_progress or not is_visible_for_activation():
-		return {
-			"velocity": Vector2.ZERO,
-			"state": "idle",
-			"facing_direction": facing_direction,
-			"visual_offset": Vector2.ZERO,
-		}
+	if not is_visible_for_activation():
+		_cancel_active_attack()
+		return _idle_motion_result()
+	if is_stunned() or _attack_in_progress:
+		return _idle_motion_result()
 	return super._update_movement(delta)
+
+
+func _idle_motion_result() -> Dictionary:
+	return {
+		"velocity": Vector2.ZERO,
+		"state": "idle",
+		"facing_direction": facing_direction,
+		"visual_offset": Vector2.ZERO,
+	}
 
 
 func is_visible_for_activation() -> bool:
@@ -79,17 +89,21 @@ func apply_stun(duration := -1.0, _source: Node = null) -> void:
 		return
 	var resolved_duration := DEFAULT_STUN_DURATION if float(duration) <= 0.0 else float(duration)
 	_stun_time_left = maxf(_stun_time_left, resolved_duration)
-	_attack_sequence += 1
-	var interrupted_attack := _attack_in_progress
-	_attack_in_progress = false
+	_cancel_active_attack()
 	velocity = Vector2.ZERO
 	damage_timer = maxf(damage_timer, resolved_duration)
 	_play_forced_animation("hurt")
 	set_meta("combat_stunned", true)
 	modulate = Color(0.76, 0.86, 1.0, 1.0)
 	FloatingCombatTextSpawner.show_text("STUN", global_position + Vector2(0, -34), Color(0.72, 0.88, 1.0, 1.0), false, "damage_number")
-	if interrupted_attack:
-		attack_finished.emit()
+
+
+func _cancel_active_attack() -> void:
+	if not _attack_in_progress:
+		return
+	_attack_sequence += 1
+	_attack_in_progress = false
+	attack_finished.emit()
 
 
 func is_stunned() -> bool:
@@ -105,7 +119,7 @@ func is_combat_movement_locked() -> bool:
 
 
 func _attack_player() -> void:
-	if _attack_in_progress or is_stunned():
+	if _attack_in_progress or is_stunned() or not is_visible_for_activation():
 		return
 
 	_attack_sequence += 1
@@ -141,7 +155,7 @@ func _attack_player() -> void:
 
 
 func _is_attack_sequence_valid(sequence: int) -> bool:
-	if not is_inside_tree() or is_dead or is_stunned():
+	if not is_inside_tree() or is_dead or is_stunned() or not is_visible_for_activation():
 		return false
 	if sequence != _attack_sequence or not _attack_in_progress:
 		return false
