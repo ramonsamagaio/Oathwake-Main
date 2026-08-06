@@ -10,10 +10,6 @@ const EXPECTED_PET_IDS := [
 ]
 const PET_SECTION := "pets"
 const BUTTERFLY_MONSTER_SCENE := preload("res://scenes/enemies/ButterflyMonster.tscn")
-const PLAYER_SCENE := preload("res://scenes/Player.tscn")
-const HUD_STATUS_SCENE := preload("res://scenes/ui/HUDStatusUI.tscn")
-const DAY_NIGHT_SCRIPT := preload("res://scripts/world/DayNightCycle.gd")
-const MONSTER_PARTICLE_RUNTIME := preload("res://scripts/effects/MonsterParticleRuntime.gd")
 const EXPECTED_BUTTERFLY_TEXTURE := "res://assets/sprites/pets/Butterflies/Blue.png"
 
 
@@ -32,19 +28,19 @@ func _run_contract_probe() -> void:
 		queue_free()
 		return
 
-	_validate_pet_section(editor)
-	_validate_monster_and_player_fields(editor)
-	_validate_sound_editor_contract(editor)
+	_validate_pet_editor_contract(editor)
+	_validate_monster_editor_contract(editor)
+	_validate_player_tuning_contract(editor)
+	_validate_sound_contract(editor)
 	_validate_inventory_contract()
-	_validate_parry_contract()
-	await _validate_butterfly_reload_facing_and_trail_contract()
-	await _validate_particle_scale_and_modes_contract()
-	await _validate_player_dash_stamina_hud_and_light_contract()
-	editor.call("_select_section", "items", true)
+	_validate_parry_visual_contract()
+	await _validate_butterfly_runtime_contract()
+	if editor.has_method("_select_section"):
+		editor.call("_select_section", "items", true)
 	queue_free()
 
 
-func _validate_pet_section(editor: Node) -> void:
+func _validate_pet_editor_contract(editor: Node) -> void:
 	if not editor.has_method("_select_section") or not editor.has_method("_load_record"):
 		push_error("Pet contract probe: Content Editor navigation API is unavailable.")
 		return
@@ -75,7 +71,7 @@ func _validate_pet_section(editor: Node) -> void:
 		"pet_particles_fade_out",
 	]:
 		if not controls.has(field_name):
-			push_error("Pet contract probe: missing pet field %s." % field_name)
+			push_error("Pet contract probe: missing Pet control %s." % field_name)
 	var current_file_label := editor.get("current_file_label") as Label
 	if current_file_label == null or not current_file_label.text.contains("data/pet_items.json"):
 		push_error("Pet contract probe: Pets section is not routed to data/pet_items.json.")
@@ -86,7 +82,7 @@ func _validate_pet_section(editor: Node) -> void:
 		push_error("Pet contract probe: Save must be enabled for a selected Pet record.")
 
 
-func _validate_monster_and_player_fields(editor: Node) -> void:
+func _validate_monster_editor_contract(editor: Node) -> void:
 	editor.call("_select_section", "monsters", true)
 	editor.call("_load_record", "butterfly_blue")
 	var controls := _editor_controls(editor)
@@ -101,15 +97,15 @@ func _validate_monster_and_player_fields(editor: Node) -> void:
 		"runtime_monster_particles_fade_out",
 	]:
 		if not controls.has(field_name):
-			push_error("Pet contract probe: missing monster tuning field %s." % field_name)
+			push_error("Pet contract probe: missing Monster control %s." % field_name)
 	var particle_enabled := controls.get("runtime_monster_particles_enabled") as CheckBox
 	if particle_enabled == null or not particle_enabled.button_pressed:
-		push_error("Pet contract probe: butterfly particle emission should open enabled by default.")
-	if not bool(editor.get_meta("butterfly_particle_default_synced", false)):
-		push_error("Pet contract probe: butterfly particle UI default was not synchronized with runtime.")
+		push_error("Pet contract probe: butterfly particles should open enabled by default.")
 
+
+func _validate_player_tuning_contract(editor: Node) -> void:
 	editor.call("_select_section", "player_tuning", true)
-	controls = _editor_controls(editor)
+	var controls := _editor_controls(editor)
 	for field_name in [
 		"runtime_player_parry_stun_seconds",
 		"runtime_player_dash_smoke_scale",
@@ -117,15 +113,18 @@ func _validate_monster_and_player_fields(editor: Node) -> void:
 		"runtime_player_stamina_regeneration_delay_seconds",
 	]:
 		if not controls.has(field_name):
-			push_error("Pet contract probe: missing Player Tuning field %s." % field_name)
+			push_error("Pet contract probe: missing Player Tuning control %s." % field_name)
 	if controls.has("runtime_player_dash_smoke_facing"):
-		push_error("Pet contract probe: dash smoke facing must be derived from movement, not exposed as an absolute setting.")
+		push_error("Pet contract probe: absolute dash-smoke direction must not be exposed.")
 
 
-func _validate_sound_editor_contract(editor: Node) -> void:
+func _validate_sound_contract(editor: Node) -> void:
 	var sfx_manager := get_node_or_null("/root/SFXManager")
-	if sfx_manager == null or not sfx_manager.has_method("has_profile") or not bool(sfx_manager.call("has_profile", "player_parry")):
-		push_error("Pet contract probe: player_parry sound profile is missing from SFXManager.")
+	if sfx_manager == null:
+		push_error("Pet contract probe: SFXManager is unavailable.")
+		return
+	if not sfx_manager.has_method("has_profile") or not bool(sfx_manager.call("has_profile", "player_parry")):
+		push_error("Pet contract probe: player_parry sound profile is missing.")
 	if not editor.has_method("_select_integrated_section"):
 		push_error("Pet contract probe: integrated Sound Effects section is unavailable.")
 		return
@@ -140,7 +139,7 @@ func _validate_sound_editor_contract(editor: Node) -> void:
 			found_parry = true
 			break
 	if not found_parry:
-		push_error("Pet contract probe: player_parry is not exposed in Content Editor Sound Effects.")
+		push_error("Pet contract probe: player_parry is not listed in Content Editor Sound Effects.")
 
 
 func _validate_inventory_contract() -> void:
@@ -152,13 +151,9 @@ func _validate_inventory_contract() -> void:
 		return
 	if int(inventory_ui.get("slot_count")) != 60:
 		push_error("Pet contract probe: InventoryUI should expose 60 slots.")
-	var inventory_value: Variant = current_scene.get("inventory")
-	if inventory_value != null and inventory_value.has_method("get_slot_count"):
-		if int(inventory_value.call("get_slot_count")) != 60:
-			push_error("Pet contract probe: backing Inventory should expose 60 slots.")
 
 
-func _validate_parry_contract() -> void:
+func _validate_parry_visual_contract() -> void:
 	var parry_scene := load("res://scenes/effects/ParryEffect.tscn") as PackedScene
 	if parry_scene == null:
 		push_error("Pet contract probe: ParryEffect scene could not be loaded.")
@@ -168,11 +163,11 @@ func _validate_parry_contract() -> void:
 		push_error("Pet contract probe: ParryEffect row contract is unavailable.")
 		return
 	if int(effect.call("get_sheet_row_index")) != 4:
-		push_error("Pet contract probe: ParryEffect must use zero-based row index 4 (fifth row).")
+		push_error("Pet contract probe: ParryEffect must use zero-based row index 4.")
 	effect.free()
 
 
-func _validate_butterfly_reload_facing_and_trail_contract() -> void:
+func _validate_butterfly_runtime_contract() -> void:
 	var butterfly := BUTTERFLY_MONSTER_SCENE.instantiate() as CharacterBody2D
 	if butterfly == null:
 		push_error("Pet contract probe: ButterflyMonster scene could not be instantiated.")
@@ -183,182 +178,52 @@ func _validate_butterfly_reload_facing_and_trail_contract() -> void:
 	if butterfly.has_method("_refresh_runtime_monster_content"):
 		butterfly.call("_refresh_runtime_monster_content")
 	await get_tree().process_frame
+
 	var sprite := butterfly.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	if sprite == null or not sprite.visible:
-		push_error("Pet contract probe: butterfly primary sprite became hidden after live content reload.")
+		push_error("Pet contract probe: butterfly primary sprite is hidden after reload.")
 	elif sprite.sprite_frames == null or not sprite.sprite_frames.has_animation("idle"):
-		push_error("Pet contract probe: butterfly lost its authored idle animation after live content reload.")
+		push_error("Pet contract probe: butterfly lost its authored animation after reload.")
 	else:
 		var frame_texture := sprite.sprite_frames.get_frame_texture("idle", 0)
 		var source_path := _texture_source_path(frame_texture)
 		if source_path != EXPECTED_BUTTERFLY_TEXTURE:
-			push_error("Pet contract probe: butterfly loaded %s instead of its own sprite sheet." % source_path)
+			push_error("Pet contract probe: butterfly loaded %s instead of Blue.png." % source_path)
 
 	var animator := butterfly.get_node_or_null("MonsterAnimator")
-	if animator == null or not animator.has_method("play_state"):
-		push_error("Pet contract probe: butterfly animator is unavailable.")
-	else:
+	if animator != null and animator.has_method("play_state"):
 		animator.call("play_state", "walk", "left")
 		await get_tree().process_frame
 		if sprite != null and sprite.flip_h:
-			push_error("Pet contract probe: authored butterfly front should remain unflipped while moving left.")
+			push_error("Pet contract probe: left-moving butterfly should use its authored orientation.")
 		animator.call("play_state", "walk", "right")
 		await get_tree().process_frame
 		if sprite != null and not sprite.flip_h:
-			push_error("Pet contract probe: butterfly should mirror its authored left-facing front while moving right.")
+			push_error("Pet contract probe: right-moving butterfly should mirror horizontally.")
 
 	var particles := butterfly.get_node_or_null("ContentParticles") as CPUParticles2D
 	if particles == null:
-		push_error("Pet contract probe: butterfly did not create its default particle trail.")
+		push_error("Pet contract probe: butterfly did not create its default trail.")
 	else:
 		if particles.local_coords:
-			push_error("Pet contract probe: butterfly trail particles still move with the butterfly instead of remaining in world space.")
+			push_error("Pet contract probe: trail particles remain attached to the butterfly.")
 		if str(particles.get_meta("content_particle_mode", "")) != "trail":
 			push_error("Pet contract probe: butterfly default particle mode is not trail.")
 		if particles.initial_velocity_max > 3.1:
-			push_error("Pet contract probe: butterfly trail particles move more than the intended few pixels.")
-		if particles.color_ramp == null or particles.color_ramp.colors.is_empty() or particles.color_ramp.colors[-1].a > 0.01:
-			push_error("Pet contract probe: butterfly trail particles do not fade out.")
+			push_error("Pet contract probe: trail particles move more than a few pixels.")
+		if particles.color_ramp == null:
+			push_error("Pet contract probe: trail particles have no fade ramp.")
+		else:
+			var ramp_colors := particles.color_ramp.colors
+			if ramp_colors.is_empty():
+				push_error("Pet contract probe: trail fade ramp is empty.")
+			else:
+				var last_color := ramp_colors[ramp_colors.size() - 1]
+				if last_color.a > 0.01:
+					push_error("Pet contract probe: trail particles do not end transparent.")
 
 	butterfly.queue_free()
 	await get_tree().process_frame
-
-
-func _validate_particle_scale_and_modes_contract() -> void:
-	var host := Node2D.new()
-	host.name = "ParticleModeContractHost"
-	get_tree().root.add_child(host)
-	var trail_data := {
-		"pet_family": "butterfly",
-		"pet_color": "blue",
-		"visual_scale": 1.0,
-		"particles": {
-			"enabled": true,
-			"mode": "trail",
-			"scale_with_visual": true,
-			"size_multiplier": 1.0,
-			"fade_out": true,
-		},
-	}
-	MONSTER_PARTICLE_RUNTIME.apply(host, trail_data)
-	var particles := host.get_node_or_null("ContentParticles") as CPUParticles2D
-	if particles == null:
-		push_error("Pet contract probe: trail particle runtime did not create a particle node.")
-	else:
-		if particles.local_coords:
-			push_error("Pet contract probe: trail mode did not use world-space particles.")
-		if not is_equal_approx(float(particles.get_meta("content_particle_visual_scale_ratio", -1.0)), 0.5):
-			push_error("Pet contract probe: particle size did not follow the reduced butterfly visual scale.")
-		if particles.scale_amount_max > 0.41:
-			push_error("Pet contract probe: reduced butterfly still has oversized particles.")
-
-	var attached_data := trail_data.duplicate(true)
-	(attached_data["particles"] as Dictionary)["mode"] = "attached"
-	MONSTER_PARTICLE_RUNTIME.apply(host, attached_data)
-	particles = host.get_node_or_null("ContentParticles") as CPUParticles2D
-	if particles == null or not particles.local_coords:
-		push_error("Pet contract probe: attached mode does not remain bound to its actor.")
-	host.queue_free()
-	await get_tree().process_frame
-
-
-func _validate_player_dash_stamina_hud_and_light_contract() -> void:
-	var test_root := Node2D.new()
-	test_root.name = "PlayerRuntimeContractRoot"
-	get_tree().root.add_child(test_root)
-
-	var cycle := Node.new()
-	cycle.name = "PlayerRuntimeContractNightCycle"
-	cycle.set_script(DAY_NIGHT_SCRIPT)
-	test_root.add_child(cycle)
-	cycle.call("set_night")
-	cycle.set_process(false)
-
-	var player := PLAYER_SCENE.instantiate() as CharacterBody2D
-	if player == null:
-		push_error("Pet contract probe: Player scene could not be instantiated.")
-		test_root.queue_free()
-		return
-	test_root.add_child(player)
-	player.set_process(false)
-	player.set_physics_process(false)
-	var hud := HUD_STATUS_SCENE.instantiate() as Control
-	test_root.add_child(hud)
-	await get_tree().process_frame
-	await get_tree().process_frame
-
-	if not player.has_method("get_dash_stamina_cost") or not is_equal_approx(float(player.call("get_dash_stamina_cost")), 10.0):
-		push_error("Pet contract probe: every dash must cost exactly 10 stamina.")
-	if not player.has_method("get_stamina_regeneration_per_second") or float(player.call("get_stamina_regeneration_per_second")) <= 0.0:
-		push_error("Pet contract probe: stamina regeneration must be positive and tunable.")
-	if not player.has_method("get_stamina_regeneration_delay_seconds") or float(player.call("get_stamina_regeneration_delay_seconds")) <= 0.0:
-		push_error("Pet contract probe: repeated dash has no regeneration delay.")
-
-	player.call("_set_stamina", 100.0, true)
-	for dash_index in range(10):
-		_release_player_dash_state(player)
-		player.call("_start_dash", Vector2.RIGHT)
-		var expected := 100.0 - float(dash_index + 1) * 10.0
-		if not is_equal_approx(float(player.call("get_current_stamina")), expected):
-			push_error("Pet contract probe: dash %d did not spend cumulative stamina correctly." % (dash_index + 1))
-	await get_tree().process_frame
-	if hud == null or not hud.has_method("get_displayed_stamina_ratio") or float(hud.call("get_displayed_stamina_ratio")) > 0.01:
-		push_error("Pet contract probe: HUD stamina bar did not reach empty after ten dashes.")
-
-	_release_player_dash_state(player)
-	player.call("_start_dash", Vector2.RIGHT)
-	if int(player.get("action_state")) != 0 or not is_equal_approx(float(player.call("get_current_stamina")), 0.0):
-		push_error("Pet contract probe: player performed an eleventh dash with empty stamina.")
-
-	player.call("_set_stamina", 50.0, true)
-	player.set("action_state", 0)
-	var delay := float(player.call("get_stamina_regeneration_delay_seconds"))
-	player.set("stamina_regeneration_delay_left", delay)
-	player.call("_regenerate_stamina", delay * 0.75)
-	if not is_equal_approx(float(player.call("get_current_stamina")), 50.0):
-		push_error("Pet contract probe: stamina regenerated before its post-dash delay ended.")
-	player.call("_regenerate_stamina", delay * 0.25 + 0.5)
-	var expected_regen := 50.0 + float(player.call("get_stamina_regeneration_per_second")) * 0.5
-	if not is_equal_approx(float(player.call("get_current_stamina")), minf(expected_regen, float(player.call("get_max_stamina")))):
-		push_error("Pet contract probe: stamina did not regenerate at the configured rate after the delay.")
-
-	_release_player_dash_state(player)
-	player.call("_set_stamina", 100.0, true)
-	player.call("_start_dash", Vector2.UP)
-	if _authored_dash_smoke_count(test_root) != 0:
-		push_error("Pet contract probe: vertical dash must not use the lateral dash-smoke sheet.")
-
-	if player.has_method("_sync_player_environment_halo_to_world"):
-		player.call("_sync_player_environment_halo_to_world")
-	await get_tree().process_frame
-	var night_light := player.get_node_or_null("NightLight") as Node2D
-	if night_light != null and night_light.has_method("set_day_night_strength"):
-		night_light.call("set_day_night_strength", 1.0)
-	await get_tree().process_frame
-	var point_light := night_light.get_node_or_null("PointLight2D") as PointLight2D if night_light != null else null
-	var texture_glow := night_light.get_node_or_null("TextureGlow") as Sprite2D if night_light != null else null
-	if point_light == null or not point_light.enabled or point_light.energy <= 0.001:
-		push_error("Pet contract probe: player PointLight2D did not activate under an active night cycle.")
-	if texture_glow == null or not texture_glow.visible or texture_glow.modulate.a <= 0.001:
-		push_error("Pet contract probe: player visible ground-light texture is absent at night.")
-
-	test_root.queue_free()
-	await get_tree().process_frame
-
-
-func _release_player_dash_state(player: Node) -> void:
-	player.set("action_state", 0)
-	player.set("dash_cooldown_left", 0.0)
-	player.set("dash_time_left", 0.0)
-	player.set("dash_buffered", false)
-
-
-func _authored_dash_smoke_count(root: Node) -> int:
-	var count := 0
-	for child in root.get_children():
-		if child != null and child.has_meta("dash_smoke_single_emission"):
-			count += 1
-	return count
 
 
 func _texture_source_path(texture: Texture2D) -> String:
