@@ -5,11 +5,19 @@ on:
     paths:
       - "data/player_tuning.json"
       - "data/sfx_profiles.json"
+      - "data/ui_layout.json"
       - "scenes/Player.tscn"
       - "scenes/ui/HUDStatusUI.tscn"
+      - "scenes/ui/EquipmentSlot.tscn"
       - "scripts/player/PlayerLightPerspectiveSuite.gd"
       - "scripts/player/PlayerRuntimeTuningFxSuite.gd"
       - "scripts/ui/HUDStatusUIStaminaSuite.gd"
+      - "scripts/ui/EquipmentSlot.gd"
+      - "scripts/ui/InventoryUI.gd"
+      - "scripts/ui/InventoryUIExpanded.gd"
+      - "scripts/ui/UILayoutApplier.gd"
+      - "scripts/ui/UILayoutConfig.gd"
+      - "scripts/systems/EquipmentSystem.gd"
       - "scripts/effects/MonsterParticleRuntime.gd"
       - "scripts/pets/ButterflyPickupPetTuningSuite.gd"
       - "tools/content_editor/ContentEditorPetSaveDashSideSuite.gd"
@@ -19,17 +27,26 @@ on:
       - "scripts/test/WorldPostProcessingValidator.gd"
       - "scripts/test/PlayerHaloCampfireLayerValidator.gd"
       - "scripts/test/PlayerLightStaminaParticleAudioValidator.gd"
+      - "scripts/test/InventoryEquipmentLayoutValidator.gd"
       - ".github/workflows/validate-player-night-readability.yml"
   push:
     branches: [main]
     paths:
       - "data/player_tuning.json"
       - "data/sfx_profiles.json"
+      - "data/ui_layout.json"
       - "scenes/Player.tscn"
       - "scenes/ui/HUDStatusUI.tscn"
+      - "scenes/ui/EquipmentSlot.tscn"
       - "scripts/player/PlayerLightPerspectiveSuite.gd"
       - "scripts/player/PlayerRuntimeTuningFxSuite.gd"
       - "scripts/ui/HUDStatusUIStaminaSuite.gd"
+      - "scripts/ui/EquipmentSlot.gd"
+      - "scripts/ui/InventoryUI.gd"
+      - "scripts/ui/InventoryUIExpanded.gd"
+      - "scripts/ui/UILayoutApplier.gd"
+      - "scripts/ui/UILayoutConfig.gd"
+      - "scripts/systems/EquipmentSystem.gd"
       - "scripts/effects/MonsterParticleRuntime.gd"
       - "scripts/pets/ButterflyPickupPetTuningSuite.gd"
       - "tools/content_editor/ContentEditorPetSaveDashSideSuite.gd"
@@ -39,6 +56,7 @@ on:
       - "scripts/test/WorldPostProcessingValidator.gd"
       - "scripts/test/PlayerHaloCampfireLayerValidator.gd"
       - "scripts/test/PlayerLightStaminaParticleAudioValidator.gd"
+      - "scripts/test/InventoryEquipmentLayoutValidator.gd"
       - ".github/workflows/validate-player-night-readability.yml"
 
 jobs:
@@ -112,6 +130,21 @@ jobs:
             exit 1
           fi
 
+      - name: Validate inventory equipment layout
+        shell: bash
+        run: |
+          set -o pipefail
+          /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --path "$GITHUB_WORKSPACE" \
+            --script res://scripts/test/InventoryEquipmentLayoutValidator.gd \
+            2>&1 | tee /tmp/inventory-equipment-layout.log
+          if grep -E "INVENTORY_EQUIPMENT_LAYOUT_VALIDATION_FAILURE|Parse Error|SCRIPT ERROR|Invalid access|Invalid call" /tmp/inventory-equipment-layout.log; then
+            echo "Inventory equipment layout validation failed."
+            exit 1
+          fi
+          grep -q "INVENTORY_EQUIPMENT_LAYOUT_VALIDATION_PASS" /tmp/inventory-equipment-layout.log
+
       - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -122,3 +155,4 @@ jobs:
             /tmp/player-night-runtime.log
             /tmp/player-halo-campfire-layer.log
             /tmp/player-light-stamina-particles-audio.log
+            /tmp/inventory-equipment-layout.log
