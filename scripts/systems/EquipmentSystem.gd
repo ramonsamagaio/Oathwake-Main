@@ -7,12 +7,14 @@ const CANONICAL_EQUIPMENT_SLOT_IDS := [
 	"armor",
 	"legs",
 	"boots",
+	"gloves",
 	"neck",
 	"hand_left",
 	"hand_right",
 	"ring_left",
 	"ring_right",
 	"back",
+	"trinket",
 ]
 const LEGACY_EQUIPMENT_SLOT_IDS := ["weapon", "tool", "accessory"]
 const EQUIPMENT_SLOT_IDS := [
@@ -20,12 +22,14 @@ const EQUIPMENT_SLOT_IDS := [
 	"armor",
 	"legs",
 	"boots",
+	"gloves",
 	"neck",
 	"hand_left",
 	"hand_right",
 	"ring_left",
 	"ring_right",
 	"back",
+	"trinket",
 	"weapon",
 	"tool",
 	"accessory",
@@ -34,23 +38,24 @@ const LEGACY_SLOT_ALIASES := {
 	"weapon": "hand_right",
 	"tool": "hand_right",
 	"accessory": "ring_right",
-	# Temporary pet socket: the current inventory artwork already exposes Back.
-	# Gameplay addresses it as Trinket so a dedicated UI slot can replace this
-	# alias later without changing pet items, saves or player code.
-	"trinket": "back",
 }
 
 var equipment_slots := {}
 
 
 func _init() -> void:
-	_ensure_default_equipment()
+	_reset_equipment_slots()
 
 
 func _ensure_default_equipment() -> void:
 	for slot_id in EQUIPMENT_SLOT_IDS:
 		if not equipment_slots.has(slot_id):
 			equipment_slots[slot_id] = _empty_slot()
+
+
+func _reset_equipment_slots() -> void:
+	equipment_slots.clear()
+	_ensure_default_equipment()
 
 
 func _empty_slot() -> Dictionary:
@@ -78,11 +83,7 @@ func set_equipped_slot(slot_id: String, slot_data: Dictionary) -> void:
 	var normalized_slot_id := _normalize_slot_id(slot_id)
 	if not equipment_slots.has(normalized_slot_id):
 		return
-	equipment_slots[normalized_slot_id] = {
-		"item_id": str(slot_data.get("item_id", "")),
-		"amount": int(slot_data.get("amount", 0)),
-		"metadata": slot_data.get("metadata", {}) if slot_data.get("metadata") is Dictionary else {},
-	}
+	equipment_slots[normalized_slot_id] = _sanitize_slot_data(slot_data)
 
 
 func clear_equipped_slot(slot_id: String) -> void:
@@ -100,28 +101,7 @@ func can_equip_item(item_id: String, slot_id: String) -> bool:
 
 
 func get_valid_slot_for_item(item_id: String) -> String:
-	var content_db := _get_content_db()
-	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
-		return ""
-
-	var item_data: Dictionary = content_db.get_item(item_id)
-	var item_type := str(item_data.get("item_type", "")).to_lower()
-	if item_type == "tool" or item_type == "weapon":
-		return ""
-
-	var explicit_slot := str(item_data.get("equipment_slot", ""))
-	if not explicit_slot.is_empty():
-		if explicit_slot == "tool" or explicit_slot == "weapon" or explicit_slot == "hand_right" or explicit_slot == "hand_left":
-			return ""
-		return _normalize_slot_id(explicit_slot)
-
-	match item_type:
-		"armor":
-			return "armor"
-		"accessory":
-			return "ring_right"
-
-	return ""
+	return _get_declared_equipment_slot(item_id)
 
 
 func equip_from_inventory(inventory, inventory_slot_index: int, target_slot_id := "") -> bool:
@@ -143,6 +123,8 @@ func equip_from_inventory(inventory, inventory_slot_index: int, target_slot_id :
 	else:
 		slot_id = _normalize_slot_id(slot_id)
 	if slot_id.is_empty() or not equipment_slots.has(slot_id):
+		return false
+	if not can_equip_item(item_id, slot_id):
 		return false
 
 	var current_equipped = equipment_slots[slot_id]
@@ -221,25 +203,31 @@ func _find_empty_slot(inventory) -> int:
 
 
 func set_slots_from_save(save_slots: Variant) -> void:
-	_ensure_default_equipment()
+	# Loading must replace runtime state rather than merge into it. Merging left
+	# stale equipment behind when changing saves and made old aliases overwrite
+	# canonical slots depending on JSON key order.
+	_reset_equipment_slots()
 	if not save_slots is Dictionary:
+		changed.emit()
 		return
-	for raw_slot_id in save_slots.keys():
-		var slot_id := str(raw_slot_id)
-		var normalized_slot_id := _normalize_slot_id(slot_id)
-		if not equipment_slots.has(normalized_slot_id):
+
+	var saved: Dictionary = save_slots
+	# Canonical records always win, independent from dictionary iteration order.
+	for slot_id in CANONICAL_EQUIPMENT_SLOT_IDS:
+		if saved.has(slot_id) and saved[slot_id] is Dictionary:
+			equipment_slots[slot_id] = _sanitize_slot_data(saved[slot_id])
+
+	# Legacy records only fill an empty canonical destination.
+	for legacy_slot_id in LEGACY_EQUIPMENT_SLOT_IDS:
+		if not saved.has(legacy_slot_id) or not saved[legacy_slot_id] is Dictionary:
 			continue
-		if save_slots[raw_slot_id] is Dictionary:
-			var data: Dictionary = save_slots[raw_slot_id]
-			var existing: Dictionary = equipment_slots[normalized_slot_id]
-			var existing_item_id := str(existing.get("item_id", ""))
-			if not existing_item_id.is_empty() and slot_id != normalized_slot_id:
-				continue
-			equipment_slots[normalized_slot_id] = {
-				"item_id": str(data.get("item_id", "")),
-				"amount": int(data.get("amount", 0)),
-				"metadata": data.get("metadata", {}) if data.get("metadata") is Dictionary else {},
-			}
+		var normalized_slot_id := _normalize_slot_id(legacy_slot_id)
+		if _slot_has_item(equipment_slots.get(normalized_slot_id, {})):
+			continue
+		equipment_slots[normalized_slot_id] = _sanitize_slot_data(saved[legacy_slot_id])
+
+	_repair_misplaced_saved_items()
+	changed.emit()
 
 
 func get_slots_for_save() -> Dictionary:
@@ -247,7 +235,7 @@ func get_slots_for_save() -> Dictionary:
 	for slot_id in CANONICAL_EQUIPMENT_SLOT_IDS:
 		save_slots[slot_id] = equipment_slots.get(slot_id, _empty_slot()).duplicate(true)
 	for legacy_slot_id in LEGACY_EQUIPMENT_SLOT_IDS:
-		save_slots[legacy_slot_id] = equipment_slots.get(legacy_slot_id, _empty_slot()).duplicate(true)
+		save_slots[legacy_slot_id] = _empty_slot()
 	return save_slots
 
 
@@ -258,10 +246,72 @@ func get_canonical_slot_ids() -> Array[String]:
 	return ids
 
 
+func _repair_misplaced_saved_items() -> void:
+	# Older saves and previous UI overlap bugs could leave a valid item under the
+	# wrong slot key. Item content is the authority for armor/accessory placement.
+	for source_slot_id in CANONICAL_EQUIPMENT_SLOT_IDS:
+		var source_data: Dictionary = equipment_slots.get(source_slot_id, _empty_slot())
+		if not _slot_has_item(source_data):
+			continue
+		var item_id := str(source_data.get("item_id", ""))
+		var declared_slot_id := _get_declared_equipment_slot(item_id)
+		if declared_slot_id.is_empty() or declared_slot_id == source_slot_id:
+			continue
+		if not equipment_slots.has(declared_slot_id):
+			continue
+		var destination_data: Dictionary = equipment_slots.get(declared_slot_id, _empty_slot())
+		if _slot_has_item(destination_data):
+			push_warning("EquipmentSystem could not move %s from %s to occupied %s while repairing save data." % [item_id, source_slot_id, declared_slot_id])
+			continue
+		equipment_slots[declared_slot_id] = source_data.duplicate(true)
+		equipment_slots[source_slot_id] = _empty_slot()
+
+
+func _get_declared_equipment_slot(item_id: String) -> String:
+	var content_db := _get_content_db()
+	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
+		return ""
+
+	var item_data: Dictionary = content_db.get_item(item_id)
+	var item_type := str(item_data.get("item_type", "")).to_lower()
+	if item_type == "tool" or item_type == "weapon":
+		return ""
+
+	var explicit_slot := _normalize_slot_id(str(item_data.get("equipment_slot", "")))
+	if not explicit_slot.is_empty():
+		if explicit_slot in ["tool", "weapon", "hand_right", "hand_left"]:
+			return ""
+		return explicit_slot if equipment_slots.has(explicit_slot) else ""
+
+	match item_type:
+		"armor":
+			return "armor"
+		"accessory":
+			return "ring_right"
+
+	return ""
+
+
+func _sanitize_slot_data(slot_data: Dictionary) -> Dictionary:
+	var metadata: Variant = slot_data.get("metadata", {})
+	return {
+		"item_id": str(slot_data.get("item_id", "")),
+		"amount": int(slot_data.get("amount", 0)),
+		"metadata": metadata.duplicate(true) if metadata is Dictionary else {},
+	}
+
+
+func _slot_has_item(slot_data: Variant) -> bool:
+	if not slot_data is Dictionary:
+		return false
+	return not str(slot_data.get("item_id", "")).is_empty() and int(slot_data.get("amount", 0)) > 0
+
+
 func _normalize_slot_id(slot_id: String) -> String:
-	if LEGACY_SLOT_ALIASES.has(slot_id):
-		return str(LEGACY_SLOT_ALIASES[slot_id])
-	return slot_id
+	var normalized := slot_id.strip_edges().to_lower()
+	if LEGACY_SLOT_ALIASES.has(normalized):
+		return str(LEGACY_SLOT_ALIASES[normalized])
+	return normalized
 
 
 func _get_content_db() -> Node:
