@@ -1,7 +1,7 @@
 extends SceneTree
 
-# Covers the broad ground-plane player light, animated campfire flame,
-# foreground embers, connected upper-floor visibility and authoring-lab playtest player.
+# Covers the visible ground-plane player light, animated campfire flame,
+# foreground embers, connected upper-floor visibility and authoring-lab player.
 const PLAYER_SCENE := preload("res://scenes/Player.tscn")
 const BUILDING_SCENE := preload("res://scenes/buildings/Building.tscn")
 const FLOOR_VISIBILITY_SCRIPT := preload("res://scripts/systems/TibiaFloorVisibilityController.gd")
@@ -38,14 +38,16 @@ func _validate_player_halo_and_readability() -> void:
 		failures.append("Player is missing NightLight node used by the readability system.")
 	else:
 		# The isolated validator has no DayNightCycle node. Explicitly put the
-		# reusable GlowOverlay into full night before reading PointLight2D state.
+		# reusable GlowOverlay into full night before reading visible state.
 		if night_light.has_method("set_day_night_strength"):
 			night_light.call("set_day_night_strength", 1.0)
 		await process_frame
-		if bool(night_light.get("visual_enabled")):
-			failures.append("Player texture aura should stay disabled to avoid a visible hard-edged disc.")
+		if not bool(night_light.get("visual_enabled")):
+			failures.append("Player visible ground-light texture is disabled.")
+		if not bool(night_light.get("visual_uses_day_night_multiplier")):
+			failures.append("Player visible ground light does not follow the day/night cycle.")
 		if not bool(night_light.get("use_point_light")):
-			failures.append("Player wide environment PointLight2D halo is disabled.")
+			failures.append("Player environment PointLight2D is disabled.")
 		if night_light.scale.x < night_light.scale.y * 2.5:
 			failures.append("Player light is not wide and flat enough to read as a projected ground ellipse.")
 		if night_light.position.y < 8.0:
@@ -53,18 +55,22 @@ func _validate_player_halo_and_readability() -> void:
 		var texture_glow := night_light.get_node_or_null("TextureGlow") as Sprite2D
 		var procedural_glow := night_light.get_node_or_null("ProceduralGlow") as Sprite2D
 		var point_light := night_light.get_node_or_null("PointLight2D") as PointLight2D
-		if texture_glow != null and texture_glow.visible:
-			failures.append("Player TextureGlow is visible instead of using the soft PointLight halo.")
+		if texture_glow == null or not texture_glow.visible or texture_glow.modulate.a <= 0.001:
+			failures.append("Player soft additive ground-light texture is not visibly active at night.")
+		elif texture_glow.scale.x <= 0.01 or texture_glow.scale.y <= 0.01:
+			failures.append("Player visible ground-light texture has no rendered area.")
 		if procedural_glow != null and procedural_glow.visible:
-			failures.append("Player ProceduralGlow is visible instead of using the soft PointLight halo.")
+			failures.append("Player ProceduralGlow is visible in addition to the authored soft texture.")
 		if point_light == null or not point_light.enabled or not point_light.visible or point_light.energy < 0.5:
-			failures.append("Player environment halo is not active or bright enough at runtime.")
+			failures.append("Player environment PointLight2D is not active or bright enough at night.")
 		elif point_light.texture_scale < 4.0:
-			failures.append("Player environment halo radius is still too small for the authored ground ellipse.")
+			failures.append("Player environment PointLight2D radius is still too small for the authored ellipse.")
 	if not player.has_method("is_player_night_readability_enabled") or not bool(player.call("is_player_night_readability_enabled")):
-		failures.append("Ground light projection disabled the unshaded player readability material.")
+		failures.append("Visible ground light disabled the unshaded player readability material.")
 	if not player.has_method("is_player_environment_halo_enabled") or not bool(player.call("is_player_environment_halo_enabled")):
-		failures.append("Player did not report the wide environment halo as configured.")
+		failures.append("Player did not report the environment light as configured.")
+	if player.has_method("is_player_ground_halo_disabled") and bool(player.call("is_player_ground_halo_disabled")):
+		failures.append("Player still reports its visible ground light as disabled.")
 	player.queue_free()
 	await process_frame
 
