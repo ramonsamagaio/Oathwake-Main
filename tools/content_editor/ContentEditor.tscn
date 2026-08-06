@@ -1,7 +1,9 @@
 [gd_scene load_steps=5 format=3 uid="uid://cn6juf8fptk0e"]
 
-; ContentEditorButterflyParticleDefaultsSuite.gd extends the complete editor
-; chain and keeps butterfly particle defaults aligned with runtime behavior.
+; ContentEditorButterflyParticleDefaultsSuite.gd extends the complete editor chain.
+; The inherited chain includes ContentEditorRuntimeTuningSuite.gd, which owns
+; runtime-safe save/reload behavior, monster tuning and Player Tuning controls.
+; This wrapper only keeps butterfly particle defaults aligned with runtime behavior.
 [ext_resource type="Script" path="res://tools/content_editor/ContentEditorButterflyParticleDefaultsSuite.gd" id="1_content_editor_script"]
 [ext_resource type="Script" path="res://scripts/test/RuntimeContentEditorContractProbe.gd" id="2_contract_probe"]
 [ext_resource type="Script" path="res://tools/content_editor/StandaloneSystemCursorGuard.gd" id="3_cursor_guard"]
