@@ -139,7 +139,8 @@ func _validate_stun_states() -> void:
 		failures.append("Player stun did not become active.")
 	player.set("velocity", Vector2(100.0, 0.0))
 	await physics_frame
-	if (player.get("velocity") as Vector2).length() > 0.01:
+	var player_stun_velocity: Vector2 = player.get("velocity")
+	if player_stun_velocity.length() > 0.01:
 		failures.append("Player moved during stun.")
 	await create_timer(0.24).timeout
 	await physics_frame
@@ -151,7 +152,8 @@ func _validate_stun_states() -> void:
 		failures.append("Monster stun did not become active.")
 	enemy.set("velocity", Vector2(100.0, 0.0))
 	await physics_frame
-	if (enemy.get("velocity") as Vector2).length() > 0.01:
+	var enemy_stun_velocity: Vector2 = enemy.get("velocity")
+	if enemy_stun_velocity.length() > 0.01:
 		failures.append("Monster moved during stun.")
 	await create_timer(0.24).timeout
 	await physics_frame
