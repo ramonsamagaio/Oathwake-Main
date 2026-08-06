@@ -1,0 +1,71 @@
+name: Validate Pixelation Post Process
+
+on:
+  pull_request:
+    paths:
+      - "project.godot"
+      - "shaders/pixelation_post_process.gdshader"
+      - "scripts/effects/PixelationPostProcess.gd"
+      - "tools/content_editor/ContentEditorPostProcessSuite.gd"
+      - "scripts/test/PixelationPostProcessValidator.gd"
+      - ".github/workflows/validate-pixelation-post-process.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot 4.6.3
+        run: |
+          curl --fail --location --retry 4 --retry-delay 3 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+          ./godot --version
+
+      - name: Import project
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot \
+            --headless \
+            --editor \
+            --path . \
+            --quit-after 240 \
+            --verbose 2>&1 | tee pixelation-import.log
+          if grep -E "Parse Error|SCRIPT ERROR|Shader compilation failed|Failed to load script|Error parsing" pixelation-import.log; then
+            echo "Godot import reported a parser or shader failure."
+            exit 1
+          fi
+
+      - name: Validate pixelation runtime and editor contract
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot \
+            --headless \
+            --path . \
+            --script res://scripts/test/PixelationPostProcessValidator.gd \
+            --verbose 2>&1 | tee pixelation-validator.log
+          if grep -E "PIXELATION_POST_PROCESS_VALIDATION_FAILURE|Parse Error|SCRIPT ERROR|Shader compilation failed|Invalid access|Invalid call" pixelation-validator.log; then
+            echo "Pixelation post-process validation failed."
+            exit 1
+          fi
+          grep -q "PIXELATION_POST_PROCESS_VALIDATION_PASS" pixelation-validator.log
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixelation-post-process-validation
+          path: |
+            pixelation-import.log
+            pixelation-validator.log
