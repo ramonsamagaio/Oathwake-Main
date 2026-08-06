@@ -191,8 +191,11 @@ func _perform_parry(attacker: Node) -> void:
 	super._perform_parry(attacker)
 	var sfx_manager := get_node_or_null("/root/SFXManager")
 	var played := false
+	var audio_parent := get_parent()
+	if audio_parent == null:
+		audio_parent = self
 	if sfx_manager != null and sfx_manager.has_method("play_profile"):
-		played = bool(sfx_manager.call("play_profile", "player_parry", global_position))
+		played = bool(sfx_manager.call("play_profile", "player_parry", global_position, audio_parent))
 	set_meta("last_parry_sfx_requested", true)
 	set_meta("last_parry_sfx_played", played)
 
