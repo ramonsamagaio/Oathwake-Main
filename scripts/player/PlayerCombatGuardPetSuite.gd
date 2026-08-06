@@ -213,7 +213,7 @@ func _cancel_current_action_for_life_animation() -> void:
 
 
 func _bind_pet_equipment() -> void:
-	var equipment_system := _get_equipment_system()
+	var equipment_system: Object = _get_equipment_system()
 	if equipment_system == null:
 		return
 	if _bound_equipment_system == equipment_system:
@@ -237,11 +237,11 @@ func _unbind_pet_equipment() -> void:
 
 
 func refresh_equipped_pet() -> void:
-	var equipment_system := _get_equipment_system()
+	var equipment_system: Object = _get_equipment_system()
 	if equipment_system == null or not equipment_system.has_method("get_equipped_slot"):
 		_remove_active_pet()
 		return
-	var slot_data: Dictionary = equipment_system.get_equipped_slot(TRINKET_SLOT_ID)
+	var slot_data: Dictionary = equipment_system.call("get_equipped_slot", TRINKET_SLOT_ID)
 	var item_id := str(slot_data.get("item_id", ""))
 	if item_id == _equipped_pet_item_id and _active_pet != null and is_instance_valid(_active_pet):
 		return
