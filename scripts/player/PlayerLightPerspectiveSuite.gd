@@ -9,6 +9,10 @@ const DEFAULT_HALO_ENERGY := 0.52
 const DEFAULT_HALO_RADIUS_SCALE := 4.2
 const DEFAULT_HALO_GROUND_STRETCH := Vector2(2.0, 0.75)
 const DEFAULT_HALO_GROUND_OFFSET := Vector2(0.0, 12.0)
+const DEFAULT_GROUND_HALO_ALPHA := 0.22
+const DEFAULT_GROUND_HALO_INTENSITY := 0.75
+const DEFAULT_GROUND_HALO_TEXTURE_SCALE := 0.20
+const DEFAULT_GROUND_HALO_BLUR := 2.0
 const NIGHT_READABILITY_VISUAL_PATHS := [
 	NodePath("Body"),
 	NodePath("AnimatedSprite2D"),
@@ -75,16 +79,21 @@ func _apply_player_light_tuning() -> void:
 
 
 func _configure_player_environment_halo(light: Node2D) -> void:
-	# The wide PointLight reveals the nearby world. The texture/procedural aura
-	# stays disabled so the halo has a soft falloff instead of a visible disc.
-	# Player-body clarity remains independent through the unshaded character material.
+	# The real PointLight stays enabled for materials that support 2D lighting.
+	# A second, very soft textured ellipse is rendered behind the player so the
+	# illuminated footprint remains visible on unshaded/custom world materials.
+	# It is intentionally broad and ground-projected, never a body-sized capsule.
 	light.visible = true
-	light.set("visual_enabled", false)
-	light.set("alpha", 0.0)
-	# GlowOverlay uses intensity as part of the PointLight energy calculation too.
-	# Keep it at one while visual_enabled stays false, so no texture disc appears.
-	light.set("intensity", 1.0)
-	light.set("scale_multiplier", 1.0)
+	light.set("visual_enabled", true)
+	light.set("visual_uses_day_night_multiplier", true)
+	light.set("mode", 0) # GlowOverlay.Mode.TEXTURE
+	light.set("blend_style", 1) # GlowOverlay.BlendStyle.ADDITIVE
+	light.set("alpha", clampf(float(_content_light_config.get("ground_halo_alpha", DEFAULT_GROUND_HALO_ALPHA)), 0.0, 1.0))
+	light.set("intensity", maxf(float(_content_light_config.get("ground_halo_intensity", DEFAULT_GROUND_HALO_INTENSITY)), 0.0))
+	light.set("scale_multiplier", maxf(float(_content_light_config.get("ground_halo_texture_scale", DEFAULT_GROUND_HALO_TEXTURE_SCALE)), 0.01))
+	light.set("blur_amount", maxf(float(_content_light_config.get("ground_halo_blur", DEFAULT_GROUND_HALO_BLUR)), 0.0))
+	light.set("stretch", Vector2.ONE)
+	light.set("z_index_value", -6)
 	light.set("use_point_light", true)
 	light.set("light_uses_aura_alpha", false)
 	light.set("glow_color", Color.from_string(str(_content_light_config.get("color", "#FFE6AAFF")), DEFAULT_HALO_COLOR))
@@ -94,7 +103,7 @@ func _configure_player_environment_halo(light: Node2D) -> void:
 	light.set("night_light_multiplier", maxf(float(_content_light_config.get("night_multiplier", 1.0)), 1.0))
 	var texture_glow := light.get_node_or_null("TextureGlow") as Sprite2D
 	if texture_glow != null:
-		texture_glow.visible = false
+		texture_glow.show_behind_parent = true
 	var procedural_glow := light.get_node_or_null("ProceduralGlow") as Sprite2D
 	if procedural_glow != null:
 		procedural_glow.visible = false
