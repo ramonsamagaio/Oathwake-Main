@@ -91,6 +91,19 @@ func _configure_player_environment_halo(light: Node2D) -> void:
 	# is therefore the visible ground pool, while PointLight still illuminates any
 	# compatible props and sprites.
 	var visual_enabled := bool(_content_light_config.get("visual_aura_enabled", true))
+	var texture_scale := maxf(
+		float(_content_light_config.get("ground_halo_texture_scale", DEFAULT_GROUND_HALO_TEXTURE_SCALE)),
+		0.01
+	)
+	var desired_point_light_radius := maxf(
+		float(_content_light_config.get("radius_scale", DEFAULT_HALO_RADIUS_SCALE)),
+		DEFAULT_HALO_RADIUS_SCALE
+	)
+	# GlowOverlay multiplies its PointLight radius by the visual scale multiplier.
+	# Compensating here keeps the real light radius independent from the deliberately
+	# small additive texture used to avoid a giant circular disc on the ground.
+	var compensated_point_light_scale := desired_point_light_radius / texture_scale
+
 	light.visible = true
 	light.set("visual_enabled", visual_enabled)
 	light.set("visual_uses_day_night_multiplier", true)
@@ -101,11 +114,11 @@ func _configure_player_environment_halo(light: Node2D) -> void:
 	light.set("glow_color", Color.from_string(str(_content_light_config.get("color", "#FFE6AAFF")), DEFAULT_HALO_COLOR))
 	light.set("intensity", maxf(float(_content_light_config.get("ground_halo_intensity", DEFAULT_GROUND_HALO_INTENSITY)), 0.0))
 	light.set("alpha", clampf(float(_content_light_config.get("ground_halo_alpha", DEFAULT_GROUND_HALO_ALPHA)), 0.0, 1.0))
-	light.set("scale_multiplier", maxf(float(_content_light_config.get("ground_halo_texture_scale", DEFAULT_GROUND_HALO_TEXTURE_SCALE)), 0.01))
+	light.set("scale_multiplier", texture_scale)
 	light.set("blur_amount", maxf(float(_content_light_config.get("ground_halo_blur", DEFAULT_GROUND_HALO_BLUR)), 0.0))
 	light.set("stretch", Vector2.ONE)
 	light.set("point_light_energy", maxf(float(_content_light_config.get("emission", DEFAULT_HALO_ENERGY)), DEFAULT_HALO_ENERGY))
-	light.set("point_light_scale", maxf(float(_content_light_config.get("radius_scale", DEFAULT_HALO_RADIUS_SCALE)), DEFAULT_HALO_RADIUS_SCALE))
+	light.set("point_light_scale", compensated_point_light_scale)
 	light.set("day_light_multiplier", 0.0)
 	light.set("night_light_multiplier", maxf(float(_content_light_config.get("night_multiplier", 1.0)), 1.0))
 	light.set("z_index_value", -6)
@@ -117,6 +130,9 @@ func _configure_player_environment_halo(light: Node2D) -> void:
 	var procedural_glow := light.get_node_or_null("ProceduralGlow") as Sprite2D
 	if procedural_glow != null:
 		procedural_glow.visible = false
+	light.set_meta("player_light_texture_scale", texture_scale)
+	light.set_meta("player_light_desired_radius", desired_point_light_radius)
+	light.set_meta("player_light_compensated_radius_multiplier", compensated_point_light_scale)
 	set_meta("player_environment_halo_enabled", true)
 	set_meta("player_ground_halo_disabled", false)
 	set_meta("player_visible_ground_light_enabled", visual_enabled)
