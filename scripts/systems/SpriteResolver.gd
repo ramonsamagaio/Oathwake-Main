@@ -17,20 +17,7 @@ func get_texture_for_sprite(sprite_id: String) -> Texture2D:
 
 	var sprite_data: Dictionary = content_db.get_sprite(sprite_id)
 	var texture_path := str(sprite_data.get("texture_path", ""))
-	if texture_path.is_empty() or not FileAccess.file_exists(texture_path):
-		print("SpriteResolver: missing texture_path for sprite_id '%s'." % sprite_id)
-		return get_placeholder_texture()
-
-	var loaded_resource = ResourceLoader.load(texture_path)
-	if loaded_resource is Texture2D:
-		var texture := loaded_resource as Texture2D
-		if _is_usable_texture(texture):
-			return texture
-		print("SpriteResolver: zero-sized texture for sprite_id '%s' at '%s'." % [sprite_id, texture_path])
-		return get_placeholder_texture()
-
-	print("SpriteResolver: texture_path is not a Texture2D for sprite_id '%s'." % sprite_id)
-	return get_placeholder_texture()
+	return _load_texture_path(texture_path, "sprite_id '%s'" % sprite_id)
 
 
 func get_texture_for_item(item_id: String) -> Texture2D:
@@ -39,6 +26,9 @@ func get_texture_for_item(item_id: String) -> Texture2D:
 		return get_placeholder_texture()
 
 	var item_data: Dictionary = content_db.get_item(item_id)
+	var direct_texture_path := str(item_data.get("sprite_path", ""))
+	if not direct_texture_path.is_empty():
+		return _load_texture_path(direct_texture_path, "item_id '%s'" % item_id)
 	return get_texture_for_sprite(str(item_data.get("sprite_id", "")))
 
 
@@ -75,6 +65,23 @@ func get_texture_for_tileset(tileset_id: String) -> Texture2D:
 
 func get_placeholder_texture() -> Texture2D:
 	return PLACEHOLDER_TEXTURE if _is_usable_texture(PLACEHOLDER_TEXTURE) else null
+
+
+func _load_texture_path(texture_path: String, context: String) -> Texture2D:
+	if texture_path.is_empty() or not FileAccess.file_exists(texture_path):
+		print("SpriteResolver: missing texture_path for %s." % context)
+		return get_placeholder_texture()
+
+	var loaded_resource = ResourceLoader.load(texture_path)
+	if loaded_resource is Texture2D:
+		var texture := loaded_resource as Texture2D
+		if _is_usable_texture(texture):
+			return texture
+		print("SpriteResolver: zero-sized texture for %s at '%s'." % [context, texture_path])
+		return get_placeholder_texture()
+
+	print("SpriteResolver: texture_path is not a Texture2D for %s." % context)
+	return get_placeholder_texture()
 
 
 func _is_usable_texture(texture: Texture2D) -> bool:
