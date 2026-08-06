@@ -1,12 +1,18 @@
 // Unified world compositor for Oathwake.
-// Performs time-aware color grading and a bounded, emissive-selective bloom in
-// one screen pass. The selective gate favors bright or chromatic authored glow
-// sources without making neutral terrain and ordinary grass radiate.
+// Performs time-aware color grading, selective bloom and optional final
+// pixelation in one proven screen-reading pass.
 shader_type canvas_item;
 render_mode unshaded;
 
 uniform bool enabled = true;
 uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_linear_mipmap;
+
+uniform bool pixelation_enabled = false;
+uniform float pixelation_pixel_size : hint_range(1.0, 32.0, 1.0) = 4.0;
+uniform float pixelation_strength : hint_range(0.0, 1.0, 0.01) = 1.0;
+uniform float pixelation_aspect : hint_range(0.5, 2.0, 0.01) = 1.0;
+uniform float pixelation_color_steps : hint_range(0.0, 32.0, 1.0) = 0.0;
+uniform float pixelation_dither_strength : hint_range(0.0, 1.0, 0.01) = 0.0;
 
 uniform bool bloom_enabled = true;
 uniform bool selective_bloom_enabled = true;
@@ -36,8 +42,6 @@ uniform float warm_light_preservation : hint_range(0.0, 1.0, 0.01) = 0.78;
 uniform float night_shadow_lift : hint_range(0.0, 0.25, 0.005) = 0.035;
 uniform float night_cool_shadow_strength : hint_range(0.0, 1.0, 0.01) = 0.32;
 
-// Broad light-area protection. This intentionally remains weak so the grass,
-// rocks and nearby enemies still read as nighttime inside the player's halo.
 uniform bool local_light_grading_mask_enabled = true;
 uniform bool local_light_source_active = false;
 uniform vec2 local_light_screen_position = vec2(0.5, 0.5);
@@ -47,9 +51,6 @@ uniform float local_light_grading_protection : hint_range(0.0, 1.0, 0.01) = 0.24
 uniform float local_light_mask_softness : hint_range(0.01, 1.0, 0.01) = 0.42;
 uniform float local_light_scene_lift : hint_range(0.0, 0.25, 0.005) = 0.01;
 
-// Compact player-only protection. Player visuals are rendered unshaded before
-// this pass, then this ellipse removes almost all remaining blue grading only
-// over the character's body rather than over the surrounding environment.
 uniform bool player_readability_mask_enabled = true;
 uniform bool player_readability_source_active = false;
 uniform vec2 player_readability_screen_position = vec2(0.5, 0.5);
@@ -73,6 +74,32 @@ float oath_warm_mask(vec3 color_value) {
 		* smoothstep(0.10, 0.76, max(max(color_value.r, color_value.g), color_value.b));
 }
 
+vec2 oath_pixelated_uv(vec2 uv, vec2 screen_pixel_size) {
+	float safe_size = max(pixelation_pixel_size, 1.0);
+	float safe_aspect = max(pixelation_aspect, 0.01);
+	vec2 block_pixels = vec2(safe_size * safe_aspect, safe_size);
+	vec2 block_uv = max(screen_pixel_size * block_pixels, screen_pixel_size);
+	vec2 snapped_uv = (floor(uv / block_uv) + vec2(0.5)) * block_uv;
+	snapped_uv = clamp(snapped_uv, vec2(0.0), vec2(1.0));
+	float mix_strength = pixelation_enabled ? clamp(pixelation_strength, 0.0, 1.0) : 0.0;
+	return mix(uv, snapped_uv, mix_strength);
+}
+
+vec3 oath_quantize_pixel_color(vec3 color_value, vec2 sample_uv, vec2 screen_pixel_size) {
+	float steps = floor(pixelation_color_steps + 0.5);
+	if (!pixelation_enabled || steps < 2.0) {
+		return color_value;
+	}
+	float denominator = max(steps - 1.0, 1.0);
+	vec2 cell_size = max(screen_pixel_size * vec2(max(pixelation_pixel_size * pixelation_aspect, 1.0), max(pixelation_pixel_size, 1.0)), screen_pixel_size);
+	vec2 cell = floor(sample_uv / cell_size);
+	float noise_value = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
+	float dither = (noise_value - 0.5) * clamp(pixelation_dither_strength, 0.0, 1.0) / denominator;
+	vec3 shifted = clamp(color_value + vec3(dither), vec3(0.0), vec3(1.0));
+	vec3 quantized = floor(shifted * denominator + vec3(0.5)) / denominator;
+	return mix(color_value, quantized, clamp(pixelation_strength, 0.0, 1.0));
+}
+
 float oath_ellipse_mask(vec2 uv, vec2 center, vec2 radius, float softness) {
 	vec2 safe_radius = max(radius, vec2(0.001));
 	vec2 normalized_delta = (uv - center) / safe_radius;
@@ -85,12 +112,7 @@ float oath_local_light_mask(vec2 uv) {
 	if (!local_light_grading_mask_enabled || !local_light_source_active) {
 		return 0.0;
 	}
-	float radial = oath_ellipse_mask(
-		uv,
-		local_light_screen_position,
-		local_light_radius_uv,
-		local_light_mask_softness
-	);
+	float radial = oath_ellipse_mask(uv, local_light_screen_position, local_light_radius_uv, local_light_mask_softness);
 	return radial * clamp(local_light_source_strength, 0.0, 1.0) * clamp(night_strength, 0.0, 1.0);
 }
 
@@ -98,12 +120,7 @@ float oath_player_readability_mask(vec2 uv) {
 	if (!player_readability_mask_enabled || !player_readability_source_active) {
 		return 0.0;
 	}
-	float radial = oath_ellipse_mask(
-		uv,
-		player_readability_screen_position,
-		player_readability_radius_uv,
-		player_readability_mask_softness
-	);
+	float radial = oath_ellipse_mask(uv, player_readability_screen_position, player_readability_radius_uv, player_readability_mask_softness);
 	return radial * clamp(night_strength, 0.0, 1.0);
 }
 
@@ -138,11 +155,7 @@ vec3 glow_bright_pass(vec3 color_value) {
 	float brightest_channel = max(max(color_value.r, color_value.g), color_value.b);
 	float luminance = oath_luminance(color_value);
 	float chroma = oath_chroma(color_value);
-	float luminance_gate = smoothstep(
-		emissive_luminance_threshold,
-		emissive_luminance_threshold + 0.24,
-		max(luminance, brightest_channel * 0.82)
-	);
+	float luminance_gate = smoothstep(emissive_luminance_threshold, emissive_luminance_threshold + 0.24, max(luminance, brightest_channel * 0.82));
 	float threshold_gate = smoothstep(bloom_threshold, bloom_threshold + 0.16, brightest_channel);
 	vec3 hard_bloom = max(color_value - vec3(bloom_threshold), vec3(0.0)) * max(threshold_gate, luminance_gate);
 
@@ -160,50 +173,40 @@ vec3 glow_bright_pass(vec3 color_value) {
 }
 
 void fragment() {
-	vec4 base_color = textureLod(screen_texture, SCREEN_UV, 0.0);
+	vec2 sample_uv = oath_pixelated_uv(SCREEN_UV, SCREEN_PIXEL_SIZE);
+	vec4 base_color = textureLod(screen_texture, sample_uv, 0.0);
 	vec3 graded_rgb = apply_world_grading(base_color.rgb);
 
-	float local_light_mask = oath_local_light_mask(SCREEN_UV);
+	float local_light_mask = oath_local_light_mask(sample_uv);
 	vec3 locally_lit_scene = max(base_color.rgb + vec3(local_light_scene_lift * local_light_mask), vec3(0.0));
-	graded_rgb = mix(
-		graded_rgb,
-		locally_lit_scene,
-		clamp(local_light_mask * local_light_grading_protection, 0.0, 1.0)
-	);
+	graded_rgb = mix(graded_rgb, locally_lit_scene, clamp(local_light_mask * local_light_grading_protection, 0.0, 1.0));
 
-	float player_mask = oath_player_readability_mask(SCREEN_UV);
+	float player_mask = oath_player_readability_mask(sample_uv);
 	vec3 readable_player_scene = max(base_color.rgb + vec3(player_readability_scene_lift * player_mask), vec3(0.0));
-	graded_rgb = mix(
-		graded_rgb,
-		readable_player_scene,
-		clamp(player_mask * player_readability_protection, 0.0, 1.0)
-	);
+	graded_rgb = mix(graded_rgb, readable_player_scene, clamp(player_mask * player_readability_protection, 0.0, 1.0));
 
 	vec3 output_rgb = graded_rgb;
 	if (enabled && bloom_enabled && bloom_intensity > 0.0 && mix_amount > 0.0) {
-		float blur_lod = clamp(
-			0.45 + float(blur_iterations) * 0.35 + blur_size * 180.0 + float(blur_subdivisions) * 0.018,
-			0.5,
-			4.8
-		);
+		float blur_lod = clamp(0.45 + float(blur_iterations) * 0.35 + blur_size * 180.0 + float(blur_subdivisions) * 0.018, 0.5, 4.8);
 		float radius_pixels = clamp(2.5 + blur_size * 1450.0 + float(blur_iterations) * 1.6, 3.0, 34.0);
 		vec2 axis_offset = SCREEN_PIXEL_SIZE * radius_pixels;
 		vec2 diagonal_offset = axis_offset * 0.70710678;
 
-		vec3 bloom_color = glow_bright_pass(textureLod(screen_texture, SCREEN_UV, blur_lod).rgb) * 0.24;
-		bloom_color += glow_bright_pass(textureLod(screen_texture, SCREEN_UV + vec2(axis_offset.x, 0.0), blur_lod).rgb) * 0.11;
-		bloom_color += glow_bright_pass(textureLod(screen_texture, SCREEN_UV - vec2(axis_offset.x, 0.0), blur_lod).rgb) * 0.11;
-		bloom_color += glow_bright_pass(textureLod(screen_texture, SCREEN_UV + vec2(0.0, axis_offset.y), blur_lod).rgb) * 0.11;
-		bloom_color += glow_bright_pass(textureLod(screen_texture, SCREEN_UV - vec2(0.0, axis_offset.y), blur_lod).rgb) * 0.11;
-		bloom_color += glow_bright_pass(textureLod(screen_texture, SCREEN_UV + diagonal_offset, blur_lod).rgb) * 0.08;
-		bloom_color += glow_bright_pass(textureLod(screen_texture, SCREEN_UV - diagonal_offset, blur_lod).rgb) * 0.08;
-		bloom_color += glow_bright_pass(textureLod(screen_texture, SCREEN_UV + vec2(diagonal_offset.x, -diagonal_offset.y), blur_lod).rgb) * 0.08;
-		bloom_color += glow_bright_pass(textureLod(screen_texture, SCREEN_UV + vec2(-diagonal_offset.x, diagonal_offset.y), blur_lod).rgb) * 0.08;
+		vec3 bloom_color = glow_bright_pass(textureLod(screen_texture, sample_uv, blur_lod).rgb) * 0.24;
+		bloom_color += glow_bright_pass(textureLod(screen_texture, sample_uv + vec2(axis_offset.x, 0.0), blur_lod).rgb) * 0.11;
+		bloom_color += glow_bright_pass(textureLod(screen_texture, sample_uv - vec2(axis_offset.x, 0.0), blur_lod).rgb) * 0.11;
+		bloom_color += glow_bright_pass(textureLod(screen_texture, sample_uv + vec2(0.0, axis_offset.y), blur_lod).rgb) * 0.11;
+		bloom_color += glow_bright_pass(textureLod(screen_texture, sample_uv - vec2(0.0, axis_offset.y), blur_lod).rgb) * 0.11;
+		bloom_color += glow_bright_pass(textureLod(screen_texture, sample_uv + diagonal_offset, blur_lod).rgb) * 0.08;
+		bloom_color += glow_bright_pass(textureLod(screen_texture, sample_uv - diagonal_offset, blur_lod).rgb) * 0.08;
+		bloom_color += glow_bright_pass(textureLod(screen_texture, sample_uv + vec2(diagonal_offset.x, -diagonal_offset.y), blur_lod).rgb) * 0.08;
+		bloom_color += glow_bright_pass(textureLod(screen_texture, sample_uv + vec2(-diagonal_offset.x, diagonal_offset.y), blur_lod).rgb) * 0.08;
 		bloom_color *= bloom_intensity;
 
 		vec3 clamped_bloom = clamp(bloom_color, vec3(0.0), vec3(1.0));
 		vec3 screen_blend = vec3(1.0) - (vec3(1.0) - graded_rgb) * (vec3(1.0) - clamped_bloom);
 		output_rgb = mix(graded_rgb, screen_blend, mix_amount);
 	}
+	output_rgb = oath_quantize_pixel_color(output_rgb, sample_uv, SCREEN_PIXEL_SIZE);
 	COLOR = vec4(output_rgb, base_color.a);
 }

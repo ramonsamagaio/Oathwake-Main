@@ -1,7 +1,6 @@
 extends Button
 
 const OathwakeTextStyle := preload("res://scripts/ui/OathwakeTextStyle.gd")
-const OathwakeUISkin := preload("res://scripts/ui/OathwakeUISkin.gd")
 
 signal equip_selected(slot_id: String)
 signal equip_right_clicked(slot_id: String)
@@ -25,9 +24,10 @@ func setup(new_slot_id: String, equip_data: Dictionary) -> void:
 
 
 func _update_display() -> void:
-	# The UILayoutWorkbench owns the final slot rectangle. A minimum size here used
-	# to silently expand authored 41x46 slots to 150x52, causing item icons and input
-	# hitboxes to overlap neighboring equipment slots at runtime.
+	# UILayoutWorkbench owns this exact rectangle. Equipment buttons are only an
+	# interaction/icon overlay on top of artwork already baked into the inventory.
+	# Theme StyleBoxTextures have content margins and therefore must never be
+	# allowed to dictate the minimum size of these authored hitboxes.
 	custom_minimum_size = Vector2.ZERO
 	clip_contents = true
 	focus_mode = Control.FOCUS_NONE
@@ -255,16 +255,25 @@ func _make_tooltip(item_data: Dictionary) -> String:
 func _apply_slot_style() -> void:
 	if is_broken:
 		var broken_style := StyleBoxFlat.new()
-		broken_style.bg_color = Color(0.45, 0.08, 0.07, 0.92)
+		broken_style.bg_color = Color(0.45, 0.08, 0.07, 0.72)
 		broken_style.border_color = Color(0.95, 0.22, 0.18, 1.0)
 		broken_style.set_border_width_all(2)
+		broken_style.content_margin_left = 0.0
+		broken_style.content_margin_top = 0.0
+		broken_style.content_margin_right = 0.0
+		broken_style.content_margin_bottom = 0.0
 		broken_style.corner_radius_top_left = 4
 		broken_style.corner_radius_top_right = 4
 		broken_style.corner_radius_bottom_left = 4
 		broken_style.corner_radius_bottom_right = 4
-		add_theme_stylebox_override("normal", broken_style)
-		add_theme_stylebox_override("hover", broken_style)
-		add_theme_stylebox_override("pressed", broken_style)
+		for state in ["normal", "hover", "focus", "pressed", "disabled"]:
+			add_theme_stylebox_override(state, broken_style)
 		return
 
-	OathwakeUISkin.apply_slot_button(self, "empty")
+	# The inventory artwork already draws every equipment frame. Using the generic
+	# item-slot StyleBoxTexture here adds its 46px horizontal content margins to
+	# the Button minimum size and silently expands authored hitboxes. Keep this
+	# overlay visually empty so only the Workbench rectangle controls geometry.
+	var transparent_style := StyleBoxEmpty.new()
+	for state in ["normal", "hover", "focus", "pressed", "disabled"]:
+		add_theme_stylebox_override(state, transparent_style)

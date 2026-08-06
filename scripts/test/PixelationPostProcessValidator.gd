@@ -1,5 +1,7 @@
 extends SceneTree
 
+const SCREEN_EFFECTS_SCENE := preload("res://scenes/effects/ScreenEffects.tscn")
+
 var failures: Array[String] = []
 
 
@@ -27,20 +29,34 @@ func _run() -> void:
 func _validate_project_contract() -> void:
 	var project_text := FileAccess.get_file_as_string("res://project.godot")
 	if not project_text.contains("PixelationPostProcess=\"*res://scripts/effects/PixelationPostProcess.gd\""):
-		failures.append("PixelationPostProcess is not registered as an autoload.")
-	var effect_text := FileAccess.get_file_as_string("res://scripts/effects/PixelationPostProcess.gd")
-	for token in ["POST_PROCESS_LAYER := 6", "PixelFilterButton", "PIXEL FILTER: ON", "PIXEL FILTER: OFF", "LoadButton", "_has_gameplay_ui"]:
-		if not effect_text.contains(token):
-			failures.append("Pixelation runtime contract is missing %s." % token)
+		failures.append("Pixelation controller is not registered as an autoload.")
+	var controller_text := FileAccess.get_file_as_string("res://scripts/effects/PixelationPostProcess.gd")
+	for token in ["PixelFilterButton", "PIXEL FILTER: ON", "PIXEL FILTER: OFF", "LoadButton", "screen_effects"]:
+		if not controller_text.contains(token):
+			failures.append("Pixelation controller is missing %s." % token)
+	for forbidden in ["BackBufferCopy.new", "ShaderMaterial.new", "PIXELATION_SHADER", "PixelationPostProcessLayer"]:
+		if controller_text.contains(forbidden):
+			failures.append("Pixelation controller still owns a second renderer: %s." % forbidden)
+	if FileAccess.file_exists("res://shaders/pixelation_post_process.gdshader"):
+		failures.append("Obsolete standalone pixelation shader still exists and can trigger a second screen-read variant.")
 
 
 func _validate_shader_contract() -> void:
-	var shader_text := FileAccess.get_file_as_string("res://shaders/pixelation_post_process.gdshader")
-	for token in ["filter_nearest", "pixel_size", "strength", "pixel_aspect", "color_steps", "dither_strength", "snapped_uv"]:
+	var shader_text := FileAccess.get_file_as_string("res://shaders/gaussian_glow_screen.gdshader")
+	for token in [
+		"pixelation_enabled", "pixelation_pixel_size", "pixelation_strength",
+		"pixelation_aspect", "pixelation_color_steps", "pixelation_dither_strength",
+		"oath_pixelated_uv", "sample_uv", "oath_quantize_pixel_color",
+	]:
 		if not shader_text.contains(token):
-			failures.append("Pixelation shader is missing %s." % token)
+			failures.append("Unified compositor is missing pixelation token %s." % token)
+	if shader_text.contains("uniform sampler2D pixelation"):
+		failures.append("Unified compositor introduced a second pixelation screen sampler.")
 	if shader_text.contains("for ("):
-		failures.append("Pixelation shader introduced a dynamic loop.")
+		failures.append("Unified compositor introduced a dynamic shader loop.")
+	var scene_text := FileAccess.get_file_as_string("res://scenes/effects/ScreenEffects.tscn")
+	if not scene_text.contains("ScreenEffectsPixelationSuite.gd"):
+		failures.append("ScreenEffects scene is not using the integrated pixelation suite.")
 
 
 func _validate_editor_contract() -> void:
@@ -67,13 +83,39 @@ func _validate_editor_contract() -> void:
 
 
 func _validate_runtime_contract() -> void:
-	var effect := root.get_node_or_null("PixelationPostProcess")
-	if effect == null:
-		failures.append("PixelationPostProcess autoload did not start.")
+	var controller := root.get_node_or_null("PixelationPostProcess")
+	if controller == null:
+		failures.append("PixelationPostProcess controller autoload did not start.")
 		return
-	if not effect.has_method("set_pixelation_runtime_enabled") or not effect.has_method("get_pixelation_settings"):
-		failures.append("PixelationPostProcess does not expose runtime control methods.")
+
+	var screen_effects := SCREEN_EFFECTS_SCENE.instantiate()
+	root.add_child(screen_effects)
+	await process_frame
+	await process_frame
+	controller.call("_sync_screen_effects_target")
+
+	controller.call("set_pixelation_runtime_enabled", true)
+	await process_frame
+	var compositor := screen_effects.get_node_or_null("GaussianGlow") as ColorRect
+	var copy := screen_effects.get_node_or_null("BackBufferCopy") as BackBufferCopy
+	if compositor == null or not (compositor.material is ShaderMaterial):
+		failures.append("Unified ScreenEffects compositor has no ShaderMaterial.")
+		_cleanup(screen_effects)
 		return
+	var material := compositor.material as ShaderMaterial
+	if not bool(material.get_shader_parameter("pixelation_enabled")):
+		failures.append("Runtime toggle did not enable pixelation on the unified compositor.")
+	var settings: Dictionary = controller.call("get_pixelation_settings")
+	if not is_equal_approx(float(material.get_shader_parameter("pixelation_pixel_size")), float(settings.get("pixel_size", -1.0))):
+		failures.append("Pixel Size did not reach the unified compositor.")
+	if not is_equal_approx(float(material.get_shader_parameter("pixelation_strength")), float(settings.get("strength", -1.0))):
+		failures.append("Strength did not reach the unified compositor.")
+	if not is_equal_approx(float(material.get_shader_parameter("pixelation_aspect")), float(settings.get("pixel_aspect", -1.0))):
+		failures.append("Pixel Aspect did not reach the unified compositor.")
+	if copy == null or copy.copy_mode == BackBufferCopy.COPY_MODE_DISABLED:
+		failures.append("Existing ScreenEffects BackBufferCopy is not active while pixelation is enabled.")
+	if not compositor.visible:
+		failures.append("Unified compositor is hidden while pixelation is enabled.")
 
 	var fake_scene := Node2D.new()
 	fake_scene.name = "PixelationButtonProbe"
@@ -93,36 +135,8 @@ func _validate_runtime_contract() -> void:
 	load_button.offset_bottom = 80.0
 	ui.add_child(load_button)
 	current_scene = fake_scene
-	effect.call("_ensure_debug_button")
-	effect.call("set_pixelation_runtime_enabled", true)
+	controller.call("_ensure_debug_button")
 	await process_frame
-
-	var layer := effect.get_node_or_null("PixelationPostProcessLayer") as CanvasLayer
-	if layer == null:
-		failures.append("Pixelation CanvasLayer was not created.")
-		return
-	if layer.layer != 6:
-		failures.append("Pixelation CanvasLayer must remain below gameplay UI layer 10 and above world compositor layer 5.")
-	var copy := layer.get_node_or_null("PixelationBackBufferCopy") as BackBufferCopy
-	var rect := layer.get_node_or_null("PixelationRect") as ColorRect
-	if copy == null or copy.copy_mode == BackBufferCopy.COPY_MODE_DISABLED:
-		failures.append("Pixelation BackBufferCopy did not enable with the runtime filter.")
-	if rect == null or not rect.visible:
-		failures.append("Pixelation ColorRect did not become visible with the runtime filter.")
-	if rect != null and rect.material is ShaderMaterial:
-		var material := rect.material as ShaderMaterial
-		if not bool(material.get_shader_parameter("enabled")):
-			failures.append("Pixelation shader did not receive enabled=true.")
-		var settings: Dictionary = effect.call("get_pixelation_settings")
-		if not is_equal_approx(float(material.get_shader_parameter("pixel_size")), float(settings.get("pixel_size", -1.0))):
-			failures.append("Pixel Size did not reach the pixelation shader.")
-		if not is_equal_approx(float(material.get_shader_parameter("strength")), float(settings.get("strength", -1.0))):
-			failures.append("Strength did not reach the pixelation shader.")
-		if not is_equal_approx(float(material.get_shader_parameter("pixel_aspect")), float(settings.get("pixel_aspect", -1.0))):
-			failures.append("Pixel Aspect did not reach the pixelation shader.")
-	else:
-		failures.append("PixelationRect has no ShaderMaterial.")
-
 	var pixel_button := ui.get_node_or_null("PixelFilterButton") as Button
 	if pixel_button == null:
 		failures.append("Runtime did not create PixelFilterButton beside the debug controls.")
@@ -132,20 +146,17 @@ func _validate_runtime_contract() -> void:
 		if pixel_button.offset_top <= load_button.offset_bottom:
 			failures.append("PixelFilterButton was not placed below LoadButton.")
 
-	effect.call("set_pixelation_runtime_enabled", false)
+	controller.call("set_pixelation_runtime_enabled", false)
 	await process_frame
-	if copy != null and copy.copy_mode != BackBufferCopy.COPY_MODE_DISABLED:
-		failures.append("Pixelation BackBufferCopy stayed active after disabling the filter.")
-	if rect != null and rect.visible:
-		failures.append("Pixelation ColorRect stayed visible after disabling the filter.")
+	if bool(material.get_shader_parameter("pixelation_enabled")):
+		failures.append("Unified compositor stayed pixelated after disabling the runtime filter.")
 
 	current_scene = null
-	effect.call("set_pixelation_runtime_enabled", true)
-	await process_frame
-	if rect != null and rect.visible:
-		failures.append("Pixelation filter renders outside gameplay and could cover standalone editor or intro screens.")
-	if copy != null and copy.copy_mode != BackBufferCopy.COPY_MODE_DISABLED:
-		failures.append("Pixelation BackBufferCopy remains active outside gameplay.")
-	effect.call("set_pixelation_runtime_enabled", false)
 	fake_scene.queue_free()
+	_cleanup(screen_effects)
 	await process_frame
+
+
+func _cleanup(screen_effects: Node) -> void:
+	if is_instance_valid(screen_effects):
+		screen_effects.queue_free()

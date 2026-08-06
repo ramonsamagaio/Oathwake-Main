@@ -4,8 +4,10 @@ on:
   pull_request:
     paths:
       - "project.godot"
-      - "shaders/pixelation_post_process.gdshader"
+      - "shaders/gaussian_glow_screen.gdshader"
       - "scripts/effects/PixelationPostProcess.gd"
+      - "scripts/effects/ScreenEffectsPixelationSuite.gd"
+      - "scenes/effects/ScreenEffects.tscn"
       - "tools/content_editor/ContentEditorPostProcessSuite.gd"
       - "scripts/test/PixelationPostProcessValidator.gd"
       - ".github/workflows/validate-pixelation-post-process.yml"
@@ -41,12 +43,12 @@ jobs:
             --path . \
             --quit-after 240 \
             --verbose 2>&1 | tee pixelation-import.log
-          if grep -E "Parse Error|SCRIPT ERROR|Shader compilation failed|Failed to load script|Error parsing" pixelation-import.log; then
+          if grep -E "Parse Error|SCRIPT ERROR|Shader compilation failed|Failed to load script|Error parsing|version_get_shader" pixelation-import.log; then
             echo "Godot import reported a parser or shader failure."
             exit 1
           fi
 
-      - name: Validate pixelation runtime and editor contract
+      - name: Validate integrated pixelation runtime and editor contract
         shell: bash
         run: |
           set -o pipefail
@@ -55,7 +57,7 @@ jobs:
             --path . \
             --script res://scripts/test/PixelationPostProcessValidator.gd \
             --verbose 2>&1 | tee pixelation-validator.log
-          if grep -E "PIXELATION_POST_PROCESS_VALIDATION_FAILURE|Parse Error|SCRIPT ERROR|Shader compilation failed|Invalid access|Invalid call" pixelation-validator.log; then
+          if grep -E "PIXELATION_POST_PROCESS_VALIDATION_FAILURE|Parse Error|SCRIPT ERROR|Shader compilation failed|Invalid access|Invalid call|version_get_shader" pixelation-validator.log; then
             echo "Pixelation post-process validation failed."
             exit 1
           fi

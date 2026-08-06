@@ -42,6 +42,11 @@ func _polish_branch(node: Node) -> void:
 
 
 func _polish_control(control: Control) -> void:
+	# Authored hit targets such as equipment slots deliberately own exact geometry
+	# from UILayoutWorkbench. They must never inherit the generic 92x42 menu-button
+	# minimum or menu StyleBoxes from this global polish layer.
+	if bool(control.get_meta("preserve_authored_layout", false)):
+		return
 	# The HUD has its own authored textures and transparent hit targets. Applying the
 	# generic menu skin here would paint over HOTBAR.png and the slot artwork.
 	if _must_preserve_authored_hud(control):
