@@ -21,6 +21,14 @@ const GROUP_FIELD_PROBES := {
 	"layered_fog": "env_fog_density",
 	"light_shafts": "env_shafts_intensity",
 }
+const EXPECTED_BUTTERFLY_MONSTERS := [
+	"butterfly_blue",
+	"butterfly_grey",
+	"butterfly_pink",
+	"butterfly_red",
+	"butterfly_white",
+	"butterfly_yellow",
+]
 
 
 func _ready() -> void:
@@ -41,6 +49,7 @@ func _run_contract_probe() -> void:
 		return
 
 	_validate_group_navigation(editor)
+	_validate_butterfly_monster_records(editor)
 	await _validate_window_recovery(launcher)
 	queue_free()
 
@@ -76,6 +85,33 @@ func _validate_group_navigation(editor: Node) -> void:
 	var record_list := editor.get("record_list") as ItemList
 	if record_list == null or record_list.item_count != EXPECTED_GROUPS.size():
 		push_error("Runtime Content Editor contract probe: middle column does not expose all Post Effects groups.")
+
+
+func _validate_butterfly_monster_records(editor: Node) -> void:
+	if not editor.has_method("_select_section") or not editor.has_method("_load_record"):
+		push_error("Runtime Content Editor contract probe: monster navigation methods are unavailable.")
+		return
+	editor.call("_select_section", "monsters", true)
+	var data_store: Object = editor.get("data_store")
+	if data_store == null or not data_store.has_method("has_record"):
+		push_error("Runtime Content Editor contract probe: monster data store is unavailable.")
+		return
+	for butterfly_id in EXPECTED_BUTTERFLY_MONSTERS:
+		if not bool(data_store.call("has_record", "monsters", butterfly_id)):
+			push_error("Runtime Content Editor contract probe: missing supplemental monster record %s." % butterfly_id)
+
+	editor.call("_load_record", "butterfly_blue")
+	var controls_value: Variant = editor.get("field_controls")
+	if not controls_value is Dictionary:
+		push_error("Runtime Content Editor contract probe: butterfly monster form did not expose controls.")
+		return
+	var controls := controls_value as Dictionary
+	for field_name in ["runtime_monster_peaceful", "runtime_monster_fearful"]:
+		if not controls.has(field_name) or not controls[field_name] is CheckBox:
+			push_error("Runtime Content Editor contract probe: butterfly form is missing %s." % field_name)
+	var file_label := editor.get("current_file_label") as Label
+	if file_label == null or not file_label.text.contains("butterfly_monsters.json"):
+		push_error("Runtime Content Editor contract probe: butterfly record is not routed to butterfly_monsters.json.")
 
 
 func _validate_window_recovery(launcher: Node) -> void:
