@@ -1,51 +1,34 @@
 @tool
 extends Node2D
 
+const SMOKE_SHEET_PATH := "res://assets/sprites/effects/FX/PUFFS/Free Smoke Fx  Pixel 07.png"
+const FRAME_SIZE := Vector2i(64, 64)
+const FRAME_COUNT := 16
+const SHEET_ROW_INDEX := 10
+
 @export_group("Profile")
 @export var use_content_db_profile: bool = true
 @export var vfx_profile_id: String = "default"
 @export var auto_play: bool = true
 @export var auto_free_on_finish: bool = true
 
-@export_group("Timing")
-@export_range(0.01, 4.0, 0.01) var lifetime: float = 0.35
+@export_group("Animation")
+@export_range(1.0, 60.0, 0.5) var animation_fps := 28.0
+@export_range(0.05, 4.0, 0.05) var puff_scale := 0.55
+@export_range(-0.25, 0.25, 0.01) var horizontal_variation := 0.08
 
-@export_group("Scale")
-@export_range(0.05, 8.0, 0.05) var puff_scale: float = 1.2
-@export_range(0.05, 4.0, 0.05) var start_scale_min: float = 0.75
-@export_range(0.05, 4.0, 0.05) var start_scale_max: float = 0.95
-@export_range(0.05, 6.0, 0.05) var end_scale_min: float = 1.1
-@export_range(0.05, 6.0, 0.05) var end_scale_max: float = 1.25
-
-@export_group("Sprite Color")
-@export var sprite_tint: Color = Color(0.78, 0.78, 0.70, 0.82)
-@export_range(0.0, 1.0, 0.01) var global_alpha: float = 1.0
-
-@export_group("Motion")
-@export_range(0.0, 1.5, 0.01) var random_rotation_range: float = 0.18
-@export var fade_out: bool = true
-@export var randomize_rotation: bool = true
-
-@onready var puff_sprite: Sprite2D = $Sprite2D
+@onready var puff_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 
 func _ready() -> void:
 	_apply_profile()
-	_apply_visuals()
+	_build_animation()
 	if Engine.is_editor_hint():
 		return
-
-	scale = Vector2.ONE * randf_range(start_scale_min, start_scale_max) * puff_scale
-	if randomize_rotation:
-		rotation = randf_range(-random_rotation_range, random_rotation_range)
-
-	if auto_play:
-		call_deferred("_start_fade")
-
-
-func _process(_delta: float) -> void:
-	if Engine.is_editor_hint():
-		_apply_visuals()
+	puff_sprite.flip_h = randf() > 0.5
+	rotation = randf_range(-horizontal_variation, horizontal_variation)
+	if auto_play and puff_sprite.sprite_frames != null and puff_sprite.sprite_frames.has_animation("dash_smoke"):
+		puff_sprite.play("dash_smoke")
 
 
 func setup_profile(profile_id: String) -> void:
@@ -53,38 +36,57 @@ func setup_profile(profile_id: String) -> void:
 	_apply_profile()
 
 
-func _get_vfx_profile() -> Dictionary:
-	var content_db := get_node_or_null("/root/ContentDB")
-	if content_db != null and content_db.has_method("has_vfx_profile") and content_db.has_vfx_profile(vfx_profile_id):
-		return content_db.get_vfx_profile(vfx_profile_id)
-	if content_db != null and content_db.has_method("has_vfx_profile") and content_db.has_vfx_profile("default"):
-		return content_db.get_vfx_profile("default")
-	return {}
-
-
 func _apply_profile() -> void:
 	if not use_content_db_profile:
 		return
-	var vfx_profile := _get_vfx_profile()
-	var active_lifetime := float(vfx_profile.get("smoke_puff_lifetime", lifetime))
-	var active_scale := float(vfx_profile.get("smoke_puff_scale", puff_scale))
-	lifetime = active_lifetime if active_lifetime > 0.0 else lifetime
-	puff_scale = active_scale if active_scale > 0.0 else puff_scale
-
-
-func _apply_visuals() -> void:
-	if puff_sprite == null:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("has_vfx_profile"):
 		return
-	puff_sprite.modulate = Color(sprite_tint.r, sprite_tint.g, sprite_tint.b, sprite_tint.a * global_alpha)
+	var profile_id := vfx_profile_id if content_db.has_vfx_profile(vfx_profile_id) else "default"
+	if not content_db.has_vfx_profile(profile_id):
+		return
+	var profile: Dictionary = content_db.get_vfx_profile(profile_id)
+	puff_scale = float(profile.get("smoke_puff_scale", puff_scale)) * 0.46
+
+
+func _build_animation() -> void:
+	if puff_sprite == null or not ResourceLoader.exists(SMOKE_SHEET_PATH):
+		return
+	var texture := ResourceLoader.load(SMOKE_SHEET_PATH) as Texture2D
+	if texture == null:
+		return
+	var frames := SpriteFrames.new()
+	frames.remove_animation("default")
+	frames.add_animation("dash_smoke")
+	frames.set_animation_loop("dash_smoke", false)
+	frames.set_animation_speed("dash_smoke", animation_fps)
+	var y := SHEET_ROW_INDEX * FRAME_SIZE.y
+	for frame_index in range(FRAME_COUNT):
+		var x := frame_index * FRAME_SIZE.x
+		if x + FRAME_SIZE.x > texture.get_width() or y + FRAME_SIZE.y > texture.get_height():
+			break
+		var atlas := AtlasTexture.new()
+		atlas.atlas = texture
+		atlas.region = Rect2(x, y, FRAME_SIZE.x, FRAME_SIZE.y)
+		frames.add_frame("dash_smoke", atlas)
+	puff_sprite.sprite_frames = frames
 	puff_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	puff_sprite.scale = Vector2.ONE * puff_scale
+	var callback := Callable(self, "_on_animation_finished")
+	if not puff_sprite.animation_finished.is_connected(callback):
+		puff_sprite.animation_finished.connect(callback)
 
 
-func _start_fade() -> void:
-	var tween := create_tween()
-	tween.set_parallel(true)
-	if fade_out:
-		tween.tween_property(self, "modulate:a", 0.0, lifetime)
-	tween.tween_property(self, "scale", Vector2.ONE * randf_range(end_scale_min, end_scale_max) * puff_scale, lifetime)
-	tween.set_parallel(false)
+func _on_animation_finished() -> void:
 	if auto_free_on_finish:
-		tween.tween_callback(queue_free)
+		queue_free()
+
+
+func get_frame_count() -> int:
+	if puff_sprite == null or puff_sprite.sprite_frames == null or not puff_sprite.sprite_frames.has_animation("dash_smoke"):
+		return 0
+	return puff_sprite.sprite_frames.get_frame_count("dash_smoke")
+
+
+func get_sheet_row_index() -> int:
+	return SHEET_ROW_INDEX
