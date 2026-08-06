@@ -1,9 +1,24 @@
-extends "res://tools/content_editor/ContentEditorSupplementalMonsterSuite.gd"
+extends "res://tools/content_editor/ContentEditorPetSuite.gd"
 
 const MONSTER_RUNTIME_SPEED_FIELD := "runtime_monster_move_speed"
 const MONSTER_ATTACK_CONTACT_FRAME_FIELD := "runtime_monster_attack_contact_frame"
 const MONSTER_PEACEFUL_FIELD := "runtime_monster_peaceful"
 const MONSTER_FEARFUL_FIELD := "runtime_monster_fearful"
+const MONSTER_VISUAL_SCALE_FIELD := "runtime_monster_visual_scale"
+const MONSTER_PARTICLES_ENABLED_FIELD := "runtime_monster_particles_enabled"
+const MONSTER_PARTICLES_AMOUNT_FIELD := "runtime_monster_particles_amount"
+const MONSTER_PARTICLES_COLOR_FIELD := "runtime_monster_particles_color"
+const MONSTER_PARTICLES_LIFETIME_FIELD := "runtime_monster_particles_lifetime"
+const MONSTER_PARTICLES_RADIUS_FIELD := "runtime_monster_particles_radius"
+const MONSTER_PARTICLES_SPEED_MIN_FIELD := "runtime_monster_particles_speed_min"
+const MONSTER_PARTICLES_SPEED_MAX_FIELD := "runtime_monster_particles_speed_max"
+const MONSTER_PARTICLES_GRAVITY_Y_FIELD := "runtime_monster_particles_gravity_y"
+const MONSTER_PARTICLES_SCALE_MIN_FIELD := "runtime_monster_particles_scale_min"
+const MONSTER_PARTICLES_SCALE_MAX_FIELD := "runtime_monster_particles_scale_max"
+const MONSTER_PARTICLES_OFFSET_X_FIELD := "runtime_monster_particles_offset_x"
+const MONSTER_PARTICLES_OFFSET_Y_FIELD := "runtime_monster_particles_offset_y"
+const PLAYER_PARRY_STUN_FIELD := "runtime_player_parry_stun_seconds"
+const PLAYER_DASH_SMOKE_SCALE_FIELD := "runtime_player_dash_smoke_scale"
 const EXISTING_MONSTER_SPEED_FIELDS := [
 	"move_speed",
 	"monster_move_speed",
@@ -70,7 +85,6 @@ func _toggle_editor_maximize() -> void:
 	if not window.is_embedded():
 		super._toggle_editor_maximize()
 		return
-
 	var embedder := window.get_parent() as Window
 	if embedder == null:
 		return
@@ -82,7 +96,6 @@ func _toggle_editor_maximize() -> void:
 		if _maximize_button != null:
 			_maximize_button.text = "Maximize Editor"
 		return
-
 	_embedded_restore_position = window.position
 	_embedded_restore_size = window.size
 	var available_size := Vector2i(embedder.get_visible_rect().size)
@@ -110,6 +123,16 @@ func _build_monster_form() -> void:
 		form_container.add_child(note)
 		_add_float_spin_box("Movement Speed", MONSTER_RUNTIME_SPEED_FIELD, current_speed, 0.0, 1000.0, 0.5)
 
+	_add_subsection_title("Visual Size")
+	_add_float_spin_box(
+		"Sprite Scale Multiplier",
+		MONSTER_VISUAL_SCALE_FIELD,
+		float(current_record.get("visual_scale", 1.0)),
+		0.05,
+		16.0,
+		0.05
+	)
+
 	_add_subsection_title("Disposition")
 	var disposition_note := Label.new()
 	disposition_note.text = "Peaceful monsters never attack the player. Fearful monsters flee while the player is inside their fear radius. Both flags may be enabled together for passive wildlife."
@@ -117,6 +140,25 @@ func _build_monster_form() -> void:
 	form_container.add_child(disposition_note)
 	_add_check_box("Peaceful", MONSTER_PEACEFUL_FIELD, bool(current_record.get("peaceful", false)))
 	_add_check_box("Fearful", MONSTER_FEARFUL_FIELD, bool(current_record.get("fearful", false)))
+
+	_add_subsection_title("Particle Emission")
+	var particles := _record_dictionary(current_record, "particles")
+	var particle_note := Label.new()
+	particle_note.text = "Small continuous pixel particles attached to this monster. Enable this for subtle wildlife trails, spores, sparks or magical residue."
+	particle_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(particle_note)
+	_add_check_box("Enabled", MONSTER_PARTICLES_ENABLED_FIELD, bool(particles.get("enabled", false)))
+	_add_spin_box("Amount", MONSTER_PARTICLES_AMOUNT_FIELD, int(particles.get("amount", 5)), 1, 128, 1)
+	_add_line_edit("Color", MONSTER_PARTICLES_COLOR_FIELD, str(particles.get("color", "#DDEEFFB3")))
+	_add_float_spin_box("Lifetime", MONSTER_PARTICLES_LIFETIME_FIELD, float(particles.get("lifetime", 0.70)), 0.05, 10.0, 0.05)
+	_add_float_spin_box("Emission Radius", MONSTER_PARTICLES_RADIUS_FIELD, float(particles.get("emission_radius", 5.0)), 0.0, 256.0, 0.5)
+	_add_float_spin_box("Speed Min", MONSTER_PARTICLES_SPEED_MIN_FIELD, float(particles.get("speed_min", 3.0)), 0.0, 1000.0, 0.5)
+	_add_float_spin_box("Speed Max", MONSTER_PARTICLES_SPEED_MAX_FIELD, float(particles.get("speed_max", 9.0)), 0.0, 1000.0, 0.5)
+	_add_float_spin_box("Gravity Y", MONSTER_PARTICLES_GRAVITY_Y_FIELD, float(particles.get("gravity_y", 5.0)), -1000.0, 1000.0, 0.5)
+	_add_float_spin_box("Particle Scale Min", MONSTER_PARTICLES_SCALE_MIN_FIELD, float(particles.get("scale_min", 0.8)), 0.05, 16.0, 0.05)
+	_add_float_spin_box("Particle Scale Max", MONSTER_PARTICLES_SCALE_MAX_FIELD, float(particles.get("scale_max", 1.3)), 0.05, 16.0, 0.05)
+	_add_float_spin_box("Offset X", MONSTER_PARTICLES_OFFSET_X_FIELD, float(particles.get("offset_x", 0.0)), -512.0, 512.0, 0.5)
+	_add_float_spin_box("Offset Y", MONSTER_PARTICLES_OFFSET_Y_FIELD, float(particles.get("offset_y", -18.0)), -512.0, 512.0, 0.5)
 
 	_add_subsection_title("Attack Contact")
 	var attack_note := Label.new()
@@ -143,6 +185,8 @@ func _get_monster_form_record() -> Dictionary:
 		locomotion["move_speed"] = movement_speed
 		record["locomotion"] = locomotion
 		record["move_speed"] = movement_speed
+	if field_controls.has(MONSTER_VISUAL_SCALE_FIELD):
+		record["visual_scale"] = maxf(_get_spin_box_value(MONSTER_VISUAL_SCALE_FIELD), 0.05)
 	if field_controls.has(MONSTER_PEACEFUL_FIELD):
 		var peaceful_control := field_controls[MONSTER_PEACEFUL_FIELD] as CheckBox
 		if peaceful_control != null:
@@ -151,8 +195,66 @@ func _get_monster_form_record() -> Dictionary:
 		var fearful_control := field_controls[MONSTER_FEARFUL_FIELD] as CheckBox
 		if fearful_control != null:
 			record["fearful"] = fearful_control.button_pressed
+	if field_controls.has(MONSTER_PARTICLES_ENABLED_FIELD):
+		var enabled_control := field_controls[MONSTER_PARTICLES_ENABLED_FIELD] as CheckBox
+		var min_speed := maxf(_get_spin_box_value(MONSTER_PARTICLES_SPEED_MIN_FIELD), 0.0)
+		var max_speed := maxf(_get_spin_box_value(MONSTER_PARTICLES_SPEED_MAX_FIELD), min_speed)
+		var min_scale := maxf(_get_spin_box_value(MONSTER_PARTICLES_SCALE_MIN_FIELD), 0.05)
+		var max_scale := maxf(_get_spin_box_value(MONSTER_PARTICLES_SCALE_MAX_FIELD), min_scale)
+		record["particles"] = {
+			"enabled": enabled_control != null and enabled_control.button_pressed,
+			"amount": maxi(_get_spin_box_int(MONSTER_PARTICLES_AMOUNT_FIELD), 1),
+			"color": _get_line_edit_text(MONSTER_PARTICLES_COLOR_FIELD).strip_edges(),
+			"lifetime": maxf(_get_spin_box_value(MONSTER_PARTICLES_LIFETIME_FIELD), 0.05),
+			"emission_radius": maxf(_get_spin_box_value(MONSTER_PARTICLES_RADIUS_FIELD), 0.0),
+			"speed_min": min_speed,
+			"speed_max": max_speed,
+			"gravity_y": _get_spin_box_value(MONSTER_PARTICLES_GRAVITY_Y_FIELD),
+			"scale_min": min_scale,
+			"scale_max": max_scale,
+			"offset_x": _get_spin_box_value(MONSTER_PARTICLES_OFFSET_X_FIELD),
+			"offset_y": _get_spin_box_value(MONSTER_PARTICLES_OFFSET_Y_FIELD),
+			"z_index": 3,
+		}
 	if field_controls.has(MONSTER_ATTACK_CONTACT_FRAME_FIELD):
 		record["attack_hit_frame"] = maxi(_get_spin_box_int(MONSTER_ATTACK_CONTACT_FRAME_FIELD), 1)
+	return record
+
+
+func _build_player_tuning_form() -> void:
+	super._build_player_tuning_form()
+	_add_subsection_title("Parry & Dash FX")
+	var note := Label.new()
+	note.text = "Parry stun controls how long the attacker remains stunned. The authored dash smoke plays exactly once per dash; running keeps the lightweight procedural puff."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(note)
+	_add_float_spin_box(
+		"Parry Stun Duration",
+		PLAYER_PARRY_STUN_FIELD,
+		float(current_record.get("parry_stun_seconds", 1.0)),
+		0.05,
+		10.0,
+		0.05
+	)
+	_add_float_spin_box(
+		"Dash Smoke Sprite Scale",
+		PLAYER_DASH_SMOKE_SCALE_FIELD,
+		float(current_record.get("dash_smoke_scale", 0.55)),
+		0.05,
+		8.0,
+		0.05
+	)
+
+
+func _get_player_tuning_form_record() -> Dictionary:
+	var record := super._get_player_tuning_form_record()
+	if field_controls.has(PLAYER_PARRY_STUN_FIELD):
+		record["parry_stun_seconds"] = maxf(_get_spin_box_value(PLAYER_PARRY_STUN_FIELD), 0.05)
+	if field_controls.has(PLAYER_DASH_SMOKE_SCALE_FIELD):
+		record["dash_smoke_scale"] = maxf(_get_spin_box_value(PLAYER_DASH_SMOKE_SCALE_FIELD), 0.05)
+	record["dash_smoke_start_count"] = 0
+	record["dash_smoke_end_count"] = 0
+	record["dash_smoke_interval"] = maxf(float(record.get("dash_duration", 0.14)) + 1.0, 1.0)
 	return record
 
 

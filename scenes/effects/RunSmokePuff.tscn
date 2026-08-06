@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/effects/RunSmokePuff.gd" id="1_run_smoke_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/placeholders/dash_smoke_placeholder.svg" id="2_run_smoke_texture"]
+
+[node name="RunSmokePuff" type="Node2D"]
+z_index = -1
+script = ExtResource("1_run_smoke_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+texture = ExtResource("2_run_smoke_texture")
+scale = Vector2(0.5, 0.5)

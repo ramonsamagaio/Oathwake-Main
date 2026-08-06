@@ -3,7 +3,7 @@ extends Node2D
 const PARRY_SHEET_PATH := "res://assets/sprites/effects/FX/IMPACTS/parry.png"
 const FRAME_SIZE := Vector2i(64, 64)
 const FRAME_COUNT := 9
-const SHEET_ROW_INDEX := 5
+const SHEET_ROW_INDEX := 4
 
 @export_range(1.0, 60.0, 0.5) var animation_fps := 24.0
 @export_range(0.1, 4.0, 0.05) var visual_scale := 0.85
