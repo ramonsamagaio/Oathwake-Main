@@ -55,22 +55,26 @@ func _validate_player_light_stamina_hud_and_parry() -> void:
 
 	if player.has_method("_sync_player_environment_halo_to_world"):
 		player.call("_sync_player_environment_halo_to_world")
+	if player.has_method("set_player_ground_light_strength"):
+		player.call("set_player_ground_light_strength", 1.0)
 	var night_light: Node2D = player.get_node_or_null("NightLight") as Node2D
-	if night_light != null and night_light.has_method("set_day_night_strength"):
-		night_light.call("set_day_night_strength", 1.0)
 	await process_frame
-	var texture_glow: Sprite2D = null
+	var compact_texture_glow: Sprite2D = null
+	var projected_ground_light: Sprite2D = null
 	var point_light: PointLight2D = null
 	if night_light != null:
-		texture_glow = night_light.get_node_or_null("TextureGlow") as Sprite2D
+		compact_texture_glow = night_light.get_node_or_null("TextureGlow") as Sprite2D
+		projected_ground_light = night_light.get_node_or_null("PlayerGroundLight") as Sprite2D
 		point_light = night_light.get_node_or_null("PointLight2D") as PointLight2D
 	if night_light == null:
 		failures.append("Player has no NightLight node.")
 	else:
-		if not bool(night_light.get("visual_enabled")):
-			failures.append("Visible player ground light is disabled in runtime configuration.")
-		if texture_glow == null or not texture_glow.visible or texture_glow.modulate.a <= 0.001:
-			failures.append("Visible player ground-light texture did not render at full night.")
+		if bool(night_light.get("visual_enabled")):
+			failures.append("Player compact aura was re-enabled instead of using the projected ground layer.")
+		if compact_texture_glow != null and compact_texture_glow.visible:
+			failures.append("Legacy compact TextureGlow is visible.")
+		if projected_ground_light == null or not projected_ground_light.visible or projected_ground_light.modulate.a <= 0.001:
+			failures.append("Dedicated projected player ground light did not render at full night.")
 		if point_light == null or not point_light.enabled or point_light.energy <= 0.001:
 			failures.append("Player PointLight2D did not activate at full night.")
 
