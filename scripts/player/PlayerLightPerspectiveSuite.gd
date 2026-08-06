@@ -1,6 +1,7 @@
 extends "res://scripts/player/PlayerCombatGuardPetSuite.gd"
 
 const RefinementCalculatorScript := preload("res://scripts/systems/RefinementCalculator.gd")
+const PLAYER_GROUND_LIGHT_TEXTURE: Texture2D = preload("res://assets/sprites/effects/glows/glow2.png")
 const MIN_LIGHT_PERSPECTIVE_ANGLE := 15.0
 const MAX_LIGHT_PERSPECTIVE_ANGLE := 90.0
 const DEFAULT_LIGHT_PERSPECTIVE_ANGLE := 50.0
@@ -20,6 +21,14 @@ const NIGHT_READABILITY_VISUAL_PATHS := [
 ]
 
 var _night_readability_material: CanvasItemMaterial
+var _player_ground_light: Sprite2D
+var _player_ground_light_material: CanvasItemMaterial
+var _player_ground_light_enabled := true
+var _player_ground_light_color := DEFAULT_HALO_COLOR
+var _player_ground_light_alpha := DEFAULT_GROUND_HALO_ALPHA
+var _player_ground_light_intensity := DEFAULT_GROUND_HALO_INTENSITY
+var _player_ground_light_blur := DEFAULT_GROUND_HALO_BLUR
+var _player_ground_light_texture_scale := DEFAULT_GROUND_HALO_TEXTURE_SCALE
 
 
 func _setup_character_visual() -> void:
@@ -65,8 +74,6 @@ func _apply_player_light_tuning() -> void:
 		MIN_LIGHT_PERSPECTIVE_ANGLE,
 		MAX_LIGHT_PERSPECTIVE_ANGLE
 	)
-	# The light is projected onto the ground plane. Horizontal expansion creates
-	# the broad footprint while the camera angle compresses the vertical axis.
 	var vertical_projection := clampf(sin(deg_to_rad(perspective_angle)), 0.20, 1.0)
 	var authored_stretch := _light_vector_config("ground_ellipse_scale", DEFAULT_HALO_GROUND_STRETCH)
 	var ground_stretch := Vector2(
@@ -85,18 +92,29 @@ func _apply_player_light_tuning() -> void:
 
 
 func _configure_player_environment_halo(light: Node2D) -> void:
-	# PointLight2D only affects light-reactive CanvasItems. A large portion of the
-	# authored terrain is shader based, so relying on PointLight alone can produce
-	# a technically active light that is visually absent. The soft additive texture
-	# is therefore the visible ground pool, while PointLight still illuminates any
-	# compatible props and sprites.
-	var visual_enabled := bool(_content_light_config.get("visual_aura_enabled", true))
-	var texture_scale := maxf(
+	# Keep the old compact aura disabled. The player now has two independent light
+	# layers: PointLight2D for light-reactive objects and PlayerGroundLight for
+	# shader-driven terrain that ignores CanvasItem lighting.
+	_player_ground_light_enabled = bool(_content_light_config.get("visual_aura_enabled", true))
+	_player_ground_light_color = Color.from_string(
+		str(_content_light_config.get("color", "#FFE6AAFF")),
+		DEFAULT_HALO_COLOR
+	)
+	_player_ground_light_alpha = clampf(
+		float(_content_light_config.get("ground_halo_alpha", DEFAULT_GROUND_HALO_ALPHA)),
+		0.0,
+		1.0
+	)
+	_player_ground_light_intensity = maxf(
+		float(_content_light_config.get("ground_halo_intensity", DEFAULT_GROUND_HALO_INTENSITY)),
+		0.0
+	)
+	_player_ground_light_texture_scale = maxf(
 		float(_content_light_config.get("ground_halo_texture_scale", DEFAULT_GROUND_HALO_TEXTURE_SCALE)),
 		0.01
 	)
-	var ground_halo_intensity := maxf(
-		float(_content_light_config.get("ground_halo_intensity", DEFAULT_GROUND_HALO_INTENSITY)),
+	_player_ground_light_blur = maxf(
+		float(_content_light_config.get("ground_halo_blur", DEFAULT_GROUND_HALO_BLUR)),
 		0.0
 	)
 	var desired_point_light_energy := maxf(
@@ -107,46 +125,97 @@ func _configure_player_environment_halo(light: Node2D) -> void:
 		float(_content_light_config.get("radius_scale", DEFAULT_HALO_RADIUS_SCALE)),
 		DEFAULT_HALO_RADIUS_SCALE
 	)
-	# GlowOverlay multiplies PointLight energy by visual intensity and its radius
-	# by visual scale. Compensating both values keeps the real light independent
-	# from the deliberately subtle texture used on shader-driven terrain.
-	var compensated_point_light_energy := desired_point_light_energy / maxf(ground_halo_intensity, 0.001)
-	var compensated_point_light_scale := desired_point_light_radius / texture_scale
 
 	light.visible = true
-	light.set("visual_enabled", visual_enabled)
+	light.set("visual_enabled", false)
 	light.set("visual_uses_day_night_multiplier", true)
-	light.set("mode", 0)
-	light.set("blend_style", 1)
 	light.set("use_point_light", true)
 	light.set("light_uses_aura_alpha", false)
-	light.set("glow_color", Color.from_string(str(_content_light_config.get("color", "#FFE6AAFF")), DEFAULT_HALO_COLOR))
-	light.set("intensity", ground_halo_intensity)
-	light.set("alpha", clampf(float(_content_light_config.get("ground_halo_alpha", DEFAULT_GROUND_HALO_ALPHA)), 0.0, 1.0))
-	light.set("scale_multiplier", texture_scale)
-	light.set("blur_amount", maxf(float(_content_light_config.get("ground_halo_blur", DEFAULT_GROUND_HALO_BLUR)), 0.0))
+	light.set("glow_color", _player_ground_light_color)
+	light.set("intensity", 1.0)
+	light.set("alpha", 1.0)
+	light.set("scale_multiplier", 1.0)
+	light.set("blur_amount", 0.0)
 	light.set("stretch", Vector2.ONE)
-	light.set("point_light_energy", compensated_point_light_energy)
-	light.set("point_light_scale", compensated_point_light_scale)
+	light.set("point_light_energy", desired_point_light_energy)
+	light.set("point_light_scale", desired_point_light_radius)
 	light.set("day_light_multiplier", 0.0)
 	light.set("night_light_multiplier", maxf(float(_content_light_config.get("night_multiplier", 1.0)), 1.0))
 	light.set("z_index_value", -6)
 	if light.has_method("refresh_from_config"):
 		light.call("refresh_from_config")
-	var texture_glow := light.get_node_or_null("TextureGlow") as Sprite2D
-	if texture_glow != null:
-		texture_glow.show_behind_parent = true
+
+	var compact_texture_glow := light.get_node_or_null("TextureGlow") as Sprite2D
+	if compact_texture_glow != null:
+		compact_texture_glow.visible = false
 	var procedural_glow := light.get_node_or_null("ProceduralGlow") as Sprite2D
 	if procedural_glow != null:
 		procedural_glow.visible = false
-	light.set_meta("player_light_texture_scale", texture_scale)
+
+	_ensure_player_ground_light(light)
+	_configure_player_ground_light_geometry()
+	_set_player_ground_light_strength(0.0)
 	light.set_meta("player_light_desired_energy", desired_point_light_energy)
-	light.set_meta("player_light_compensated_energy_multiplier", compensated_point_light_energy)
 	light.set_meta("player_light_desired_radius", desired_point_light_radius)
-	light.set_meta("player_light_compensated_radius_multiplier", compensated_point_light_scale)
 	set_meta("player_environment_halo_enabled", true)
-	set_meta("player_ground_halo_disabled", false)
-	set_meta("player_visible_ground_light_enabled", visual_enabled)
+	set_meta("player_ground_halo_disabled", not _player_ground_light_enabled)
+	set_meta("player_visible_ground_light_enabled", _player_ground_light_enabled)
+
+
+func _ensure_player_ground_light(light: Node2D) -> void:
+	if _player_ground_light != null and is_instance_valid(_player_ground_light):
+		return
+	_player_ground_light = light.get_node_or_null("PlayerGroundLight") as Sprite2D
+	if _player_ground_light == null:
+		_player_ground_light = Sprite2D.new()
+		_player_ground_light.name = "PlayerGroundLight"
+		light.add_child(_player_ground_light)
+	_player_ground_light.texture = PLAYER_GROUND_LIGHT_TEXTURE
+	_player_ground_light.centered = true
+	_player_ground_light.show_behind_parent = true
+	_player_ground_light.z_index = -6
+	_player_ground_light.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	if _player_ground_light_material == null:
+		_player_ground_light_material = CanvasItemMaterial.new()
+		_player_ground_light_material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		_player_ground_light_material.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
+		_player_ground_light_material.resource_name = "Player Projected Ground Light"
+	_player_ground_light.material = _player_ground_light_material
+	_player_ground_light.set_meta("player_projected_ground_light", true)
+
+
+func _configure_player_ground_light_geometry() -> void:
+	if _player_ground_light == null:
+		return
+	var blur_scale := 1.0 + (_player_ground_light_blur * 0.06)
+	_player_ground_light.scale = Vector2.ONE * _player_ground_light_texture_scale * blur_scale
+	_player_ground_light.set_meta("ground_light_texture_scale", _player_ground_light_texture_scale)
+	_player_ground_light.set_meta("ground_light_blur", _player_ground_light_blur)
+
+
+func _set_player_ground_light_strength(strength: float) -> void:
+	if _player_ground_light == null or not is_instance_valid(_player_ground_light):
+		return
+	var resolved_strength := clampf(strength, 0.0, 1.0)
+	var blur_alpha_divisor := 1.0 + (_player_ground_light_blur * 0.10)
+	var resolved_alpha := (_player_ground_light_alpha / blur_alpha_divisor) * resolved_strength
+	var resolved_intensity := _player_ground_light_intensity * resolved_strength
+	_player_ground_light.visible = _player_ground_light_enabled and resolved_alpha > 0.001
+	_player_ground_light.modulate = Color(
+		_player_ground_light_color.r * resolved_intensity,
+		_player_ground_light_color.g * resolved_intensity,
+		_player_ground_light_color.b * resolved_intensity,
+		resolved_alpha
+	)
+	_player_ground_light.set_meta("player_ground_light_strength", resolved_strength)
+	_player_ground_light.set_meta("player_ground_light_alpha", resolved_alpha)
+
+
+func set_player_ground_light_strength(strength: float) -> void:
+	_set_player_ground_light_strength(strength)
+	var light := get_node_or_null("NightLight") as Node2D
+	if light != null and light.has_method("set_day_night_strength"):
+		light.call("set_day_night_strength", clampf(strength, 0.0, 1.0))
 
 
 func _sync_player_environment_halo_to_world() -> void:
@@ -155,8 +224,6 @@ func _sync_player_environment_halo_to_world() -> void:
 	var light := get_node_or_null("NightLight") as Node2D
 	if light == null or not light.has_method("set_day_night_strength"):
 		return
-	# Runtime tools and previews may create more than one cycle node. The strongest
-	# active night prevents a daytime editor preview from switching gameplay light off.
 	var found_cycle := false
 	var strongest_night := 0.0
 	for cycle in get_tree().get_nodes_in_group("day_night_cycle"):
@@ -167,6 +234,7 @@ func _sync_player_environment_halo_to_world() -> void:
 	if not found_cycle:
 		return
 	light.call("set_day_night_strength", strongest_night)
+	_set_player_ground_light_strength(strongest_night)
 	light.set_meta("player_light_synced_night_strength", strongest_night)
 
 
@@ -189,6 +257,10 @@ func is_player_environment_halo_enabled() -> bool:
 
 func is_player_ground_halo_disabled() -> bool:
 	return bool(get_meta("player_ground_halo_disabled", false))
+
+
+func get_player_ground_light() -> Sprite2D:
+	return _player_ground_light if _player_ground_light != null and is_instance_valid(_player_ground_light) else null
 
 
 func get_current_tool() -> String:
