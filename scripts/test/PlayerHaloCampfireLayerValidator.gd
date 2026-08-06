@@ -37,30 +37,31 @@ func _validate_player_halo_and_readability() -> void:
 	if night_light == null:
 		failures.append("Player is missing NightLight node used by the readability system.")
 	else:
-		# The isolated validator has no DayNightCycle node. Explicitly put the
-		# reusable GlowOverlay into full night before reading visible state.
-		if night_light.has_method("set_day_night_strength"):
-			night_light.call("set_day_night_strength", 1.0)
+		if player.has_method("set_player_ground_light_strength"):
+			player.call("set_player_ground_light_strength", 1.0)
 		await process_frame
-		if not bool(night_light.get("visual_enabled")):
-			failures.append("Player visible ground-light texture is disabled.")
+		if bool(night_light.get("visual_enabled")):
+			failures.append("Player re-enabled the removed compact aura behind the character.")
 		if not bool(night_light.get("visual_uses_day_night_multiplier")):
-			failures.append("Player visible ground light does not follow the day/night cycle.")
+			failures.append("Player PointLight2D does not follow the day/night cycle.")
 		if not bool(night_light.get("use_point_light")):
 			failures.append("Player environment PointLight2D is disabled.")
 		if night_light.scale.x < night_light.scale.y * 2.5:
 			failures.append("Player light is not wide and flat enough to read as a projected ground ellipse.")
 		if night_light.position.y < 8.0:
 			failures.append("Player light is not shifted down onto the ground plane.")
-		var texture_glow := night_light.get_node_or_null("TextureGlow") as Sprite2D
+		var compact_texture_glow := night_light.get_node_or_null("TextureGlow") as Sprite2D
+		var projected_ground_light := night_light.get_node_or_null("PlayerGroundLight") as Sprite2D
 		var procedural_glow := night_light.get_node_or_null("ProceduralGlow") as Sprite2D
 		var point_light := night_light.get_node_or_null("PointLight2D") as PointLight2D
-		if texture_glow == null or not texture_glow.visible or texture_glow.modulate.a <= 0.001:
-			failures.append("Player soft additive ground-light texture is not visibly active at night.")
-		elif texture_glow.scale.x <= 0.01 or texture_glow.scale.y <= 0.01:
-			failures.append("Player visible ground-light texture has no rendered area.")
+		if compact_texture_glow != null and compact_texture_glow.visible:
+			failures.append("Player compact TextureGlow is visible alongside the projected ground light.")
+		if projected_ground_light == null or not projected_ground_light.visible or projected_ground_light.modulate.a <= 0.001:
+			failures.append("Player dedicated projected ground light is not visibly active at night.")
+		elif projected_ground_light.scale.x <= 0.01 or projected_ground_light.scale.y <= 0.01:
+			failures.append("Player projected ground light has no rendered area.")
 		if procedural_glow != null and procedural_glow.visible:
-			failures.append("Player ProceduralGlow is visible in addition to the authored soft texture.")
+			failures.append("Player ProceduralGlow is visible in addition to the dedicated ground light.")
 		if point_light == null or not point_light.enabled or not point_light.visible or point_light.energy < 0.5:
 			failures.append("Player environment PointLight2D is not active or bright enough at night.")
 		elif point_light.texture_scale < 4.0:
