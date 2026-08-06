@@ -3,6 +3,7 @@ extends Node
 signal content_reloaded
 
 const ITEMS_PATH := "res://data/items.json"
+const PET_ITEMS_PATH := "res://data/pet_items.json"
 const RESOURCES_PATH := "res://data/resources.json"
 const BUILDINGS_PATH := "res://data/buildings.json"
 const MONSTERS_PATH := "res://data/monsters.json"
@@ -39,6 +40,7 @@ func _ready() -> void:
 
 func load_all() -> void:
 	items = _load_json_dictionary(ITEMS_PATH)
+	_merge_dictionary(items, _load_json_dictionary(PET_ITEMS_PATH), "pet item")
 	resources = _load_json_dictionary(RESOURCES_PATH)
 	buildings = _load_json_dictionary(BUILDINGS_PATH)
 	monsters = _load_json_dictionary(MONSTERS_PATH)
@@ -244,6 +246,15 @@ func _load_json_dictionary(path: String) -> Dictionary:
 		return {}
 
 	return json.data
+
+
+func _merge_dictionary(target: Dictionary, additions: Dictionary, content_type: String) -> void:
+	for raw_id in additions.keys():
+		var content_id := str(raw_id)
+		if target.has(content_id):
+			push_warning("ContentDB ignored duplicate %s id: %s" % [content_type, content_id])
+			continue
+		target[content_id] = additions[raw_id]
 
 
 func _get_entry(collection: Dictionary, id: String, content_type: String) -> Dictionary:

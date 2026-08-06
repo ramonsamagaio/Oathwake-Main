@@ -52,6 +52,21 @@ func is_collected() -> bool:
 	return collected
 
 
+func collect_for_player(target_player: Node2D) -> bool:
+	if collected:
+		return true
+	if target_player == null or not is_instance_valid(target_player):
+		return false
+	player = target_player
+	magnet_delay_left = 0.0
+	retry_pickup_left = 0.0
+	magnet_active = true
+	set_meta("pet_fetch_requested", true)
+	if global_position.distance_to(player.global_position) <= 12.0:
+		_try_collect()
+	return collected
+
+
 func get_save_data() -> Dictionary:
 	var data := {
 		"item_id": item_id,

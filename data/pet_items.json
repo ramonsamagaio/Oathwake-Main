@@ -1,0 +1,15 @@
+{
+  "butterfly_pet_trinket": {
+    "display_name": "Butterfly Trinket",
+    "description": "Summons a small butterfly that gathers nearby dropped items for its owner.",
+    "item_type": "accessory",
+    "equipment_slot": "trinket",
+    "pet_id": "butterfly_pickup",
+    "pet_behavior": "pickup_items",
+    "pet_pickup_radius": 190.0,
+    "sprite_path": "res://assets/sprites/pets/placeholders/butterfly_pet_placeholder.svg",
+    "stack_size": 1,
+    "tier": 1,
+    "tags": ["pet", "trinket", "pickup"]
+  }
+}

@@ -1,27 +1,13 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/effects/SmokePuff.gd" id="1_smoke_puff_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/placeholders/dash_smoke_placeholder.svg" id="2_smoke_texture"]
 
 [node name="SmokePuff" type="Node2D"]
 z_index = -1
 script = ExtResource("1_smoke_puff_script")
 
-[node name="PuffA" type="Polygon2D" parent="."]
-position = Vector2(-5, 1)
-color = Color(0.62, 0.62, 0.58, 0.72)
-polygon = PackedVector2Array(-3, -3, 3, -3, 3, 3, -3, 3)
-
-[node name="PuffB" type="Polygon2D" parent="."]
-position = Vector2(0, -2)
-color = Color(0.74, 0.74, 0.68, 0.68)
-polygon = PackedVector2Array(-4, -3, 3, -4, 4, 3, -3, 4)
-
-[node name="PuffC" type="Polygon2D" parent="."]
-position = Vector2(5, 1)
-color = Color(0.54, 0.54, 0.5, 0.64)
-polygon = PackedVector2Array(-3, -2, 2, -3, 3, 2, -2, 3)
-
-[node name="PuffD" type="Polygon2D" parent="."]
-position = Vector2(1, 4)
-color = Color(0.68, 0.68, 0.62, 0.55)
-polygon = PackedVector2Array(-2, -2, 2, -2, 2, 2, -2, 2)
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+texture = ExtResource("2_smoke_texture")
+scale = Vector2(0.5, 0.5)
