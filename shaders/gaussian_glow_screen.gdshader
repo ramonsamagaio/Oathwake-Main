@@ -74,24 +74,25 @@ float oath_warm_mask(vec3 color_value) {
 		* smoothstep(0.10, 0.76, max(max(color_value.r, color_value.g), color_value.b));
 }
 
-vec2 oath_pixelated_uv(vec2 uv) {
+vec2 oath_pixelated_uv(vec2 uv, vec2 screen_pixel_size) {
 	float safe_size = max(pixelation_pixel_size, 1.0);
 	float safe_aspect = max(pixelation_aspect, 0.01);
 	vec2 block_pixels = vec2(safe_size * safe_aspect, safe_size);
-	vec2 block_uv = max(SCREEN_PIXEL_SIZE * block_pixels, SCREEN_PIXEL_SIZE);
+	vec2 block_uv = max(screen_pixel_size * block_pixels, screen_pixel_size);
 	vec2 snapped_uv = (floor(uv / block_uv) + vec2(0.5)) * block_uv;
 	snapped_uv = clamp(snapped_uv, vec2(0.0), vec2(1.0));
 	float mix_strength = pixelation_enabled ? clamp(pixelation_strength, 0.0, 1.0) : 0.0;
 	return mix(uv, snapped_uv, mix_strength);
 }
 
-vec3 oath_quantize_pixel_color(vec3 color_value, vec2 sample_uv) {
+vec3 oath_quantize_pixel_color(vec3 color_value, vec2 sample_uv, vec2 screen_pixel_size) {
 	float steps = floor(pixelation_color_steps + 0.5);
 	if (!pixelation_enabled || steps < 2.0) {
 		return color_value;
 	}
 	float denominator = max(steps - 1.0, 1.0);
-	vec2 cell = floor(sample_uv / max(SCREEN_PIXEL_SIZE * max(pixelation_pixel_size, 1.0), SCREEN_PIXEL_SIZE));
+	vec2 cell_size = max(screen_pixel_size * vec2(max(pixelation_pixel_size * pixelation_aspect, 1.0), max(pixelation_pixel_size, 1.0)), screen_pixel_size);
+	vec2 cell = floor(sample_uv / cell_size);
 	float noise_value = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
 	float dither = (noise_value - 0.5) * clamp(pixelation_dither_strength, 0.0, 1.0) / denominator;
 	vec3 shifted = clamp(color_value + vec3(dither), vec3(0.0), vec3(1.0));
@@ -172,7 +173,7 @@ vec3 glow_bright_pass(vec3 color_value) {
 }
 
 void fragment() {
-	vec2 sample_uv = oath_pixelated_uv(SCREEN_UV);
+	vec2 sample_uv = oath_pixelated_uv(SCREEN_UV, SCREEN_PIXEL_SIZE);
 	vec4 base_color = textureLod(screen_texture, sample_uv, 0.0);
 	vec3 graded_rgb = apply_world_grading(base_color.rgb);
 
@@ -206,6 +207,6 @@ void fragment() {
 		vec3 screen_blend = vec3(1.0) - (vec3(1.0) - graded_rgb) * (vec3(1.0) - clamped_bloom);
 		output_rgb = mix(graded_rgb, screen_blend, mix_amount);
 	}
-	output_rgb = oath_quantize_pixel_color(output_rgb, sample_uv);
+	output_rgb = oath_quantize_pixel_color(output_rgb, sample_uv, SCREEN_PIXEL_SIZE);
 	COLOR = vec4(output_rgb, base_color.a);
 }
