@@ -57,7 +57,23 @@ func _validate_tuning_values(tuning: Dictionary) -> void:
 		failures.append("Player tuning light record is missing.")
 		return
 	var light := light_value as Dictionary
-	for key in ["enabled", "visual_aura_enabled", "color", "aura_intensity", "aura_alpha", "aura_scale", "blur", "emission", "radius_scale", "perspective_angle_degrees", "ground_ellipse_scale", "ground_ellipse_offset", "day_multiplier", "night_multiplier", "offset"]:
+	for key in [
+		"enabled",
+		"visual_aura_enabled",
+		"color",
+		"emission",
+		"radius_scale",
+		"perspective_angle_degrees",
+		"ground_ellipse_scale",
+		"ground_ellipse_offset",
+		"ground_halo_alpha",
+		"ground_halo_intensity",
+		"ground_halo_texture_scale",
+		"ground_halo_blur",
+		"day_multiplier",
+		"night_multiplier",
+		"offset",
+	]:
 		if not light.has(key):
 			failures.append("Player light tuning is missing %s." % key)
 	var perspective_angle := float(light.get("perspective_angle_degrees", 0.0))
@@ -98,14 +114,26 @@ func _validate_player_scene(tuning: Dictionary) -> void:
 	if night_light == null:
 		failures.append("Player scene has no NightLight.")
 	else:
-		if bool(night_light.get("visual_enabled")) != bool(light_config.get("visual_aura_enabled", true)):
-			failures.append("Player visible aura does not match Player Tuning.")
+		if bool(night_light.get("visual_enabled")):
+			failures.append("Player compact aura must remain disabled; projected ground light is a separate node.")
 		if not is_equal_approx(float(night_light.get("point_light_energy")), float(light_config.get("emission", 0.0))):
 			failures.append("Player light emission does not match Player Tuning.")
 		if not is_equal_approx(float(night_light.get("point_light_scale")), float(light_config.get("radius_scale", 0.0))):
 			failures.append("Player light radius does not match Player Tuning.")
-		if not is_equal_approx(float(night_light.get("blur_amount")), float(light_config.get("blur", 0.0))):
-			failures.append("Player light blur does not match Player Tuning.")
+		var projected_ground_light := night_light.get_node_or_null("PlayerGroundLight") as Sprite2D
+		var ground_light_enabled := bool(light_config.get("visual_aura_enabled", true))
+		if ground_light_enabled and projected_ground_light == null:
+			failures.append("Player projected ground light was not created from Player Tuning.")
+		elif projected_ground_light != null:
+			var expected_texture_scale := float(light_config.get("ground_halo_texture_scale", 0.20))
+			var expected_blur := float(light_config.get("ground_halo_blur", 2.0))
+			var expected_render_scale := expected_texture_scale * (1.0 + expected_blur * 0.06)
+			if not projected_ground_light.scale.is_equal_approx(Vector2.ONE * expected_render_scale):
+				failures.append("Player projected ground-light scale does not match Player Tuning.")
+			if not is_equal_approx(float(projected_ground_light.get_meta("ground_light_texture_scale", -1.0)), expected_texture_scale):
+				failures.append("Player projected ground-light texture scale metadata does not match Player Tuning.")
+			if not is_equal_approx(float(projected_ground_light.get_meta("ground_light_blur", -1.0)), expected_blur):
+				failures.append("Player projected ground-light blur does not match Player Tuning.")
 		var perspective_angle := clampf(float(light_config.get("perspective_angle_degrees", 50.0)), 15.0, 90.0)
 		var expected_vertical_projection := clampf(sin(deg_to_rad(perspective_angle)), 0.20, 1.0)
 		var ellipse_scale_value: Variant = light_config.get("ground_ellipse_scale", {})
