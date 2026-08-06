@@ -13,12 +13,12 @@
     "walkable": true,
     "monster_spawns": [
       {"monster_id": "slime", "weight": 2.5, "max_alive": 5, "active_time": "any"},
-      {"monster_id": "butterfly_blue", "weight": 1.0, "max_alive": 2, "active_time": "day"},
-      {"monster_id": "butterfly_grey", "weight": 1.0, "max_alive": 2, "active_time": "day"},
-      {"monster_id": "butterfly_pink", "weight": 1.0, "max_alive": 2, "active_time": "day"},
-      {"monster_id": "butterfly_red", "weight": 1.0, "max_alive": 2, "active_time": "day"},
-      {"monster_id": "butterfly_white", "weight": 1.0, "max_alive": 2, "active_time": "day"},
-      {"monster_id": "butterfly_yellow", "weight": 1.0, "max_alive": 2, "active_time": "day"}
+      {"monster_id": "butterfly_blue", "weight": 1.0, "max_alive": 2, "active_time": "any"},
+      {"monster_id": "butterfly_grey", "weight": 1.0, "max_alive": 2, "active_time": "any"},
+      {"monster_id": "butterfly_pink", "weight": 1.0, "max_alive": 2, "active_time": "any"},
+      {"monster_id": "butterfly_red", "weight": 1.0, "max_alive": 2, "active_time": "any"},
+      {"monster_id": "butterfly_white", "weight": 1.0, "max_alive": 2, "active_time": "any"},
+      {"monster_id": "butterfly_yellow", "weight": 1.0, "max_alive": 2, "active_time": "any"}
     ]
   },
   "stone": {
