@@ -119,7 +119,7 @@ static func _make_fade_ramp() -> Gradient:
 	var gradient := Gradient.new()
 	gradient.offsets = PackedFloat32Array([0.0, 0.65, 1.0])
 	gradient.colors = PackedColorArray([
-		Color(1.0, 1.0, 1.0, 0.0),
+		Color(1.0, 1.0, 1.0, 1.0),
 		Color(1.0, 1.0, 1.0, 1.0),
 		Color(1.0, 1.0, 1.0, 0.0),
 	])
