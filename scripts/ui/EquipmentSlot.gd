@@ -25,7 +25,11 @@ func setup(new_slot_id: String, equip_data: Dictionary) -> void:
 
 
 func _update_display() -> void:
-	custom_minimum_size = Vector2(150, 52)
+	# The UILayoutWorkbench owns the final slot rectangle. A minimum size here used
+	# to silently expand authored 41x46 slots to 150x52, causing item icons and input
+	# hitboxes to overlap neighboring equipment slots at runtime.
+	custom_minimum_size = Vector2.ZERO
+	clip_contents = true
 	focus_mode = Control.FOCUS_NONE
 	if item_id.is_empty() or amount <= 0:
 		text = ""
