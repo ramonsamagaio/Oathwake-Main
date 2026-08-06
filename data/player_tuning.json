@@ -40,6 +40,10 @@
 				"x": 2.0,
 				"y": 0.75
 			},
+			"ground_halo_alpha": 0.22,
+			"ground_halo_blur": 2.0,
+			"ground_halo_intensity": 0.75,
+			"ground_halo_texture_scale": 0.2,
 			"night_multiplier": 1.0,
 			"offset": {
 				"x": 0.0,
