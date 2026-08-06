@@ -1,27 +1,36 @@
 {
-	"forest": {
-		"allows_monster_spawn": true,
-		"allows_resource_spawn": true,
-		"display_name": "Forest",
-		"walkable": true
-	},
-	"grass": {
-		"allows_monster_spawn": true,
-		"allows_resource_spawn": true,
-		"display_name": "Grass",
-		"sprite_id": "tile_grass",
-		"walkable": true
-	},
-	"stone": {
-		"allows_monster_spawn": true,
-		"allows_resource_spawn": false,
-		"display_name": "Stone Ground",
-		"walkable": true
-	},
-	"water": {
-		"allows_monster_spawn": false,
-		"allows_resource_spawn": false,
-		"display_name": "Water",
-		"walkable": false
-	}
+  "forest": {
+    "allows_monster_spawn": true,
+    "allows_resource_spawn": true,
+    "display_name": "Forest",
+    "walkable": true
+  },
+  "grass": {
+    "allows_monster_spawn": true,
+    "allows_resource_spawn": true,
+    "display_name": "Grass",
+    "sprite_id": "tile_grass",
+    "walkable": true,
+    "monster_spawns": [
+      {"monster_id": "slime", "weight": 2.5, "max_alive": 5, "active_time": "any"},
+      {"monster_id": "butterfly_blue", "weight": 1.0, "max_alive": 2, "active_time": "any"},
+      {"monster_id": "butterfly_grey", "weight": 1.0, "max_alive": 2, "active_time": "any"},
+      {"monster_id": "butterfly_pink", "weight": 1.0, "max_alive": 2, "active_time": "any"},
+      {"monster_id": "butterfly_red", "weight": 1.0, "max_alive": 2, "active_time": "any"},
+      {"monster_id": "butterfly_white", "weight": 1.0, "max_alive": 2, "active_time": "any"},
+      {"monster_id": "butterfly_yellow", "weight": 1.0, "max_alive": 2, "active_time": "any"}
+    ]
+  },
+  "stone": {
+    "allows_monster_spawn": true,
+    "allows_resource_spawn": false,
+    "display_name": "Stone Ground",
+    "walkable": true
+  },
+  "water": {
+    "allows_monster_spawn": false,
+    "allows_resource_spawn": false,
+    "display_name": "Water",
+    "walkable": false
+  }
 }

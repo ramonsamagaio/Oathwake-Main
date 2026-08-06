@@ -1,5 +1,6 @@
-extends "res://scripts/enemies/EnemyScreenCombatSuite.gd"
+extends "res://scripts/enemies/EnemyBehaviorSuite.gd"
 
+# Runtime chain compatibility: EnemyBehaviorSuite.gd extends EnemyScreenCombatSuite.gd.
 const HitFlashOverlayScript := preload("res://scripts/effects/HitFlashOverlay.gd")
 const ContentGlowRuntime := preload("res://scripts/effects/ContentGlowRuntime.gd")
 const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")

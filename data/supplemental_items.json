@@ -1,0 +1,23 @@
+{
+  "butterfly_wings": {
+    "display_name": "Butterfly Wings",
+    "description": "Delicate wings gathered from wild butterflies. Used in light trinket crafting.",
+    "item_type": "material",
+    "material_family": "monster_part",
+    "tier": 1,
+    "stack_size": 99,
+    "sprite_path": "res://assets/sprites/pets/Butterflies/White.png",
+    "sprite_region": {"x": 0, "y": 0, "w": 16, "h": 16},
+    "tags": ["monster_part", "butterfly", "crafting"]
+  },
+  "campfire": {
+    "display_name": "Campfire",
+    "description": "A placeable campfire item.",
+    "item_type": "building",
+    "building_id": "campfire",
+    "sprite_id": "campfire",
+    "stack_size": 20,
+    "tier": 1,
+    "tags": ["building", "light", "placeable"]
+  }
+}

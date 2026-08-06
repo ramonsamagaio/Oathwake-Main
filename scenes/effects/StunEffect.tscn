@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/effects/StunEffect.gd" id="1_stun_script"]
+
+[node name="StunEffect" type="Node2D"]
+z_index = 12
+script = ExtResource("1_stun_script")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
+centered = true

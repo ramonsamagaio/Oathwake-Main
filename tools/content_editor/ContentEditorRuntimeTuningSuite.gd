@@ -2,6 +2,8 @@ extends "res://tools/content_editor/ContentEditorUsabilitySuite.gd"
 
 const MONSTER_RUNTIME_SPEED_FIELD := "runtime_monster_move_speed"
 const MONSTER_ATTACK_CONTACT_FRAME_FIELD := "runtime_monster_attack_contact_frame"
+const MONSTER_PEACEFUL_FIELD := "runtime_monster_peaceful"
+const MONSTER_FEARFUL_FIELD := "runtime_monster_fearful"
 const EXISTING_MONSTER_SPEED_FIELDS := [
 	"move_speed",
 	"monster_move_speed",
@@ -108,6 +110,14 @@ func _build_monster_form() -> void:
 		form_container.add_child(note)
 		_add_float_spin_box("Movement Speed", MONSTER_RUNTIME_SPEED_FIELD, current_speed, 0.0, 1000.0, 0.5)
 
+	_add_subsection_title("Disposition")
+	var disposition_note := Label.new()
+	disposition_note.text = "Peaceful monsters never attack the player. Fearful monsters flee while the player is inside their fear radius. Both flags may be enabled together for passive wildlife."
+	disposition_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(disposition_note)
+	_add_check_box("Peaceful", MONSTER_PEACEFUL_FIELD, bool(current_record.get("peaceful", false)))
+	_add_check_box("Fearful", MONSTER_FEARFUL_FIELD, bool(current_record.get("fearful", false)))
+
 	_add_subsection_title("Attack Contact")
 	var attack_note := Label.new()
 	attack_note.text = "Choose the visible attack-animation frame that actually touches the player. Frame 1 is the first frame; preparation frames before the selected contact frame do not deal damage."
@@ -132,9 +142,15 @@ func _get_monster_form_record() -> Dictionary:
 		var locomotion := _record_dictionary(record, "locomotion")
 		locomotion["move_speed"] = movement_speed
 		record["locomotion"] = locomotion
-		# Keep the legacy mirror for older scenes and tools while locomotion remains
-		# the canonical runtime source.
 		record["move_speed"] = movement_speed
+	if field_controls.has(MONSTER_PEACEFUL_FIELD):
+		var peaceful_control := field_controls[MONSTER_PEACEFUL_FIELD] as CheckBox
+		if peaceful_control != null:
+			record["peaceful"] = peaceful_control.button_pressed
+	if field_controls.has(MONSTER_FEARFUL_FIELD):
+		var fearful_control := field_controls[MONSTER_FEARFUL_FIELD] as CheckBox
+		if fearful_control != null:
+			record["fearful"] = fearful_control.button_pressed
 	if field_controls.has(MONSTER_ATTACK_CONTACT_FRAME_FIELD):
 		record["attack_hit_frame"] = maxi(_get_spin_box_int(MONSTER_ATTACK_CONTACT_FRAME_FIELD), 1)
 	return record

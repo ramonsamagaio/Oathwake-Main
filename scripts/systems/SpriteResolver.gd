@@ -28,7 +28,8 @@ func get_texture_for_item(item_id: String) -> Texture2D:
 	var item_data: Dictionary = content_db.get_item(item_id)
 	var direct_texture_path := str(item_data.get("sprite_path", ""))
 	if not direct_texture_path.is_empty():
-		return _load_texture_path(direct_texture_path, "item_id '%s'" % item_id)
+		var direct_texture := _load_texture_path(direct_texture_path, "item_id '%s'" % item_id)
+		return _apply_optional_region(direct_texture, item_data.get("sprite_region", {}))
 	return get_texture_for_sprite(str(item_data.get("sprite_id", "")))
 
 
@@ -82,6 +83,25 @@ func _load_texture_path(texture_path: String, context: String) -> Texture2D:
 
 	print("SpriteResolver: texture_path is not a Texture2D for %s." % context)
 	return get_placeholder_texture()
+
+
+func _apply_optional_region(texture: Texture2D, region_value: Variant) -> Texture2D:
+	if texture == null or not region_value is Dictionary:
+		return texture
+	var region := region_value as Dictionary
+	var width := float(region.get("w", 0.0))
+	var height := float(region.get("h", 0.0))
+	if width <= 0.0 or height <= 0.0:
+		return texture
+	var atlas := AtlasTexture.new()
+	atlas.atlas = texture
+	atlas.region = Rect2(
+		float(region.get("x", 0.0)),
+		float(region.get("y", 0.0)),
+		width,
+		height
+	)
+	return atlas
 
 
 func _is_usable_texture(texture: Texture2D) -> bool:

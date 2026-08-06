@@ -4,9 +4,11 @@ signal content_reloaded
 
 const ITEMS_PATH := "res://data/items.json"
 const PET_ITEMS_PATH := "res://data/pet_items.json"
+const SUPPLEMENTAL_ITEMS_PATH := "res://data/supplemental_items.json"
 const RESOURCES_PATH := "res://data/resources.json"
 const BUILDINGS_PATH := "res://data/buildings.json"
 const MONSTERS_PATH := "res://data/monsters.json"
+const BUTTERFLY_MONSTERS_PATH := "res://data/butterfly_monsters.json"
 const RECIPES_PATH := "res://data/recipes.json"
 const TERRAIN_TYPES_PATH := "res://data/terrain_types.json"
 const NPCS_PATH := "res://data/npcs.json"
@@ -41,9 +43,11 @@ func _ready() -> void:
 func load_all() -> void:
 	items = _load_json_dictionary(ITEMS_PATH)
 	_merge_dictionary(items, _load_json_dictionary(PET_ITEMS_PATH), "pet item")
+	_merge_dictionary(items, _load_json_dictionary(SUPPLEMENTAL_ITEMS_PATH), "supplemental item")
 	resources = _load_json_dictionary(RESOURCES_PATH)
 	buildings = _load_json_dictionary(BUILDINGS_PATH)
 	monsters = _load_json_dictionary(MONSTERS_PATH)
+	_merge_dictionary(monsters, _load_json_dictionary(BUTTERFLY_MONSTERS_PATH), "butterfly monster")
 	recipes = _load_json_dictionary(RECIPES_PATH)
 	terrain_types = _load_json_dictionary(TERRAIN_TYPES_PATH)
 	npcs = _load_json_dictionary(NPCS_PATH)
