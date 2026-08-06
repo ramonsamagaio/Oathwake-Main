@@ -55,6 +55,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
+	_sync_runtime_day_night_strength()
 	var flicker_value := 1.0
 	if flicker_enabled:
 		var wave := sin((_time * flicker_speed) + _phase)
@@ -271,6 +272,10 @@ func _configure_point_light(current_alpha: float, current_intensity: float, spri
 
 
 func _sync_initial_day_night_strength() -> void:
+	_sync_runtime_day_night_strength()
+
+
+func _sync_runtime_day_night_strength() -> void:
 	var cycle := get_tree().get_first_node_in_group("day_night_cycle")
 	if cycle != null and cycle.has_method("get_night_strength"):
 		_night_strength = clampf(float(cycle.call("get_night_strength")), 0.0, 1.0)
