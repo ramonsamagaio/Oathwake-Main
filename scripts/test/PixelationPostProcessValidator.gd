@@ -29,7 +29,7 @@ func _validate_project_contract() -> void:
 	if not project_text.contains("PixelationPostProcess=\"*res://scripts/effects/PixelationPostProcess.gd\""):
 		failures.append("PixelationPostProcess is not registered as an autoload.")
 	var effect_text := FileAccess.get_file_as_string("res://scripts/effects/PixelationPostProcess.gd")
-	for token in ["POST_PROCESS_LAYER := 6", "PixelFilterButton", "PIXEL FILTER: ON", "PIXEL FILTER: OFF", "LoadButton"]:
+	for token in ["POST_PROCESS_LAYER := 6", "PixelFilterButton", "PIXEL FILTER: ON", "PIXEL FILTER: OFF", "LoadButton", "_has_gameplay_ui"]:
 		if not effect_text.contains(token):
 			failures.append("Pixelation runtime contract is missing %s." % token)
 
@@ -75,8 +75,28 @@ func _validate_runtime_contract() -> void:
 		failures.append("PixelationPostProcess does not expose runtime control methods.")
 		return
 
+	var fake_scene := Node2D.new()
+	fake_scene.name = "PixelationButtonProbe"
+	root.add_child(fake_scene)
+	var ui := CanvasLayer.new()
+	ui.name = "UI"
+	fake_scene.add_child(ui)
+	var load_button := Button.new()
+	load_button.name = "LoadButton"
+	load_button.anchor_left = 1.0
+	load_button.anchor_top = 0.5
+	load_button.anchor_right = 1.0
+	load_button.anchor_bottom = 0.5
+	load_button.offset_left = -180.0
+	load_button.offset_top = 44.0
+	load_button.offset_right = -16.0
+	load_button.offset_bottom = 80.0
+	ui.add_child(load_button)
+	current_scene = fake_scene
+	effect.call("_ensure_debug_button")
 	effect.call("set_pixelation_runtime_enabled", true)
 	await process_frame
+
 	var layer := effect.get_node_or_null("PixelationPostProcessLayer") as CanvasLayer
 	if layer == null:
 		failures.append("Pixelation CanvasLayer was not created.")
@@ -103,26 +123,6 @@ func _validate_runtime_contract() -> void:
 	else:
 		failures.append("PixelationRect has no ShaderMaterial.")
 
-	var fake_scene := Node2D.new()
-	fake_scene.name = "PixelationButtonProbe"
-	root.add_child(fake_scene)
-	var ui := CanvasLayer.new()
-	ui.name = "UI"
-	fake_scene.add_child(ui)
-	var load_button := Button.new()
-	load_button.name = "LoadButton"
-	load_button.anchor_left = 1.0
-	load_button.anchor_top = 0.5
-	load_button.anchor_right = 1.0
-	load_button.anchor_bottom = 0.5
-	load_button.offset_left = -180.0
-	load_button.offset_top = 44.0
-	load_button.offset_right = -16.0
-	load_button.offset_bottom = 80.0
-	ui.add_child(load_button)
-	current_scene = fake_scene
-	effect.call("_ensure_debug_button")
-	await process_frame
 	var pixel_button := ui.get_node_or_null("PixelFilterButton") as Button
 	if pixel_button == null:
 		failures.append("Runtime did not create PixelFilterButton beside the debug controls.")
@@ -138,6 +138,14 @@ func _validate_runtime_contract() -> void:
 		failures.append("Pixelation BackBufferCopy stayed active after disabling the filter.")
 	if rect != null and rect.visible:
 		failures.append("Pixelation ColorRect stayed visible after disabling the filter.")
+
 	current_scene = null
+	effect.call("set_pixelation_runtime_enabled", true)
+	await process_frame
+	if rect != null and rect.visible:
+		failures.append("Pixelation filter renders outside gameplay and could cover standalone editor or intro screens.")
+	if copy != null and copy.copy_mode != BackBufferCopy.COPY_MODE_DISABLED:
+		failures.append("Pixelation BackBufferCopy remains active outside gameplay.")
+	effect.call("set_pixelation_runtime_enabled", false)
 	fake_scene.queue_free()
 	await process_frame
