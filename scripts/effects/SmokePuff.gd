@@ -5,6 +5,7 @@ const SMOKE_SHEET_PATH := "res://assets/sprites/effects/FX/PUFFS/Free Smoke Fx  
 const FRAME_SIZE := Vector2i(64, 64)
 const FRAME_COUNT := 16
 const SHEET_ROW_INDEX := 10
+const FACING_OPTIONS := ["left", "right"]
 
 @export_group("Profile")
 @export var use_content_db_profile: bool = true
@@ -16,6 +17,7 @@ const SHEET_ROW_INDEX := 10
 @export_range(1.0, 60.0, 0.5) var animation_fps := 28.0
 @export_range(0.05, 4.0, 0.05) var puff_scale := 0.55
 @export_range(-0.25, 0.25, 0.01) var horizontal_variation := 0.08
+@export_enum("left", "right") var facing := "right"
 
 @onready var puff_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -25,8 +27,10 @@ func _ready() -> void:
 	_build_animation()
 	if Engine.is_editor_hint():
 		return
-	puff_sprite.flip_h = randf() > 0.5
+	facing = _normalize_facing(facing)
+	puff_sprite.flip_h = facing == "left"
 	rotation = randf_range(-horizontal_variation, horizontal_variation)
+	set_meta("dash_smoke_facing", facing)
 	if auto_play and puff_sprite.sprite_frames != null and puff_sprite.sprite_frames.has_animation("dash_smoke"):
 		puff_sprite.play("dash_smoke")
 
@@ -82,6 +86,11 @@ func _on_animation_finished() -> void:
 		queue_free()
 
 
+func _normalize_facing(value: String) -> String:
+	var normalized := value.strip_edges().to_lower()
+	return normalized if normalized in FACING_OPTIONS else "right"
+
+
 func get_frame_count() -> int:
 	if puff_sprite == null or puff_sprite.sprite_frames == null or not puff_sprite.sprite_frames.has_animation("dash_smoke"):
 		return 0
@@ -90,3 +99,7 @@ func get_frame_count() -> int:
 
 func get_sheet_row_index() -> int:
 	return SHEET_ROW_INDEX
+
+
+func get_facing() -> String:
+	return _normalize_facing(facing)
