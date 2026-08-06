@@ -1,0 +1,75 @@
+name: Validate Inventory Equipment Layout
+
+on:
+  pull_request:
+    paths:
+      - "data/ui_layout.json"
+      - "data/items.json"
+      - "data/pet_items.json"
+      - "scenes/ui/EquipmentSlot.tscn"
+      - "scenes/ui/UILayoutWorkbench.tscn"
+      - "scripts/ui/EquipmentSlot.gd"
+      - "scripts/ui/InventoryUI.gd"
+      - "scripts/ui/InventoryUIExpanded.gd"
+      - "scripts/ui/UILayoutBaker.gd"
+      - "scripts/ui/UILayoutConfig.gd"
+      - "scripts/ui/UILayoutApplier.gd"
+      - "scripts/systems/EquipmentSystem.gd"
+      - "scripts/test/InventoryEquipmentLayoutValidator.gd"
+      - ".github/workflows/validate-inventory-equipment-layout.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot 4.6.3
+        run: |
+          curl --fail --location --retry 4 --retry-delay 3 \
+            --output godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+          ./godot --version
+
+      - name: Import project
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot \
+            --headless \
+            --editor \
+            --path . \
+            --quit-after 240 \
+            --verbose 2>&1 | tee inventory-layout-import.log
+
+      - name: Validate equipment layout and save migration
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot \
+            --headless \
+            --path . \
+            --script res://scripts/test/InventoryEquipmentLayoutValidator.gd \
+            --verbose 2>&1 | tee inventory-layout-validator.log
+          if grep -E "INVENTORY_EQUIPMENT_LAYOUT_VALIDATION_FAILURE|Parse Error|SCRIPT ERROR|Invalid access|Invalid call" inventory-layout-validator.log; then
+            echo "Inventory equipment layout validation failed."
+            exit 1
+          fi
+          grep -q "INVENTORY_EQUIPMENT_LAYOUT_VALIDATION_PASS" inventory-layout-validator.log
+
+      - name: Upload validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventory-equipment-layout-validation
+          path: |
+            inventory-layout-import.log
+            inventory-layout-validator.log
