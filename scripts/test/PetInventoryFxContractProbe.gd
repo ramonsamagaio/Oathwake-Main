@@ -148,7 +148,7 @@ func _validate_butterfly_reload_contract() -> void:
 	if sprite == null or not sprite.visible:
 		push_error("Pet contract probe: butterfly primary sprite became hidden after live content reload.")
 	elif sprite.sprite_frames == null or sprite.sprite_frames.get_animation_names().is_empty():
-		push_error("Pet contract probe: butterfly lost its animation frames after live content reload.")	
+		push_error("Pet contract probe: butterfly lost its animation frames after live content reload.")
 	butterfly.queue_free()
 	await get_tree().process_frame
 
@@ -166,7 +166,7 @@ func _validate_dash_smoke_facing_contract() -> void:
 		if not smoke.has_method("get_facing") or str(smoke.call("get_facing")) != facing_value:
 			push_error("Pet contract probe: dash smoke did not preserve facing %s." % facing_value)
 		var sprite := smoke.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
-		var expected_flip := facing_value == "left"
+		var expected_flip: bool = facing_value == "left"
 		if sprite == null or sprite.flip_h != expected_flip:
 			push_error("Pet contract probe: dash smoke flip does not match facing %s." % facing_value)
 		smoke.queue_free()
