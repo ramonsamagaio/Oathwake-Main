@@ -25,6 +25,15 @@ The active inheritance chain is:
 
 Combat, guard, stun and equipped-pet behavior must remain in the combat suite rather than being duplicated in the WIP visual layer.
 
+## Enemy runtime chain
+
+`EnemyBaseEnhanced.gd` extends `EnemyBehaviorSuite.gd`, which extends `EnemyScreenCombatSuite.gd` and then `EnemyBase.gd`.
+
+- `peaceful = true` prevents contact attacks.
+- `fearful = true` makes the monster flee while the player is inside `fear_radius`.
+- Peaceful and fearful may be enabled together for passive wildlife.
+- Monster disposition is editable through the Content Editor checkboxes `Peaceful` and `Fearful`.
+
 ## Combat action contract
 
 - Player and monsters must have zero locomotion velocity throughout attack windup, contact and recovery.
@@ -34,27 +43,69 @@ Combat, guard, stun and equipped-pet behavior must remain in the combat suite ra
 - Normal blocking reduces incoming damage but does not stun the attacker.
 - Player and monsters expose `apply_stun(duration, source)`, `is_stunned()` and `get_stun_time_left()`.
 - Monster attack results include the attacking node under `source`, allowing the defender to parry the correct attacker at the authored contact frame.
+- While stunned, player and monsters display the looping seven-frame `StunEffect` above the head.
 
-## Pet equipment contract
+## Butterfly pet contract
 
-- Pet item: `butterfly_pet_trinket`
-- Pet id: `butterfly_pickup`
-- Behavior: follows the player and fetches nearby nodes in the `world_item` group.
-- World drops expose `collect_for_player(player)` so pets reuse the normal inventory pickup path.
-- Gameplay addresses the equipment slot as `trinket`.
-- Provisional UI mapping: `trinket` currently aliases the existing `back` slot until a dedicated trinket slot is drawn and added to the inventory artwork.
-- Equipping or unequipping emits `EquipmentSystem.changed`, and the player refreshes the active pet automatically.
+Six butterfly pet variants are registered:
 
-## Replaceable placeholder sprites
+- Blue: `butterfly_pet_trinket`
+- Grey: `grey_butterfly_trinket`
+- Pink: `pink_butterfly_trinket`
+- Red: `red_butterfly_trinket`
+- White: `white_butterfly_trinket`
+- Yellow: `yellow_butterfly_trinket`
 
-These are deliberately isolated so final pixel-art assets can replace them without changing gameplay code:
+All variants:
 
-- Dash smoke: `assets/sprites/effects/placeholders/dash_smoke_placeholder.svg`
-- Parry effect: `assets/sprites/effects/placeholders/parry_effect_placeholder.svg`
-- Butterfly pet: `assets/sprites/pets/placeholders/butterfly_pet_placeholder.svg`
+- use the five-frame 16x16 sheets in `assets/sprites/pets/Butterflies`;
+- follow the player through curved, fluttering steering rather than a fixed offset;
+- roam near a stationary player instead of remaining attached to one point;
+- trail a moving player at their own speed;
+- fetch nearby nodes in the `world_item` group;
+- use a ground shadow positioned far below the sprite to communicate high flight.
+
+World drops expose `collect_for_player(player)` so pets reuse the normal inventory pickup path. Gameplay addresses the equipment slot as `trinket`; it currently aliases the existing `back` slot until a dedicated trinket slot is drawn.
+
+## Wild butterflies
+
+The six wild butterfly monster ids are:
+
+- `butterfly_blue`
+- `butterfly_grey`
+- `butterfly_pink`
+- `butterfly_red`
+- `butterfly_white`
+- `butterfly_yellow`
+
+Each wild butterfly has 10 health, is peaceful and fearful, wanders with fluttering flight, and drops only `butterfly_wings`.
+
+## Terrain-driven spawning
+
+Natural monster spawning is configured through each terrain type's `monster_spawns` list.
+
+- `grass` currently includes slime and all six butterfly colors.
+- Natural spawn candidates must be outside the current camera rectangle plus the configured safety margin.
+- Per-species `max_alive` values and weighted selection prevent one creature from saturating the map.
+- Campfire safe radii continue to reject nearby spawn positions.
+
+## Final effect assets
+
+- Dash smoke uses one-based row 11 from `assets/sprites/effects/FX/PUFFS/Free Smoke Fx  Pixel 07.png`.
+- Parry uses one-based row 6 from `assets/sprites/effects/FX/IMPACTS/parry.png`.
+- Stun loops `STUN_0001.png` through `STUN_0007.png` from `assets/sprites/effects/FX/CONDITIONS/STUN`.
 
 Runtime scenes:
 
 - `scenes/effects/SmokePuff.tscn`
 - `scenes/effects/ParryEffect.tscn`
+- `scenes/effects/StunEffect.tscn`
 - `scenes/pets/ButterflyPet.tscn`
+- `scenes/enemies/ButterflyMonster.tscn`
+
+## Supplemental content files
+
+- `data/pet_items.json` contains the six pet trinkets.
+- `data/butterfly_monsters.json` contains the six wild butterflies.
+- `data/supplemental_items.json` contains `butterfly_wings` and the inventory-valid `campfire` item.
+- `ContentDB.gd` merges these files into the normal item and monster dictionaries at runtime.
