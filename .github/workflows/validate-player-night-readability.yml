@@ -3,24 +3,42 @@ name: Validate Player Night Readability
 on:
   pull_request:
     paths:
+      - "data/player_tuning.json"
+      - "data/sfx_profiles.json"
       - "scenes/Player.tscn"
+      - "scenes/ui/HUDStatusUI.tscn"
       - "scripts/player/PlayerLightPerspectiveSuite.gd"
+      - "scripts/player/PlayerRuntimeTuningFxSuite.gd"
+      - "scripts/ui/HUDStatusUIStaminaSuite.gd"
+      - "scripts/effects/MonsterParticleRuntime.gd"
+      - "scripts/pets/ButterflyPickupPetTuningSuite.gd"
+      - "tools/content_editor/ContentEditorPetSaveDashSideSuite.gd"
       - "scripts/effects/ScreenEffects.gd"
       - "scripts/buildings/BuildingLightingSuite.gd"
       - "shaders/gaussian_glow_screen.gdshader"
       - "scripts/test/WorldPostProcessingValidator.gd"
       - "scripts/test/PlayerHaloCampfireLayerValidator.gd"
+      - "scripts/test/PlayerLightStaminaParticleAudioValidator.gd"
       - ".github/workflows/validate-player-night-readability.yml"
   push:
     branches: [main]
     paths:
+      - "data/player_tuning.json"
+      - "data/sfx_profiles.json"
       - "scenes/Player.tscn"
+      - "scenes/ui/HUDStatusUI.tscn"
       - "scripts/player/PlayerLightPerspectiveSuite.gd"
+      - "scripts/player/PlayerRuntimeTuningFxSuite.gd"
+      - "scripts/ui/HUDStatusUIStaminaSuite.gd"
+      - "scripts/effects/MonsterParticleRuntime.gd"
+      - "scripts/pets/ButterflyPickupPetTuningSuite.gd"
+      - "tools/content_editor/ContentEditorPetSaveDashSideSuite.gd"
       - "scripts/effects/ScreenEffects.gd"
       - "scripts/buildings/BuildingLightingSuite.gd"
       - "shaders/gaussian_glow_screen.gdshader"
       - "scripts/test/WorldPostProcessingValidator.gd"
       - "scripts/test/PlayerHaloCampfireLayerValidator.gd"
+      - "scripts/test/PlayerLightStaminaParticleAudioValidator.gd"
       - ".github/workflows/validate-player-night-readability.yml"
 
 jobs:
@@ -66,7 +84,7 @@ jobs:
             exit 1
           fi
 
-      - name: Validate no halo and campfire foreground embers
+      - name: Validate visible player light and campfire foreground embers
         shell: bash
         run: |
           set -o pipefail
@@ -76,7 +94,21 @@ jobs:
             --script res://scripts/test/PlayerHaloCampfireLayerValidator.gd \
             2>&1 | tee /tmp/player-halo-campfire-layer.log
           if grep -E "PLAYER_HALO_CAMPFIRE_LAYER_VALIDATION_FAILURE|Parse Error|SCRIPT ERROR|Invalid access|Invalid call" /tmp/player-halo-campfire-layer.log; then
-            echo "Player halo or campfire ember layering validation failed."
+            echo "Player visible light or campfire ember layering validation failed."
+            exit 1
+          fi
+
+      - name: Validate finite stamina trails and parry audio
+        shell: bash
+        run: |
+          set -o pipefail
+          /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless \
+            --path "$GITHUB_WORKSPACE" \
+            --script res://scripts/test/PlayerLightStaminaParticleAudioValidator.gd \
+            2>&1 | tee /tmp/player-light-stamina-particles-audio.log
+          if grep -E "PLAYER_LIGHT_STAMINA_PARTICLE_AUDIO_VALIDATION_FAILURE|Parse Error|SCRIPT ERROR|Shader compilation failed|Invalid access|Invalid call" /tmp/player-light-stamina-particles-audio.log; then
+            echo "Player light, stamina, particle or parry-audio validation failed."
             exit 1
           fi
 
@@ -89,3 +121,4 @@ jobs:
             /tmp/player-night-import.log
             /tmp/player-night-runtime.log
             /tmp/player-halo-campfire-layer.log
+            /tmp/player-light-stamina-particles-audio.log
