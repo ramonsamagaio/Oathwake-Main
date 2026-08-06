@@ -9,6 +9,10 @@ const DEFAULT_HALO_ENERGY := 0.52
 const DEFAULT_HALO_RADIUS_SCALE := 4.2
 const DEFAULT_HALO_GROUND_STRETCH := Vector2(2.0, 0.75)
 const DEFAULT_HALO_GROUND_OFFSET := Vector2(0.0, 12.0)
+const DEFAULT_GROUND_HALO_ALPHA := 0.22
+const DEFAULT_GROUND_HALO_INTENSITY := 0.75
+const DEFAULT_GROUND_HALO_TEXTURE_SCALE := 0.20
+const DEFAULT_GROUND_HALO_BLUR := 2.0
 const NIGHT_READABILITY_VISUAL_PATHS := [
 	NodePath("Body"),
 	NodePath("AnimatedSprite2D"),
@@ -61,9 +65,8 @@ func _apply_player_light_tuning() -> void:
 		MIN_LIGHT_PERSPECTIVE_ANGLE,
 		MAX_LIGHT_PERSPECTIVE_ANGLE
 	)
-	# The player light is projected onto the ground plane, not wrapped around the
-	# character. Horizontal expansion establishes the broad footprint while the
-	# camera angle compresses its vertical axis to sell top-down depth.
+	# The light is projected onto the ground plane. Horizontal expansion creates
+	# the broad footprint while the camera angle compresses the vertical axis.
 	var vertical_projection := clampf(sin(deg_to_rad(perspective_angle)), 0.20, 1.0)
 	var authored_stretch := _light_vector_config("ground_ellipse_scale", DEFAULT_HALO_GROUND_STRETCH)
 	var ground_stretch := Vector2(
@@ -82,18 +85,24 @@ func _apply_player_light_tuning() -> void:
 
 
 func _configure_player_environment_halo(light: Node2D) -> void:
-	# Only the broad PointLight2D is rendered. A second TextureGlow layer creates
-	# a hard-edged disc over pixel-art terrain, so it stays disabled while the
-	# parent node scale still projects the light into the authored ground ellipse.
+	# PointLight2D only affects light-reactive CanvasItems. A large portion of the
+	# authored terrain is shader based, so relying on PointLight alone can produce
+	# a technically active light that is visually absent. The soft additive texture
+	# is therefore the visible ground pool, while PointLight still illuminates any
+	# compatible props and sprites.
+	var visual_enabled := bool(_content_light_config.get("visual_aura_enabled", true))
 	light.visible = true
-	light.set("visual_enabled", false)
-	light.set("visual_uses_day_night_multiplier", false)
+	light.set("visual_enabled", visual_enabled)
+	light.set("visual_uses_day_night_multiplier", true)
+	light.set("mode", 0)
+	light.set("blend_style", 1)
 	light.set("use_point_light", true)
 	light.set("light_uses_aura_alpha", false)
 	light.set("glow_color", Color.from_string(str(_content_light_config.get("color", "#FFE6AAFF")), DEFAULT_HALO_COLOR))
-	light.set("intensity", 1.0)
-	light.set("alpha", 1.0)
-	light.set("scale_multiplier", 1.0)
+	light.set("intensity", maxf(float(_content_light_config.get("ground_halo_intensity", DEFAULT_GROUND_HALO_INTENSITY)), 0.0))
+	light.set("alpha", clampf(float(_content_light_config.get("ground_halo_alpha", DEFAULT_GROUND_HALO_ALPHA)), 0.0, 1.0))
+	light.set("scale_multiplier", maxf(float(_content_light_config.get("ground_halo_texture_scale", DEFAULT_GROUND_HALO_TEXTURE_SCALE)), 0.01))
+	light.set("blur_amount", maxf(float(_content_light_config.get("ground_halo_blur", DEFAULT_GROUND_HALO_BLUR)), 0.0))
 	light.set("stretch", Vector2.ONE)
 	light.set("point_light_energy", maxf(float(_content_light_config.get("emission", DEFAULT_HALO_ENERGY)), DEFAULT_HALO_ENERGY))
 	light.set("point_light_scale", maxf(float(_content_light_config.get("radius_scale", DEFAULT_HALO_RADIUS_SCALE)), DEFAULT_HALO_RADIUS_SCALE))
@@ -104,12 +113,13 @@ func _configure_player_environment_halo(light: Node2D) -> void:
 		light.call("refresh_from_config")
 	var texture_glow := light.get_node_or_null("TextureGlow") as Sprite2D
 	if texture_glow != null:
-		texture_glow.visible = false
+		texture_glow.show_behind_parent = true
 	var procedural_glow := light.get_node_or_null("ProceduralGlow") as Sprite2D
 	if procedural_glow != null:
 		procedural_glow.visible = false
 	set_meta("player_environment_halo_enabled", true)
-	set_meta("player_ground_halo_disabled", true)
+	set_meta("player_ground_halo_disabled", false)
+	set_meta("player_visible_ground_light_enabled", visual_enabled)
 
 
 func _sync_player_environment_halo_to_world() -> void:
@@ -118,9 +128,8 @@ func _sync_player_environment_halo_to_world() -> void:
 	var light := get_node_or_null("NightLight") as Node2D
 	if light == null or not light.has_method("set_day_night_strength"):
 		return
-	# Runtime tools and previews may create more than one cycle node. Using the
-	# strongest active night prevents a daytime editor preview from switching the
-	# real player's light off while the gameplay world is already dark.
+	# Runtime tools and previews may create more than one cycle node. The strongest
+	# active night prevents a daytime editor preview from switching gameplay light off.
 	var found_cycle := false
 	var strongest_night := 0.0
 	for cycle in get_tree().get_nodes_in_group("day_night_cycle"):
