@@ -40,6 +40,7 @@ func _process(delta: float) -> void:
 		return
 	_button_refresh_left = BUTTON_REFRESH_INTERVAL
 	_ensure_debug_button()
+	_sync_renderer_enabled_for_context()
 
 
 func is_pixelation_enabled() -> bool:
@@ -141,17 +142,31 @@ func _reload_config() -> void:
 func _apply_material_settings() -> void:
 	if _material == null or _pixel_rect == null or _back_buffer_copy == null:
 		return
-	var enabled := is_pixelation_enabled()
-	_material.set_shader_parameter("enabled", enabled)
 	_material.set_shader_parameter("pixel_size", _get_pixel_size())
 	_material.set_shader_parameter("strength", _get_strength())
 	_material.set_shader_parameter("pixel_aspect", _get_pixel_aspect())
 	_material.set_shader_parameter("color_steps", _get_color_steps())
 	_material.set_shader_parameter("dither_strength", _get_dither_strength())
-	_pixel_rect.visible = enabled
-	_back_buffer_copy.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT if enabled else BackBufferCopy.COPY_MODE_DISABLED
+	_sync_renderer_enabled_for_context()
 	_update_debug_button()
-	_emit_state_if_changed(enabled)
+	_emit_state_if_changed(is_pixelation_enabled())
+
+
+func _sync_renderer_enabled_for_context() -> void:
+	if _material == null or _pixel_rect == null or _back_buffer_copy == null:
+		return
+	var render_enabled := is_pixelation_enabled() and _has_gameplay_ui()
+	_material.set_shader_parameter("enabled", render_enabled)
+	_pixel_rect.visible = render_enabled
+	_back_buffer_copy.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT if render_enabled else BackBufferCopy.COPY_MODE_DISABLED
+
+
+func _has_gameplay_ui() -> bool:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return false
+	var ui := scene.get_node_or_null("UI")
+	return ui != null and ui.get_node_or_null("LoadButton") is Button
 
 
 func _get_pixel_size() -> float:
