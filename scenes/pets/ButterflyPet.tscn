@@ -1,17 +1,19 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/pets/ButterflyPickupPet.gd" id="1_pet_script"]
-[ext_resource type="Texture2D" path="res://assets/sprites/pets/placeholders/butterfly_pet_placeholder.svg" id="2_pet_texture"]
 
 [node name="ButterflyPet" type="Node2D"]
 script = ExtResource("1_pet_script")
 
 [node name="GroundShadow" type="Polygon2D" parent="."]
-position = Vector2(0, 9)
-color = Color(0.05, 0.04, 0.07, 0.24)
-polygon = PackedVector2Array(-7, -2, 7, -2, 9, 0, 7, 2, -7, 2, -9, 0)
+position = Vector2(0, 27)
+color = Color(0.05, 0.04, 0.07, 0.18)
+polygon = PackedVector2Array(-7, -1.5, 7, -1.5, 9, 0, 7, 1.5, -7, 1.5, -9, 0)
+z_index = -2
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
-texture = ExtResource("2_pet_texture")
-scale = Vector2(0.75, 0.75)
+centered = true
+position = Vector2(0, -18)
+scale = Vector2(2, 2)
+z_index = 2
