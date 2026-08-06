@@ -3,6 +3,7 @@ extends "res://scripts/enemies/EnemyBehaviorSuite.gd"
 # Runtime chain compatibility: EnemyBehaviorSuite.gd extends EnemyScreenCombatSuite.gd.
 const HitFlashOverlayScript := preload("res://scripts/effects/HitFlashOverlay.gd")
 const ContentGlowRuntime := preload("res://scripts/effects/ContentGlowRuntime.gd")
+const MonsterParticleRuntime := preload("res://scripts/effects/MonsterParticleRuntime.gd")
 const WorldDepthRuntime := preload("res://scripts/world/WorldDepthRuntime.gd")
 
 
@@ -26,7 +27,7 @@ func _get_fallback_visual_nodes() -> Array:
 			continue
 		if node.is_in_group("persistent_content_visual"):
 			continue
-		if str(node.name) in ["GroundShadow", "ContentGlow", "SlimeGlow", "GlowOverlayNative"]:
+		if str(node.name) in ["GroundShadow", "ContentGlow", "SlimeGlow", "GlowOverlayNative", "ContentParticles"]:
 			continue
 		filtered.append(node)
 	return filtered
@@ -34,6 +35,7 @@ func _get_fallback_visual_nodes() -> Array:
 
 func _apply_content_visual_effects() -> void:
 	ContentGlowRuntime.apply_content_effects(self, monster_data, 24)
+	MonsterParticleRuntime.apply(self, monster_data)
 
 
 func _connect_content_visual_reload() -> void:
@@ -56,6 +58,8 @@ func _refresh_runtime_monster_content() -> void:
 	health = mini(health, max_health)
 	if _monster_locomotion != null and is_instance_valid(_monster_locomotion):
 		_monster_locomotion.configure(monster_data, movement_mode, direction_mode, locomotion_data, speed)
+	if _monster_animator != null and is_instance_valid(_monster_animator):
+		_monster_animator.configure(self, monster_data, animations_data, direction_mode, _get_fallback_visual_nodes())
 	if nameplate != null and is_instance_valid(nameplate):
 		_update_nameplate()
 
