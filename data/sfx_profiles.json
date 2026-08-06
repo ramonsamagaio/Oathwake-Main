@@ -111,5 +111,16 @@
 			"res://assets/audio/sfx/Batalha/HitDoAlvo.mp3"
 		],
 		"volume_db": 0.0
+	},
+	"player_parry": {
+		"bus": "Master",
+		"display_name": "Player Parry Placeholder",
+		"max_distance": 640.0,
+		"pitch_max": 1.05,
+		"pitch_min": 0.95,
+		"stream_paths": [
+			"res://assets/audio/sfx/Batalha/Critico01.mp3"
+		],
+		"volume_db": -4.0
 	}
 }
