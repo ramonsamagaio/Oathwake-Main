@@ -2,6 +2,7 @@ extends "res://scripts/player/PlayerLifeAnimationSuite.gd"
 
 const ParryEffectScene := preload("res://scenes/effects/ParryEffect.tscn")
 const ButterflyPetScene := preload("res://scenes/pets/ButterflyPet.tscn")
+const StunEffectScene := preload("res://scenes/effects/StunEffect.tscn")
 const TRINKET_SLOT_ID := "trinket"
 
 @export_group("Guard")
@@ -15,6 +16,7 @@ const TRINKET_SLOT_ID := "trinket"
 var _blocking := false
 var _parry_window_left := 0.0
 var _stun_time_left := 0.0
+var _stun_effect: Node2D
 var _active_pet: Node2D
 var _equipped_pet_item_id := ""
 var _bound_equipment_system: Object
@@ -77,6 +79,7 @@ func _update_guard_timers(delta: float) -> void:
 	if _stun_time_left <= 0.0 and bool(get_meta("combat_stunned", false)):
 		set_meta("combat_stunned", false)
 		modulate = Color.WHITE
+		_remove_stun_effect()
 
 
 func _tick_locked_combat_timers(delta: float) -> void:
@@ -124,7 +127,23 @@ func apply_stun(duration := -1.0, _source: Node = null) -> void:
 	velocity = Vector2.ZERO
 	set_meta("combat_stunned", true)
 	modulate = Color(0.78, 0.86, 1.0, 1.0)
+	_ensure_stun_effect()
 	FloatingCombatTextSpawner.show_text("STUN", global_position + Vector2(0, -34), Color(0.72, 0.88, 1.0, 1.0), false, "damage_number")
+
+
+func _ensure_stun_effect() -> void:
+	if _stun_effect != null and is_instance_valid(_stun_effect):
+		return
+	_stun_effect = StunEffectScene.instantiate() as Node2D
+	add_child(_stun_effect)
+	_stun_effect.position = Vector2(0.0, -44.0)
+	_stun_effect.z_index = 20
+
+
+func _remove_stun_effect() -> void:
+	if _stun_effect != null and is_instance_valid(_stun_effect):
+		_stun_effect.queue_free()
+	_stun_effect = null
 
 
 func is_stunned() -> bool:
@@ -250,18 +269,17 @@ func refresh_equipped_pet() -> void:
 	if item_id.is_empty():
 		return
 	var item_data := _get_item_data(item_id)
-	var pet_id := str(item_data.get("pet_id", ""))
-	if pet_id != "butterfly_pickup":
+	if str(item_data.get("pet_family", "")) != "butterfly":
 		return
 	var parent := get_parent()
 	if parent == null:
 		return
 	_active_pet = ButterflyPetScene.instantiate() as Node2D
 	parent.add_child(_active_pet)
-	_active_pet.global_position = global_position + Vector2(-20, -18)
+	_active_pet.global_position = global_position + Vector2(-32, -18)
 	if _active_pet.has_method("setup"):
 		_active_pet.call("setup", self, item_data)
-	set_meta("equipped_pet_id", pet_id)
+	set_meta("equipped_pet_id", str(item_data.get("pet_id", "")))
 
 
 func _remove_active_pet() -> void:
