@@ -171,7 +171,9 @@ func apply_combat_result(combat_result: Dictionary) -> void:
 
 	if _blocking:
 		var source_value: Variant = combat_result.get("source", null)
-		var source := source_value as Node if source_value is Node else null
+		var source: Node = null
+		if source_value is Node:
+			source = source_value as Node
 		if is_parry_window_active() and source != null and is_instance_valid(source) and source.has_method("apply_stun"):
 			_perform_parry(source)
 			return
@@ -220,8 +222,8 @@ func _bind_pet_equipment() -> void:
 	_unbind_pet_equipment()
 	_bound_equipment_system = equipment_system
 	var callback := Callable(self, "refresh_equipped_pet")
-	if equipment_system.has_signal("changed") and not equipment_system.changed.is_connected(callback):
-		equipment_system.changed.connect(callback)
+	if equipment_system.has_signal("changed") and not equipment_system.is_connected("changed", callback):
+		equipment_system.connect("changed", callback)
 	refresh_equipped_pet()
 
 
@@ -229,8 +231,8 @@ func _unbind_pet_equipment() -> void:
 	if _bound_equipment_system == null:
 		return
 	var callback := Callable(self, "refresh_equipped_pet")
-	if _bound_equipment_system.has_signal("changed") and _bound_equipment_system.changed.is_connected(callback):
-		_bound_equipment_system.changed.disconnect(callback)
+	if _bound_equipment_system.has_signal("changed") and _bound_equipment_system.is_connected("changed", callback):
+		_bound_equipment_system.disconnect("changed", callback)
 	_bound_equipment_system = null
 
 
