@@ -48,7 +48,10 @@ func _can_damage_player() -> bool:
 
 
 func _update_movement(delta: float) -> Dictionary:
-	if not is_visible_for_activation() or is_stunned() or _attack_in_progress:
+	if not is_visible_for_activation():
+		_cancel_active_attack()
+		return _idle_behavior_result()
+	if is_stunned() or _attack_in_progress:
 		return _idle_behavior_result()
 	if not peaceful and behavior != "passive_wanderer":
 		return super._update_movement(delta)
