@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://scripts/effects/ScreenEffects.gd" id="1_screen_effects_script"]
+[ext_resource type="Script" path="res://scripts/effects/ScreenEffectsPixelationSuite.gd" id="1_screen_effects_script"]
 [ext_resource type="PackedScene" path="res://scenes/effects/settings/ScreenEffectsSettings.tscn" id="2_settings_scene"]
 [ext_resource type="Shader" path="res://shaders/gaussian_glow_screen.gdshader" id="3_glow_shader"]
 [ext_resource type="Shader" path="res://shaders/dash_speed_lines.gdshader" id="4_speed_lines_shader"]
@@ -16,6 +16,12 @@ shader_parameter/blur_size = 0.004
 shader_parameter/blur_subdivisions = 8
 shader_parameter/mix_amount = 0.18
 shader_parameter/colored_glow_boost = 0.12
+shader_parameter/pixelation_enabled = false
+shader_parameter/pixelation_pixel_size = 4.0
+shader_parameter/pixelation_strength = 1.0
+shader_parameter/pixelation_aspect = 1.0
+shader_parameter/pixelation_color_steps = 0.0
+shader_parameter/pixelation_dither_strength = 0.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_speed_lines"]
 resource_local_to_scene = true
