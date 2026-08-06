@@ -1,9 +1,8 @@
 [gd_scene load_steps=5 format=3 uid="uid://cn6juf8fptk0e"]
 
-; ContentEditorControlRangesSuite.gd extends ContentEditorLightEmittersSuite.gd.
-; The inherited chain includes ContentEditorRuntimeTuningSuite.gd and centralizes
-; light-only authoring, runtime-safe tuning, workspace scrolling and post effects.
-[ext_resource type="Script" path="res://tools/content_editor/ContentEditorControlRangesSuite.gd" id="1_content_editor_script"]
+; ContentEditorButterflyParticleDefaultsSuite.gd extends the complete editor
+; chain and keeps butterfly particle defaults aligned with runtime behavior.
+[ext_resource type="Script" path="res://tools/content_editor/ContentEditorButterflyParticleDefaultsSuite.gd" id="1_content_editor_script"]
 [ext_resource type="Script" path="res://scripts/test/RuntimeContentEditorContractProbe.gd" id="2_contract_probe"]
 [ext_resource type="Script" path="res://tools/content_editor/StandaloneSystemCursorGuard.gd" id="3_cursor_guard"]
 [ext_resource type="Script" path="res://scripts/test/PetInventoryFxContractProbe.gd" id="4_pet_contract_probe"]
