@@ -2,9 +2,11 @@ extends "res://scripts/player/WIPPlayer.gd"
 
 const FINAL_DASH_SMOKE_SCENE := preload("res://scenes/effects/SmokePuff.tscn")
 const RUN_SMOKE_PUFF_SCENE := preload("res://scenes/effects/RunSmokePuff.tscn")
+const DASH_SMOKE_FACING_OPTIONS := ["left", "right"]
 
 @export_group("Final Dash FX")
 @export_range(0.05, 8.0, 0.05) var dash_smoke_scale := 0.55
+@export_enum("left", "right") var dash_smoke_facing := "right"
 
 
 func _load_player_tuning() -> void:
@@ -14,9 +16,11 @@ func _load_player_tuning() -> void:
 		var tuning: Dictionary = content_db.get_player_tuning("default")
 		parry_stun_seconds = maxf(float(tuning.get("parry_stun_seconds", parry_stun_seconds)), 0.05)
 		dash_smoke_scale = maxf(float(tuning.get("dash_smoke_scale", dash_smoke_scale)), 0.05)
+		dash_smoke_facing = _normalize_dash_smoke_facing(str(tuning.get("dash_smoke_facing", dash_smoke_facing)))
 	_suppress_inherited_dash_smoke_repeats()
 	set_meta("parry_stun_seconds", parry_stun_seconds)
 	set_meta("dash_smoke_scale", dash_smoke_scale)
+	set_meta("dash_smoke_facing", dash_smoke_facing)
 
 
 func _start_dash(direction: Vector2) -> void:
@@ -42,12 +46,14 @@ func _spawn_tuned_dash_smoke_once() -> void:
 		return
 	puff.set("use_content_db_profile", false)
 	puff.set("puff_scale", dash_smoke_scale)
+	puff.set("facing", dash_smoke_facing)
 	parent.add_child(puff)
 	if puff is Node2D:
 		var puff_node := puff as Node2D
 		puff_node.global_position = global_position + Vector2(0.0, 12.0) - dash_direction * 4.0
 		puff_node.z_index = z_index - 1
 		puff_node.set_meta("dash_smoke_single_emission", true)
+		puff_node.set_meta("dash_smoke_facing", dash_smoke_facing)
 
 
 func _spawn_smoke_puff() -> void:
@@ -69,3 +75,8 @@ func _spawn_smoke_puff() -> void:
 		puff_node.global_position = global_position + foot_offset + side_jitter
 		puff_node.z_index = z_index - 1
 		puff_node.set_meta("run_smoke_emission", true)
+
+
+func _normalize_dash_smoke_facing(value: String) -> String:
+	var normalized := value.strip_edges().to_lower()
+	return normalized if normalized in DASH_SMOKE_FACING_OPTIONS else "right"

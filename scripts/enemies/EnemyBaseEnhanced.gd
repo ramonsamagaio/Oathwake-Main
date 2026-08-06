@@ -27,7 +27,18 @@ func _get_fallback_visual_nodes() -> Array:
 			continue
 		if node.is_in_group("persistent_content_visual"):
 			continue
-		if str(node.name) in ["GroundShadow", "ContentGlow", "SlimeGlow", "GlowOverlayNative", "ContentParticles"]:
+		# AnimatedSprite2D is the primary monster visual, never a fallback. Keeping
+		# it in this list caused live Content Editor reloads to hide butterflies
+		# while their independent particle node remained visible.
+		if str(node.name) in [
+			"AnimatedSprite2D",
+			"MonsterSprite",
+			"GroundShadow",
+			"ContentGlow",
+			"SlimeGlow",
+			"GlowOverlayNative",
+			"ContentParticles",
+		]:
 			continue
 		filtered.append(node)
 	return filtered
@@ -60,6 +71,10 @@ func _refresh_runtime_monster_content() -> void:
 		_monster_locomotion.configure(monster_data, movement_mode, direction_mode, locomotion_data, speed)
 	if _monster_animator != null and is_instance_valid(_monster_animator):
 		_monster_animator.configure(self, monster_data, animations_data, direction_mode, _get_fallback_visual_nodes())
+		# Reassert the current animation immediately. Off-screen peaceful monsters
+		# may not receive a motion tick right after reload, so waiting for the next
+		# AI update could leave their primary sprite hidden indefinitely.
+		_monster_animator.play_state(_motion_state, facing_direction)
 	if nameplate != null and is_instance_valid(nameplate):
 		_update_nameplate()
 
