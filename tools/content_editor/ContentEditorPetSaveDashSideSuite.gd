@@ -1,7 +1,8 @@
 extends "res://tools/content_editor/ContentEditorButterflyParticleDefaultsSuite.gd"
 
-const PLAYER_DASH_SMOKE_FACING_FIELD := "runtime_player_dash_smoke_facing"
-const DASH_SMOKE_FACING_OPTIONS := ["left", "right"]
+const PLAYER_STAMINA_REGEN_FIELD := "runtime_player_stamina_regeneration_per_second"
+const FIXED_DASH_STAMINA_COST := 10.0
+const DEFAULT_STAMINA_REGEN_PER_SECOND := 30.0
 
 
 func _update_action_buttons() -> void:
@@ -23,27 +24,35 @@ func _update_action_buttons() -> void:
 
 func _build_player_tuning_form() -> void:
 	super._build_player_tuning_form()
-	_add_string_option_button(
-		"Dash Smoke Facing",
-		PLAYER_DASH_SMOKE_FACING_FIELD,
-		DASH_SMOKE_FACING_OPTIONS,
-		_normalize_dash_smoke_facing(str(current_record.get("dash_smoke_facing", "right")))
+	_add_subsection_title("Stamina")
+	var note := Label.new()
+	note.text = "Every successful dash spends exactly 10 stamina. Regeneration starts automatically whenever the player is not currently dashing."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(note)
+	_add_read_only_value("Dash Stamina Cost", "10")
+	var regen_control := _add_float_spin_box(
+		"Stamina Regeneration / Second",
+		PLAYER_STAMINA_REGEN_FIELD,
+		float(current_record.get("stamina_regeneration_per_second", DEFAULT_STAMINA_REGEN_PER_SECOND)),
+		0.0,
+		500.0,
+		0.5
 	)
+	regen_control.tooltip_text = "How many stamina points recover automatically per second. At 30, an empty 100-point bar refills in about 3.3 seconds."
 	_add_read_only_value(
-		"Dash Smoke Facing Note",
-		"Choose the fixed horizontal orientation of the authored dash-smoke sprite. It no longer alternates randomly between left and right."
+		"Dash Smoke Direction",
+		"Derived from the lateral dash: left dash uses the left-facing sprite and right dash uses the right-facing sprite. Vertical dashes do not use this sheet."
 	)
 
 
 func _get_player_tuning_form_record() -> Dictionary:
 	var record := super._get_player_tuning_form_record()
-	if field_controls.has(PLAYER_DASH_SMOKE_FACING_FIELD):
-		record["dash_smoke_facing"] = _normalize_dash_smoke_facing(
-			str(_get_option_button_metadata(PLAYER_DASH_SMOKE_FACING_FIELD))
+	if field_controls.has(PLAYER_STAMINA_REGEN_FIELD):
+		record["stamina_regeneration_per_second"] = maxf(
+			_get_spin_box_value(PLAYER_STAMINA_REGEN_FIELD),
+			0.0
 		)
+	record["max_stamina"] = maxf(float(record.get("max_stamina", 100.0)), 1.0)
+	record["dash_stamina_cost"] = FIXED_DASH_STAMINA_COST
+	record.erase("dash_smoke_facing")
 	return record
-
-
-func _normalize_dash_smoke_facing(value: String) -> String:
-	var normalized := value.strip_edges().to_lower()
-	return normalized if normalized in DASH_SMOKE_FACING_OPTIONS else "right"

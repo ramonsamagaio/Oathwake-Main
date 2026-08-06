@@ -125,6 +125,15 @@ func _idle_behavior_result() -> Dictionary:
 func _direction_name(direction: Vector2, fallback: String) -> String:
 	if direction.length_squared() <= 0.001:
 		return fallback
+	# Single-direction fauna has only one authored side view. Horizontal motion
+	# selects the visible front; nearly vertical motion preserves the last side
+	# instead of inventing unavailable north/south animation names.
+	if direction_mode == "single":
+		if direction.x > 0.01:
+			return "right"
+		if direction.x < -0.01:
+			return "left"
+		return fallback if fallback == "left" or fallback == "right" else "left"
 	if absf(direction.x) > absf(direction.y):
 		return "right" if direction.x >= 0.0 else "left"
 	return "down" if direction.y >= 0.0 else "up"
