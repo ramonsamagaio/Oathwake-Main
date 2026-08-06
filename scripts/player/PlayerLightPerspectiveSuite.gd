@@ -23,6 +23,12 @@ func _setup_character_visual() -> void:
 	# WIPPlayer finishes creating its runtime SpriteFrames after this override
 	# returns. Deferring keeps every player visual on the same lighting contract.
 	call_deferred("_configure_player_night_readability")
+	call_deferred("_sync_player_environment_halo_to_world")
+
+
+func _physics_process(delta: float) -> void:
+	super._physics_process(delta)
+	_sync_player_environment_halo_to_world()
 
 
 func _configure_player_night_readability() -> void:
@@ -72,6 +78,7 @@ func _apply_player_light_tuning() -> void:
 	light.set_meta("player_light_ground_stretch", ground_stretch)
 	light.set_meta("player_light_projected_scale", projected_scale)
 	_configure_player_environment_halo(light)
+	_sync_player_environment_halo_to_world()
 
 
 func _configure_player_environment_halo(light: Node2D) -> void:
@@ -103,6 +110,28 @@ func _configure_player_environment_halo(light: Node2D) -> void:
 		procedural_glow.visible = false
 	set_meta("player_environment_halo_enabled", true)
 	set_meta("player_ground_halo_disabled", true)
+
+
+func _sync_player_environment_halo_to_world() -> void:
+	if not is_inside_tree():
+		return
+	var light := get_node_or_null("NightLight") as Node2D
+	if light == null or not light.has_method("set_day_night_strength"):
+		return
+	# Runtime tools and previews may create more than one cycle node. Using the
+	# strongest active night prevents a daytime editor preview from switching the
+	# real player's light off while the gameplay world is already dark.
+	var found_cycle := false
+	var strongest_night := 0.0
+	for cycle in get_tree().get_nodes_in_group("day_night_cycle"):
+		if cycle == null or not is_instance_valid(cycle) or not cycle.has_method("get_night_strength"):
+			continue
+		found_cycle = true
+		strongest_night = maxf(strongest_night, clampf(float(cycle.call("get_night_strength")), 0.0, 1.0))
+	if not found_cycle:
+		return
+	light.call("set_day_night_strength", strongest_night)
+	light.set_meta("player_light_synced_night_strength", strongest_night)
 
 
 func _light_vector_config(key: String, fallback: Vector2) -> Vector2:
