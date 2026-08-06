@@ -32,9 +32,8 @@ func _validate_player_light_stamina_hud_and_parry() -> void:
 	test_root.name = "PlayerLightStaminaRuntimeValidation"
 	root.add_child(test_root)
 
-	var cycle: Node = Node.new()
+	var cycle: Node = DAY_NIGHT_SCRIPT.new() as Node
 	cycle.name = "ValidationNightCycle"
-	cycle.set_script(DAY_NIGHT_SCRIPT)
 	test_root.add_child(cycle)
 	cycle.call("set_night")
 	cycle.set_process(false)
