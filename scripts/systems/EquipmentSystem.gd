@@ -34,6 +34,10 @@ const LEGACY_SLOT_ALIASES := {
 	"weapon": "hand_right",
 	"tool": "hand_right",
 	"accessory": "ring_right",
+	# Temporary pet socket: the current inventory artwork already exposes Back.
+	# Gameplay addresses it as Trinket so a dedicated UI slot can replace this
+	# alias later without changing pet items, saves or player code.
+	"trinket": "back",
 }
 
 var equipment_slots := {}
