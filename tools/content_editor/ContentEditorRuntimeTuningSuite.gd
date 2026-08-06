@@ -1,4 +1,4 @@
-extends "res://tools/content_editor/ContentEditorUsabilitySuite.gd"
+extends "res://tools/content_editor/ContentEditorSupplementalMonsterSuite.gd"
 
 const MONSTER_RUNTIME_SPEED_FIELD := "runtime_monster_move_speed"
 const MONSTER_ATTACK_CONTACT_FRAME_FIELD := "runtime_monster_attack_contact_frame"
