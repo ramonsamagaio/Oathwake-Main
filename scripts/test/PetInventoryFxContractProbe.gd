@@ -10,7 +10,9 @@ const EXPECTED_PET_IDS := [
 ]
 const PET_SECTION := "pets"
 const BUTTERFLY_MONSTER_SCENE := preload("res://scenes/enemies/ButterflyMonster.tscn")
-const DASH_SMOKE_SCENE := preload("res://scenes/effects/SmokePuff.tscn")
+const PLAYER_SCENE := preload("res://scenes/Player.tscn")
+const DAY_NIGHT_SCRIPT := preload("res://scripts/world/DayNightCycle.gd")
+const EXPECTED_BUTTERFLY_TEXTURE := "res://assets/sprites/pets/Butterflies/Blue.png"
 
 
 func _ready() -> void:
@@ -32,8 +34,8 @@ func _run_contract_probe() -> void:
 	_validate_monster_and_player_fields(editor)
 	_validate_inventory_contract()
 	_validate_parry_contract()
-	await _validate_butterfly_reload_contract()
-	await _validate_dash_smoke_facing_contract()
+	await _validate_butterfly_reload_and_facing_contract()
+	await _validate_player_dash_stamina_and_light_contract()
 	editor.call("_select_section", "items", true)
 	queue_free()
 
@@ -96,10 +98,12 @@ func _validate_monster_and_player_fields(editor: Node) -> void:
 	for field_name in [
 		"runtime_player_parry_stun_seconds",
 		"runtime_player_dash_smoke_scale",
-		"runtime_player_dash_smoke_facing",
+		"runtime_player_stamina_regeneration_per_second",
 	]:
 		if not controls.has(field_name):
 			push_error("Pet contract probe: missing Player Tuning field %s." % field_name)
+	if controls.has("runtime_player_dash_smoke_facing"):
+		push_error("Pet contract probe: dash smoke facing must be derived from movement, not exposed as an absolute setting.")
 
 
 func _validate_inventory_contract() -> void:
@@ -133,7 +137,7 @@ func _validate_parry_contract() -> void:
 	effect.free()
 
 
-func _validate_butterfly_reload_contract() -> void:
+func _validate_butterfly_reload_and_facing_contract() -> void:
 	var butterfly := BUTTERFLY_MONSTER_SCENE.instantiate() as CharacterBody2D
 	if butterfly == null:
 		push_error("Pet contract probe: ButterflyMonster scene could not be instantiated.")
@@ -147,27 +151,134 @@ func _validate_butterfly_reload_contract() -> void:
 	var sprite := butterfly.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	if sprite == null or not sprite.visible:
 		push_error("Pet contract probe: butterfly primary sprite became hidden after live content reload.")
-	elif sprite.sprite_frames == null or sprite.sprite_frames.get_animation_names().is_empty():
-		push_error("Pet contract probe: butterfly lost its animation frames after live content reload.")
+	elif sprite.sprite_frames == null or not sprite.sprite_frames.has_animation("idle"):
+		push_error("Pet contract probe: butterfly lost its authored idle animation after live content reload.")
+	else:
+		var frame_texture := sprite.sprite_frames.get_frame_texture("idle", 0)
+		var source_path := _texture_source_path(frame_texture)
+		if source_path != EXPECTED_BUTTERFLY_TEXTURE:
+			push_error("Pet contract probe: butterfly loaded %s instead of its own sprite sheet." % source_path)
+
+	var animator := butterfly.get_node_or_null("MonsterAnimator")
+	if animator == null or not animator.has_method("play_state"):
+		push_error("Pet contract probe: butterfly animator is unavailable.")
+	else:
+		animator.call("play_state", "walk", "left")
+		await get_tree().process_frame
+		if sprite != null and sprite.flip_h:
+			push_error("Pet contract probe: authored butterfly front should remain unflipped while moving left.")
+		animator.call("play_state", "walk", "right")
+		await get_tree().process_frame
+		if sprite != null and not sprite.flip_h:
+			push_error("Pet contract probe: butterfly should mirror its authored left-facing front while moving right.")
+
 	butterfly.queue_free()
 	await get_tree().process_frame
 
 
-func _validate_dash_smoke_facing_contract() -> void:
-	for facing_value in ["left", "right"]:
-		var smoke := DASH_SMOKE_SCENE.instantiate() as Node2D
-		if smoke == null:
-			push_error("Pet contract probe: Dash Smoke scene could not be instantiated.")
-			return
-		smoke.set("auto_free_on_finish", false)
-		smoke.set("facing", facing_value)
-		get_tree().root.add_child(smoke)
-		await get_tree().process_frame
-		if not smoke.has_method("get_facing") or str(smoke.call("get_facing")) != facing_value:
-			push_error("Pet contract probe: dash smoke did not preserve facing %s." % facing_value)
-		var sprite := smoke.get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
-		var expected_flip: bool = facing_value == "left"
-		if sprite == null or sprite.flip_h != expected_flip:
-			push_error("Pet contract probe: dash smoke flip does not match facing %s." % facing_value)
-		smoke.queue_free()
-		await get_tree().process_frame
+func _validate_player_dash_stamina_and_light_contract() -> void:
+	var test_root := Node2D.new()
+	test_root.name = "PlayerRuntimeContractRoot"
+	get_tree().root.add_child(test_root)
+
+	var cycle := Node.new()
+	cycle.name = "PlayerRuntimeContractNightCycle"
+	cycle.set_script(DAY_NIGHT_SCRIPT)
+	test_root.add_child(cycle)
+	cycle.call("set_night")
+	cycle.set_process(false)
+
+	var player := PLAYER_SCENE.instantiate() as CharacterBody2D
+	if player == null:
+		push_error("Pet contract probe: Player scene could not be instantiated.")
+		test_root.queue_free()
+		return
+	test_root.add_child(player)
+	player.set_process(false)
+	player.set_physics_process(false)
+	await get_tree().process_frame
+
+	if not player.has_method("get_dash_stamina_cost") or not is_equal_approx(float(player.call("get_dash_stamina_cost")), 10.0):
+		push_error("Pet contract probe: every dash must cost exactly 10 stamina.")
+	if not player.has_method("get_stamina_regeneration_per_second") or float(player.call("get_stamina_regeneration_per_second")) <= 0.0:
+		push_error("Pet contract probe: stamina regeneration must be positive and tunable.")
+
+	_prepare_player_for_dash(player, 100.0)
+	player.call("_start_dash", Vector2.RIGHT)
+	if not is_equal_approx(float(player.call("get_current_stamina")), 90.0):
+		push_error("Pet contract probe: right dash did not spend exactly 10 stamina.")
+	if _last_authored_dash_smoke_facing(test_root) != "right":
+		push_error("Pet contract probe: right dash smoke did not face right relative to movement.")
+	await _clear_authored_dash_smoke(test_root)
+
+	_prepare_player_for_dash(player, 100.0)
+	player.call("_start_dash", Vector2.LEFT)
+	if _last_authored_dash_smoke_facing(test_root) != "left":
+		push_error("Pet contract probe: left dash smoke did not face left relative to movement.")
+	await _clear_authored_dash_smoke(test_root)
+
+	_prepare_player_for_dash(player, 100.0)
+	player.call("_start_dash", Vector2.UP)
+	if _authored_dash_smoke_count(test_root) != 0:
+		push_error("Pet contract probe: vertical dash must not use the lateral dash-smoke sheet.")
+
+	player.set("action_state", 0)
+	player.set("current_stamina", 50.0)
+	player.call("_regenerate_stamina", 0.5)
+	var expected_regen := 50.0 + float(player.call("get_stamina_regeneration_per_second")) * 0.5
+	if not is_equal_approx(float(player.call("get_current_stamina")), minf(expected_regen, float(player.call("get_max_stamina")))):
+		push_error("Pet contract probe: stamina did not regenerate at the configured per-second rate.")
+
+	player.set("current_stamina", 5.0)
+	player.set("action_state", 0)
+	player.call("_start_dash", Vector2.RIGHT)
+	if int(player.get("action_state")) != 0 or not is_equal_approx(float(player.call("get_current_stamina")), 5.0):
+		push_error("Pet contract probe: player dashed without the required 10 stamina.")
+
+	if player.has_method("_sync_player_environment_halo_to_world"):
+		player.call("_sync_player_environment_halo_to_world")
+	await get_tree().process_frame
+	var night_light := player.get_node_or_null("NightLight") as Node2D
+	var point_light := night_light.get_node_or_null("PointLight2D") as PointLight2D if night_light != null else null
+	if point_light == null or not point_light.enabled or point_light.energy <= 0.001:
+		push_error("Pet contract probe: player night light did not activate under an active night cycle.")
+
+	test_root.queue_free()
+	await get_tree().process_frame
+
+
+func _prepare_player_for_dash(player: Node, stamina_value: float) -> void:
+	player.set("action_state", 0)
+	player.set("dash_cooldown_left", 0.0)
+	player.set("dash_time_left", 0.0)
+	player.set("dash_buffered", false)
+	player.set("current_stamina", stamina_value)
+
+
+func _authored_dash_smoke_count(root: Node) -> int:
+	var count := 0
+	for child in root.get_children():
+		if child != null and child.has_meta("dash_smoke_single_emission"):
+			count += 1
+	return count
+
+
+func _last_authored_dash_smoke_facing(root: Node) -> String:
+	for child in root.get_children():
+		if child != null and child.has_meta("dash_smoke_single_emission"):
+			return str(child.get_meta("dash_smoke_relative_facing", ""))
+	return ""
+
+
+func _clear_authored_dash_smoke(root: Node) -> void:
+	for child in root.get_children():
+		if child != null and child.has_meta("dash_smoke_single_emission"):
+			child.queue_free()
+	await get_tree().process_frame
+
+
+func _texture_source_path(texture: Texture2D) -> String:
+	if texture is AtlasTexture:
+		var atlas := (texture as AtlasTexture).atlas
+		return atlas.resource_path if atlas != null else ""
+	return texture.resource_path if texture != null else ""
