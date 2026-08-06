@@ -2,23 +2,17 @@ extends Node
 
 signal pixelation_state_changed(enabled: bool)
 
-const PIXELATION_SHADER := preload("res://shaders/pixelation_post_process.gdshader")
-const POST_PROCESS_LAYER := 6
 const BUTTON_REFRESH_INTERVAL := 0.20
-
 const DEFAULT_PIXEL_SIZE := 4.0
 const DEFAULT_STRENGTH := 1.0
 const DEFAULT_PIXEL_ASPECT := 1.0
 const DEFAULT_COLOR_STEPS := 0
 const DEFAULT_DITHER_STRENGTH := 0.0
 
-var _canvas_layer: CanvasLayer
-var _back_buffer_copy: BackBufferCopy
-var _pixel_rect: ColorRect
-var _material: ShaderMaterial
 var _post_config: Dictionary = {}
 var _runtime_enabled_override: Variant = null
 var _debug_button: Button
+var _screen_effects_target: Node
 var _last_emitted_state := false
 var _has_emitted_state := false
 var _button_refresh_left := 0.0
@@ -26,11 +20,10 @@ var _button_refresh_left := 0.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_build_renderer()
 	_connect_content_reload()
 	_reload_config()
-	_apply_material_settings()
 	call_deferred("_ensure_debug_button")
+	call_deferred("_sync_screen_effects_target")
 	set_process(true)
 
 
@@ -40,7 +33,7 @@ func _process(delta: float) -> void:
 		return
 	_button_refresh_left = BUTTON_REFRESH_INTERVAL
 	_ensure_debug_button()
-	_sync_renderer_enabled_for_context()
+	_sync_screen_effects_target()
 
 
 func is_pixelation_enabled() -> bool:
@@ -51,65 +44,42 @@ func is_pixelation_enabled() -> bool:
 
 func toggle_pixelation_runtime() -> bool:
 	_runtime_enabled_override = not is_pixelation_enabled()
-	_apply_material_settings()
+	_apply_runtime_override_to_target()
+	_update_debug_button()
+	_emit_state_if_changed(is_pixelation_enabled())
 	return is_pixelation_enabled()
 
 
 func set_pixelation_runtime_enabled(enabled: bool) -> void:
 	_runtime_enabled_override = enabled
-	_apply_material_settings()
+	_apply_runtime_override_to_target()
+	_update_debug_button()
+	_emit_state_if_changed(is_pixelation_enabled())
 
 
 func clear_pixelation_runtime_override() -> void:
 	_runtime_enabled_override = null
-	_apply_material_settings()
+	_apply_runtime_override_to_target()
+	_update_debug_button()
+	_emit_state_if_changed(is_pixelation_enabled())
 
 
 func get_pixelation_settings() -> Dictionary:
 	return {
 		"enabled": is_pixelation_enabled(),
-		"pixel_size": _get_pixel_size(),
-		"strength": _get_strength(),
-		"pixel_aspect": _get_pixel_aspect(),
-		"color_steps": _get_color_steps(),
-		"dither_strength": _get_dither_strength(),
+		"pixel_size": clampf(round(float(_post_config.get("pixelation_pixel_size", DEFAULT_PIXEL_SIZE))), 1.0, 32.0),
+		"strength": clampf(float(_post_config.get("pixelation_strength", DEFAULT_STRENGTH)), 0.0, 1.0),
+		"pixel_aspect": clampf(float(_post_config.get("pixelation_aspect", DEFAULT_PIXEL_ASPECT)), 0.5, 2.0),
+		"color_steps": clampi(int(_post_config.get("pixelation_color_steps", DEFAULT_COLOR_STEPS)), 0, 32),
+		"dither_strength": clampf(float(_post_config.get("pixelation_dither_strength", DEFAULT_DITHER_STRENGTH)), 0.0, 1.0),
 	}
 
 
 func refresh_from_content() -> void:
 	_reload_config()
-	_apply_material_settings()
-
-
-func _build_renderer() -> void:
-	_canvas_layer = CanvasLayer.new()
-	_canvas_layer.name = "PixelationPostProcessLayer"
-	_canvas_layer.layer = POST_PROCESS_LAYER
-	add_child(_canvas_layer)
-
-	_back_buffer_copy = BackBufferCopy.new()
-	_back_buffer_copy.name = "PixelationBackBufferCopy"
-	_back_buffer_copy.copy_mode = BackBufferCopy.COPY_MODE_DISABLED
-	_canvas_layer.add_child(_back_buffer_copy)
-
-	_material = ShaderMaterial.new()
-	_material.shader = PIXELATION_SHADER
-
-	_pixel_rect = ColorRect.new()
-	_pixel_rect.name = "PixelationRect"
-	_pixel_rect.material = _material
-	_pixel_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_pixel_rect.color = Color(0.0, 0.0, 0.0, 0.0)
-	_pixel_rect.anchor_left = 0.0
-	_pixel_rect.anchor_top = 0.0
-	_pixel_rect.anchor_right = 1.0
-	_pixel_rect.anchor_bottom = 1.0
-	_pixel_rect.offset_left = 0.0
-	_pixel_rect.offset_top = 0.0
-	_pixel_rect.offset_right = 0.0
-	_pixel_rect.offset_bottom = 0.0
-	_pixel_rect.visible = false
-	_canvas_layer.add_child(_pixel_rect)
+	_apply_runtime_override_to_target()
+	_update_debug_button()
+	_emit_state_if_changed(is_pixelation_enabled())
 
 
 func _connect_content_reload() -> void:
@@ -139,54 +109,22 @@ func _reload_config() -> void:
 		_post_config = (post_value as Dictionary).duplicate(true)
 
 
-func _apply_material_settings() -> void:
-	if _material == null or _pixel_rect == null or _back_buffer_copy == null:
+func _sync_screen_effects_target() -> void:
+	var candidate := get_tree().get_first_node_in_group("screen_effects")
+	if candidate == _screen_effects_target and candidate != null and is_instance_valid(candidate):
 		return
-	_material.set_shader_parameter("pixel_size", _get_pixel_size())
-	_material.set_shader_parameter("strength", _get_strength())
-	_material.set_shader_parameter("pixel_aspect", _get_pixel_aspect())
-	_material.set_shader_parameter("color_steps", _get_color_steps())
-	_material.set_shader_parameter("dither_strength", _get_dither_strength())
-	_sync_renderer_enabled_for_context()
-	_update_debug_button()
-	_emit_state_if_changed(is_pixelation_enabled())
+	_screen_effects_target = candidate
+	_apply_runtime_override_to_target()
 
 
-func _sync_renderer_enabled_for_context() -> void:
-	if _material == null or _pixel_rect == null or _back_buffer_copy == null:
+func _apply_runtime_override_to_target() -> void:
+	if _screen_effects_target == null or not is_instance_valid(_screen_effects_target):
 		return
-	var render_enabled := is_pixelation_enabled() and _has_gameplay_ui()
-	_material.set_shader_parameter("enabled", render_enabled)
-	_pixel_rect.visible = render_enabled
-	_back_buffer_copy.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT if render_enabled else BackBufferCopy.COPY_MODE_DISABLED
-
-
-func _has_gameplay_ui() -> bool:
-	var scene := get_tree().current_scene
-	if scene == null:
-		return false
-	var ui := scene.get_node_or_null("UI")
-	return ui != null and ui.get_node_or_null("LoadButton") is Button
-
-
-func _get_pixel_size() -> float:
-	return clampf(round(float(_post_config.get("pixelation_pixel_size", DEFAULT_PIXEL_SIZE))), 1.0, 32.0)
-
-
-func _get_strength() -> float:
-	return clampf(float(_post_config.get("pixelation_strength", DEFAULT_STRENGTH)), 0.0, 1.0)
-
-
-func _get_pixel_aspect() -> float:
-	return clampf(float(_post_config.get("pixelation_aspect", DEFAULT_PIXEL_ASPECT)), 0.5, 2.0)
-
-
-func _get_color_steps() -> int:
-	return clampi(int(_post_config.get("pixelation_color_steps", DEFAULT_COLOR_STEPS)), 0, 32)
-
-
-func _get_dither_strength() -> float:
-	return clampf(float(_post_config.get("pixelation_dither_strength", DEFAULT_DITHER_STRENGTH)), 0.0, 1.0)
+	if _runtime_enabled_override is bool:
+		if _screen_effects_target.has_method("set_pixelation_runtime_enabled"):
+			_screen_effects_target.call("set_pixelation_runtime_enabled", bool(_runtime_enabled_override))
+	elif _screen_effects_target.has_method("clear_pixelation_runtime_override"):
+		_screen_effects_target.call("clear_pixelation_runtime_override")
 
 
 func _emit_state_if_changed(enabled: bool) -> void:
@@ -216,7 +154,7 @@ func _ensure_debug_button() -> void:
 		existing = Button.new()
 		existing.name = "PixelFilterButton"
 		existing.focus_mode = Control.FOCUS_NONE
-		existing.tooltip_text = "Liga/desliga o filtro de pixelizacao do mundo. O Content Editor define tamanho do pixel, intensidade, formato e reducao de cores."
+		existing.tooltip_text = "Liga/desliga a pixelizacao dentro do compositor principal. Os parametros persistentes ficam em VFX Profiles > default > Final Pixelation Filter."
 		ui.add_child(existing)
 	var callback := Callable(self, "_on_debug_button_pressed")
 	if not existing.pressed.is_connected(callback):
