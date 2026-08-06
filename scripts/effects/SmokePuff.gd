@@ -17,17 +17,16 @@ extends Node2D
 @export_range(0.05, 6.0, 0.05) var end_scale_min: float = 1.1
 @export_range(0.05, 6.0, 0.05) var end_scale_max: float = 1.25
 
-@export_group("Color")
-@export var puff_color_a: Color = Color(0.62, 0.62, 0.58, 0.72)
-@export var puff_color_b: Color = Color(0.74, 0.74, 0.68, 0.68)
-@export var puff_color_c: Color = Color(0.54, 0.54, 0.5, 0.64)
-@export var puff_color_d: Color = Color(0.68, 0.68, 0.62, 0.55)
+@export_group("Sprite Color")
+@export var sprite_tint: Color = Color(0.78, 0.78, 0.70, 0.82)
 @export_range(0.0, 1.0, 0.01) var global_alpha: float = 1.0
 
 @export_group("Motion")
 @export_range(0.0, 1.5, 0.01) var random_rotation_range: float = 0.18
 @export var fade_out: bool = true
 @export var randomize_rotation: bool = true
+
+@onready var puff_sprite: Sprite2D = $Sprite2D
 
 
 func _ready() -> void:
@@ -74,17 +73,10 @@ func _apply_profile() -> void:
 
 
 func _apply_visuals() -> void:
-	_set_polygon_color("PuffA", puff_color_a)
-	_set_polygon_color("PuffB", puff_color_b)
-	_set_polygon_color("PuffC", puff_color_c)
-	_set_polygon_color("PuffD", puff_color_d)
-
-
-func _set_polygon_color(path: NodePath, color_value: Color) -> void:
-	var polygon := get_node_or_null(path) as Polygon2D
-	if polygon == null:
+	if puff_sprite == null:
 		return
-	polygon.color = Color(color_value.r, color_value.g, color_value.b, color_value.a * global_alpha)
+	puff_sprite.modulate = Color(sprite_tint.r, sprite_tint.g, sprite_tint.b, sprite_tint.a * global_alpha)
+	puff_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
 
 func _start_fade() -> void:
