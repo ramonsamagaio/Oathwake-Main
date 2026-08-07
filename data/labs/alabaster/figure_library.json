@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "format": "oathwake_alabaster_figure_library",
+  "playable_profiles": {
+    "juno": {"character_id":"juno_alabaster","rig_family":"juno","selectable":true},
+    "male_dummy": {"character_id":"male_dummy_alabaster","rig_family":"male_dummy","figure":"Male-Dummy","atlas":"dummy.png","selectable":true},
+    "male_temp": {"character_id":"male_temp_alabaster","rig_family":"male_dummy","figure":"Male-Dummy","atlas":"male-temp01.png","selectable":true,"notes":"Uses Male-Dummy geometry and animation bank with alternate atlas."}
+  },
+  "player_weapons": {
+    "sword": {"item_id":"JUNO_SWORD","family":"melee","sockets":["weaponR"]},
+    "broadsword": {"item_id":"JUNO_BROADSWORD","family":"melee","sockets":["weaponR"],"two_handed":true},
+    "hammer": {"item_id":"JUNO_HAMMER","family":"melee","sockets":["weaponR"],"rest_figure":"hammerBack"},
+    "spear": {"item_id":"JUNO_SPEAR","family":"melee","sockets":["weaponR"],"rest_figure":"spearBack"},
+    "tonfa": {"item_id":"JUNO_TONFA","family":"melee","sockets":["weaponL","weaponR"],"dual_wield":true},
+    "crossbow": {"item_id":"JUNO_CROSSBOW","family":"ranged","sockets":["weaponR"],"projectile":"arrow"},
+    "chakram": {"item_id":"JUNO_CHAKRAM","family":"ranged","sockets":["weaponR"],"projectile":"chakram","returning":true},
+    "kama": {"item_id":"JUNO_KAMA","family":"ranged","sockets":["weaponR"],"projectile":"kama","returning":true},
+    "bomb": {"item_id":"JUNO_BOMB","family":"ranged","sockets":["weaponR"],"projectile":"bomb","throwable":true},
+    "gauntlet": {"item_id":"JUNO_GAUNTLET","family":"ranged_complex","sockets":["weaponL","weaponR","fingerR"],"internal_figures":["gauntletPre","gauntletPre2"]}
+  },
+  "source_internal_player_weapon_figures": ["hammerBack","hammerStand","spearBack","speark","gauntletPre","gauntletPre2","smithHammer","test"],
+  "npc_equipment": {
+    "spear-fisher1": {"socket":"weaponR","animations":["sweepTest","sweepTest2","sweepTest3","inGround"]},
+    "spear-fisher2": {"socket":"weaponR","animations":["sweepTest","sweepTest2","sweepTest3"]},
+    "halberd-hub1": {"socket":"weaponR","animations":["sweepTest","sweepTest2","sweepTest3"]},
+    "eshrin-cane": {"socket":"weaponL","animations":["sweepTest","sweepTest2","sweepTest3"]}
+  },
+  "projectiles": {
+    "arrow": {"direction_mode":"FACE_72","states":["default","stuck"]},
+    "arrowWhite": {"direction_mode":"FACE_72","states":["default","stuck"]},
+    "chakram": {"direction_mode":"FACE_72","states":["default","catch","phase"],"returning":true},
+    "kama": {"direction_mode":"FACE_72","states":["default","default2","default3","stuck","stuckPull","spin","pull","pull2","pull3"],"returning":true},
+    "kama2": {"direction_mode":"FACE_72","states":["default","default2","default3","stuck","pull"],"returning":true},
+    "bomb": {"direction_mode":"FACE_72","states":["default"],"throwable":true},
+    "spike": {"direction_mode":"FACE_72","states":["default","stuck"]},
+    "spike2": {"direction_mode":"FACE_72","states":["default","stuck","rotate","angle45","angle135"]},
+    "rock1": {"direction_mode":"FACE_72","states":["default"],"spins":true},
+    "pierce": {"direction_mode":"FACE_72","states":["default","stuck"]},
+    "leaf": {"direction_mode":"FACE_72","states":["default"]},
+    "nyxRock1": {"direction_mode":"FACE_72","states":["default"],"spins":true},
+    "bigRock": {"direction_mode":"FACE_72","states":["default"],"spins":true},
+    "aetherOrbRaw": {"states":["default"],"floating":true},
+    "circleM": {"states":["default"],"floating":true},
+    "blob": {}, "bubble-1": {"floating":true}, "magic": {}, "ballS": {}, "ballM": {}
+  },
+  "held_tools": {
+    "cup": {"socket":"weaponR"},
+    "bowl": {"socket":"weaponR"},
+    "bowlLeft": {"socket":"weaponL"},
+    "hammer": {"socket":"weaponR","animations":["sweepTest","sweepTest2","sweepTest3","sweepTestAD"]}
+  },
+  "cosmetics": {
+    "hat1": {"socket":"hat","direction_mode":"FACE_8"},
+    "cook": {"socket":"hat"},
+    "construction": {"socket":"hat"},
+    "scholar": {"socket":"hat"}
+  },
+  "environment_figures": {
+    "rootBarrier1": {"kind":"barrier","states":["off","on","turnOff","turnOn"],"has_collision":true},
+    "rootBarrier2": {"kind":"barrier","states":["off","on","turnOff","turnOn"],"has_collision":true},
+    "rootSpikeAtk1": {"kind":"trap","states":["off","on","turnOff","turnOn"],"has_collision":true},
+    "icicleBig": {"kind":"nature_fx","states":["idle","grow"],"multi_piece":true},
+    "icicleHuge": {"kind":"nature_fx","states":["idle","grow"],"multi_piece":true}
+  },
+  "loot_figures": ["apple","redHerb","garrot","unknown","virtual","egg","scorchili","frumato","gartoffel","cloudberry","rogue-1","rogue-2","rogue-3","rogue-4","rogue-5","wallnut","gugumber","lavander","shroom","swanana"],
+  "future": {
+    "tree_figure_runtime": {"status":"awaiting_source_figure_json","reason":"Tree sprite sheet was observed, but no matching tree figure JSON was supplied in this batch."}
+  }
+}
