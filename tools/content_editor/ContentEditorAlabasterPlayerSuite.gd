@@ -25,11 +25,41 @@ const DEFAULT_ALABASTER_ACTIONS := {
 var _alabaster_animation_names: Array[String] = []
 
 
+func _ready() -> void:
+	super._ready()
+	_install_exact_save_handler()
+
+
+func _install_exact_save_handler() -> void:
+	# ContentEditor.gd creates/connects SaveButton in the base class. This top
+	# suite is the script actually attached to ContentEditor.tscn, so own the
+	# signal explicitly instead of relying on a long inheritance chain to route
+	# Player Tuning through the right _save_player_tuning override.
+	if save_button == null:
+		return
+	var connections := save_button.pressed.get_connections()
+	for connection_value in connections:
+		if not connection_value is Dictionary:
+			continue
+		var callback: Callable = (connection_value as Dictionary).get("callable", Callable())
+		if callback.is_valid() and save_button.pressed.is_connected(callback):
+			save_button.pressed.disconnect(callback)
+	if not save_button.pressed.is_connected(_on_bones_content_save_pressed):
+		save_button.pressed.connect(_on_bones_content_save_pressed)
+
+
+func _on_bones_content_save_pressed() -> void:
+	if current_section == ContentEditorData.SECTION_PLAYER_TUNING:
+		_save_player_tuning_exact()
+		return
+	super._on_save_pressed()
+
+
 func _build_player_tuning_form() -> void:
 	super._build_player_tuning_form()
 	_add_subsection_title("Player Character")
 	var note := Label.new()
-	note.text = "Chooses which Characters record drives the player visual. This is a general Player Tuning value; bone rigs and classic sprite characters use the same character_id field."
+	note.text = "Chooses which Characters record drives the player visual. This is saved directly as player_tuning.default.character_id."
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(note)
 	_add_player_character_picker(str(current_record.get("character_id", "player")))
@@ -71,7 +101,7 @@ func _add_player_character_picker(selected_character_id: String) -> void:
 		option.set_item_metadata(0, "")
 	option.select(clampi(selected_index, 0, option.item_count - 1))
 	option.item_selected.connect(_on_player_character_selected.bind(option))
-	option.tooltip_text = "Saved directly as data/player_tuning.json -> default.character_id."
+	option.tooltip_text = "Saved directly as res://data/player_tuning.json -> default.character_id."
 	_add_form_row("Active Player Character", option)
 	field_controls[PLAYER_CHARACTER_FIELD] = option
 
@@ -84,25 +114,46 @@ func _on_player_character_selected(index: int, option: OptionButton) -> void:
 		return
 	current_record["character_id"] = selected_character_id
 	_mark_dirty()
+	_set_status("Selected player character: %s (press Save to persist)" % selected_character_id)
 
 
 func _save_player_tuning() -> void:
-	var selected_character_id := str(current_record.get("character_id", "player")).strip_edges()
-	if field_controls.has(PLAYER_CHARACTER_FIELD):
-		selected_character_id = _get_option_button_metadata(PLAYER_CHARACTER_FIELD).strip_edges()
-	if selected_character_id.is_empty() or not data_store.has_record(ContentEditorData.SECTION_CHARACTERS, selected_character_id):
-		_set_status("Active Player Character must reference an existing Characters record.", true)
+	# Keep this override for callers other than the Save button. The Save button
+	# itself is rewired explicitly in _ready() to avoid ambiguous base callbacks.
+	_save_player_tuning_exact()
+
+
+func _save_player_tuning_exact() -> void:
+	var selected_character_id := str(current_record.get("character_id", "")).strip_edges()
+	var character_option := field_controls.get(PLAYER_CHARACTER_FIELD) as OptionButton
+	if character_option != null and character_option.selected >= 0:
+		selected_character_id = str(character_option.get_item_metadata(character_option.selected)).strip_edges()
+
+	if selected_character_id.is_empty():
+		_set_status("Active Player Character cannot be empty.", true)
+		return
+	if not data_store.has_record(ContentEditorData.SECTION_CHARACTERS, selected_character_id):
+		_set_status("Active Player Character does not exist: %s" % selected_character_id, true)
 		return
 
-	var record := _get_player_tuning_form_record()
+	# Preserve the complete singleton record. Lower suites edit their fields,
+	# while character_id and bone weapon visibility are owned here explicitly.
+	var record := current_record.duplicate(true)
+	var edited := super._get_player_tuning_form_record()
+	for key in edited.keys():
+		record[key] = edited[key]
 	record["id"] = "default"
 	record["character_id"] = selected_character_id
-	var error := data_store.validate_player_tuning("default", current_original_id, record)
-	if not error.is_empty():
-		_set_status(error, true)
+	if field_controls.has(PLAYER_WEAPON_VISIBILITY_FIELD):
+		record["alabaster_weapon_visibility"] = _get_option_button_metadata(PLAYER_WEAPON_VISIBILITY_FIELD)
+
+	var validation_error := data_store.validate_player_tuning("default", current_original_id, record)
+	if not validation_error.is_empty():
+		_set_status(validation_error, true)
 		return
 
-	_cleanup_optional_fields(record)
+	# Write exactly once, then re-read the physical JSON through ContentEditorData.
+	# Do not rebuild the form or reload ContentDB until persistence is verified.
 	data_store.set_record(ContentEditorData.SECTION_PLAYER_TUNING, "default", "default", record)
 	var save_error := data_store.save_section(ContentEditorData.SECTION_PLAYER_TUNING)
 	if not save_error.is_empty():
@@ -116,10 +167,26 @@ func _save_player_tuning() -> void:
 	var persisted := data_store.get_record(ContentEditorData.SECTION_PLAYER_TUNING, "default")
 	var persisted_character := str(persisted.get("character_id", "")).strip_edges()
 	if persisted_character != selected_character_id:
-		_set_status("Player character save verification failed: selected=%s persisted=%s" % [selected_character_id, persisted_character], true)
+		_set_status(
+			"PLAYER CHARACTER SAVE FAILED: selected=%s persisted=%s" % [selected_character_id, persisted_character],
+			true
+		)
+		push_error("PLAYER_CHARACTER_SAVE_MISMATCH selected=%s persisted=%s" % [selected_character_id, persisted_character])
 		return
 
 	_reload_content_db()
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and content_db.has_method("get_player_tuning"):
+		var runtime_tuning: Dictionary = content_db.call("get_player_tuning", "default")
+		var runtime_character := str(runtime_tuning.get("character_id", "")).strip_edges()
+		if runtime_character != selected_character_id:
+			_set_status(
+				"PLAYER CHARACTER RUNTIME RELOAD FAILED: persisted=%s ContentDB=%s" % [selected_character_id, runtime_character],
+				true
+			)
+			push_error("PLAYER_CHARACTER_CONTENTDB_MISMATCH persisted=%s runtime=%s" % [selected_character_id, runtime_character])
+			return
+
 	current_id = "default"
 	current_original_id = "default"
 	current_record = persisted
@@ -129,7 +196,7 @@ func _save_player_tuning() -> void:
 	_update_action_buttons()
 	_refresh_live_players()
 	_set_status("Saved Player Tuning. Active character: %s" % selected_character_id)
-	print("BONES_PLAYER_CHARACTER_SAVED selected=%s persisted=%s" % [selected_character_id, persisted_character])
+	print("PLAYER_CHARACTER_SAVE_OK selected=%s persisted=%s" % [selected_character_id, persisted_character])
 
 
 func _get_player_tuning_form_record() -> Dictionary:
