@@ -1,6 +1,6 @@
 extends Node2D
 
-const RigRuntime := preload("res://scripts/labs/alabaster/AlabasterRigRuntime.gd")
+const RigRuntime := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeV2.gd")
 
 const SCREEN_SIZE := Vector2(1600.0, 900.0)
 const WALK_SPEED := 150.0
@@ -94,9 +94,6 @@ func _build_ui() -> void:
 func _update_status() -> void:
 	if rig == null or status_label == null:
 		return
-	# `rig` is intentionally dynamic because it is instantiated from a preloaded script.
-	# Do not use `:=` here: Godot cannot statically infer the return type of a method
-	# called through a Variant, which was preventing this scene from parsing.
 	var summary = rig.get_runtime_summary()
 	status_label.text = "anim=%s   facing16=%02d   angle=%6.1f°   nodes=%d   sprite pieces=%d   debug=%s" % [
 		String(summary.get("animation", "")),
