@@ -7,7 +7,7 @@ const FULL_ANIMATION_PARTS := [
 	"res://data/labs/alabaster/anims/juno_anims_bin_00.part",
 	"res://data/labs/alabaster/anims/juno_anims_bin_01.part",
 ]
-const MIN_EXPECTED_ANIMATIONS := 400
+const MIN_EXPECTED_ANIMATIONS := 419
 const REQUIRED_ANIMATIONS := [
 	"idle", "walk", "run",
 	"idleJump1", "damage", "dead", "guard", "guardParry", "respawn",
@@ -45,7 +45,8 @@ func _init() -> void:
 			failures.append("missing atlas part %s" % atlas_path)
 
 	if typeof(parsed) == TYPE_DICTIONARY:
-		var figure: Dictionary = (parsed as Dictionary).get("figure", {})
+		var parsed_dict: Dictionary = parsed
+		var figure: Dictionary = parsed_dict.get("figure", {})
 		var nodes: Dictionary = figure.get("nodes", {})
 		for required_node in ["root", "top", "head", "armL", "armR", "bottom", "legL", "legR", "footL", "footR"]:
 			if not nodes.has(required_node):
@@ -117,11 +118,15 @@ func _extract_animation_dictionary(payload: Variant) -> Dictionary:
 		if typeof(figure_variant) == TYPE_DICTIONARY:
 			var figure_data: Dictionary = figure_variant
 			var figure_anims: Variant = figure_data.get("anims", {})
-			if typeof(figure_anims) == TYPE_DICTIONARY and not (figure_anims as Dictionary).is_empty():
-				return figure_anims
+			if typeof(figure_anims) == TYPE_DICTIONARY:
+				var figure_anims_dict: Dictionary = figure_anims
+				if not figure_anims_dict.is_empty():
+					return figure_anims_dict
 	var direct_anims: Variant = root.get("anims", null)
-	if typeof(direct_anims) == TYPE_DICTIONARY and not (direct_anims as Dictionary).is_empty():
-		return direct_anims
+	if typeof(direct_anims) == TYPE_DICTIONARY:
+		var direct_anims_dict: Dictionary = direct_anims
+		if not direct_anims_dict.is_empty():
+			return direct_anims_dict
 	if root.has("idle") and root.has("walk") and root.has("run"):
 		return root
 	return {}
