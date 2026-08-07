@@ -70,10 +70,33 @@ func _add_player_character_picker(selected_character_id: String) -> void:
 		option.add_item("No character records")
 		option.set_item_metadata(0, "")
 	option.select(clampi(selected_index, 0, option.item_count - 1))
-	option.item_selected.connect(func(_index: int) -> void: _mark_dirty())
-	option.tooltip_text = "The selected Characters record becomes the player visual after Save. Juno - Alabaster Rig uses the bone-driven runtime."
+	option.item_selected.connect(_on_player_character_selected.bind(option))
+	option.tooltip_text = "The selected Characters record becomes the player visual after Save. Alabaster characters use the bone-driven runtime."
 	_add_form_row("Active Player Character", option)
 	field_controls[PLAYER_CHARACTER_FIELD] = option
+
+
+func _on_player_character_selected(index: int, option: OptionButton) -> void:
+	if option == null or index < 0 or index >= option.item_count:
+		return
+	var selected_character_id := str(option.get_item_metadata(index)).strip_edges()
+	if selected_character_id.is_empty():
+		return
+	# Keep current_record synchronized immediately. Several legacy Content Editor
+	# suites preserve current_record while composing their Player Tuning payload;
+	# without this assignment a later rebuild could restore the previous Juno id.
+	current_record["character_id"] = selected_character_id
+	_mark_dirty()
+
+
+func _save_player_tuning() -> void:
+	# Belt-and-suspenders persistence: snapshot the picker into current_record
+	# before the inherited save chain reads/merges the Player Tuning form.
+	if field_controls.has(PLAYER_CHARACTER_FIELD):
+		var selected_character_id := _get_option_button_metadata(PLAYER_CHARACTER_FIELD).strip_edges()
+		if not selected_character_id.is_empty():
+			current_record["character_id"] = selected_character_id
+	super._save_player_tuning()
 
 
 func _get_player_tuning_form_record() -> Dictionary:
@@ -82,7 +105,9 @@ func _get_player_tuning_form_record() -> Dictionary:
 	for key in edited.keys():
 		preserved[key] = edited[key]
 	if field_controls.has(PLAYER_CHARACTER_FIELD):
-		preserved["character_id"] = _get_option_button_metadata(PLAYER_CHARACTER_FIELD)
+		var selected_character_id := _get_option_button_metadata(PLAYER_CHARACTER_FIELD).strip_edges()
+		if not selected_character_id.is_empty():
+			preserved["character_id"] = selected_character_id
 	if field_controls.has(PLAYER_WEAPON_VISIBILITY_FIELD):
 		preserved["alabaster_weapon_visibility"] = _get_option_button_metadata(PLAYER_WEAPON_VISIBILITY_FIELD)
 	preserved["id"] = "default"
