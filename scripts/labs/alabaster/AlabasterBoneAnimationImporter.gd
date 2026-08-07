@@ -46,6 +46,8 @@ const DEFAULT_SETTINGS := {
 	"spline": "LINEAR",
 }
 
+const ALABASTER_TICK_RATE := 60.0
+
 
 static func inspect_scene(scene_path: String) -> Dictionary:
 	if not ResourceLoader.exists(scene_path):
@@ -181,7 +183,7 @@ static func convert_animation(animation: Animation, sample_fps := 60.0, loop := 
 	return {
 		"category": str(resolved.get("category", "DEFAULT")),
 		"frameCnt": frame_count,
-		"frameRepeat": 1,
+		"frameRepeat": ALABASTER_TICK_RATE / fps,
 		"animStart": 0,
 		"loopStart": 0,
 		"repeat": loop,
@@ -190,6 +192,7 @@ static func convert_animation(animation: Animation, sample_fps := 60.0, loop := 
 		"import_meta": {
 			"bridge": "godot_animationplayer_3d_to_alabaster",
 			"sample_fps": fps,
+			"alabaster_frame_repeat": ALABASTER_TICK_RATE / fps,
 			"remove_reference_pose": bool(resolved.get("remove_reference_pose", true)),
 			"top_down_mode": bool(resolved.get("top_down_mode", true)),
 			"root_translation_scale": float(resolved.get("root_translation_scale", 0.0)),
