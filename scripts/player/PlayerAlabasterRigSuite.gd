@@ -40,6 +40,14 @@ func _configure_rig_night_readability() -> void:
 		_rig_visual.set_material(_night_readability_material)
 
 
+func _apply_player_visual_tuning() -> void:
+	super._apply_player_visual_tuning()
+	if _rig_visual.active and _rig_visual.rig != null and is_instance_valid(_rig_visual.rig):
+		_rig_visual.rig.position = _content_visual_offset
+		_rig_visual.rig.scale = Vector2.ONE * _content_visual_scale
+		_force_rig_visual()
+
+
 func _force_rig_visual() -> void:
 	if not _rig_visual.active:
 		return
