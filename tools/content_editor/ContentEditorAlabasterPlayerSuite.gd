@@ -1,6 +1,28 @@
 extends "res://tools/content_editor/ContentEditorPetSaveDashSideSuite.gd"
 
+const BoneAnimationLibrary := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
 const PLAYER_CHARACTER_FIELD := "alabaster_active_player_character"
+const PLAYER_WEAPON_VISIBILITY_FIELD := "alabaster_weapon_visibility_mode"
+const ALABASTER_ACTIONS := ["idle", "walk", "run", "attack", "block", "hurt", "death", "dash"]
+const ALABASTER_MASTER_DIRECTIONS := [
+	["N", "n"],
+	["NE / NW", "ne"],
+	["E / W", "e"],
+	["SE / SW", "se"],
+	["S", "s"],
+]
+const DEFAULT_ALABASTER_ACTIONS := {
+	"idle": "idle",
+	"walk": "walk",
+	"run": "run",
+	"attack": "atkSwordN1",
+	"block": "guard",
+	"hurt": "damage",
+	"death": "dead",
+	"dash": "dash",
+}
+
+var _alabaster_animation_names: Array[String] = []
 
 
 func _build_player_tuning_form() -> void:
@@ -11,6 +33,19 @@ func _build_player_tuning_form() -> void:
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(note)
 	_add_player_character_picker(str(current_record.get("character_id", "player")))
+
+	_add_subsection_title("Alabaster Weapon Visibility")
+	var weapon_note := Label.new()
+	weapon_note.text = "Attack Only shows a Juno weapon only while the attack animation is active. Always When Supported keeps it visible at rest only when that item declares an authored rest/back scope; unsupported weapons automatically fall back to Attack Only."
+	weapon_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(weapon_note)
+	var mode := str(current_record.get("alabaster_weapon_visibility", "attack_only"))
+	_add_string_option_button(
+		"Weapon Display",
+		PLAYER_WEAPON_VISIBILITY_FIELD,
+		["attack_only", "always_when_supported"],
+		mode
+	)
 
 
 func _add_player_character_picker(selected_character_id: String) -> void:
@@ -42,16 +77,14 @@ func _add_player_character_picker(selected_character_id: String) -> void:
 
 
 func _get_player_tuning_form_record() -> Dictionary:
-	# The legacy form only rebuilds fields that are currently visible. Preserve
-	# every existing tuning key first, then overlay all values produced by the
-	# complete editor suite chain. This prevents character_id, dash, light,
-	# stamina, camera and future tuning fields from being deleted on Save.
 	var preserved := current_record.duplicate(true)
 	var edited := super._get_player_tuning_form_record()
 	for key in edited.keys():
 		preserved[key] = edited[key]
 	if field_controls.has(PLAYER_CHARACTER_FIELD):
 		preserved["character_id"] = _get_option_button_metadata(PLAYER_CHARACTER_FIELD)
+	if field_controls.has(PLAYER_WEAPON_VISIBILITY_FIELD):
+		preserved["alabaster_weapon_visibility"] = _get_option_button_metadata(PLAYER_WEAPON_VISIBILITY_FIELD)
 	preserved["id"] = "default"
 	return preserved
 
@@ -61,16 +94,104 @@ func _build_character_form() -> void:
 	var runtime_name := str(current_record.get("visual_runtime", "sprite_sheet"))
 	if runtime_name != "alabaster":
 		return
+	_alabaster_animation_names = BoneAnimationLibrary.get_all_animation_names()
 	_add_subsection_title("Bone Rig Character")
-	_add_read_only_value("Visual Runtime", "Alabaster bone rig")
+	_add_read_only_value("Visual Runtime", "Alabaster hybrid 3D-bone / 2D-billboard rig")
 	_add_read_only_value("Rig Profile", str(current_record.get("rig_profile_id", "juno")))
-	var animation_map = current_record.get("rig_animation_map", {})
-	if animation_map is Dictionary:
-		var pairs := []
-		for action_name in ["idle", "walk", "run", "attack", "block", "hurt", "death", "dash"]:
-			if animation_map.has(action_name):
-				pairs.append("%s → %s" % [action_name, str(animation_map[action_name])])
-		_add_read_only_value("Gameplay Animation Map", ", ".join(pairs))
+	_add_read_only_value("Bone Studio", "res://scenes/labs/alabaster/AlabasterBoneStudio.tscn")
+	_add_read_only_value("Animation Bank", BoneAnimationLibrary.CUSTOM_BANK_PATH)
+
+	var help := Label.new()
+	help.text = "Base Action is the normal animation used at every facing angle. The five Master View overrides are optional. Leave an override on 'Use Base Action' unless that specific camera direction needs a different clip. W/NW/SW mirror their matching east master view only for animation selection; Juno's renderer still computes the real facing angle."
+	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(help)
+
+	var base_map_value: Variant = current_record.get("rig_animation_map", {})
+	var base_map: Dictionary = base_map_value as Dictionary if base_map_value is Dictionary else {}
+	var directional_value: Variant = current_record.get("rig_directional_animation_map", {})
+	var directional_map: Dictionary = directional_value as Dictionary if directional_value is Dictionary else {}
+
+	_add_subsection_title("Base Gameplay Actions")
+	for action_name in ALABASTER_ACTIONS:
+		var selected := str(base_map.get(action_name, DEFAULT_ALABASTER_ACTIONS.get(action_name, "idle")))
+		_add_alabaster_animation_picker(
+			"%s Animation" % action_name.capitalize(),
+			"alabaster_action_%s" % action_name,
+			selected,
+			false
+		)
+
+	_add_subsection_title("Optional Master-View Overrides")
+	for action_name in ALABASTER_ACTIONS:
+		var action_title := Label.new()
+		action_title.text = action_name.to_upper()
+		action_title.add_theme_font_size_override("font_size", 15)
+		form_container.add_child(action_title)
+		var action_dirs_value: Variant = directional_map.get(action_name, {})
+		var action_dirs: Dictionary = action_dirs_value as Dictionary if action_dirs_value is Dictionary else {}
+		for direction_pair in ALABASTER_MASTER_DIRECTIONS:
+			var display_dir := str(direction_pair[0])
+			var direction_key := str(direction_pair[1])
+			_add_alabaster_animation_picker(
+				"%s %s" % [action_name.capitalize(), display_dir],
+				"alabaster_dir_%s_%s" % [action_name, direction_key],
+				str(action_dirs.get(direction_key, "")),
+				true
+			)
+
+
+func _add_alabaster_animation_picker(label_text: String, field_name: String, selected_animation: String, allow_base: bool) -> void:
+	var option := OptionButton.new()
+	var selected_index := 0
+	if allow_base:
+		option.add_item("Use Base Action")
+		option.set_item_metadata(0, "")
+	var found := selected_animation.is_empty() and allow_base
+	for animation_name in _alabaster_animation_names:
+		var index := option.item_count
+		option.add_item(animation_name)
+		option.set_item_metadata(index, animation_name)
+		if animation_name == selected_animation:
+			selected_index = index
+			found = true
+	if not found and not selected_animation.is_empty():
+		option.add_item(selected_animation + "  [missing from bank]")
+		option.set_item_metadata(option.item_count - 1, selected_animation)
+		selected_index = option.item_count - 1
+	option.select(clampi(selected_index, 0, maxi(option.item_count - 1, 0)))
+	option.item_selected.connect(func(_index: int) -> void: _mark_dirty())
+	_add_form_row(label_text, option)
+	field_controls[field_name] = option
+
+
+func _get_character_form_record() -> Dictionary:
+	var record := super._get_character_form_record()
+	if str(record.get("visual_runtime", current_record.get("visual_runtime", "sprite_sheet"))) != "alabaster":
+		return record
+	var base_map := {}
+	for action_name in ALABASTER_ACTIONS:
+		var field_name := "alabaster_action_%s" % action_name
+		if field_controls.has(field_name):
+			base_map[action_name] = _get_option_button_metadata(field_name)
+		else:
+			base_map[action_name] = str(DEFAULT_ALABASTER_ACTIONS.get(action_name, "idle"))
+	record["rig_animation_map"] = base_map
+
+	var directional_map := {}
+	for action_name in ALABASTER_ACTIONS:
+		var action_dirs := {}
+		for direction_pair in ALABASTER_MASTER_DIRECTIONS:
+			var direction_key := str(direction_pair[1])
+			var field_name := "alabaster_dir_%s_%s" % [action_name, direction_key]
+			if not field_controls.has(field_name):
+				continue
+			var animation_name := _get_option_button_metadata(field_name)
+			if not animation_name.is_empty():
+				action_dirs[direction_key] = animation_name
+		if not action_dirs.is_empty():
+			directional_map[action_name] = action_dirs
+	record["rig_directional_animation_map"] = directional_map
+	return record
 
 
 func _refresh_live_players() -> void:
