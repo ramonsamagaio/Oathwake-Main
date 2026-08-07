@@ -128,6 +128,70 @@ func _sample_source_track(track: Array, frame: float, anim_repeat: float) -> Dic
 	}
 
 
+func get_external_gfx_world(node_name: String, local_gfx_pos: Vector3) -> Vector3:
+	# Equipment figures reuse the player's authored attachment bone. Their local
+	# gfx offset must then follow the exact same 3D transform/global facing path
+	# used by the body renderer before projection.
+	if not _states.has(node_name):
+		return Vector3.ZERO
+	var state: Dictionary = _states[node_name]
+	if local_gfx_pos.length_squared() <= 0.00000001:
+		return state.get("g_self", Vector3.ZERO)
+	var offset := local_gfx_pos
+	var scale := float(state.get("scale", 1.0))
+	if scale != 1.0:
+		offset *= scale
+	if bool(state.get("rotated", false)):
+		offset = _figure_transform(offset, state.get("dir", Quaternion.IDENTITY))
+	return _snap_world(state.get("g_self", Vector3.ZERO) + _globalize(offset))
+
+
+func resolve_external_billboard_transform(
+	node_name: String,
+	local_gfx_pos: Vector3,
+	billboard: Dictionary,
+	row: Dictionary,
+	tex_rotate: String,
+	tile_idx: int,
+	tile_w: int,
+	tile_h: int,
+	pivot_px: Vector2,
+	region: Rect2
+) -> Dictionary:
+	if not _states.has(node_name):
+		return {}
+	var state: Dictionary = _states[node_name]
+	var gfx_world := get_external_gfx_world(node_name, local_gfx_pos)
+	var gfx_screen := _project_world(gfx_world)
+	var rot_mode := _rot_mode(tex_rotate)
+	var result := {
+		"screen_position": gfx_screen,
+		"rotation": 0.0,
+		"region": region,
+		"pivot": pivot_px,
+		"scale": Vector2.ONE,
+	}
+	if rot_mode == ROT_NONE:
+		return result
+	var source_xfm := _billboard_xfm(
+		node_name,
+		state,
+		gfx_world,
+		gfx_screen,
+		billboard,
+		row,
+		rot_mode,
+		tile_idx,
+		tile_w,
+		tile_h,
+		pivot_px,
+		region
+	)
+	for key in source_xfm.keys():
+		result[key] = source_xfm[key]
+	return result
+
+
 func get_animation_cache_summary() -> Dictionary:
 	return {
 		"cached_tracks": _track_cache.size(),
