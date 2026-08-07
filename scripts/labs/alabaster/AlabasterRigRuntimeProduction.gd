@@ -64,10 +64,31 @@ func get_bone_visual_state(node_name: String) -> Dictionary:
 	state["pitch"] = int(state.get("pitch", 4))
 	state["facing_yaw"] = float(state.get("facing_yaw", facing_degrees))
 	state["yaw_flipped"] = bool(state.get("yaw_flipped", false))
+	# External figures (weapons/equipment) need the same accumulated 3D bone
+	# rotation/scale that the body renderer uses for local gfx offsets.
+	state["g_rot"] = state.get("dir", Quaternion.IDENTITY)
+	state["g_scale"] = float(state.get("scale", 1.0))
 	return state
 
 
 func project_external_world(world: Vector3) -> Vector2:
+	return _project_world(world)
+
+
+func project_external_node_offset(node_name: String, local_offset: Vector3) -> Vector2:
+	if not _states.has(node_name):
+		return Vector2.ZERO
+	var state: Dictionary = _states[node_name]
+	var offset := local_offset
+	var node_scale := float(state.get("scale", 1.0))
+	if node_scale != 1.0:
+		offset *= node_scale
+	if bool(state.get("rotated", false)):
+		offset = _figure_transform(offset, state.get("dir", Quaternion.IDENTITY))
+	# state.g_self is already in figure-global coordinates. Rotate the local
+	# offset by the same rounded root facing before adding it to that anchor.
+	var global_offset := _globalize(offset)
+	var world: Vector3 = state.get("g_self", Vector3.ZERO) + global_offset
 	return _project_world(world)
 
 
