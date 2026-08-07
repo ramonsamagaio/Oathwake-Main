@@ -1,4 +1,4 @@
-extends "res://scripts/labs/alabaster/AlabasterRigRuntimeProduction.gd"
+extends "res://scripts/systems/bones/BonesSystem.gd"
 class_name AlabasterPlayableSkinRig
 
 const SourceAssets := preload("res://scripts/labs/alabaster/AlabasterSourceAssetLibrary.gd")
@@ -27,6 +27,7 @@ func _ready() -> void:
 	set_process(true)
 	if has_method("_merge_custom_animation_library"):
 		call("_merge_custom_animation_library")
+	prewarm_animations(CORE_GAMEPLAY_ANIMATIONS)
 	print("ALABASTER_SKIN_READY profile=%s nodes=%d anims=%d" % [skin_profile_id, _nodes.size(), _anims.size()])
 
 
@@ -47,7 +48,7 @@ func _load_skin_data() -> void:
 
 func _install_weapon_sockets() -> void:
 	# The test Male-Dummy figure predates the player weapon attachment nodes.
-	# These sockets are intentionally graphics-free and inherit hand/body motion.
+	# These sockets are graphics-free and inherit hand/body motion.
 	if not _nodes.has("weaponR"):
 		_nodes["weaponR"] = {
 			"parent": "handR",
