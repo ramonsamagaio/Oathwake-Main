@@ -1,9 +1,10 @@
 extends "res://scripts/labs/alabaster/AlabasterRigRuntimeSource.gd"
 
 # Live correction layer over the source-derived runtime plus the complete
-# animation bank used by the isolated animation playground.
+# animation catalog used by the isolated animation playground.
 
 const AnimationBank := preload("res://scripts/labs/alabaster/AlabasterAnimationBank.gd")
+const SourceImporter := preload("res://scripts/labs/alabaster/AlabasterSourceImporter.gd")
 
 const ANIMATION_CATEGORY_ORDER := {
 	"DEFAULT": 0,
@@ -17,6 +18,7 @@ const FULL_RUNTIME_MAX_BYTES := 8 * 1024 * 1024
 
 var _active_record: Dictionary = {}
 var _animation_bank_loaded := false
+var _animation_bank_source := "FALLBACK"
 
 
 func _load_data() -> void:
@@ -42,15 +44,29 @@ func _load_data() -> void:
 		push_error("AlabasterRigRuntime: source figure has no nodes")
 		return
 
-	var full_anims: Dictionary = AnimationBank.load_full_animation_bank()
-	if full_anims.size() == AnimationBank.EXPECTED_ANIMATIONS:
+	# Prefer the original demo JSON when it is available locally. It already
+	# contains figures.default.anims with all 419 authored animations and avoids
+	# transporting a large animation payload through the repository.
+	var full_anims: Dictionary = SourceImporter.load_juno_animations()
+	if full_anims.size() == SourceImporter.EXPECTED_ANIMATIONS:
 		_anims = full_anims
 		_figure["anims"] = _anims
 		_animation_bank_loaded = true
-		print("ALABASTER_ANIMATION_BANK_OK animations=%d" % _anims.size())
+		_animation_bank_source = "SOURCE_JSON"
+		print("ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=%d" % _anims.size())
 	else:
-		_animation_bank_loaded = false
-		push_warning("AlabasterRigRuntime: full animation bank unavailable; using runtime subset (%d animations)" % _anims.size())
+		# Secondary path: self-contained compact bank in the branch.
+		full_anims = AnimationBank.load_full_animation_bank()
+		if full_anims.size() == AnimationBank.EXPECTED_ANIMATIONS:
+			_anims = full_anims
+			_figure["anims"] = _anims
+			_animation_bank_loaded = true
+			_animation_bank_source = "PACKED"
+			print("ALABASTER_ANIMATION_BANK_OK source=PACKED animations=%d" % _anims.size())
+		else:
+			_animation_bank_loaded = false
+			_animation_bank_source = "FALLBACK"
+			push_warning("AlabasterRigRuntime: full animation catalog unavailable; using runtime subset (%d animations)" % _anims.size())
 
 	if not _anims.has("idle") or not _anims.has("walk") or not _anims.has("run"):
 		push_error("AlabasterRigRuntime: expected idle/walk/run animations")
@@ -60,6 +76,7 @@ func get_runtime_summary() -> Dictionary:
 	var summary: Dictionary = super.get_runtime_summary()
 	summary["animation_count"] = _anims.size()
 	summary["animation_bank_loaded"] = _animation_bank_loaded
+	summary["animation_bank_source"] = _animation_bank_source
 	return summary
 
 
