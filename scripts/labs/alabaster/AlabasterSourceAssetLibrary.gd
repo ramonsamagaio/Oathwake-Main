@@ -4,10 +4,12 @@ class_name AlabasterSourceAssetLibrary
 const SOURCE_DIR := "res://data/labs/alabaster/source/"
 const MAX_JSON_BYTES := 8 * 1024 * 1024
 const MELEE_SIZE := Vector2i(672, 152)
-const RANGED_SIZE := Vector2i(672, 88)
+const RANGED_SIZE := Vector2i(672, 92)
 
 static var _json_cache: Dictionary = {}
 static var _texture_cache: Dictionary = {}
+static var _weapon_sheet_cache: Dictionary = {}
+static var _weapon_sheet_status_reported: Dictionary = {}
 
 
 static func load_male_dummy_figure() -> Dictionary:
@@ -30,27 +32,50 @@ static func load_skin_texture(profile_id: String) -> Texture2D:
 
 
 static func load_player_weapon_sheet(sheet_name: String) -> Texture2D:
-	# This is the hot-path cache. Weapon pieces ask for their source sheet every
-	# rendered update; after first load this must return before any FileAccess.
-	var sheet_cache_key := "weapon_sheet:" + sheet_name
-	if _texture_cache.has(sheet_cache_key):
-		return _texture_cache[sheet_cache_key]
-	var texture: Texture2D = null
+	# Weapon atlases are optional source assets. Only a real PNG is accepted here.
+	# The old .verified/.chunk/.part payloads were incomplete/corrupt and caused
+	# the PNG decoder to emit thousands of CRC/parse errors when a weapon updated.
+	# Cache BOTH success and absence so gameplay never performs FileAccess or PNG
+	# decoding after the first lookup for a sheet.
+	if _weapon_sheet_cache.has(sheet_name):
+		return _weapon_sheet_cache[sheet_name] as Texture2D
+
+	var file_name := ""
+	var expected_size := Vector2i.ZERO
 	match sheet_name:
 		"melee":
-			texture = _load_png_flexible("player-melee.png", MELEE_SIZE)
+			file_name = "player-melee.png"
+			expected_size = MELEE_SIZE
 		"ranged":
-			texture = _load_png_flexible("player-ranged.png", RANGED_SIZE)
+			file_name = "player-ranged.png"
+			expected_size = RANGED_SIZE
 		_:
+			_weapon_sheet_cache[sheet_name] = null
 			return null
-	if texture != null:
-		_texture_cache[sheet_cache_key] = texture
+
+	var path := SOURCE_DIR + file_name
+	var texture: Texture2D = null
+	if FileAccess.file_exists(path):
+		var image := Image.new()
+		var error := image.load(path)
+		if error == OK and _image_size_is_valid(image, expected_size):
+			texture = ImageTexture.create_from_image(image)
+
+	_weapon_sheet_cache[sheet_name] = texture
+	if not _weapon_sheet_status_reported.has(sheet_name):
+		_weapon_sheet_status_reported[sheet_name] = true
+		if texture != null:
+			print("BONES_WEAPON_ATLAS_READY sheet=%s path=%s" % [sheet_name, path])
+		else:
+			print("BONES_WEAPON_ATLAS_OPTIONAL_MISSING sheet=%s fallback=procedural" % sheet_name)
 	return texture
 
 
 static func clear_caches() -> void:
 	_json_cache.clear()
 	_texture_cache.clear()
+	_weapon_sheet_cache.clear()
+	_weapon_sheet_status_reported.clear()
 
 
 static func _load_gzip_json(file_name: String) -> Dictionary:
@@ -73,69 +98,6 @@ static func _load_gzip_json(file_name: String) -> Dictionary:
 	var result: Dictionary = (parsed as Dictionary).duplicate(true)
 	_json_cache[path] = result
 	return result.duplicate(true)
-
-
-static func _load_png_flexible(file_name: String, expected_size: Vector2i = Vector2i.ZERO) -> Texture2D:
-	var direct_path := SOURCE_DIR + file_name
-	if _texture_cache.has(direct_path):
-		return _texture_cache[direct_path]
-	if FileAccess.file_exists(direct_path):
-		var image := Image.new()
-		var error := image.load(direct_path)
-		if error == OK and _image_size_is_valid(image, expected_size):
-			var texture := ImageTexture.create_from_image(image)
-			_texture_cache[direct_path] = texture
-			return texture
-
-	var verified_key := direct_path + "#verified"
-	if _texture_cache.has(verified_key):
-		return _texture_cache[verified_key]
-	var verified_text := _read_indexed_text(direct_path + ".b64.verified")
-	if not verified_text.is_empty():
-		var verified_texture := _decode_png_text(verified_key, verified_text, expected_size)
-		if verified_texture != null:
-			return verified_texture
-
-	var base64_path := direct_path + ".b64"
-	if _texture_cache.has(base64_path):
-		return _texture_cache[base64_path]
-	if FileAccess.file_exists(base64_path):
-		var single := _load_png_b64(file_name + ".b64", expected_size)
-		if single != null:
-			return single
-
-	var chunks_key := direct_path + "#chunks"
-	if _texture_cache.has(chunks_key):
-		return _texture_cache[chunks_key]
-	var chunk_text := _read_indexed_text(direct_path + ".b64.chunk")
-	if not chunk_text.is_empty():
-		var chunk_texture := _decode_png_text(chunks_key, chunk_text, expected_size)
-		if chunk_texture != null:
-			return chunk_texture
-
-	var parts_key := direct_path + "#parts"
-	if _texture_cache.has(parts_key):
-		return _texture_cache[parts_key]
-	var part_text := _read_indexed_text(direct_path + ".b64.part")
-	if not part_text.is_empty():
-		var part_texture := _decode_png_text(parts_key, part_text, expected_size)
-		if part_texture != null:
-			return part_texture
-
-	push_warning("AlabasterSourceAssetLibrary: no valid PNG payload for %s" % direct_path)
-	return null
-
-
-static func _read_indexed_text(prefix: String) -> String:
-	var encoded := ""
-	var index := 0
-	while true:
-		var path := prefix + "%02d" % index
-		if not FileAccess.file_exists(path):
-			break
-		encoded += FileAccess.get_file_as_string(path).strip_edges()
-		index += 1
-	return encoded if index > 0 else ""
 
 
 static func _load_png_b64(file_name: String, expected_size: Vector2i = Vector2i.ZERO) -> Texture2D:
