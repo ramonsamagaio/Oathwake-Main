@@ -6,6 +6,7 @@ class_name BonesWeapons
 # or create/free Sprite2D nodes.
 
 var _resident_figures: Dictionary = {}
+var _frame_socket_states: Dictionary = {}
 
 
 func set_item(new_item_id: String, item_record: Dictionary) -> void:
@@ -20,6 +21,19 @@ func set_attacking(value: bool) -> void:
 	_update_visibility()
 
 
+func update() -> void:
+	_frame_socket_states.clear()
+	super.update()
+
+
+func _get_target_state(target_node: String) -> Dictionary:
+	if _frame_socket_states.has(target_node):
+		return _frame_socket_states[target_node]
+	var state := super._get_target_state(target_node)
+	_frame_socket_states[target_node] = state
+	return state
+
+
 func _prewarm_equipped_weapon() -> void:
 	if not has_weapon():
 		return
@@ -28,7 +42,6 @@ func _prewarm_equipped_weapon() -> void:
 	if not attack_animation.is_empty() and rig != null and rig.has_method("prewarm_animation"):
 		rig.call("prewarm_animation", attack_animation)
 
-	# Decode source atlases through the inherited shared static cache while equipping.
 	SourceAssets.load_player_weapon_sheet("melee")
 	SourceAssets.load_player_weapon_sheet("ranged")
 
@@ -123,6 +136,7 @@ func _hide_all_resident_figures() -> void:
 
 
 func _clear_source_records() -> void:
+	_frame_socket_states.clear()
 	var freed_ids: Dictionary = {}
 	for records_value in _resident_figures.values():
 		if not records_value is Array:
