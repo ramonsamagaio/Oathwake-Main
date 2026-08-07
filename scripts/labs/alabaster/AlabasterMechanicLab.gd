@@ -7,7 +7,7 @@ const WALK_SPEED := 150.0
 const RUN_SPEED := 240.0
 
 var player: CharacterBody2D
-var rig: AlabasterRigRuntime
+var rig
 var status_label: Label
 var _debug_enabled := false
 
