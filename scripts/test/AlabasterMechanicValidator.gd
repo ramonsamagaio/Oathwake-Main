@@ -1,6 +1,16 @@
 extends SceneTree
 
 const DATA_PATH := "res://data/labs/alabaster/juno_runtime.json.gz.b64"
+const FULL_RUNTIME_MAX_BYTES := 8 * 1024 * 1024
+const MIN_EXPECTED_ANIMATIONS := 400
+const REQUIRED_ANIMATIONS := [
+	"idle", "walk", "run",
+	"idleJump1", "damage", "dead", "guard", "guardParry", "respawn",
+	"atkSwordN1", "atkSwordN2", "atkSwordNFinisher",
+	"atkSwordTripleSlash", "atkSwordCrossStrike",
+	"atkHammer1fast", "atkHammer2", "atkHammer3",
+	"atkSpear1", "atkTonfa1-punch", "castPoint",
+]
 const ATLAS_PARTS := [
 	"res://data/labs/alabaster/juno_atlas_00.part",
 	"res://data/labs/alabaster/juno_atlas_01.part",
@@ -9,6 +19,7 @@ const ATLAS_PARTS := [
 ]
 const LAB_PATH := "res://scenes/labs/alabaster/AlabasterMechanicLab.tscn"
 
+
 func _init() -> void:
 	var failures: Array[String] = []
 	var parsed: Variant = null
@@ -16,7 +27,7 @@ func _init() -> void:
 		failures.append("missing runtime source %s" % DATA_PATH)
 	else:
 		var compressed := Marshalls.base64_to_raw(FileAccess.get_file_as_string(DATA_PATH).strip_edges())
-		var raw := compressed.decompress_dynamic(1024 * 1024, FileAccess.COMPRESSION_GZIP)
+		var raw := compressed.decompress_dynamic(FULL_RUNTIME_MAX_BYTES, FileAccess.COMPRESSION_GZIP)
 		if raw.is_empty():
 			failures.append("runtime source failed to decompress")
 		else:
@@ -35,7 +46,9 @@ func _init() -> void:
 		for required_node in ["root", "top", "head", "armL", "armR", "bottom", "legL", "legR", "footL", "footR"]:
 			if not nodes.has(required_node):
 				failures.append("missing node %s" % required_node)
-		for required_anim in ["idle", "walk", "run"]:
+		if anims.size() < MIN_EXPECTED_ANIMATIONS:
+			failures.append("full animation catalog missing: expected at least %d, found %d" % [MIN_EXPECTED_ANIMATIONS, anims.size()])
+		for required_anim in REQUIRED_ANIMATIONS:
 			if not anims.has(required_anim):
 				failures.append("missing animation %s" % required_anim)
 
