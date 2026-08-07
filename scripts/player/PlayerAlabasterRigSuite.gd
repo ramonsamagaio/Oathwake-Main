@@ -164,6 +164,13 @@ func _set_player_visual_alpha(alpha: float) -> void:
 		_rig_visual.set_alpha(alpha)
 
 
+func refresh_alabaster_character_visual() -> void:
+	if _rig_visual.active:
+		_rig_visual.dispose()
+	_setup_character_visual()
+	call_deferred("_refresh_player_directional_shadow_source")
+
+
 func is_alabaster_player_visual_active() -> bool:
 	return _rig_visual.active
 
