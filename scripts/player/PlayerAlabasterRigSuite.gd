@@ -2,11 +2,24 @@ extends "res://scripts/player/PlayerRuntimeTuningFxSuite.gd"
 
 const RigVisualController := preload("res://scripts/player/AlabasterPlayerVisualController.gd")
 const WeaponVisualRuntime := preload("res://scripts/player/AlabasterWeaponVisualRuntime.gd")
+const JUNO_WEAPON_TEST_ITEMS := [
+	["Sword", "JUNO_SWORD"],
+	["Hammer", "JUNO_HAMMER"],
+	["Spear", "JUNO_SPEAR"],
+	["Tonfa", "JUNO_TONFA"],
+	["Crossbow", "JUNO_CROSSBOW"],
+	["Chakram", "JUNO_CHAKRAM"],
+	["Kama", "JUNO_KAMA"],
+	["Bomb", "JUNO_BOMB"],
+]
 
 var _rig_visual := RigVisualController.new()
 var _weapon_visual := WeaponVisualRuntime.new()
 var _alabaster_weapon_visibility_mode := "attack_only"
 var _last_alabaster_weapon_item_id := ""
+var _debug_forced_weapon_item_id := ""
+var _juno_weapon_test_layer: CanvasLayer
+var _juno_weapon_test_panel: PanelContainer
 
 
 func _setup_character_visual() -> void:
@@ -21,6 +34,7 @@ func _setup_character_visual() -> void:
 	_load_alabaster_weapon_tuning()
 	_sync_alabaster_weapon(true)
 	_force_rig_visual()
+	call_deferred("_ensure_juno_weapon_test_panel")
 	call_deferred("_configure_rig_night_readability")
 	call_deferred("_refresh_player_directional_shadow_source")
 	call_deferred("_report_rig_player_ready")
@@ -32,6 +46,17 @@ func _physics_process(delta: float) -> void:
 		_sync_alabaster_weapon(false)
 		_weapon_visual.set_attacking(action_state == ActionState.ATTACKING)
 		_weapon_visual.update()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	super._unhandled_input(event)
+	if not _rig_visual.active:
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F6:
+		_ensure_juno_weapon_test_panel()
+		if _juno_weapon_test_panel != null:
+			_juno_weapon_test_panel.visible = not _juno_weapon_test_panel.visible
+		get_viewport().set_input_as_handled()
 
 
 func _load_player_tuning() -> void:
@@ -53,15 +78,86 @@ func _sync_alabaster_weapon(force := false) -> void:
 	if not _rig_visual.active:
 		return
 	var held_id := _get_current_held_item_id()
-	if not force and held_id == _last_alabaster_weapon_item_id:
+	if held_id.begins_with("JUNO_"):
+		_debug_forced_weapon_item_id = ""
+	var resolved_id := _debug_forced_weapon_item_id if not _debug_forced_weapon_item_id.is_empty() else held_id
+	if not force and resolved_id == _last_alabaster_weapon_item_id:
 		return
-	_last_alabaster_weapon_item_id = held_id
+	_last_alabaster_weapon_item_id = resolved_id
 	var item_record := {}
 	var content_db := get_node_or_null("/root/ContentDB")
-	if not held_id.is_empty() and content_db != null and content_db.has_method("has_item") and content_db.has_item(held_id):
-		item_record = content_db.get_item(held_id)
-	_weapon_visual.set_item(held_id, item_record)
+	if not resolved_id.is_empty() and content_db != null and content_db.has_method("has_item") and content_db.has_item(resolved_id):
+		item_record = content_db.get_item(resolved_id)
+	_weapon_visual.set_item(resolved_id, item_record)
 	_weapon_visual.set_visibility_mode(_alabaster_weapon_visibility_mode)
+
+
+func _ensure_juno_weapon_test_panel() -> void:
+	if not _rig_visual.active:
+		return
+	if _juno_weapon_test_panel != null and is_instance_valid(_juno_weapon_test_panel):
+		return
+	_juno_weapon_test_layer = CanvasLayer.new()
+	_juno_weapon_test_layer.name = "JunoWeaponTestLayer"
+	_juno_weapon_test_layer.layer = 95
+	add_child(_juno_weapon_test_layer)
+
+	_juno_weapon_test_panel = PanelContainer.new()
+	_juno_weapon_test_panel.name = "JunoWeaponTestPanel"
+	_juno_weapon_test_panel.position = Vector2(18, 190)
+	_juno_weapon_test_panel.custom_minimum_size = Vector2(255, 0)
+	_juno_weapon_test_panel.visible = false
+	_juno_weapon_test_layer.add_child(_juno_weapon_test_panel)
+
+	var box := VBoxContainer.new()
+	_juno_weapon_test_panel.add_child(box)
+	var title := Label.new()
+	title.text = "JUNO WEAPON TEST · F6"
+	title.add_theme_font_size_override("font_size", 15)
+	box.add_child(title)
+	var help := Label.new()
+	help.text = "Give + Preview adds the real item to inventory and forces its placeholder on Juno until a JUNO_* weapon is actually held."
+	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	help.custom_minimum_size = Vector2(235, 0)
+	box.add_child(help)
+	for pair in JUNO_WEAPON_TEST_ITEMS:
+		var label := str(pair[0])
+		var item_id := str(pair[1])
+		var button := Button.new()
+		button.text = "Give + Preview  %s" % label
+		button.pressed.connect(_debug_grant_and_preview_juno_weapon.bind(item_id))
+		box.add_child(button)
+	var clear := Button.new()
+	clear.text = "Clear Forced Preview"
+	clear.pressed.connect(_clear_debug_juno_weapon_preview)
+	box.add_child(clear)
+	var close := Button.new()
+	close.text = "Close"
+	close.pressed.connect(func() -> void: _juno_weapon_test_panel.visible = false)
+	box.add_child(close)
+
+
+func _debug_grant_and_preview_juno_weapon(item_id: String) -> void:
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("has_item") or not content_db.has_item(item_id):
+		push_warning("Juno weapon test item is not present in ContentDB: %s" % item_id)
+		return
+	var main := get_tree().get_first_node_in_group("main")
+	if main != null and main.has_method("add_item_to_inventory"):
+		var leftover := int(main.call("add_item_to_inventory", item_id, 1, {"debug_juno_weapon": true}))
+		if leftover > 0:
+			push_warning("Inventory full; could not grant %s" % item_id)
+		else:
+			print("JUNO_WEAPON_GRANTED %s" % item_id)
+	_debug_forced_weapon_item_id = item_id
+	_last_alabaster_weapon_item_id = ""
+	_sync_alabaster_weapon(true)
+
+
+func _clear_debug_juno_weapon_preview() -> void:
+	_debug_forced_weapon_item_id = ""
+	_last_alabaster_weapon_item_id = ""
+	_sync_alabaster_weapon(true)
 
 
 func _report_rig_player_ready() -> void:
@@ -233,6 +329,7 @@ func refresh_alabaster_character_visual() -> void:
 	if _rig_visual.active:
 		_rig_visual.dispose()
 	_last_alabaster_weapon_item_id = ""
+	_debug_forced_weapon_item_id = ""
 	_setup_character_visual()
 	call_deferred("_refresh_player_directional_shadow_source")
 
