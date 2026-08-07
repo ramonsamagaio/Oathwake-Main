@@ -8,14 +8,14 @@ class_name PlayerBones
 const RigVisualController := preload("res://scripts/player/AlabasterPlayerVisualController.gd")
 const BonesWeaponRuntime := preload("res://scripts/systems/bones/BonesWeapons.gd")
 const JUNO_WEAPON_TEST_ITEMS := [
-	["Sword", "JUNO_SWORD"],
-	["Hammer", "JUNO_HAMMER"],
-	["Spear", "JUNO_SPEAR"],
-	["Tonfa", "JUNO_TONFA"],
-	["Crossbow", "JUNO_CROSSBOW"],
-	["Chakram", "JUNO_CHAKRAM"],
-	["Kama", "JUNO_KAMA"],
-	["Bomb", "JUNO_BOMB"],
+	["Sword", "juno_sword"],
+	["Hammer", "juno_hammer"],
+	["Spear", "juno_spear"],
+	["Tonfa", "juno_tonfa"],
+	["Crossbow", "juno_crossbow"],
+	["Chakram", "juno_chakram"],
+	["Kama", "juno_kama"],
+	["Bomb", "juno_bomb"],
 ]
 
 var _rig_visual := RigVisualController.new()
@@ -88,7 +88,7 @@ func _sync_bones_weapon(force := false) -> void:
 	if not _rig_visual.active:
 		return
 	var held_id := _get_current_held_item_id()
-	if held_id.begins_with("JUNO_"):
+	if held_id.begins_with("juno_"):
 		_debug_forced_weapon_item_id = ""
 	var resolved_id := _debug_forced_weapon_item_id if not _debug_forced_weapon_item_id.is_empty() else held_id
 	if not force and resolved_id == _last_bones_weapon_item_id:
@@ -126,7 +126,7 @@ func _ensure_juno_weapon_test_panel() -> void:
 	title.add_theme_font_size_override("font_size", 15)
 	box.add_child(title)
 	var help := Label.new()
-	help.text = "Give + Preview equips the real content item into the bone weapon runtime. Source FIGs are prewarmed on selection so attack input performs no asset build."
+	help.text = "Give + Preview grants the real content item. If optional source weapon art is absent, BonesWeapons uses its socket-driven procedural fallback without disk access during attack."
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.custom_minimum_size = Vector2(235, 0)
 	box.add_child(help)
