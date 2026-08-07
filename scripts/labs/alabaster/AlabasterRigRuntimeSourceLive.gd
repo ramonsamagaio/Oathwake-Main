@@ -103,16 +103,26 @@ func _extract_animation_dictionary(payload: Variant) -> Dictionary:
 		if typeof(figure_variant) == TYPE_DICTIONARY:
 			var figure_data: Dictionary = figure_variant
 			var figure_anims: Variant = figure_data.get("anims", {})
-			if typeof(figure_anims) == TYPE_DICTIONARY and not (figure_anims as Dictionary).is_empty():
-				return figure_anims
+			if typeof(figure_anims) == TYPE_DICTIONARY:
+				var figure_anims_dict: Dictionary = figure_anims
+				if not figure_anims_dict.is_empty():
+					return figure_anims_dict
 
 	var direct_anims: Variant = root.get("anims", null)
-	if typeof(direct_anims) == TYPE_DICTIONARY and not (direct_anims as Dictionary).is_empty():
-		return direct_anims
+	if typeof(direct_anims) == TYPE_DICTIONARY:
+		var direct_anims_dict: Dictionary = direct_anims
+		if not direct_anims_dict.is_empty():
+			return direct_anims_dict
 
 	if root.has("idle") and root.has("walk") and root.has("run"):
 		return root
 	return {}
+
+
+func get_runtime_summary() -> Dictionary:
+	var summary: Dictionary = super.get_runtime_summary()
+	summary["animation_count"] = _anims.size()
+	return summary
 
 
 func has_animation(animation_name: String) -> bool:
