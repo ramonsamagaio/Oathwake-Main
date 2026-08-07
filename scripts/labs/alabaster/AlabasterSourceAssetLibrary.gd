@@ -2,9 +2,15 @@ extends RefCounted
 class_name AlabasterSourceAssetLibrary
 
 const SOURCE_DIR := "res://data/labs/alabaster/source/"
+const WEAPON_PLAYER_DIR := "res://assets/sprites/figures/weapon/player/"
 const MAX_JSON_BYTES := 8 * 1024 * 1024
 const MELEE_SIZE := Vector2i(672, 152)
 const RANGED_SIZE := Vector2i(672, 92)
+
+const WEAPON_SHEET_PATHS := {
+	"melee": WEAPON_PLAYER_DIR + "player-melee.png",
+	"ranged": WEAPON_PLAYER_DIR + "player-ranged.png",
+}
 
 static var _json_cache: Dictionary = {}
 static var _texture_cache: Dictionary = {}
@@ -31,44 +37,47 @@ static func load_skin_texture(profile_id: String) -> Texture2D:
 			return null
 
 
+static func get_player_weapon_sheet_path(sheet_name: String) -> String:
+	return str(WEAPON_SHEET_PATHS.get(sheet_name, ""))
+
+
 static func load_player_weapon_sheet(sheet_name: String) -> Texture2D:
-	# Weapon atlases are optional source assets. Only a real PNG is accepted here.
-	# The old .verified/.chunk/.part payloads were incomplete/corrupt and caused
-	# the PNG decoder to emit thousands of CRC/parse errors when a weapon updated.
-	# Cache BOTH success and absence so gameplay never performs FileAccess or PNG
-	# decoding after the first lookup for a sheet.
+	# Weapon art is a normal Godot project asset now. No Base64, no FileAccess,
+	# no Image.load and no runtime PNG decoding are allowed in the weapon path.
+	# ResourceLoader/Godot's importer owns the PNG and returns the cached Texture2D.
 	if _weapon_sheet_cache.has(sheet_name):
 		return _weapon_sheet_cache[sheet_name] as Texture2D
 
-	var file_name := ""
-	var expected_size := Vector2i.ZERO
-	match sheet_name:
-		"melee":
-			file_name = "player-melee.png"
-			expected_size = MELEE_SIZE
-		"ranged":
-			file_name = "player-ranged.png"
-			expected_size = RANGED_SIZE
-		_:
-			_weapon_sheet_cache[sheet_name] = null
-			return null
+	var path := get_player_weapon_sheet_path(sheet_name)
+	if path.is_empty():
+		_weapon_sheet_cache[sheet_name] = null
+		_report_weapon_sheet(sheet_name, path, null, "unknown sheet")
+		return null
 
-	var path := SOURCE_DIR + file_name
 	var texture: Texture2D = null
-	if FileAccess.file_exists(path):
-		var image := Image.new()
-		var error := image.load(path)
-		if error == OK and _image_size_is_valid(image, expected_size):
-			texture = ImageTexture.create_from_image(image)
+	if ResourceLoader.exists(path):
+		var resource := load(path)
+		if resource is Texture2D:
+			texture = resource as Texture2D
+
+	if texture != null:
+		var expected_size := MELEE_SIZE if sheet_name == "melee" else RANGED_SIZE
+		if texture.get_width() != expected_size.x or texture.get_height() != expected_size.y:
+			_report_weapon_sheet(
+				sheet_name,
+				path,
+				null,
+				"wrong size %dx%d expected %dx%d" % [texture.get_width(), texture.get_height(), expected_size.x, expected_size.y]
+			)
+			texture = null
 
 	_weapon_sheet_cache[sheet_name] = texture
-	if not _weapon_sheet_status_reported.has(sheet_name):
-		_weapon_sheet_status_reported[sheet_name] = true
-		if texture != null:
-			print("BONES_WEAPON_ATLAS_READY sheet=%s path=%s" % [sheet_name, path])
-		else:
-			print("BONES_WEAPON_ATLAS_OPTIONAL_MISSING sheet=%s fallback=procedural" % sheet_name)
+	_report_weapon_sheet(sheet_name, path, texture, "missing/unimported asset")
 	return texture
+
+
+static func has_player_weapon_sheet(sheet_name: String) -> bool:
+	return load_player_weapon_sheet(sheet_name) != null
 
 
 static func clear_caches() -> void:
@@ -76,6 +85,16 @@ static func clear_caches() -> void:
 	_texture_cache.clear()
 	_weapon_sheet_cache.clear()
 	_weapon_sheet_status_reported.clear()
+
+
+static func _report_weapon_sheet(sheet_name: String, path: String, texture: Texture2D, failure_reason: String) -> void:
+	if _weapon_sheet_status_reported.has(sheet_name):
+		return
+	_weapon_sheet_status_reported[sheet_name] = true
+	if texture != null:
+		print("BONES_WEAPON_ATLAS_READY sheet=%s path=%s size=%dx%d" % [sheet_name, path, texture.get_width(), texture.get_height()])
+	else:
+		push_warning("Bones weapon atlas unavailable: sheet=%s path=%s reason=%s" % [sheet_name, path, failure_reason])
 
 
 static func _load_gzip_json(file_name: String) -> Dictionary:
