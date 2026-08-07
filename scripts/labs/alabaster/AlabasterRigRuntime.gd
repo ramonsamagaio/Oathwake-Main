@@ -1,16 +1,7 @@
 extends Node2D
 class_name AlabasterRigRuntime
 
-const DATA_PARTS := [
-	"res://data/labs/alabaster/juno_runtime_00.part",
-	"res://data/labs/alabaster/juno_runtime_01.part",
-	"res://data/labs/alabaster/juno_runtime_02.part",
-	"res://data/labs/alabaster/juno_runtime_03.part",
-	"res://data/labs/alabaster/juno_runtime_04.part",
-	"res://data/labs/alabaster/juno_runtime_05.part",
-	"res://data/labs/alabaster/juno_runtime_06.part",
-	"res://data/labs/alabaster/juno_runtime_07.part"
-]
+const DATA_PATH := "res://data/labs/alabaster/juno_runtime.json.gz.b64"
 const AtlasFactory := preload("res://scripts/labs/alabaster/AlabasterJunoAtlas.gd")
 
 const PIXELS_PER_UNIT := 16.0
@@ -97,12 +88,16 @@ func get_runtime_summary() -> Dictionary:
 
 
 func _load_data() -> void:
-	var source_json := ""
-	for path in DATA_PARTS:
-		if not FileAccess.file_exists(path):
-			push_error("AlabasterRigRuntime: missing %s" % path)
-			return
-		source_json += FileAccess.get_file_as_string(path)
+	if not FileAccess.file_exists(DATA_PATH):
+		push_error("AlabasterRigRuntime: missing %s" % DATA_PATH)
+		return
+	var encoded := FileAccess.get_file_as_string(DATA_PATH).strip_edges()
+	var compressed := Marshalls.base64_to_raw(encoded)
+	var raw := compressed.decompress_dynamic(1024 * 1024, FileAccess.COMPRESSION_GZIP)
+	if raw.is_empty():
+		push_error("AlabasterRigRuntime: failed to decompress Juno runtime data")
+		return
+	var source_json := raw.get_string_from_utf8()
 	var parsed = JSON.parse_string(source_json)
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_error("AlabasterRigRuntime: invalid runtime JSON")
@@ -470,11 +465,11 @@ func _select_facing(mode: String, angle_deg: float) -> Dictionary:
 	var visible := true
 
 	if mode.contains("FRONT_ONLY") or mode.ends_with("_FO"):
-		var quarter := maxi(1, count / 4)
+		var quarter := maxi(1, int(count / 4))
 		visible = logical <= quarter or logical >= count - quarter
 
 	if mode.contains("MIRR"):
-		var half := count / 2
+		var half := int(count / 2)
 		if logical > half:
 			source = count - logical
 			flip_h = true
@@ -518,8 +513,8 @@ func _quantized_reference_angle(mode: String, logical_index: int) -> float:
 func _is_back_facing(logical_index: int, count: int) -> bool:
 	if count <= 1:
 		return false
-	var half := count / 2
-	var quarter := maxi(1, count / 4)
+	var half := int(count / 2)
+	var quarter := maxi(1, int(count / 4))
 	return logical_index >= quarter and logical_index <= half + quarter
 
 
