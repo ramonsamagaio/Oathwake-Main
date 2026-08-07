@@ -139,6 +139,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _play_manual_animation(animation_name: String, sticky: bool = false, auto_preview: bool = false) -> void:
 	if not rig.has_animation(animation_name):
+		push_warning("AlabasterMechanicLab: animation not loaded: %s" % animation_name)
 		return
 	rig.set_animation(animation_name)
 	_manual_active = true
@@ -259,7 +260,7 @@ func _update_browser_label() -> void:
 		return
 	var filter_name: String = CATEGORY_ORDER[_browser_category_index]
 	if _browser_entries.is_empty():
-		browser_label.text = "browser [%s] vazio" % filter_name
+		browser_label.text = "browser [%s] vazio • catálogo total=%d" % [filter_name, _catalog.size()]
 		return
 	var entry: Dictionary = _browser_entries[_browser_index]
 	browser_label.text = "browser [%s] %d/%d  •  %s  •  source %.2fs  •  %s  •  autoplay=%s" % [
@@ -277,8 +278,10 @@ func _update_status() -> void:
 	if rig == null or status_label == null:
 		return
 	var summary = rig.get_runtime_summary()
-	status_label.text = "anim=%s   facing16=%02d   angle=%6.1f°   nodes=%d   sprite pieces=%d   manual=%s   debug=%s" % [
+	status_label.text = "anim=%s   anims=%d bank=%s   facing16=%02d   angle=%6.1f°   nodes=%d   pieces=%d   manual=%s   debug=%s" % [
 		String(summary.get("animation", "")),
+		int(summary.get("animation_count", 0)),
+		"OK" if bool(summary.get("animation_bank_loaded", false)) else "FALLBACK",
 		int(summary.get("facing_index_16", 0)),
 		float(summary.get("facing_degrees", 0.0)),
 		int(summary.get("node_count", 0)),
