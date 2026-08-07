@@ -5,7 +5,7 @@ const SOURCE_DIR := "res://data/labs/alabaster/source/"
 const WEAPON_PLAYER_DIR := "res://assets/sprites/weapons/"
 const MAX_JSON_BYTES := 8 * 1024 * 1024
 const MELEE_SIZE := Vector2i(672, 152)
-const RANGED_SIZE := Vector2i(672, 92)
+const RANGED_SIZE := Vector2i(672, 88)
 
 const WEAPON_SHEET_PATHS := {
 	"melee": WEAPON_PLAYER_DIR + "player-melee.png",
