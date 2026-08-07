@@ -5,8 +5,6 @@ class_name BonesWeapons
 # Equip/change may allocate. Attack input may not parse source data, decode PNGs
 # or create/free Sprite2D nodes.
 
-const SourceAssets := preload("res://scripts/labs/alabaster/AlabasterSourceAssetLibrary.gd")
-
 var _resident_figures: Dictionary = {}
 
 
@@ -30,7 +28,7 @@ func _prewarm_equipped_weapon() -> void:
 	if not attack_animation.is_empty() and rig != null and rig.has_method("prewarm_animation"):
 		rig.call("prewarm_animation", attack_animation)
 
-	# Decode source atlases through the shared static cache while equipping.
+	# Decode source atlases through the inherited shared static cache while equipping.
 	SourceAssets.load_player_weapon_sheet("melee")
 	SourceAssets.load_player_weapon_sheet("ranged")
 
@@ -41,7 +39,6 @@ func _prewarm_equipped_weapon() -> void:
 	if not rest_figure.is_empty() and _has_source_figure(rest_figure):
 		_build_source_figure(rest_figure)
 
-	# Select the currently desired resident figure after both have been created.
 	var desired := rest_figure if _use_rest_figure() and not rest_figure.is_empty() else held_figure
 	if not desired.is_empty() and _has_source_figure(desired):
 		_build_source_figure(desired)
@@ -126,8 +123,6 @@ func _hide_all_resident_figures() -> void:
 
 
 func _clear_source_records() -> void:
-	# Base set_item()/dispose() call this virtual method. Free every resident FIG
-	# once, not merely whichever figure happens to be active.
 	var freed_ids: Dictionary = {}
 	for records_value in _resident_figures.values():
 		if not records_value is Array:
@@ -144,7 +139,6 @@ func _clear_source_records() -> void:
 			freed_ids[instance_id] = true
 			sprite.queue_free()
 
-	# Compatibility with a record created before the resident cache was active.
 	for record in _source_records:
 		var sprite: Sprite2D = record.get("sprite") as Sprite2D
 		if sprite == null or not is_instance_valid(sprite):
