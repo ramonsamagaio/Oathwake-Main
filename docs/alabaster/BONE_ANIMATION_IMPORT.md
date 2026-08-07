@@ -1,95 +1,159 @@
-# Alabaster — importação de animações de bones
+# Alabaster — Bone Studio, importação e animação manual
 
-## Objetivo
+## O que os bones são no Oathwake
 
-Permitir que uma animação esquelética externa mova o rig 2D da Juno sem substituir sprites, equipamento, colisão ou lógica de gameplay.
+O rig da Juno é um sistema híbrido:
 
-A origem pode ser Mixamo, Blender, Unity ou qualquer ferramenta que consiga entregar uma cena esquelética importável pelo Godot.
+- a hierarquia, as rotações e as animações dos bones são **3D**;
+- os transforms usam quaternion / yaw-pitch-roll e posições `Vector3`;
+- o gameplay continua em um `CharacterBody2D`;
+- o runtime projeta os bones 3D para a tela 2D;
+- sprites 2D pixel-art são escolhidos por direção da câmera e pela inclinação do bone.
 
-## Pipeline
+Portanto não é um `Skeleton2D` convencional. Também não é um personagem 3D renderizado. É um esqueleto 3D dirigindo billboards/sprites 2D.
 
-`FBX / GLB → Godot Skeleton3D + AnimationPlayer → AlabasterBoneAnimationImporter → retarget → animação do rig 2D`
+Esse detalhe é a razão pela qual uma única animação como `walk` normalmente pode funcionar olhando para norte, sul, leste e diagonais. A pose é 3D; o atlas fornece a arte correta para o ângulo observado.
 
-O Godot funciona como formato intermediário. Não existe dependência de um arquivo proprietário da Unity ou do Mixamo.
+## Cena de produção para importação / edição
 
-### 1. Importar a animação externa
+Abra e execute isoladamente:
 
-Importe normalmente um `.fbx` ou `.glb` contendo Skeleton3D + AnimationPlayer.
+`res://scenes/labs/alabaster/AlabasterBoneStudio.tscn`
 
-Para Unity, exporte a animação/skeleton para FBX ou GLB antes. O bridge não tenta interpretar `.anim` binário da Unity diretamente.
+A ferramenta tem duas abas.
 
-### 2. Converter um clip
+### Aba Import / Retarget
 
-```gdscript
-var clip := AlabasterBoneAnimationImporter.import_scene_clip(
-    "res://imports/mixamo/sword_attack.glb",
-    "mixamo.com",
-    60.0,
-    false
-)
-```
+Fluxo recomendado:
 
-O resultado usa exatamente o formato de `transforms` que o runtime Alabaster já consome.
+1. Coloque o `.fbx`, `.glb` ou `.gltf` dentro do projeto para o Godot importá-lo como cena.
+2. Abra `AlabasterBoneStudio.tscn`.
+3. Clique em **Choose imported FBX / GLB / GLTF / TSCN**.
+4. Escolha o clip no campo **Animation clip**.
+5. Dê um nome Oathwake, por exemplo `OW_run_heavy`.
+6. Mantenha **Remove source reference pose** ligado inicialmente.
+7. Confira a tabela **source bone → Juno bone**.
+8. Clique em **Preview Retarget**.
+9. Use o preview N / NE / E / SE / S e diminua **Sprite opacity** para inspecionar os bones.
+10. Se necessário, corrija manualmente os pares da tabela e os offsets globais de Yaw / Pitch / Roll.
+11. Quando estiver correto, clique em **Save to Animation Bank**.
 
-### 3. Instalar no rig em runtime
+A animação entra em:
 
-```gdscript
-var rig := player.get_alabaster_player_rig()
-AlabasterBoneAnimationImporter.install_on_rig(rig, "external_sword_attack", clip)
-rig.set_animation("external_sword_attack")
-```
+`res://data/labs/alabaster/custom_bone_animations.json`
 
-Depois a animação pode ser ligada a uma ação em `rig_animation_map` do Characters record.
+Ela passa a ser carregada por `AlabasterRigRuntimeImportable` e aparece nos seletores do personagem Alabaster no Content Editor.
+
+## Por que remover a reference pose
+
+Mixamo, Blender, Unity Humanoid e rigs próprios raramente têm exatamente a mesma rest pose e os mesmos eixos da Juno.
+
+Por padrão o importador calcula:
+
+`delta = inverse(primeiro_frame) × pose_atual`
+
+A Juno mantém a anatomia/rest pose dela, e recebe apenas o movimento relativo do clip importado. Isso reduz braços torcidos, tronco inclinado e pernas deslocadas causados por diferenças de T-pose/A-pose.
+
+Se o primeiro frame do arquivo já for parte real do movimento e não uma boa referência, desligue a opção e faça a calibração manualmente.
 
 ## Retarget padrão Mixamo → Juno
 
-O importador já conhece os pares principais:
+O importador reconhece automaticamente os nomes mais comuns:
 
-- Hips → `bottom`
-- Spine2 → `top`
-- Head → `head`
-- LeftArm / RightArm → `shoulderL/R`
-- LeftForeArm / RightForeArm → `armL/R`
-- LeftHand / RightHand → `handL/R`
-- LeftUpLeg / RightUpLeg → `hipL/R`
-- LeftLeg / RightLeg → `legL/R`
-- LeftFoot / RightFoot → `footL/R`
-- LeftToeBase / RightToeBase → `toeL/R`
+| Mixamo / humanoide | Juno |
+| --- | --- |
+| Root | `root` |
+| Hips | `bottom` |
+| Spine / Spine1 / Spine2 | `top` |
+| Neck / Head | `head` |
+| LeftShoulder / LeftArm | `shoulderL` |
+| LeftForeArm | `armL` |
+| LeftHand | `handL` |
+| LeftHandIndex1 | `fingerL` |
+| RightShoulder / RightArm | `shoulderR` |
+| RightForeArm | `armR` |
+| RightHand | `handR` |
+| RightHandIndex1 | `fingerR` |
+| LeftUpLeg | `hipL` |
+| LeftLeg | `legL` |
+| LeftFoot | `footL` |
+| LeftToeBase | `toeL` |
+| RightUpLeg | `hipR` |
+| RightLeg | `legR` |
+| RightFoot | `footR` |
+| RightToeBase | `toeR` |
 
-Também há mapeamento de dedos principais e root.
+A tabela no Bone Studio é a autoridade final. Um bone pode ser ignorado ou redirecionado sem editar código.
 
-Um skeleton diferente pode fornecer um dicionário de retarget customizado sem alterar o importador.
+## Ajuste para o top-down da Juno
 
-## O que é importado
+Uma animação feita para uma câmera third-person pode parecer exagerada quando projetada para Oathwake. O importador mantém a rotação 3D, mas oferece correção de:
 
-Por padrão:
+- **Yaw**: giro horizontal;
+- **Pitch**: inclinação frente/trás;
+- **Roll**: inclinação lateral;
+- **Root translation scale**: desligado por padrão.
 
-- rotação local dos bones: **sim**;
-- escala: **sim**, quando o clip possuir;
-- translação/root motion: **desligada** (`translation_scale = 0.0`).
+Comece com Yaw/Pitch/Roll = 0 e Root translation = 0. O movimento real do player deve continuar no `CharacterBody2D`.
 
-A translação fica desligada porque o corpo pixel-art já tem comprimentos e encaixes autorados. Para o gameplay, movimento real do personagem continua sendo responsabilidade do `CharacterBody2D`, não do mocap.
+Se um clip externo continuar ruim mesmo após retarget:
 
-## O que a animação externa NÃO faz
+1. abra-o no Blender;
+2. aplique/normalize transform do armature;
+3. coloque o personagem fonte numa rest pose coerente;
+4. remova root motion para locomotion in-place;
+5. reduza exageros de quadril e deslocamento vertical que só fazem sentido em perspectiva 3D;
+6. exporte GLB/FBX novamente;
+7. retargete no Bone Studio.
 
-Ela não cria sprites e não inventa direções do atlas. O bone define a pose; o runtime continua escolhendo a arte direcional correta de cabeça, torso, braços, pernas, mãos, pés, cabelo e equipamento.
+Para uma biblioteca grande, o melhor fluxo é calibrar uma família de skeleton uma vez e reutilizar o mesmo mapeamento.
 
-Ela também não substitui sockets de arma. `weaponR` / `weaponL` continuam sendo pontos de encaixe do equipamento do jogo.
+## FPS
 
-## Calibração de rest pose
+O runtime original da Juno usa um relógio-base de 60 ticks por segundo.
 
-Mixamo, Unity humanoid e rigs customizados podem possuir eixos/rest poses diferentes. O bridge já resolve nomes e converte os eixos básicos para a convenção `[yaw, pitch, roll]` da Juno, mas uma animação de produção pode precisar de **offsets de rest pose por bone**.
+O importador e o editor manual convertem automaticamente o FPS escolhido em `frameRepeat`:
 
-O próximo nível dessa ferramenta é um `retarget_profile.json` por família de skeleton, contendo:
+`frameRepeat = 60 / FPS`
 
-- nome fonte → bone Juno;
-- offset de rotação de repouso;
-- inversão de eixo quando necessária;
-- escala opcional de translação;
-- bones ignorados.
+Assim um clip amostrado em 30 FPS continua durando o mesmo tempo quando entra no runtime Alabaster.
 
-Isso permite calibrar Mixamo uma vez e reutilizar a calibração em centenas de clips.
+## Aba Manual Animator
+
+A segunda aba permite criar animações sem Mixamo/Blender:
+
+1. escolha um bone;
+2. escolha o frame;
+3. edite Yaw / Pitch / Roll;
+4. opcionalmente edite X / Y / Z;
+5. escolha o tween;
+6. clique em **Add / Update Key**;
+7. repita em outros frames/bones;
+8. use **Preview Manual Animation**;
+9. use **Save Manual Animation to Bank**.
+
+Os sprites continuam por cima do esqueleto durante a edição. Use `Sprite opacity` entre 20% e 50% para enxergar melhor a relação entre bone, pivô e arte.
+
+A interpolação usa o mesmo formato e caminho de quaternion do runtime Alabaster, portanto a prévia e o jogo compartilham o mesmo modelo de animação.
+
+## Como usar a animação depois de salvar
+
+No Content Editor:
+
+1. abra **Characters**;
+2. selecione `Juno - Alabaster Rig` ou outro personagem `visual_runtime = alabaster`;
+3. em **Base Gameplay Actions**, escolha o clip para Idle / Walk / Run / Attack / Block / Hurt / Death / Dash;
+4. normalmente deixe os overrides de direção como **Use Base Action**;
+5. se um clip específico só funcionar bem em uma vista, use os overrides N / NE-NW / E-W / SE-SW / S.
+
+Os overrides de direção são uma conveniência do Oathwake. A Juno original não precisa, em geral, de uma animação separada para cada direção: a animação esquelética é 3D e o renderer muda os sprites conforme o ângulo.
+
+## Direções no renderer original
+
+O source usa famílias de facing diferentes conforme a peça: `FACE_4`, `FACE_8`, `FACE_16`, variantes MIRR/FLIP etc. Assim, a cabeça pode ter resolução direcional mais fina que um pé ou uma mão.
+
+A interface de 5 vistas do Bone Studio é uma interface de inspeção prática do Oathwake, não uma afirmação de que o atlas original possui somente cinco colunas.
 
 ## Regra de segurança
 
-Importar mocap nunca deve alterar a anatomia gráfica da personagem. O clip só dirige transforms. Os sprites e os comprimentos autorados pelo rig continuam sendo a fonte da silhueta final.
+Importar mocap nunca deve alterar a anatomia gráfica da personagem. O clip dirige transforms; sprites, comprimentos e pivôs autorados continuam sendo a fonte da silhueta final.
