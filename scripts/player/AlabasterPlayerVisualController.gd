@@ -1,7 +1,7 @@
 extends RefCounted
 class_name AlabasterPlayerVisualController
 
-const JunoRigScript := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeProduction.gd")
+const JunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 const PlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
 const DEFAULT_ACTIONS := {
 	"idle": "idle",
@@ -51,7 +51,7 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 	if rig == null:
 		return false
 
-	rig.name = "AlabasterRigVisual"
+	rig.name = "BonesRigVisual"
 	owner.add_child(rig)
 	rig.position = visual_position
 	rig.scale = Vector2.ONE * visual_scale
@@ -125,6 +125,29 @@ func duration_for_animation(animation_name: String) -> float:
 	if animation_name.is_empty():
 		return 0.0
 	return float(rig.call("get_animation_duration_seconds", animation_name))
+
+
+func prewarm_animation(animation_name: String) -> void:
+	if rig != null and rig.has_method("prewarm_animation"):
+		rig.call("prewarm_animation", animation_name)
+
+
+func prewarm_actions() -> void:
+	if rig == null or not rig.has_method("prewarm_animations"):
+		return
+	var names := []
+	for action_name in action_map.keys():
+		var animation_name := str(action_map[action_name]).strip_edges()
+		if not animation_name.is_empty() and not names.has(animation_name):
+			names.append(animation_name)
+	for action_name in directional_action_map.keys():
+		var directional_value: Variant = directional_action_map[action_name]
+		if directional_value is Dictionary:
+			for direction_key in (directional_value as Dictionary).keys():
+				var animation_name := str((directional_value as Dictionary)[direction_key]).strip_edges()
+				if not animation_name.is_empty() and not names.has(animation_name):
+					names.append(animation_name)
+	rig.call("prewarm_animations", names)
 
 
 func face(direction: Vector2) -> void:
