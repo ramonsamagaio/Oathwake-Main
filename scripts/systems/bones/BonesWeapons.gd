@@ -231,7 +231,8 @@ func _update_source_figure(resting: bool) -> bool:
 				int(region.size.x),
 				int(region.size.y),
 				pivot,
-				region
+				region,
+				flip_h
 			)
 			if xfm_value is Dictionary:
 				source_xfm = xfm_value as Dictionary
