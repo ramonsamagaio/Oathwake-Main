@@ -156,7 +156,8 @@ func resolve_external_billboard_transform(
 	tile_w: int,
 	tile_h: int,
 	pivot_px: Vector2,
-	region: Rect2
+	region: Rect2,
+	flip_h: bool = false
 ) -> Dictionary:
 	if not _states.has(node_name):
 		return {}
@@ -189,6 +190,16 @@ func resolve_external_billboard_transform(
 	)
 	for key in source_xfm.keys():
 		result[key] = source_xfm[key]
+
+	# SourceLive applies this correction for body billboards when the selected
+	# directional cell is mirrored. External equipment does not have an active
+	# body record, so mirror the same ref-angle correction explicitly here.
+	if flip_h:
+		var refs_value: Variant = row.get("refAngles", [])
+		if refs_value is Array:
+			var refs: Array = refs_value
+			if tile_idx >= 0 and tile_idx < refs.size() and refs[tile_idx] != null:
+				result["rotation"] = float(result.get("rotation", 0.0)) + 2.0 * deg_to_rad(float(refs[tile_idx]))
 	return result
 
 
