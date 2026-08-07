@@ -175,6 +175,116 @@ func _build_source_figure(figure_name: String) -> void:
 	_activate_resident_figure(figure_name)
 
 
+# Source weapon figures use the exact same billboard operations as the body.
+# In particular Sword/Spear/Tonfa rely on PARENT_ROTATE_SCALE. The old weapon
+# path only rotated a Sprite2D around the socket, so blade and hilt could drift
+# apart. This override delegates position/rotation/cut/scale to BonesSystem's
+# source-derived billboard transform instead of maintaining parallel math.
+func _update_source_figure(resting: bool) -> bool:
+	var any_visible := false
+	for record in _source_records:
+		var source_node := str(record.get("source_node", "weaponR"))
+		var target_node := _target_node_for_source(source_node, resting)
+		var state := _get_target_state(target_node)
+		var sprite: Sprite2D = record.get("sprite") as Sprite2D
+		if sprite == null:
+			continue
+		if state.is_empty():
+			sprite.visible = false
+			continue
+
+		var gfx: Dictionary = record.get("gfx", {})
+		var resolved := _resolve_gfx_visual(gfx, state, bool(record.get("half_shift", false)))
+		if resolved.is_empty():
+			sprite.visible = false
+			continue
+		var texture: Texture2D = resolved.get("texture") as Texture2D
+		if texture == null:
+			sprite.visible = false
+			continue
+
+		var region: Rect2 = resolved.get("region", Rect2())
+		var pivot: Vector2 = resolved.get("pivot", Vector2.ZERO)
+		var flip_h := bool(resolved.get("flip_h", false))
+		var billboard: Dictionary = resolved.get("billboard", {})
+		var entry: Dictionary = resolved.get("entry", {})
+		var row: Dictionary = resolved.get("row", {})
+		var tile_idx := int(resolved.get("tile_idx", 0))
+		var local_gfx_pos := _vec3_from_source_value(gfx.get("pos", [0.0, 0.0, 0.0]))
+		var tex_rotate := str(row.get("texRotate", "NONE"))
+		var skip_rotation := bool(entry.get("rotDefOff", false))
+		if bool(state.get("rot_toggle", false)):
+			skip_rotation = not skip_rotation
+		if skip_rotation:
+			tex_rotate = "NONE"
+
+		var source_xfm := {}
+		if rig != null and rig.has_method("resolve_external_billboard_transform"):
+			var xfm_value: Variant = rig.call(
+				"resolve_external_billboard_transform",
+				target_node,
+				local_gfx_pos,
+				billboard,
+				row,
+				tex_rotate,
+				tile_idx,
+				int(region.size.x),
+				int(region.size.y),
+				pivot,
+				region
+			)
+			if xfm_value is Dictionary:
+				source_xfm = xfm_value as Dictionary
+
+		if source_xfm.is_empty():
+			sprite.position = _gfx_screen_position(target_node, gfx, state)
+			sprite.rotation = _gfx_screen_rotation(resolved, state) if not skip_rotation else 0.0
+			sprite.scale = Vector2.ONE
+		else:
+			sprite.position = source_xfm.get("screen_position", state.get("screen_position", Vector2.ZERO))
+			sprite.rotation = float(source_xfm.get("rotation", 0.0))
+			sprite.scale = source_xfm.get("scale", Vector2.ONE)
+			region = source_xfm.get("region", region)
+			pivot = source_xfm.get("pivot", pivot)
+
+		sprite.texture = texture
+		sprite.region_rect = region
+		sprite.flip_h = flip_h
+		sprite.flip_v = bool(resolved.get("flip_v", false))
+		var effective_pivot_x: float = region.size.x - pivot.x if flip_h else pivot.x
+		sprite.offset = Vector2(region.size.x * 0.5 - effective_pivot_x, region.size.y * 0.5 - pivot.y)
+
+		var facing: Dictionary = resolved.get("facing", {})
+		var logical_z := int(record.get("figure_global_z", 0)) + int(billboard.get("zOrder", 0))
+		var z_offset := int(row.get("zOff", entry.get("zOff", 0)))
+		var z_frames: Variant = row.get("zFrames", entry.get("zFrames", null))
+		if z_frames is Array and tile_idx >= 0 and tile_idx < (z_frames as Array).size():
+			z_offset += int((z_frames as Array)[tile_idx])
+		else:
+			var side_back := int(facing.get("side", 0))
+			if side_back == 1:
+				z_offset += int(row.get("zSide", entry.get("zSide", 0)))
+			elif side_back == 2:
+				z_offset += int(row.get("zBack", entry.get("zBack", 0)))
+		logical_z += z_offset
+		if resting:
+			logical_z -= 8
+		sprite.z_index = clampi(logical_z, -32, 32)
+		sprite.visible = _should_be_visible() and region.size.x > 0.0 and region.size.y > 0.0
+		any_visible = any_visible or sprite.visible
+
+	return any_visible
+
+
+func _vec3_from_source_value(value: Variant) -> Vector3:
+	if value is Vector3:
+		return value as Vector3
+	if value is Array and (value as Array).size() >= 3:
+		var values := value as Array
+		return Vector3(float(values[0]), float(values[1]), float(values[2]))
+	return Vector3.ZERO
+
+
 func _activate_resident_figure(figure_name: String) -> void:
 	_hide_all_resident_figures()
 	_source_records.clear()
