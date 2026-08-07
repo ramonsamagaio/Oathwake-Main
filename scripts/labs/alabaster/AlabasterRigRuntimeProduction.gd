@@ -7,6 +7,7 @@ class_name AlabasterRigRuntimeProduction
 
 const NO_LAYER_OVERRIDE := 999999
 const SIDE_DEPTH_EPSILON := 0.015
+const PROFILE_FACING_EPSILON := 11.26
 
 var editor_camera_enabled := false
 var editor_camera_pitch_degrees := -45.0
@@ -18,6 +19,14 @@ func _process(delta: float) -> void:
 		_apply_pose()
 		return
 	super._process(delta)
+
+
+func _apply_pose() -> void:
+	# Let the source renderer and all existing directional corrections finish
+	# first. The profile arm/leg rule needs final sprite z values, not guesses
+	# based on the authored base z-order.
+	super._apply_pose()
+	_apply_profile_front_arm_over_legs()
 
 
 func set_editor_camera_enabled(enabled: bool) -> void:
@@ -147,7 +156,6 @@ func _apply_directional_layer_override(record: Dictionary, sprite: Sprite2D) -> 
 
 	# Legs: choose front/back from the actual 3D hip anchors after facing has
 	# been applied. Larger global Y is closer under the source camera formula.
-	# This fixes W/E and NW/SW without hardcoding anatomical left/right.
 	if node_name == "legL" or node_name == "legR":
 		var side := "L" if node_name.ends_with("L") else "R"
 		var front_state := _side_front_state("hipL", "hipR", side)
@@ -168,6 +176,55 @@ func _apply_directional_layer_override(record: Dictionary, sprite: Sprite2D) -> 
 		elif front_state == -1:
 			_offset_logical_layer(sprite, -4)
 		return
+
+
+func _apply_profile_front_arm_over_legs() -> void:
+	# The authored z table can still leave the near profile arm one layer below
+	# a leg. Only fix exact E/W locomotion views. Attacks and diagonals retain
+	# their source-authored crossing order.
+	if current_animation not in ["idle", "walk", "run"]:
+		return
+	var is_east := _angular_distance(facing_degrees, 90.0) <= PROFILE_FACING_EPSILON
+	var is_west := _angular_distance(facing_degrees, 270.0) <= PROFILE_FACING_EPSILON
+	if not is_east and not is_west:
+		return
+
+	var left_front := _side_front_state("shoulderL", "shoulderR", "L")
+	if left_front == 0:
+		return
+	var front_suffix := "L" if left_front == 1 else "R"
+	var front_nodes := ["arm" + front_suffix, "hand" + front_suffix, "finger" + front_suffix]
+
+	var leg_top := -4096
+	var front_arm_bottom := 4096
+	var has_leg := false
+	var has_front_arm := false
+	for record in _sprite_records:
+		var sprite: Sprite2D = record.get("sprite") as Sprite2D
+		if sprite == null or not sprite.visible:
+			continue
+		var node_name := String(record.get("node", ""))
+		if node_name == "legL" or node_name == "legR":
+			leg_top = maxi(leg_top, sprite.z_index)
+			has_leg = true
+		elif node_name in front_nodes:
+			front_arm_bottom = mini(front_arm_bottom, sprite.z_index)
+			has_front_arm = true
+
+	if not has_leg or not has_front_arm or front_arm_bottom > leg_top:
+		return
+
+	var layer_step := 1 if _embedded_world_mode else 16
+	var required_shift := (leg_top + layer_step) - front_arm_bottom
+	for record in _sprite_records:
+		var node_name := String(record.get("node", ""))
+		if node_name not in front_nodes:
+			continue
+		var sprite: Sprite2D = record.get("sprite") as Sprite2D
+		if sprite == null or not sprite.visible:
+			continue
+		sprite.z_index = clampi(sprite.z_index + required_shift, -4096, 4096)
+		sprite.set_meta("alabaster_profile_arm_over_leg", true)
 
 
 func _side_front_state(left_anchor: String, right_anchor: String, requested_side: String) -> int:
