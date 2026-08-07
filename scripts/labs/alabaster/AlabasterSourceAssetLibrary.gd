@@ -2,7 +2,7 @@ extends RefCounted
 class_name AlabasterSourceAssetLibrary
 
 const SOURCE_DIR := "res://data/labs/alabaster/source/"
-const WEAPON_PLAYER_DIR := "res://assets/sprites/figures/weapon/player/"
+const WEAPON_PLAYER_DIR := "res://assets/sprites/weapons/"
 const MAX_JSON_BYTES := 8 * 1024 * 1024
 const MELEE_SIZE := Vector2i(672, 152)
 const RANGED_SIZE := Vector2i(672, 92)
@@ -42,7 +42,7 @@ static func get_player_weapon_sheet_path(sheet_name: String) -> String:
 
 
 static func load_player_weapon_sheet(sheet_name: String) -> Texture2D:
-	# Weapon art is a normal Godot project asset now. No Base64, no FileAccess,
+	# Weapon art is a normal Godot project asset. No Base64, no FileAccess,
 	# no Image.load and no runtime PNG decoding are allowed in the weapon path.
 	# ResourceLoader/Godot's importer owns the PNG and returns the cached Texture2D.
 	if _weapon_sheet_cache.has(sheet_name):
