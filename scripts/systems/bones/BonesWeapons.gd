@@ -2,14 +2,18 @@ extends "res://scripts/player/AlabasterWeaponVisualRuntime.gd"
 class_name BonesWeapons
 
 # Production weapon attachment layer for bone-driven characters.
-# Equip/change may allocate. Attack input may not parse source data, decode PNGs
-# or create/free Sprite2D nodes.
+# Equip/change may allocate. Attack input may not parse source data, decode PNGs,
+# touch FileAccess or create/free Sprite2D nodes.
 
 var _resident_figures: Dictionary = {}
 var _frame_socket_states: Dictionary = {}
+var _source_sheet_available := false
+var _source_sheet_name := ""
 
 
 func set_item(new_item_id: String, item_record: Dictionary) -> void:
+	_source_sheet_available = false
+	_source_sheet_name = ""
 	super.set_item(new_item_id, item_record)
 	_prewarm_equipped_weapon()
 
@@ -23,6 +27,20 @@ func set_attacking(value: bool) -> void:
 
 func update() -> void:
 	_frame_socket_states.clear()
+	if rig == null or visual_root == null or not has_weapon():
+		_update_visibility()
+		return
+	if not _should_be_visible():
+		_update_visibility()
+		return
+
+	# Missing optional source art is a normal state, not an error path. Keep the
+	# socket-driven procedural placeholder and never ask the asset loader again.
+	if not _source_sheet_available:
+		_update_fallback(_use_rest_figure())
+		_update_visibility()
+		return
+
 	super.update()
 
 
@@ -42,8 +60,11 @@ func _prewarm_equipped_weapon() -> void:
 	if not attack_animation.is_empty() and rig != null and rig.has_method("prewarm_animation"):
 		rig.call("prewarm_animation", attack_animation)
 
-	SourceAssets.load_player_weapon_sheet("melee")
-	SourceAssets.load_player_weapon_sheet("ranged")
+	_source_sheet_name = "ranged" if bool(weapon_data.get("ranged", false)) else "melee"
+	_source_sheet_available = SourceAssets.load_player_weapon_sheet(_source_sheet_name) != null
+	if not _source_sheet_available:
+		_update_visibility()
+		return
 
 	var held_figure := str(weapon_data.get("source_figure", "")).strip_edges()
 	var rest_figure := str(weapon_data.get("rest_source_figure", "")).strip_edges()
@@ -59,6 +80,8 @@ func _prewarm_equipped_weapon() -> void:
 
 
 func _build_source_figure(figure_name: String) -> void:
+	if not _source_sheet_available:
+		return
 	if _resident_figures.has(figure_name):
 		_activate_resident_figure(figure_name)
 		return
