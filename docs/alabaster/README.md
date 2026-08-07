@@ -9,7 +9,7 @@ The character is not a normal frame-by-frame sprite animation. The figure data d
 The source contains:
 
 - a parent hierarchy for root, torso, head, shoulders, arms, hands, fingers, hips, legs, feet, toes and attachments;
-- sparse animation transforms (`rot` / `trans`) for `idle`, `walk`, `run` and many other actions;
+- sparse animation transforms (`rot` / `trans`) for hundreds of actions;
 - `FACE_16`, `FACE_8`, `FACE_4`, mirrored, flipped and front-only sprite-selection modes;
 - per-piece source rectangles, pivots and `zOrder`;
 - `refAngles` tables and texture modes such as `ROTATE`, `PARENT_ROTATE`, `PARENT_ROTATE_SCALE`, `PARENT_ROTATE_CUT`, and `ROTATE_SCALE`;
@@ -27,17 +27,40 @@ Controls:
 
 - WASD: move and set facing;
 - Shift + WASD: run;
-- F1: show the reconstructed node hierarchy.
+- F1: show the reconstructed node hierarchy;
+- Tab: cycle animation category;
+- Page Up / Page Down: browse animations;
+- Enter: play the selected animation;
+- F2: autoplay the animation browser;
+- Escape: return to idle;
+- Space: jump;
+- H: hurt;
+- K: death;
+- G: guard;
+- P: parry;
+- X: respawn;
+- C: cast / ability;
+- 1-5: sword attacks and sword skills;
+- 6-8: two-handed hammer attacks;
+- 9: spear attack;
+- 0: tonfa attack.
 
 The lab keeps the source convention of X/Y as the ground plane and Z as height. It evaluates the hierarchy with `Transform3D` / `Basis`, projects the result into the 2D top-down view, then chooses the appropriate atlas cells with nearest-neighbor filtering. The supplied Juno sheet is embedded losslessly as a palette PNG payload in four text parts so the branch is self-contained.
 
-The source subset used at runtime preserves the full node/GFX definitions plus the exact supplied `idle`, `walk`, and `run` key blocks. It is stored as gzip+base64 at:
+The figure/node runtime is stored as gzip+base64 at:
 
 `res://data/labs/alabaster/juno_runtime.json.gz.b64`
 
+The complete Juno animation catalog is stored as a Zstandard-compressed base64 payload split into two files:
+
+- `res://data/labs/alabaster/anims/juno_anims_bin_00.part`
+- `res://data/labs/alabaster/anims/juno_anims_bin_01.part`
+
+`AlabasterRigRuntimeSourceLive.gd` joins those two parts at startup, decodes ZSTD, replaces the small runtime animation subset with the complete catalog, and exposes it to the animation browser. The older `juno_anims_bank_*.part` files are staging artifacts and are no longer required by the runtime.
+
 ## Important fidelity boundary
 
-Everything that is numerically described by the supplied files is carried into the prototype: hierarchy, transforms, atlas rectangles, pivots, facing modes, reference angles, draw-order values, half-pixel behavior and the idle/walk/run source keys.
+Everything that is numerically described by the supplied files is carried into the prototype: hierarchy, transforms, atlas rectangles, pivots, facing modes, reference angles, draw-order values, half-pixel behavior and source animation keys.
 
 Some renderer operations are named but their actual implementation is not present in the files. The clearest example is the precise clipping algorithm behind the `*_CUT` texture modes. The prototype therefore keeps those flags and approximates the visible behavior instead of inventing a fake undocumented algorithm. Pixel-identical parity needs visual comparison in a running Godot build and small renderer tuning after that comparison.
 
@@ -55,7 +78,9 @@ godot --headless --path . --script res://scripts/test/AlabasterMechanicValidator
 
 Expected success marker:
 
-`ALABASTER_MECHANIC_VALIDATION_OK`
+`ALABASTER_MECHANIC_VALIDATION_OK animations=<count>`
+
+The validator now checks the ZSTD animation bank directly, requires at least 400 animations, verifies the gameplay hotkey animations, validates the core rig nodes, atlas parts, and lab scene.
 
 ## Sprite map
 
