@@ -67,6 +67,10 @@ func get_bone_visual_state(node_name: String) -> Dictionary:
 	return state
 
 
+func project_external_world(world: Vector3) -> Vector2:
+	return _project_world(world)
+
+
 func resolve_external_facing(mode: String, angle: float, flip_roll: bool = false) -> Dictionary:
 	return _select_facing_source(mode, angle, flip_roll)
 
