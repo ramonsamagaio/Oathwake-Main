@@ -16,10 +16,14 @@ const ANIMATION_CATEGORY_ORDER := {
 	"CUTSCENE": 4,
 }
 
-var _active_record: Dictionary = {}
-
-
 const FULL_RUNTIME_MAX_BYTES := 8 * 1024 * 1024
+const FULL_ANIMATION_MAX_BYTES := 64 * 1024 * 1024
+const FULL_ANIMATION_PARTS := [
+	"res://data/labs/alabaster/anims/juno_anims_bin_00.part",
+	"res://data/labs/alabaster/anims/juno_anims_bin_01.part",
+]
+
+var _active_record: Dictionary = {}
 
 
 func _load_data() -> void:
@@ -43,8 +47,72 @@ func _load_data() -> void:
 	_anims = _figure.get("anims", {})
 	if _nodes.is_empty():
 		push_error("AlabasterRigRuntime: source figure has no nodes")
+		return
+
+	var full_anims := _load_full_animation_bank()
+	if not full_anims.is_empty():
+		_anims = full_anims
+		_figure["anims"] = _anims
+	else:
+		push_warning("AlabasterRigRuntime: full animation bank unavailable; using runtime subset")
+
 	if not _anims.has("idle") or not _anims.has("walk") or not _anims.has("run"):
 		push_error("AlabasterRigRuntime: expected idle/walk/run animations")
+
+
+func _load_full_animation_bank() -> Dictionary:
+	var encoded := ""
+	for part_path_variant in FULL_ANIMATION_PARTS:
+		var part_path := String(part_path_variant)
+		if not FileAccess.file_exists(part_path):
+			push_warning("AlabasterRigRuntime: missing full animation part %s" % part_path)
+			return {}
+		encoded += FileAccess.get_file_as_string(part_path).strip_edges()
+
+	var compressed := Marshalls.base64_to_raw(encoded)
+	if compressed.is_empty():
+		push_warning("AlabasterRigRuntime: full animation bank base64 decode failed")
+		return {}
+
+	var raw := compressed.decompress_dynamic(FULL_ANIMATION_MAX_BYTES, FileAccess.COMPRESSION_ZSTD)
+	if raw.is_empty():
+		push_warning("AlabasterRigRuntime: full animation bank ZSTD decode failed")
+		return {}
+
+	var parsed_json: Variant = JSON.parse_string(raw.get_string_from_utf8())
+	var anims := _extract_animation_dictionary(parsed_json)
+	if not anims.is_empty():
+		return anims
+
+	# Fallback for a Variant-serialized payload. The current bank is JSON, but
+	# keeping this path makes the loader tolerant of a future compact export.
+	var parsed_variant: Variant = bytes_to_var(raw)
+	anims = _extract_animation_dictionary(parsed_variant)
+	if anims.is_empty():
+		push_warning("AlabasterRigRuntime: full animation bank decoded but contained no animation dictionary")
+	return anims
+
+
+func _extract_animation_dictionary(payload: Variant) -> Dictionary:
+	if typeof(payload) != TYPE_DICTIONARY:
+		return {}
+	var root: Dictionary = payload
+
+	if root.has("figure"):
+		var figure_variant: Variant = root.get("figure", {})
+		if typeof(figure_variant) == TYPE_DICTIONARY:
+			var figure_data: Dictionary = figure_variant
+			var figure_anims: Variant = figure_data.get("anims", {})
+			if typeof(figure_anims) == TYPE_DICTIONARY and not (figure_anims as Dictionary).is_empty():
+				return figure_anims
+
+	var direct_anims: Variant = root.get("anims", null)
+	if typeof(direct_anims) == TYPE_DICTIONARY and not (direct_anims as Dictionary).is_empty():
+		return direct_anims
+
+	if root.has("idle") and root.has("walk") and root.has("run"):
+		return root
+	return {}
 
 
 func has_animation(animation_name: String) -> bool:
