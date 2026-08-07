@@ -51,6 +51,33 @@ func get_current_source_frame() -> float:
 	return _src_frame
 
 
+func get_bone_visual_state(node_name: String) -> Dictionary:
+	if not _states.has(node_name):
+		return {}
+	var state: Dictionary = (_states[node_name] as Dictionary).duplicate(true)
+	var pose := get_bone_screen_pose(node_name)
+	state["screen_position"] = pose.get("screen_position", Vector2.ZERO)
+	state["screen_origin"] = pose.get("screen_origin", Vector2.ZERO)
+	state["screen_rotation"] = pose.get("rotation", 0.0)
+	state["world_position"] = pose.get("world_position", Vector3.ZERO)
+	state["frame_key"] = int(state.get("frame_key", 0))
+	state["pitch"] = int(state.get("pitch", 4))
+	state["facing_yaw"] = float(state.get("facing_yaw", facing_degrees))
+	state["yaw_flipped"] = bool(state.get("yaw_flipped", false))
+	return state
+
+
+func resolve_external_facing(mode: String, angle: float, flip_roll: bool = false) -> Dictionary:
+	return _select_facing_source(mode, angle, flip_roll)
+
+
+func resolve_external_texture_row(entries: Dictionary, frame_key: int, pitch: int) -> Dictionary:
+	var result := _find_texture_row(entries, frame_key, pitch)
+	if result.is_empty() and frame_key != 0:
+		result = _find_texture_row(entries, 0, pitch)
+	return result
+
+
 func _project_world(world: Vector3) -> Vector2:
 	if not editor_camera_enabled:
 		return super._project_world(world)
