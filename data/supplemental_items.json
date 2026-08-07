@@ -21,91 +21,63 @@
     "tags": ["building", "light", "placeable"]
   },
   "JUNO_SWORD": {
-    "display_name": "JUNO Sword - Claio Solas",
-    "description": "Alabaster Dawn reference weapon. Uses Juno's right-hand weapon socket and sword attack set.",
-    "item_type": "weapon",
-    "equipment_slot": "weapon",
-    "stack_size": 1,
-    "tier": 1,
+    "display_name": "JUNO Sword - Claio Solas", "description": "Juno sword using the source player-weapon figure.", "item_type": "weapon", "equipment_slot": "weapon", "stack_size": 1, "tier": 1,
     "combat": {"attack_power": 12, "attack_variance": 0.14, "damage_type": "physical", "can_hit_monsters": true, "can_hit_resources": false},
-    "alabaster_weapon": {"kind":"sword","source_name":"Claio Solas","figure_id":"FIG:weapon.player-weapon#sword","source_item_icon":{"image":"media/gui/items-icons.png","rect":[128,0,32,32]},"attack_animation":"atkSwordN1","socket":"weaponR","supports_always_visible":false},
+    "alabaster_weapon": {"kind":"sword","source_name":"Claio Solas","source_bundle":"player_weapon","source_figure":"sword","figure_id":"FIG:weapon.player-weapon#sword","source_item_icon":{"image":"media/gui/items-icons.png","rect":[128,0,32,32]},"attack_animation":"atkSwordN1","socket":"weaponR","supports_always_visible":false},
     "tags": ["juno", "alabaster", "weapon", "sword"]
   },
+  "JUNO_BROADSWORD": {
+    "display_name": "JUNO Broadsword", "description": "Two-handed/broad sword figure found in the player weapon source.", "item_type": "weapon", "equipment_slot": "weapon", "stack_size": 1, "tier": 1,
+    "combat": {"attack_power": 17, "attack_variance": 0.16, "damage_type": "physical", "can_hit_monsters": true, "can_hit_resources": false},
+    "alabaster_weapon": {"kind":"broadsword","source_bundle":"player_weapon","source_figure":"broadsword","figure_id":"FIG:weapon.player-weapon#broadsword","attack_animation":"atkSwordOverhead","socket":"weaponR","supports_always_visible":false},
+    "tags": ["juno", "alabaster", "weapon", "broadsword", "two_handed"]
+  },
   "JUNO_HAMMER": {
-    "display_name": "JUNO Hammer - Ortrom Solas",
-    "description": "Alabaster Dawn reference hammer. Supports an authored back figure in the source.",
-    "item_type": "weapon",
-    "equipment_slot": "weapon",
-    "stack_size": 1,
-    "tier": 1,
+    "display_name": "JUNO Hammer - Ortrom Solas", "description": "Juno hammer with authored held and back figures.", "item_type": "weapon", "equipment_slot": "weapon", "stack_size": 1, "tier": 1,
     "combat": {"attack_power": 18, "attack_variance": 0.18, "damage_type": "physical", "can_hit_monsters": true, "can_hit_resources": false},
-    "alabaster_weapon": {"kind":"hammer","source_name":"Ortrom Solas","figure_id":"FIG:weapon.player-weapon#hammer","back_figure_id":"FIG:weapon.player-weapon#hammerBack","source_item_icon":{"image":"media/gui/items-icons.png","rect":[192,0,32,32]},"attack_animation":"atkHammer1fast","socket":"weaponR","rest_socket":"weaponBelt","supports_always_visible":true},
+    "alabaster_weapon": {"kind":"hammer","source_name":"Ortrom Solas","source_bundle":"player_weapon","source_figure":"hammer","rest_source_figure":"hammerBack","figure_id":"FIG:weapon.player-weapon#hammer","back_figure_id":"FIG:weapon.player-weapon#hammerBack","source_item_icon":{"image":"media/gui/items-icons.png","rect":[192,0,32,32]},"attack_animation":"atkHammer1fast","socket":"weaponR","rest_socket":"weaponBelt","supports_always_visible":true},
     "tags": ["juno", "alabaster", "weapon", "hammer"]
   },
   "JUNO_SPEAR": {
-    "display_name": "JUNO Spear - Lann Solas",
-    "description": "Alabaster Dawn reference spear. Supports an authored back figure in the source.",
-    "item_type": "weapon",
-    "equipment_slot": "weapon",
-    "stack_size": 1,
-    "tier": 1,
+    "display_name": "JUNO Spear - Lann Solas", "description": "Juno spear with authored held and back figures.", "item_type": "weapon", "equipment_slot": "weapon", "stack_size": 1, "tier": 1,
     "combat": {"attack_power": 15, "attack_variance": 0.10, "damage_type": "physical", "can_hit_monsters": true, "can_hit_resources": false},
-    "alabaster_weapon": {"kind":"spear","source_name":"Lann Solas","figure_id":"FIG:weapon.player-weapon#spear","back_figure_id":"FIG:weapon.player-weapon#spearBack","source_item_icon":{"image":"media/gui/items-icons.png","rect":[256,0,32,32]},"attack_animation":"atkSpear1","socket":"weaponR","rest_socket":"weaponBelt","supports_always_visible":true},
+    "alabaster_weapon": {"kind":"spear","source_name":"Lann Solas","source_bundle":"player_weapon","source_figure":"spear","rest_source_figure":"spearBack","figure_id":"FIG:weapon.player-weapon#spear","back_figure_id":"FIG:weapon.player-weapon#spearBack","source_item_icon":{"image":"media/gui/items-icons.png","rect":[256,0,32,32]},"attack_animation":"atkSpear1","socket":"weaponR","rest_socket":"weaponBelt","supports_always_visible":true},
     "tags": ["juno", "alabaster", "weapon", "spear"]
   },
   "JUNO_TONFA": {
-    "display_name": "JUNO Tonfa - Dorn Solas",
-    "description": "Alabaster Dawn reference tonfa weapon.",
-    "item_type": "weapon",
-    "equipment_slot": "weapon",
-    "stack_size": 1,
-    "tier": 1,
+    "display_name": "JUNO Tonfa - Dorn Solas", "description": "Dual source figure using weaponL and weaponR.", "item_type": "weapon", "equipment_slot": "weapon", "stack_size": 1, "tier": 1,
     "combat": {"attack_power": 10, "attack_variance": 0.12, "damage_type": "physical", "can_hit_monsters": true, "can_hit_resources": false},
-    "alabaster_weapon": {"kind":"tonfa","source_name":"Dorn Solas","figure_id":"FIG:weapon.player-weapon#tonfa","source_item_icon":{"image":"media/gui/items-icons.png","rect":[288,0,32,32]},"attack_animation":"atkTonfa1-punch","socket":"weaponR","supports_always_visible":false},
-    "tags": ["juno", "alabaster", "weapon", "tonfa"]
+    "alabaster_weapon": {"kind":"tonfa","source_name":"Dorn Solas","source_bundle":"player_weapon","source_figure":"tonfa","figure_id":"FIG:weapon.player-weapon#tonfa","source_item_icon":{"image":"media/gui/items-icons.png","rect":[288,0,32,32]},"attack_animation":"atkTonfa1-punch","socket":"weaponR","secondary_socket":"weaponL","supports_always_visible":false},
+    "tags": ["juno", "alabaster", "weapon", "tonfa", "dual_wield"]
   },
   "JUNO_CROSSBOW": {
-    "display_name": "JUNO Crossbow - Bogha Solas",
-    "description": "Alabaster Dawn reference crossbow. Registered now for rig preview and future ranged gameplay.",
-    "item_type": "weapon",
-    "equipment_slot": "weapon",
-    "stack_size": 1,
-    "tier": 1,
+    "display_name": "JUNO Crossbow - Bogha Solas", "description": "Source crossbow figure and ranged action binding.", "item_type": "weapon", "equipment_slot": "weapon", "stack_size": 1, "tier": 1,
     "combat": {"attack_power": 13, "attack_variance": 0.10, "damage_type": "physical", "can_hit_monsters": true, "can_hit_resources": false},
-    "alabaster_weapon": {"kind":"crossbow","source_name":"Bogha Solas","figure_id":"FIG:weapon.player-weapon#crossbow","source_item_icon":{"image":"media/gui/items-icons.png","rect":[160,0,32,32]},"attack_animation":"aimShootWeak1","socket":"weaponR","supports_always_visible":false,"ranged":true},
+    "alabaster_weapon": {"kind":"crossbow","source_name":"Bogha Solas","source_bundle":"player_weapon","source_figure":"crossbow","figure_id":"FIG:weapon.player-weapon#crossbow","source_item_icon":{"image":"media/gui/items-icons.png","rect":[160,0,32,32]},"attack_animation":"aimShootWeak1","socket":"weaponR","supports_always_visible":false,"ranged":true,"projectile_profile":"arrow"},
     "tags": ["juno", "alabaster", "weapon", "crossbow", "ranged"]
   },
   "JUNO_CHAKRAM": {
-    "display_name": "JUNO Chakram - Fain Solas",
-    "description": "Alabaster Dawn reference chakram. Registered now for rig preview and future ranged gameplay.",
-    "item_type": "weapon",
-    "equipment_slot": "weapon",
-    "stack_size": 1,
-    "tier": 1,
+    "display_name": "JUNO Chakram - Fain Solas", "description": "Source chakram figure linked to returning projectile behavior.", "item_type": "weapon", "equipment_slot": "weapon", "stack_size": 1, "tier": 1,
     "combat": {"attack_power": 12, "attack_variance": 0.10, "damage_type": "physical", "can_hit_monsters": true, "can_hit_resources": false},
-    "alabaster_weapon": {"kind":"chakram","source_name":"Fain Solas","figure_id":"FIG:weapon.player-weapon#chakram","source_item_icon":{"image":"media/gui/items-icons.png","rect":[224,0,32,32]},"attack_animation":"aimShootCha","socket":"weaponR","supports_always_visible":false,"ranged":true},
-    "tags": ["juno", "alabaster", "weapon", "chakram", "ranged"]
+    "alabaster_weapon": {"kind":"chakram","source_name":"Fain Solas","source_bundle":"player_weapon","source_figure":"chakram","figure_id":"FIG:weapon.player-weapon#chakram","source_item_icon":{"image":"media/gui/items-icons.png","rect":[224,0,32,32]},"attack_animation":"aimShootCha","socket":"weaponR","supports_always_visible":false,"ranged":true,"projectile_profile":"chakram"},
+    "tags": ["juno", "alabaster", "weapon", "chakram", "ranged", "returning"]
   },
   "JUNO_KAMA": {
-    "display_name": "JUNO Kama - Corran Solas",
-    "description": "Alabaster Dawn reference kama. Registered now for rig preview and future ranged gameplay.",
-    "item_type": "weapon",
-    "equipment_slot": "weapon",
-    "stack_size": 1,
-    "tier": 1,
+    "display_name": "JUNO Kama - Corran Solas", "description": "Source kama figure linked to spin/stuck/pull projectile states.", "item_type": "weapon", "equipment_slot": "weapon", "stack_size": 1, "tier": 1,
     "combat": {"attack_power": 12, "attack_variance": 0.10, "damage_type": "physical", "can_hit_monsters": true, "can_hit_resources": false},
-    "alabaster_weapon": {"kind":"kama","source_name":"Corran Solas","figure_id":"FIG:weapon.player-weapon#kama","source_item_icon":{"image":"media/gui/items-icons.png","rect":[320,0,32,32]},"attack_animation":"aimShootKama","socket":"weaponR","supports_always_visible":false,"ranged":true},
-    "tags": ["juno", "alabaster", "weapon", "kama", "ranged"]
+    "alabaster_weapon": {"kind":"kama","source_name":"Corran Solas","source_bundle":"player_weapon","source_figure":"kama","figure_id":"FIG:weapon.player-weapon#kama","source_item_icon":{"image":"media/gui/items-icons.png","rect":[320,0,32,32]},"attack_animation":"aimShootKama","socket":"weaponR","supports_always_visible":false,"ranged":true,"projectile_profile":"kama"},
+    "tags": ["juno", "alabaster", "weapon", "kama", "ranged", "returning"]
   },
   "JUNO_BOMB": {
-    "display_name": "JUNO Bomb - Boma Solas",
-    "description": "Alabaster Dawn reference bomb. Registered now for rig preview and future ranged gameplay.",
-    "item_type": "weapon",
-    "equipment_slot": "weapon",
-    "stack_size": 1,
-    "tier": 1,
+    "display_name": "JUNO Bomb - Boma Solas", "description": "Source bomb figure linked to throwable projectile behavior.", "item_type": "weapon", "equipment_slot": "weapon", "stack_size": 1, "tier": 1,
     "combat": {"attack_power": 16, "attack_variance": 0.12, "damage_type": "physical", "can_hit_monsters": true, "can_hit_resources": false},
-    "alabaster_weapon": {"kind":"bomb","source_name":"Boma Solas","figure_id":"FIG:weapon.player-weapon#bomb","source_item_icon":{"image":"media/gui/items-icons.png","rect":[352,0,32,32]},"attack_animation":"aimShootBomb1","socket":"weaponR","supports_always_visible":false,"ranged":true},
-    "tags": ["juno", "alabaster", "weapon", "bomb", "ranged"]
+    "alabaster_weapon": {"kind":"bomb","source_name":"Boma Solas","source_bundle":"player_weapon","source_figure":"bomb","figure_id":"FIG:weapon.player-weapon#bomb","source_item_icon":{"image":"media/gui/items-icons.png","rect":[352,0,32,32]},"attack_animation":"aimShootBomb1","socket":"weaponR","supports_always_visible":false,"ranged":true,"projectile_profile":"bomb"},
+    "tags": ["juno", "alabaster", "weapon", "bomb", "ranged", "throwable"]
+  },
+  "JUNO_GAUNTLET": {
+    "display_name": "JUNO Gauntlet", "description": "Complex hand/finger weapon figure with pre-throw and swoosh source states.", "item_type": "weapon", "equipment_slot": "weapon", "stack_size": 1, "tier": 1,
+    "combat": {"attack_power": 14, "attack_variance": 0.12, "damage_type": "physical", "can_hit_monsters": true, "can_hit_resources": false},
+    "alabaster_weapon": {"kind":"gauntlet","source_bundle":"player_weapon","source_figure":"gauntlet","pre_source_figures":["gauntletPre","gauntletPre2"],"figure_id":"FIG:weapon.player-weapon#gauntlet","attack_animation":"aimBombGauntlet","socket":"weaponR","secondary_socket":"weaponL","supports_always_visible":false,"ranged":true},
+    "tags": ["juno", "alabaster", "weapon", "gauntlet", "ranged", "complex_figure"]
   }
 }
