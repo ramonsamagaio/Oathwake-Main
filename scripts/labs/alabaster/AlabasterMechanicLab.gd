@@ -1,6 +1,6 @@
 extends Node2D
 
-const RigRuntime := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeV2.gd")
+const RigRuntime := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeSource.gd")
 
 const SCREEN_SIZE := Vector2(1600.0, 900.0)
 const WALK_SPEED := 150.0
