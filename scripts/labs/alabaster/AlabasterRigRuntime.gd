@@ -158,15 +158,21 @@ func _sample_animation(animation_name: String) -> Dictionary:
 	var anim: Dictionary = _anims[animation_name]
 	var frame_count := maxf(float(anim.get("frameCnt", 1)), 1.0)
 	var frame_repeat := maxf(float(anim.get("frameRepeat", 1)), 1.0)
-	var source_frame := fmod(animation_time * SOURCE_TICK_RATE / frame_repeat, frame_count)
-	if not bool(anim.get("repeat", true)):
+	var anim_start := clampf(float(anim.get("animStart", 0)), 0.0, frame_count)
+	var loop_start := clampf(float(anim.get("loopStart", anim_start)), 0.0, frame_count)
+	var source_frame := anim_start + animation_time * SOURCE_TICK_RATE / frame_repeat
+	var repeats := bool(anim.get("repeat", true))
+	if repeats and source_frame > frame_count:
+		var loop_span := maxf(frame_count - loop_start, 1.0)
+		source_frame = loop_start + fmod(source_frame - frame_count, loop_span)
+	elif not repeats:
 		source_frame = minf(source_frame, frame_count)
 	var tracks := _get_tracks(animation_name)
 	var sampled: Dictionary = {}
 	for node_name_variant in _nodes.keys():
 		var node_name := String(node_name_variant)
 		var track: Array = tracks.get(node_name, [])
-		sampled[node_name] = _sample_track(track, source_frame, frame_count, bool(anim.get("repeat", true)))
+		sampled[node_name] = _sample_track(track, source_frame, frame_count, repeats)
 	return sampled
 
 
