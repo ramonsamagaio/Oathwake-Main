@@ -1,6 +1,24 @@
 extends "res://scripts/labs/alabaster/AlabasterRigRuntimeSourceLive.gd"
 class_name AlabasterRigRuntimeImportable
 
+const BoneAnimationLibrary := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
+
+
+func _ready() -> void:
+	super._ready()
+	_merge_custom_animation_library()
+
+
+func _merge_custom_animation_library() -> void:
+	var custom := BoneAnimationLibrary.load_custom_animations()
+	for animation_name_variant in custom.keys():
+		var animation_name := str(animation_name_variant)
+		var animation_data: Variant = custom[animation_name_variant]
+		if animation_data is Dictionary:
+			install_runtime_animation(animation_name, animation_data as Dictionary)
+	if not custom.is_empty():
+		print("ALABASTER_CUSTOM_BANK_OK animations=%d" % custom.size())
+
 
 func install_runtime_animation(animation_name: String, animation_data: Dictionary) -> bool:
 	var clean_name := animation_name.strip_edges()
