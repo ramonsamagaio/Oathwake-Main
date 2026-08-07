@@ -24,6 +24,7 @@ var _animation_bank_loaded := false
 var _animation_bank_source := "FALLBACK"
 var _embedded_world_mode := false
 var animation_speed_scale := 1.0
+var sprite_opacity := 1.0
 
 
 func _process(delta: float) -> void:
@@ -54,14 +55,10 @@ func _load_data() -> void:
 		push_error("AlabasterRigRuntime: source figure has no nodes")
 		return
 
-	# Prefer the original demo JSON when it is available locally. It already
-	# contains figures.default.anims with all 419 authored animations and avoids
-	# transporting a large animation payload through the repository.
 	var full_anims: Dictionary = SourceImporter.load_juno_animations()
 	if full_anims.size() == SourceImporter.EXPECTED_ANIMATIONS:
 		_install_animation_catalog(full_anims, "SOURCE_JSON")
 	else:
-		# Secondary path: self-contained compact bank in the branch.
 		full_anims = AnimationBank.load_full_animation_bank()
 		if full_anims.size() == AnimationBank.EXPECTED_ANIMATIONS:
 			_install_animation_catalog(full_anims, "PACKED")
@@ -70,8 +67,6 @@ func _load_data() -> void:
 			_animation_bank_source = "FALLBACK"
 			push_warning("AlabasterRigRuntime: full animation catalog unavailable; using runtime subset (%d animations)" % _anims.size())
 
-	# Gameplay must not depend on the 419-animation lab catalog. The tiny branch
-	# bank contains only the eight player actions wired by PlayerAlabasterRigSuite.
 	_merge_player_animation_bank()
 
 	if not _anims.has("idle") or not _anims.has("walk") or not _anims.has("run"):
@@ -142,6 +137,61 @@ func set_animation_speed_scale(value: float) -> void:
 	animation_speed_scale = maxf(value, 0.001)
 
 
+func set_sprite_opacity(value: float) -> void:
+	sprite_opacity = clampf(value, 0.0, 1.0)
+	for record_variant in _sprite_records:
+		var record: Dictionary = record_variant
+		var sprite := record.get("sprite") as Sprite2D
+		if sprite != null:
+			sprite.self_modulate.a = sprite_opacity
+
+
+func get_sprite_opacity() -> float:
+	return sprite_opacity
+
+
+func get_bone_names() -> Array[String]:
+	var names: Array[String] = []
+	for node_name_variant in _nodes.keys():
+		names.append(String(node_name_variant))
+	names.sort()
+	return names
+
+
+func get_bone_parent_map() -> Dictionary:
+	var result := {}
+	for node_name_variant in _nodes.keys():
+		var node_name := String(node_name_variant)
+		var node_def: Dictionary = _nodes[node_name]
+		result[node_name] = String(node_def.get("parent", ""))
+	return result
+
+
+func get_bone_screen_pose(node_name: String) -> Dictionary:
+	if not _states.has(node_name):
+		return {}
+	var state: Dictionary = _states[node_name]
+	var screen := _project_world(state.get("g_self", Vector3.ZERO))
+	var origin := _project_world(state.get("g_origin", Vector3.ZERO))
+	return {
+		"name": node_name,
+		"screen_position": screen,
+		"screen_origin": origin,
+		"rotation": _screen_rotation(state),
+		"scale": float(state.get("scale", 1.0)),
+		"pitch": int(state.get("pitch", 4)),
+		"facing_yaw": float(state.get("facing_yaw", facing_degrees)),
+		"world_position": state.get("g_self", Vector3.ZERO),
+	}
+
+
+func get_all_bone_screen_poses() -> Dictionary:
+	var result := {}
+	for node_name in get_bone_names():
+		result[node_name] = get_bone_screen_pose(node_name)
+	return result
+
+
 func get_runtime_summary() -> Dictionary:
 	var summary: Dictionary = super.get_runtime_summary()
 	summary["animation_count"] = _anims.size()
@@ -149,11 +199,28 @@ func get_runtime_summary() -> Dictionary:
 	summary["animation_bank_source"] = _animation_bank_source
 	summary["embedded_world_mode"] = _embedded_world_mode
 	summary["animation_speed_scale"] = animation_speed_scale
+	summary["sprite_opacity"] = sprite_opacity
 	return summary
 
 
 func has_animation(animation_name: String) -> bool:
 	return _anims.has(animation_name)
+
+
+func get_animation_data(animation_name: String) -> Dictionary:
+	return (_anims.get(animation_name, {}) as Dictionary).duplicate(true) if _anims.get(animation_name, {}) is Dictionary else {}
+
+
+func install_runtime_animation(animation_name: String, animation_data: Dictionary) -> bool:
+	var clean_name := animation_name.strip_edges()
+	if clean_name.is_empty() or animation_data.is_empty():
+		return false
+	if not animation_data.has("frameCnt") or not animation_data.has("transforms"):
+		return false
+	_anims[clean_name] = animation_data.duplicate(true)
+	_figure["anims"] = _anims
+	_track_cache.clear()
+	return true
 
 
 func get_animation_duration_seconds(animation_name: String) -> float:
@@ -210,6 +277,7 @@ func _update_sprite_source(record: Dictionary) -> void:
 	_active_record = record
 	super._update_sprite_source(record)
 	_active_record = {}
+	sprite.self_modulate.a = sprite_opacity
 	_apply_embedded_layer_mode(sprite)
 	_apply_directional_layer_override(record, sprite)
 
@@ -228,15 +296,14 @@ func _apply_directional_layer_override(record: Dictionary, sprite: Sprite2D) -> 
 	var node_name := String(record.get("node", ""))
 	var logical_layer := LAYER_NO_OVERRIDE
 
-	# Juno's hair ornament is authored below the head for most views. On the
-	# exact south/front sector it is physically on the visible face of the hair,
-	# so it must sit between head (2) and eyes (4). Do not touch diagonals.
-	if node_name == "headGear" and _angular_distance(facing_degrees, 180.0) <= 11.26:
-		logical_layer = 3
+	# The floating ornament belongs visually above the skull in the two cardinal
+	# front/back views. Keep diagonal/profile ordering authored by the source.
+	if node_name == "headGear":
+		var south_distance := _angular_distance(facing_degrees, 180.0)
+		var north_distance := _angular_distance(facing_degrees, 0.0)
+		if south_distance <= 11.26 or north_distance <= 11.26:
+			logical_layer = 3
 
-	# Ponytail/braid depth follows the back of the skull. It stays behind when the
-	# character faces south, moves between body/head on the profile, and comes in
-	# front on the north/back hemisphere. Mirrored sectors reuse the same rule.
 	elif node_name == "tailEnd":
 		var north_distance := _angular_distance(facing_degrees, 0.0)
 		if north_distance <= 67.5:
@@ -295,7 +362,5 @@ func _billboard_xfm(node_name: String, state: Dictionary, gfx_world: Vector3, gf
 	var refs: Array = row.get("refAngles", [])
 	if tile_idx < 0 or tile_idx >= refs.size() or refs[tile_idx] == null:
 		return result
-	# If the selected directional tile is mirrored, mirror its authored
-	# reference angle too before applying the residual billboard rotation.
 	result["rotation"] = float(result.get("rotation", 0.0)) + 2.0 * deg_to_rad(float(refs[tile_idx]))
 	return result
