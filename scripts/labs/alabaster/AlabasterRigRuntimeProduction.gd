@@ -2,10 +2,75 @@ extends "res://scripts/labs/alabaster/AlabasterRigRuntimeImportable.gd"
 class_name AlabasterRigRuntimeProduction
 
 # Final Oathwake correction layer. The source-derived renderer remains intact;
-# only camera-dependent CanvasItem depth is resolved here.
+# only camera-dependent CanvasItem depth and editor-only inspection controls
+# are resolved here.
 
 const NO_LAYER_OVERRIDE := 999999
 const SIDE_DEPTH_EPSILON := 0.015
+
+var editor_camera_enabled := false
+var editor_camera_pitch_degrees := -45.0
+var editor_animation_paused := false
+
+
+func _process(delta: float) -> void:
+	if editor_animation_paused:
+		_apply_pose()
+		return
+	super._process(delta)
+
+
+func set_editor_camera_enabled(enabled: bool) -> void:
+	editor_camera_enabled = enabled
+	_apply_pose()
+
+
+func set_editor_camera_pitch_degrees(value: float) -> void:
+	editor_camera_pitch_degrees = clampf(value, -80.0, -10.0)
+	if editor_camera_enabled:
+		_apply_pose()
+
+
+func set_editor_animation_paused(paused: bool) -> void:
+	editor_animation_paused = paused
+
+
+func seek_animation_frame(frame: float) -> void:
+	if not _anims.has(current_animation):
+		return
+	var anim: Dictionary = _anims[current_animation]
+	var frame_count := maxf(float(anim.get("frameCnt", 1.0)), 1.0)
+	var frame_repeat := maxf(float(anim.get("frameRepeat", 1.0)), 0.001)
+	var anim_start := float(anim.get("animStart", 0.0))
+	var resolved_frame := clampf(frame, anim_start, frame_count)
+	animation_time = maxf((resolved_frame - anim_start) * frame_repeat / SRC_FPS, 0.0)
+	_apply_pose()
+
+
+func get_current_source_frame() -> float:
+	return _src_frame
+
+
+func _project_world(world: Vector3) -> Vector2:
+	if not editor_camera_enabled:
+		return super._project_world(world)
+	# Editor-only vertical camera orbit. Horizontal orbit still uses the actual
+	# figure facing angle, which preserves the same sprite-facing selection as
+	# gameplay. This projection changes only inspection camera pitch.
+	var x := world.x * (TILE_W / TILE_H)
+	var y := -world.y + CAMERA_SKEW * world.z
+	var z := world.z
+	var camera_rotation := deg_to_rad(editor_camera_pitch_degrees)
+	var c := cos(camera_rotation)
+	var s := sin(camera_rotation)
+	var view_y := y * c - z * s
+	var view_z := y * s + z * c - CAMERA_Z
+	var w := maxf(-view_z, 0.001)
+	var f := 1.0 / tan(deg_to_rad(FOV_DEG) * 0.5)
+	var aspect := SCREEN_W / SCREEN_H
+	var ndc_x := (f / aspect) * x / w
+	var ndc_y := f * view_y / w
+	return Vector2(SCREEN_W * 0.5 * ndc_x, -SCREEN_H * 0.5 * ndc_y)
 
 
 func _apply_directional_layer_override(record: Dictionary, sprite: Sprite2D) -> void:
@@ -29,8 +94,8 @@ func _apply_directional_layer_override(record: Dictionary, sprite: Sprite2D) -> 
 		return
 
 	# Legs: choose front/back from the actual 3D hip anchors after facing has
-	# been applied. Larger global Y is closer to the source camera. This fixes
-	# W/E and NW/SW without hardcoding anatomical left/right per direction.
+	# been applied. Larger global Y is closer under the source camera formula.
+	# This fixes W/E and NW/SW without hardcoding anatomical left/right.
 	if node_name == "legL" or node_name == "legR":
 		var side := "L" if node_name.ends_with("L") else "R"
 		var front_state := _side_front_state("hipL", "hipR", side)
@@ -40,9 +105,9 @@ func _apply_directional_layer_override(record: Dictionary, sprite: Sprite2D) -> 
 			_offset_logical_layer(sprite, -1)
 		return
 
-	# Arms/hands/fingers must move as one visual chain. The rear chain needs to
-	# pass behind the torso, not merely behind the other arm. The front chain
-	# gets a small positive offset. Shoulder depth is stable while hands swing.
+	# Arms/hands/fingers move as one visual chain. Shoulder depth remains stable
+	# while hands swing, preventing the rear arm from crossing in front of the
+	# torso in SW/NW profile-like views.
 	if node_name in ["armL", "handL", "fingerL", "armR", "handR", "fingerR"]:
 		var side := "L" if node_name.ends_with("L") else "R"
 		var front_state := _side_front_state("shoulderL", "shoulderR", side)
