@@ -27,6 +27,7 @@ func configure(target_rig: Node2D) -> void:
 	visual_root.name = "AlabasterEquippedWeaponFigure"
 	visual_root.z_as_relative = true
 	rig.add_child(visual_root)
+
 	fallback_sprite = Sprite2D.new()
 	fallback_sprite.name = "FallbackWeapon"
 	fallback_sprite.centered = true
@@ -35,6 +36,7 @@ func configure(target_rig: Node2D) -> void:
 	fallback_sprite.z_index = 6
 	fallback_sprite.visible = false
 	visual_root.add_child(fallback_sprite)
+
 	_source_payload = SourceAssets.load_player_weapon_source()
 
 
@@ -73,6 +75,8 @@ func set_attacking(value: bool) -> void:
 	if attacking == value:
 		return
 	attacking = value
+	# Held/back figures can be different authored figures. Rebuild on the next
+	# update when the attack state changes so the correct source figure wins.
 	_active_source_figure = ""
 	_update_visibility()
 
@@ -93,16 +97,22 @@ func update() -> void:
 	if rig == null or visual_root == null or not has_weapon():
 		_update_visibility()
 		return
-	var visible_now := _should_be_visible()
-	if not visible_now:
+	if not _should_be_visible():
 		_update_visibility()
 		return
+
 	var use_rest := _use_rest_figure()
 	var source_figure := str(weapon_data.get("rest_source_figure" if use_rest else "source_figure", "")).strip_edges()
+	var source_rendered := false
 	if not source_figure.is_empty() and _has_source_figure(source_figure):
 		if source_figure != _active_source_figure:
 			_build_source_figure(source_figure)
-		_update_source_figure(use_rest)
+		source_rendered = _update_source_figure(use_rest)
+
+	# Regression guard: a valid FIG definition is not enough to suppress the
+	# proven placeholder. If its atlas/crop/facing cannot resolve this frame,
+	# keep the old socket-following placeholder visible instead of showing air.
+	if source_rendered:
 		if fallback_sprite != null:
 			fallback_sprite.visible = false
 	else:
@@ -130,8 +140,10 @@ func _has_source_figure(figure_name: String) -> bool:
 func _build_source_figure(figure_name: String) -> void:
 	_clear_source_records()
 	_active_source_figure = figure_name
-	var figures: Dictionary = _source_payload.get("figures", {})
-	var figure_value: Variant = figures.get(figure_name, {})
+	var figures_value: Variant = _source_payload.get("figures", {})
+	if not figures_value is Dictionary:
+		return
+	var figure_value: Variant = (figures_value as Dictionary).get(figure_name, {})
 	if not figure_value is Dictionary:
 		return
 	var figure: Dictionary = figure_value
@@ -141,6 +153,7 @@ func _build_source_figure(figure_name: String) -> void:
 	var nodes: Dictionary = nodes_value
 	var half_shift := bool(figure.get("halfPixelShift", false))
 	var figure_global_z := int(figure.get("globalZOrder", 0))
+
 	for node_name_value in nodes.keys():
 		var source_node := str(node_name_value)
 		var node_value: Variant = nodes[source_node]
@@ -157,7 +170,7 @@ func _build_source_figure(figure_name: String) -> void:
 				continue
 			var sprite := Sprite2D.new()
 			sprite.name = "Weapon_%s_%d" % [source_node, _source_records.size()]
-			sprite.centered = false
+			sprite.centered = true
 			sprite.region_enabled = true
 			sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 			sprite.z_as_relative = true
@@ -180,7 +193,7 @@ func _clear_source_records() -> void:
 	_source_records.clear()
 
 
-func _update_source_figure(resting: bool) -> void:
+func _update_source_figure(resting: bool) -> bool:
 	var any_visible := false
 	for record in _source_records:
 		var source_node := str(record.get("source_node", "weaponR"))
@@ -192,8 +205,9 @@ func _update_source_figure(resting: bool) -> void:
 		if state.is_empty():
 			sprite.visible = false
 			continue
+
 		var gfx: Dictionary = record.get("gfx", {})
-		var resolved := _resolve_gfx_visual(gfx, state)
+		var resolved := _resolve_gfx_visual(gfx, state, bool(record.get("half_shift", false)))
 		if resolved.is_empty():
 			sprite.visible = false
 			continue
@@ -201,23 +215,44 @@ func _update_source_figure(resting: bool) -> void:
 		if texture == null:
 			sprite.visible = false
 			continue
+
+		var region: Rect2 = resolved.get("region", Rect2())
+		var pivot: Vector2 = resolved.get("pivot", Vector2.ZERO)
+		var flip_h := bool(resolved.get("flip_h", false))
 		sprite.texture = texture
-		sprite.region_rect = resolved.get("region", Rect2())
-		sprite.offset = -resolved.get("pivot", Vector2.ZERO)
-		sprite.flip_h = bool(resolved.get("flip_h", false))
+		sprite.region_rect = region
+		sprite.flip_h = flip_h
 		sprite.flip_v = bool(resolved.get("flip_v", false))
-		sprite.position = _gfx_screen_position(gfx, state)
+		sprite.position = _gfx_screen_position(target_node, gfx, state)
 		sprite.rotation = _gfx_screen_rotation(resolved, state)
 		sprite.scale = Vector2.ONE
+		var effective_pivot_x: float = region.size.x - pivot.x if flip_h else pivot.x
+		sprite.offset = Vector2(region.size.x * 0.5 - effective_pivot_x, region.size.y * 0.5 - pivot.y)
+
 		var billboard: Dictionary = resolved.get("billboard", {})
+		var entry: Dictionary = resolved.get("entry", {})
+		var row: Dictionary = resolved.get("row", {})
+		var facing: Dictionary = resolved.get("facing", {})
+		var tile_idx := int(resolved.get("tile_idx", 0))
 		var logical_z := int(record.get("figure_global_z", 0)) + int(billboard.get("zOrder", 0))
+		var z_offset := int(row.get("zOff", entry.get("zOff", 0)))
+		var z_frames: Variant = row.get("zFrames", entry.get("zFrames", null))
+		if z_frames is Array and tile_idx >= 0 and tile_idx < (z_frames as Array).size():
+			z_offset += int((z_frames as Array)[tile_idx])
+		else:
+			var side_back := int(facing.get("side", 0))
+			if side_back == 1:
+				z_offset += int(row.get("zSide", entry.get("zSide", 0)))
+			elif side_back == 2:
+				z_offset += int(row.get("zBack", entry.get("zBack", 0)))
+		logical_z += z_offset
 		if resting:
 			logical_z -= 8
 		sprite.z_index = clampi(logical_z, -32, 32)
-		sprite.visible = _should_be_visible()
+		sprite.visible = _should_be_visible() and region.size.x > 0.0 and region.size.y > 0.0
 		any_visible = any_visible or sprite.visible
-	if fallback_sprite != null:
-		fallback_sprite.visible = _should_be_visible() and not any_visible
+
+	return any_visible
 
 
 func _target_node_for_source(source_node: String, resting: bool) -> String:
@@ -231,6 +266,8 @@ func _target_node_for_source(source_node: String, resting: bool) -> String:
 
 
 func _get_target_state(target_node: String) -> Dictionary:
+	if rig == null:
+		return {}
 	if rig.has_method("get_bone_visual_state"):
 		var result: Variant = rig.call("get_bone_visual_state", target_node)
 		if result is Dictionary:
@@ -247,30 +284,40 @@ func _get_target_state(target_node: String) -> Dictionary:
 	return {}
 
 
-func _resolve_gfx_visual(gfx: Dictionary, state: Dictionary) -> Dictionary:
+func _resolve_gfx_visual(gfx: Dictionary, state: Dictionary, half_shift: bool) -> Dictionary:
 	var tex_value: Variant = gfx.get("tex", {})
 	if not tex_value is Dictionary:
 		return {}
 	var tex: Dictionary = tex_value
 	var selected := {}
+
 	if tex.has("simple"):
 		var simple_value: Variant = tex.get("simple", {})
 		if not simple_value is Dictionary:
 			return {}
 		var simple: Dictionary = simple_value
-		selected = {"entry": simple, "row": {"refAngles": [0], "texRotate": "NONE"}, "row_index": 0, "tile_idx": 0, "flip_h": bool(simple.get("flipX", false)), "flip_v": bool(simple.get("flipY", false))}
+		selected = {
+			"entry": simple,
+			"row": {"refAngles": [0], "texRotate": "NONE"},
+			"row_index": 0,
+			"tile_idx": 0,
+			"flip_h": bool(simple.get("flipX", false)),
+			"flip_v": bool(simple.get("flipY", false)),
+			"facing": {"tile": 0, "flip": bool(simple.get("flipX", false)), "side": 0},
+		}
 	elif tex.has("multi"):
 		var multi_value: Variant = tex.get("multi", {})
 		if not multi_value is Dictionary:
 			return {}
-		var entries_value: Variant = (multi_value as Dictionary).get("entries", {})
+		var multi: Dictionary = multi_value
+		var entries_value: Variant = multi.get("entries", {})
 		if not entries_value is Dictionary:
 			return {}
 		var entries: Dictionary = entries_value
 		var frame_key := int(state.get("frame_key", 0))
 		var pitch := int(state.get("pitch", 4))
 		var row_match := {}
-		if rig.has_method("resolve_external_texture_row"):
+		if rig != null and rig.has_method("resolve_external_texture_row"):
 			var row_value: Variant = rig.call("resolve_external_texture_row", entries, frame_key, pitch)
 			if row_value is Dictionary:
 				row_match = row_value as Dictionary
@@ -278,18 +325,23 @@ func _resolve_gfx_visual(gfx: Dictionary, state: Dictionary) -> Dictionary:
 			row_match = _fallback_texture_row(entries, frame_key)
 		if row_match.is_empty():
 			return {}
-		var entry: Dictionary = row_match.get("entry", {})
-		var facing_mode := str(entry.get("facing", "FACE_1"))
-		var flip_ref := bool(state.get("yaw_flipped", false)) and bool(entry.get("flipRoll", false))
-		var facing := {"tile_idx": 0, "flip_h": false}
-		if rig.has_method("resolve_external_facing"):
+
+		var entry_for_facing: Dictionary = row_match.get("entry", {})
+		var facing_mode := str(entry_for_facing.get("facing", "FACE_1"))
+		var flip_ref := bool(state.get("yaw_flipped", false)) and bool(entry_for_facing.get("flipRoll", false))
+		var facing := {"tile": 0, "flip": false, "side": 0}
+		if rig != null and rig.has_method("resolve_external_facing"):
 			var facing_value: Variant = rig.call("resolve_external_facing", facing_mode, float(state.get("facing_yaw", 0.0)), flip_ref)
 			if facing_value is Dictionary:
 				facing = facing_value as Dictionary
+		var tile_from_facing := int(facing.get("tile", -1))
+		if tile_from_facing < 0:
+			return {}
 		selected = row_match.duplicate(true)
-		selected["tile_idx"] = int(facing.get("tile_idx", 0))
-		selected["flip_h"] = bool(facing.get("flip_h", false))
+		selected["tile_idx"] = tile_from_facing
+		selected["flip_h"] = bool(facing.get("flip", false))
 		selected["flip_v"] = false
+		selected["facing"] = facing
 	else:
 		return {}
 
@@ -304,20 +356,43 @@ func _resolve_gfx_visual(gfx: Dictionary, state: Dictionary) -> Dictionary:
 	var range: Array = range_value
 	var tile_w := int(range[2])
 	var tile_h := int(range[3])
+	if tile_w <= 0 or tile_h <= 0:
+		return {}
 	var row_index := int(selected.get("row_index", 0))
-	var tile_idx := int(selected.get("tile_idx", 0)) + int(entry.get("flipShift", 0))
-	var src_x := int(range[0]) + tile_idx * tile_w
-	var src_y := int(range[1]) + row_index * tile_h
-	var region := Rect2(src_x, src_y, tile_w, tile_h)
+	var tile_idx := int(selected.get("tile_idx", 0))
+	var src_x: int
+	var src_y: int
+	# The source format transposes row/facing addressing for extendX entries.
+	# Spear relies on this, so treating every range as a normal horizontal strip
+	# can crop fully transparent pixels even though the FIG itself is valid.
+	if bool(entry.get("extendX", false)):
+		src_x = int(range[0]) + tile_w * row_index
+		src_y = int(range[1]) + tile_h * tile_idx
+	else:
+		src_x = int(range[0]) + tile_w * tile_idx
+		src_y = int(range[1]) + tile_h * row_index
+	if src_x < 0 or src_y < 0 or src_x + tile_w > texture.get_width() or src_y + tile_h > texture.get_height():
+		return {}
+
+	var region := Rect2(float(src_x), float(src_y), float(tile_w), float(tile_h))
 	var shape_value: Variant = gfx.get("shape", {})
 	var billboard := {}
 	if shape_value is Dictionary:
 		var billboard_value: Variant = (shape_value as Dictionary).get("billboard", {})
 		if billboard_value is Dictionary:
 			billboard = billboard_value as Dictionary
-	var pivot := Vector2(float(billboard.get("pivotX", 0.5)) * tile_w, float(billboard.get("pivotY", 0.5)) * tile_h)
+
+	# Match the proven body renderer's half-pixel pivot math exactly.
+	var pivot_half_x := int(round(float(tile_w) * 2.0 * float(billboard.get("pivotX", 0.5))))
+	var pivot_half_y := int(round(float(tile_h) * 2.0 * float(billboard.get("pivotY", 0.5))))
+	if bool(billboard.get("halfX", false)):
+		pivot_half_x -= 1
 	if bool(selected.get("flip_h", false)):
-		pivot.x = tile_w - pivot.x
+		pivot_half_x += int(entry.get("flipShift", 0)) * 2
+	if half_shift:
+		pivot_half_x += 1
+	var pivot := Vector2(float(pivot_half_x) * 0.5, float(pivot_half_y) * 0.5)
+
 	return {
 		"texture": texture,
 		"region": region,
@@ -325,16 +400,16 @@ func _resolve_gfx_visual(gfx: Dictionary, state: Dictionary) -> Dictionary:
 		"flip_h": bool(selected.get("flip_h", false)),
 		"flip_v": bool(selected.get("flip_v", false)),
 		"row": selected.get("row", {}),
+		"entry": entry,
 		"tile_idx": tile_idx,
 		"billboard": billboard,
+		"facing": selected.get("facing", {}),
 	}
 
 
 func _fallback_texture_row(entries: Dictionary, frame_key: int) -> Dictionary:
-	var fallback_name := "default"
 	for entry_name_value in entries.keys():
-		var entry_name := str(entry_name_value)
-		var entry_value: Variant = entries[entry_name]
+		var entry_value: Variant = entries[entry_name_value]
 		if not entry_value is Dictionary:
 			continue
 		var rows_value: Variant = (entry_value as Dictionary).get("rows", [])
@@ -350,29 +425,37 @@ func _fallback_texture_row(entries: Dictionary, frame_key: int) -> Dictionary:
 			var keys: Array = keys_value as Array if keys_value is Array else []
 			if (frame_key == 0 and keys.is_empty()) or keys.has(frame_key):
 				return {"entry": entry_value as Dictionary, "row": row, "row_index": row_index}
-	if entries.has(fallback_name):
-		var default_entry: Dictionary = entries[fallback_name]
-		var default_rows: Array = default_entry.get("rows", [])
-		if not default_rows.is_empty() and default_rows[0] is Dictionary:
-			return {"entry": default_entry, "row": default_rows[0], "row_index": 0}
+	if entries.has("default"):
+		var default_entry: Dictionary = entries["default"]
+		var default_rows_value: Variant = default_entry.get("rows", [])
+		if default_rows_value is Array:
+			var default_rows: Array = default_rows_value
+			if not default_rows.is_empty() and default_rows[0] is Dictionary:
+				return {"entry": default_entry, "row": default_rows[0], "row_index": 0}
 	return {}
 
 
-func _gfx_screen_position(gfx: Dictionary, state: Dictionary) -> Vector2:
+func _gfx_screen_position(target_node: String, gfx: Dictionary, state: Dictionary) -> Vector2:
 	var base_screen: Vector2 = state.get("screen_position", Vector2.ZERO)
 	var pos_value: Variant = gfx.get("pos", [])
 	if not pos_value is Array or (pos_value as Array).size() < 3:
 		return base_screen
-	if rig.has_method("project_external_world") and state.has("g_self") and state.has("g_rot"):
-		var pos: Array = pos_value
-		var local := Vector3(float(pos[0]), float(pos[1]), float(pos[2]))
-		var rotation: Quaternion = state.get("g_rot", Quaternion.IDENTITY)
-		var scale_value: Variant = state.get("g_scale", 1.0)
-		var scale := float(scale_value) if scale_value is float or scale_value is int else 1.0
-		var world: Vector3 = state.get("g_self", Vector3.ZERO) + rotation * (local * scale)
-		var projected: Variant = rig.call("project_external_world", world)
+	var pos: Array = pos_value
+	var local := Vector3(float(pos[0]), float(pos[1]), float(pos[2]))
+	if local.length_squared() <= 0.00000001:
+		return base_screen
+	if rig != null and rig.has_method("project_external_node_offset"):
+		var projected: Variant = rig.call("project_external_node_offset", target_node, local)
 		if projected is Vector2:
 			return projected as Vector2
+	# Compatibility fallback for older rig layers.
+	if rig != null and rig.has_method("project_external_world") and state.has("g_self"):
+		var rotation: Quaternion = state.get("g_rot", Quaternion.IDENTITY)
+		var scale := float(state.get("g_scale", 1.0))
+		var world: Vector3 = state.get("g_self", Vector3.ZERO) + rotation * (local * scale)
+		var projected_world: Variant = rig.call("project_external_world", world)
+		if projected_world is Vector2:
+			return projected_world as Vector2
 	return base_screen
 
 
@@ -408,7 +491,7 @@ func _update_visibility() -> void:
 
 
 func _update_fallback(resting: bool) -> void:
-	if fallback_sprite == null or not rig.has_method("get_bone_screen_pose"):
+	if fallback_sprite == null or rig == null or not rig.has_method("get_bone_screen_pose"):
 		return
 	var socket := str(weapon_data.get("rest_socket" if resting else "socket", "weaponR"))
 	var pose_variant: Variant = rig.call("get_bone_screen_pose", socket)
