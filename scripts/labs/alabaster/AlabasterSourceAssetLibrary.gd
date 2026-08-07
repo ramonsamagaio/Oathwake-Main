@@ -30,13 +30,22 @@ static func load_skin_texture(profile_id: String) -> Texture2D:
 
 
 static func load_player_weapon_sheet(sheet_name: String) -> Texture2D:
+	# This is the hot-path cache. Weapon pieces ask for their source sheet every
+	# rendered update; after first load this must return before any FileAccess.
+	var sheet_cache_key := "weapon_sheet:" + sheet_name
+	if _texture_cache.has(sheet_cache_key):
+		return _texture_cache[sheet_cache_key]
+	var texture: Texture2D = null
 	match sheet_name:
 		"melee":
-			return _load_png_flexible("player-melee.png", MELEE_SIZE)
+			texture = _load_png_flexible("player-melee.png", MELEE_SIZE)
 		"ranged":
-			return _load_png_flexible("player-ranged.png", RANGED_SIZE)
+			texture = _load_png_flexible("player-ranged.png", RANGED_SIZE)
 		_:
 			return null
+	if texture != null:
+		_texture_cache[sheet_cache_key] = texture
+	return texture
 
 
 static func clear_caches() -> void:
@@ -68,9 +77,9 @@ static func _load_gzip_json(file_name: String) -> Dictionary:
 
 static func _load_png_flexible(file_name: String, expected_size: Vector2i = Vector2i.ZERO) -> Texture2D:
 	var direct_path := SOURCE_DIR + file_name
+	if _texture_cache.has(direct_path):
+		return _texture_cache[direct_path]
 	if FileAccess.file_exists(direct_path):
-		if _texture_cache.has(direct_path):
-			return _texture_cache[direct_path]
 		var image := Image.new()
 		var error := image.load(direct_path)
 		if error == OK and _image_size_is_valid(image, expected_size):
@@ -78,32 +87,38 @@ static func _load_png_flexible(file_name: String, expected_size: Vector2i = Vect
 			_texture_cache[direct_path] = texture
 			return texture
 
-	# Canonical weapon package reconstructed from the exact uploaded source PNG.
-	# These chunks are contiguous. The older .chunk/.part imports had gaps and
-	# must never win over this verified representation.
+	var verified_key := direct_path + "#verified"
+	if _texture_cache.has(verified_key):
+		return _texture_cache[verified_key]
 	var verified_text := _read_indexed_text(direct_path + ".b64.verified")
 	if not verified_text.is_empty():
-		var verified_texture := _decode_png_text(direct_path + "#verified", verified_text, expected_size)
+		var verified_texture := _decode_png_text(verified_key, verified_text, expected_size)
 		if verified_texture != null:
 			return verified_texture
 
 	var base64_path := direct_path + ".b64"
+	if _texture_cache.has(base64_path):
+		return _texture_cache[base64_path]
 	if FileAccess.file_exists(base64_path):
 		var single := _load_png_b64(file_name + ".b64", expected_size)
 		if single != null:
 			return single
 
-	# Legacy fallback only. Kept so old branches/assets still load, but invalid
-	# payloads are rejected by PNG decode and expected-size validation.
+	var chunks_key := direct_path + "#chunks"
+	if _texture_cache.has(chunks_key):
+		return _texture_cache[chunks_key]
 	var chunk_text := _read_indexed_text(direct_path + ".b64.chunk")
 	if not chunk_text.is_empty():
-		var chunk_texture := _decode_png_text(direct_path + "#chunks", chunk_text, expected_size)
+		var chunk_texture := _decode_png_text(chunks_key, chunk_text, expected_size)
 		if chunk_texture != null:
 			return chunk_texture
 
+	var parts_key := direct_path + "#parts"
+	if _texture_cache.has(parts_key):
+		return _texture_cache[parts_key]
 	var part_text := _read_indexed_text(direct_path + ".b64.part")
 	if not part_text.is_empty():
-		var part_texture := _decode_png_text(direct_path + "#parts", part_text, expected_size)
+		var part_texture := _decode_png_text(parts_key, part_text, expected_size)
 		if part_texture != null:
 			return part_texture
 
