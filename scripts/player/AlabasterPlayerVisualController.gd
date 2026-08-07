@@ -1,7 +1,7 @@
 extends RefCounted
 class_name AlabasterPlayerVisualController
 
-const RigScript := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeImportable.gd")
+const RigScript := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeProduction.gd")
 const DEFAULT_ACTIONS := {
 	"idle": "idle",
 	"walk": "walk",
