@@ -1,7 +1,7 @@
 extends "res://tools/content_editor/ContentEditorPetSaveDashSideSuite.gd"
 
 const BoneAnimationLibrary := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
-const PLAYER_CHARACTER_FIELD := "alabaster_active_player_character"
+const PLAYER_CHARACTER_FIELD := "character_id"
 const PLAYER_WEAPON_VISIBILITY_FIELD := "alabaster_weapon_visibility_mode"
 const ALABASTER_ACTIONS := ["idle", "walk", "run", "attack", "block", "hurt", "death", "dash"]
 const ALABASTER_MASTER_DIRECTIONS := [
@@ -29,14 +29,14 @@ func _build_player_tuning_form() -> void:
 	super._build_player_tuning_form()
 	_add_subsection_title("Player Character")
 	var note := Label.new()
-	note.text = "Chooses which Characters record drives the player visual. Bone-rig characters and classic sprite-sheet characters use the same gameplay body; only the visual runtime changes."
+	note.text = "Chooses which Characters record drives the player visual. This is a general Player Tuning value; bone rigs and classic sprite characters use the same character_id field."
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(note)
 	_add_player_character_picker(str(current_record.get("character_id", "player")))
 
-	_add_subsection_title("Alabaster Weapon Visibility")
+	_add_subsection_title("Bone Weapon Visibility")
 	var weapon_note := Label.new()
-	weapon_note.text = "Attack Only shows a Juno weapon only while the attack animation is active. Always When Supported keeps it visible at rest only when that item declares an authored rest/back scope; unsupported weapons automatically fall back to Attack Only."
+	weapon_note.text = "Attack Only shows a bone-attached weapon only while attacking. Always When Supported keeps an authored rest/back figure visible when the item provides one."
 	weapon_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(weapon_note)
 	var mode := str(current_record.get("alabaster_weapon_visibility", "attack_only"))
@@ -71,7 +71,7 @@ func _add_player_character_picker(selected_character_id: String) -> void:
 		option.set_item_metadata(0, "")
 	option.select(clampi(selected_index, 0, option.item_count - 1))
 	option.item_selected.connect(_on_player_character_selected.bind(option))
-	option.tooltip_text = "The selected Characters record becomes the player visual after Save. Alabaster characters use the bone-driven runtime."
+	option.tooltip_text = "Saved directly as data/player_tuning.json -> default.character_id."
 	_add_form_row("Active Player Character", option)
 	field_controls[PLAYER_CHARACTER_FIELD] = option
 
@@ -82,24 +82,60 @@ func _on_player_character_selected(index: int, option: OptionButton) -> void:
 	var selected_character_id := str(option.get_item_metadata(index)).strip_edges()
 	if selected_character_id.is_empty():
 		return
-	# Keep current_record synchronized immediately. Several legacy Content Editor
-	# suites preserve current_record while composing their Player Tuning payload;
-	# without this assignment a later rebuild could restore the previous Juno id.
 	current_record["character_id"] = selected_character_id
 	_mark_dirty()
 
 
 func _save_player_tuning() -> void:
-	# Belt-and-suspenders persistence: snapshot the picker into current_record
-	# before the inherited save chain reads/merges the Player Tuning form.
+	var selected_character_id := str(current_record.get("character_id", "player")).strip_edges()
 	if field_controls.has(PLAYER_CHARACTER_FIELD):
-		var selected_character_id := _get_option_button_metadata(PLAYER_CHARACTER_FIELD).strip_edges()
-		if not selected_character_id.is_empty():
-			current_record["character_id"] = selected_character_id
-	super._save_player_tuning()
+		selected_character_id = _get_option_button_metadata(PLAYER_CHARACTER_FIELD).strip_edges()
+	if selected_character_id.is_empty() or not data_store.has_record(ContentEditorData.SECTION_CHARACTERS, selected_character_id):
+		_set_status("Active Player Character must reference an existing Characters record.", true)
+		return
+
+	var record := _get_player_tuning_form_record()
+	record["id"] = "default"
+	record["character_id"] = selected_character_id
+	var error := data_store.validate_player_tuning("default", current_original_id, record)
+	if not error.is_empty():
+		_set_status(error, true)
+		return
+
+	_cleanup_optional_fields(record)
+	data_store.set_record(ContentEditorData.SECTION_PLAYER_TUNING, "default", "default", record)
+	var save_error := data_store.save_section(ContentEditorData.SECTION_PLAYER_TUNING)
+	if not save_error.is_empty():
+		_set_status(save_error, true)
+		return
+
+	var reload_error := data_store.load_section(ContentEditorData.SECTION_PLAYER_TUNING)
+	if not reload_error.is_empty():
+		_set_status(reload_error, true)
+		return
+	var persisted := data_store.get_record(ContentEditorData.SECTION_PLAYER_TUNING, "default")
+	var persisted_character := str(persisted.get("character_id", "")).strip_edges()
+	if persisted_character != selected_character_id:
+		_set_status("Player character save verification failed: selected=%s persisted=%s" % [selected_character_id, persisted_character], true)
+		return
+
+	_reload_content_db()
+	current_id = "default"
+	current_original_id = "default"
+	current_record = persisted
+	has_unsaved_changes = false
+	_build_form_for_current_record()
+	_refresh_record_list()
+	_update_action_buttons()
+	_refresh_live_players()
+	_set_status("Saved Player Tuning. Active character: %s" % selected_character_id)
+	print("BONES_PLAYER_CHARACTER_SAVED selected=%s persisted=%s" % [selected_character_id, persisted_character])
 
 
 func _get_player_tuning_form_record() -> Dictionary:
+	# Preserve every tuning field that older/lower editor suites do not expose.
+	# Player Tuning is an extensible singleton and must never be rebuilt from a
+	# tiny whitelist of visible controls.
 	var preserved := current_record.duplicate(true)
 	var edited := super._get_player_tuning_form_record()
 	for key in edited.keys():
@@ -121,13 +157,13 @@ func _build_character_form() -> void:
 		return
 	_alabaster_animation_names = BoneAnimationLibrary.get_all_animation_names()
 	_add_subsection_title("Bone Rig Character")
-	_add_read_only_value("Visual Runtime", "Alabaster hybrid 3D-bone / 2D-billboard rig")
+	_add_read_only_value("Visual Runtime", "Hybrid 3D-bone / 2D-billboard rig")
 	_add_read_only_value("Rig Profile", str(current_record.get("rig_profile_id", "juno")))
 	_add_read_only_value("Bone Studio", "res://scenes/labs/alabaster/AlabasterBoneStudio.tscn")
 	_add_read_only_value("Animation Bank", BoneAnimationLibrary.CUSTOM_BANK_PATH)
 
 	var help := Label.new()
-	help.text = "Base Action is the normal animation used at every facing angle. The five Master View overrides are optional. Leave an override on 'Use Base Action' unless that specific camera direction needs a different clip. W/NW/SW mirror their matching east master view only for animation selection; Juno's renderer still computes the real facing angle."
+	help.text = "Base Action is the normal animation used at every facing angle. The five Master View overrides are optional. Leave an override on 'Use Base Action' unless that direction needs a different clip."
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(help)
 
