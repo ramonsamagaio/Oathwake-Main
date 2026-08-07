@@ -9,8 +9,8 @@ const BASE_PREVIEW_SCALE := 3.2
 
 var preview_stage: Control
 var preview_viewport: SubViewport
-var viewport_editor: Control
-var timeline: Control
+var viewport_editor
+var timeline
 var auto_key_check: CheckBox
 var tween_enabled_check: CheckBox
 var camera_lock_check: CheckBox
@@ -145,6 +145,12 @@ func _build_preview() -> void:
 		viewport_editor.call_deferred("set_camera_locked", true)
 		viewport_editor.call_deferred("set_transform_mode", "rotate")
 	call_deferred("_populate_manual_bones")
+
+
+func _preview_center() -> Vector2:
+	if preview_stage == null or preview_stage.size.x < 2.0 or preview_stage.size.y < 2.0:
+		return Vector2(310.0, 228.0)
+	return preview_stage.size * 0.5 + Vector2(0.0, 18.0)
 
 
 func _build_pro_timeline() -> void:
@@ -453,7 +459,7 @@ func _sync_pro_timeline() -> void:
 	for frame_value in manual_keys.keys():
 		max_key = maxi(max_key, int(frame_value))
 	var requested_length := int(timeline_length_spin.value) if timeline_length_spin != null else 120
-	var length := maxi(requested_length, max_key + 20, int(manual_frame_spin.value) + 1)
+	var length := maxi(maxi(requested_length, max_key + 20), int(manual_frame_spin.value) + 1)
 	var bones_value: Variant = rig.get_bone_names()
 	var bones: Array = bones_value if bones_value is Array else []
 	timeline.set_timeline_data(bones, manual_keys, int(manual_frame_spin.value), length)
@@ -537,7 +543,7 @@ func _on_preview_stage_resized() -> void:
 	if resolved_size.x < 2.0 or resolved_size.y < 2.0:
 		return
 	preview_viewport.size = Vector2i(maxi(roundi(resolved_size.x), 2), maxi(roundi(resolved_size.y), 2))
-	preview_world.position = resolved_size * 0.5 + Vector2(0.0, 18.0)
+	preview_world.position = _preview_center()
 	if viewport_editor != null:
 		viewport_editor.set_preview_origin(preview_world.position)
 
@@ -557,7 +563,7 @@ func _toggle_maximize() -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
-	call_deferred("_on_studio_window_resized")
+	call_deferred("_on_preview_stage_resized")
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
