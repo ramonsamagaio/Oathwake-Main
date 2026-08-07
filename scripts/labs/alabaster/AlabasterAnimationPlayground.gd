@@ -1,8 +1,10 @@
 extends "res://scripts/labs/alabaster/AlabasterMechanicLab.gd"
 
-# Thin UI layer over the already validated Alabaster mechanic lab.
-# It does not alter the rig/render path. F3 only hot-loads the complete
-# animation dictionary from the demo's juno.json into the existing runtime.
+const ProductionRigRuntime := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeProduction.gd")
+
+# UI layer over the validated mechanic lab. The playground now uses the same
+# production depth correction layer as the real player so N/S/NW/SW/W/E layer
+# tests match gameplay.
 
 var _juno_source_dialog: FileDialog
 var _sprite_opacity_slider: HSlider
@@ -14,6 +16,18 @@ func _ready() -> void:
 	_build_sprite_opacity_control()
 	if hotkey_label != null:
 		hotkey_label.text = "F3 carregar juno.json • " + hotkey_label.text
+
+
+func _build_player() -> void:
+	player = CharacterBody2D.new()
+	player.name = "AlabasterPlayer"
+	player.position = SCREEN_SIZE * 0.5 + Vector2(0.0, 80.0)
+	add_child(player)
+
+	rig = ProductionRigRuntime.new()
+	rig.name = "JunoProductionRig"
+	rig.scale = Vector2(2.5, 2.5)
+	player.add_child(rig)
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
