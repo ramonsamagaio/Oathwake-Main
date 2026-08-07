@@ -5,26 +5,26 @@ const RigRuntime := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeSou
 const SCREEN_SIZE := Vector2(1600.0, 900.0)
 const WALK_SPEED := 150.0
 const RUN_SPEED := 240.0
-const CATEGORY_ORDER := ["ALL", "DEFAULT", "COMBAT", "PUZZLE", "OTHER", "CUTSCENE"]
+const CATEGORY_ORDER := ["ALL", "COMBAT", "DEFAULT", "PUZZLE", "OTHER", "CUTSCENE"]
 
 const QUICK_ANIMATIONS := {
-	KEY_SPACE: {"name": "idleJump1", "label": "Jump"},
-	KEY_H: {"name": "damage", "label": "Hurt"},
-	KEY_K: {"name": "dead", "label": "Death"},
-	KEY_G: {"name": "guard", "label": "Guard", "sticky": true},
-	KEY_P: {"name": "guardParry", "label": "Parry"},
-	KEY_X: {"name": "respawn", "label": "Respawn"},
-	KEY_C: {"name": "castPoint", "label": "Cast / Ability"},
-	KEY_1: {"name": "atkSwordN1", "label": "Sword 1"},
-	KEY_2: {"name": "atkSwordN2", "label": "Sword 2"},
-	KEY_3: {"name": "atkSwordNFinisher", "label": "Sword Finisher"},
-	KEY_4: {"name": "atkSwordTripleSlash", "label": "Sword Skill 1 / Triple Slash"},
-	KEY_5: {"name": "atkSwordCrossStrike", "label": "Sword Skill 2 / Cross Strike"},
-	KEY_6: {"name": "atkHammer1fast", "label": "2H Hammer 1"},
-	KEY_7: {"name": "atkHammer2", "label": "2H Hammer 2"},
-	KEY_8: {"name": "atkHammer3", "label": "2H Hammer 3"},
-	KEY_9: {"name": "atkSpear1", "label": "Spear 1"},
-	KEY_0: {"name": "atkTonfa1-punch", "label": "Tonfa 1"},
+	KEY_SPACE: "idleJump1",
+	KEY_H: "damage",
+	KEY_K: "dead",
+	KEY_G: "guard",
+	KEY_P: "guardParry",
+	KEY_X: "respawn",
+	KEY_C: "castPoint",
+	KEY_1: "atkSwordN1",
+	KEY_2: "atkSwordN2",
+	KEY_3: "atkSwordNFinisher",
+	KEY_4: "atkSwordTripleSlash",
+	KEY_5: "atkSwordCrossStrike",
+	KEY_6: "atkHammer1fast",
+	KEY_7: "atkHammer2",
+	KEY_8: "atkHammer3",
+	KEY_9: "atkSpear1",
+	KEY_0: "atkTonfa1-punch",
 }
 
 var player: CharacterBody2D
@@ -33,38 +33,34 @@ var status_label: Label
 var browser_label: Label
 var hotkey_label: Label
 var _debug_enabled := false
-
+var _manual_active := false
+var _auto_showcase := false
+var _manual_elapsed := 0.0
+var _manual_duration := 0.0
 var _catalog: Array[Dictionary] = []
 var _browser_entries: Array[Dictionary] = []
 var _browser_category_index := 0
 var _browser_index := 0
 
-var _manual_active := false
-var _manual_sticky := false
-var _manual_elapsed := 0.0
-var _manual_timeout := 0.0
-var _auto_showcase := false
-
 
 func _ready() -> void:
 	_build_world()
 	_build_player()
-	_catalog = rig.get_animation_catalog()
-	_refresh_browser_entries()
 	_build_ui()
+	_refresh_catalog()
 	queue_redraw()
 
 
 func _physics_process(delta: float) -> void:
 	if _manual_active:
-		player.velocity = Vector2.ZERO
 		_manual_elapsed += delta
-		if _auto_showcase:
-			if _manual_elapsed >= _manual_timeout:
-				_step_browser(1)
-				_play_selected_browser_animation(true)
-		elif not _manual_sticky and (rig.is_current_animation_finished() or _manual_elapsed >= _manual_timeout):
-			_stop_manual_animation()
+		if _manual_duration > 0.0 and _manual_elapsed >= _manual_duration:
+			if _auto_showcase:
+				_navigate_browser(1)
+				_play_browser_animation()
+			else:
+				_stop_manual_animation()
+		player.velocity = Vector2.ZERO
 		_update_status()
 		return
 
@@ -96,103 +92,83 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		rig.set_debug_enabled(_debug_enabled)
 		_update_status()
 		return
-
 	if event.keycode == KEY_ESCAPE:
 		_auto_showcase = false
 		_stop_manual_animation()
 		return
-
 	if event.keycode == KEY_TAB:
-		_cycle_browser_category()
+		_browser_category_index = (_browser_category_index + 1) % CATEGORY_ORDER.size()
+		_rebuild_browser_entries()
 		return
-
 	if event.keycode == KEY_PAGEUP:
-		_step_browser(-1)
+		_navigate_browser(-1)
 		return
-
 	if event.keycode == KEY_PAGEDOWN:
-		_step_browser(1)
+		_navigate_browser(1)
 		return
-
 	if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
-		_auto_showcase = false
-		_play_selected_browser_animation(false)
+		_play_browser_animation()
 		return
-
 	if event.keycode == KEY_F2:
 		_auto_showcase = not _auto_showcase
 		if _auto_showcase:
-			_play_selected_browser_animation(true)
+			_play_browser_animation()
 		else:
 			_stop_manual_animation()
 		_update_browser_label()
 		return
-
 	if QUICK_ANIMATIONS.has(event.keycode):
-		var quick: Dictionary = QUICK_ANIMATIONS[event.keycode]
 		_auto_showcase = false
-		_play_manual_animation(
-			String(quick.get("name", "idle")),
-			bool(quick.get("sticky", false))
-		)
+		_play_manual_animation(String(QUICK_ANIMATIONS[event.keycode]))
 
 
-func _play_manual_animation(animation_name: String, sticky: bool = false, auto_preview: bool = false) -> void:
-	if not rig.has_animation(animation_name):
-		push_warning("AlabasterMechanicLab: animation not loaded: %s" % animation_name)
+func _refresh_catalog() -> void:
+	_catalog = rig.get_animation_catalog()
+	_rebuild_browser_entries()
+
+
+func _rebuild_browser_entries() -> void:
+	_browser_entries.clear()
+	var filter_name: String = CATEGORY_ORDER[_browser_category_index]
+	for entry_variant in _catalog:
+		var entry: Dictionary = entry_variant
+		if filter_name == "ALL" or String(entry.get("category", "DEFAULT")) == filter_name:
+			_browser_entries.append(entry)
+	_browser_index = clampi(_browser_index, 0, maxi(_browser_entries.size() - 1, 0))
+	_update_browser_label()
+
+
+func _navigate_browser(step: int) -> void:
+	if _browser_entries.is_empty():
 		return
-	rig.set_animation(animation_name)
+	_browser_index = posmod(_browser_index + step, _browser_entries.size())
+	_update_browser_label()
+
+
+func _play_browser_animation() -> void:
+	if _browser_entries.is_empty():
+		return
+	var entry: Dictionary = _browser_entries[_browser_index]
+	_play_manual_animation(String(entry.get("name", "")))
+
+
+func _play_manual_animation(animation_name: String) -> void:
+	if animation_name.is_empty() or not rig.has_animation(animation_name):
+		push_warning("AlabasterMechanicLab: animation not available: %s" % animation_name)
+		return
 	_manual_active = true
-	_manual_sticky = sticky and not auto_preview
 	_manual_elapsed = 0.0
-	var source_duration: float = rig.get_animation_duration_seconds(animation_name)
-	if auto_preview:
-		_manual_timeout = clampf(source_duration, 0.65, 2.6)
-	elif _manual_sticky:
-		_manual_timeout = INF
-	else:
-		_manual_timeout = maxf(source_duration + 0.06, 0.25)
+	_manual_duration = rig.get_animation_duration_seconds(animation_name)
+	rig.set_animation(animation_name)
 	_update_status()
 
 
 func _stop_manual_animation() -> void:
 	_manual_active = false
-	_manual_sticky = false
 	_manual_elapsed = 0.0
-	_manual_timeout = 0.0
+	_manual_duration = 0.0
 	rig.set_animation("idle")
 	_update_status()
-
-
-func _play_selected_browser_animation(auto_preview: bool) -> void:
-	if _browser_entries.is_empty():
-		return
-	var entry: Dictionary = _browser_entries[_browser_index]
-	_play_manual_animation(String(entry.get("name", "idle")), false, auto_preview)
-
-
-func _cycle_browser_category() -> void:
-	_browser_category_index = (_browser_category_index + 1) % CATEGORY_ORDER.size()
-	_browser_index = 0
-	_refresh_browser_entries()
-	_update_browser_label()
-
-
-func _step_browser(delta: int) -> void:
-	if _browser_entries.is_empty():
-		return
-	_browser_index = (_browser_index + delta + _browser_entries.size()) % _browser_entries.size()
-	_update_browser_label()
-
-
-func _refresh_browser_entries() -> void:
-	_browser_entries.clear()
-	var filter_name: String = CATEGORY_ORDER[_browser_category_index]
-	for entry in _catalog:
-		if filter_name == "ALL" or String(entry.get("category", "DEFAULT")) == filter_name:
-			_browser_entries.append(entry)
-	if _browser_index >= _browser_entries.size():
-		_browser_index = 0
 
 
 func _build_world() -> void:
@@ -228,12 +204,12 @@ func _build_ui() -> void:
 	var help := Label.new()
 	help.position = Vector2(28.0, 58.0)
 	help.text = "WASD mover • SHIFT correr • F1 skeleton • TAB categoria • PgUp/PgDn navegar • ENTER tocar • F2 autoplay • ESC idle"
-	help.add_theme_font_size_override("font_size", 15)
+	help.add_theme_font_size_override("font_size", 16)
 	help.modulate = Color(0.82, 0.86, 0.94)
 	add_child(help)
 
 	status_label = Label.new()
-	status_label.position = Vector2(28.0, 88.0)
+	status_label.position = Vector2(28.0, 86.0)
 	status_label.add_theme_font_size_override("font_size", 15)
 	status_label.modulate = Color(0.60, 0.94, 0.80)
 	add_child(status_label)
@@ -278,10 +254,10 @@ func _update_status() -> void:
 	if rig == null or status_label == null:
 		return
 	var summary = rig.get_runtime_summary()
-	status_label.text = "anim=%s   anims=%d bank=%s   facing16=%02d   angle=%6.1f°   nodes=%d   pieces=%d   manual=%s   debug=%s" % [
+	status_label.text = "anim=%s   anims=%d source=%s   facing16=%02d   angle=%6.1f°   nodes=%d   pieces=%d   manual=%s   debug=%s" % [
 		String(summary.get("animation", "")),
 		int(summary.get("animation_count", 0)),
-		"OK" if bool(summary.get("animation_bank_loaded", false)) else "FALLBACK",
+		String(summary.get("animation_bank_source", "FALLBACK")),
 		int(summary.get("facing_index_16", 0)),
 		float(summary.get("facing_degrees", 0.0)),
 		int(summary.get("node_count", 0)),
