@@ -7,13 +7,13 @@ class_name BonesWeapons
 
 var _resident_figures: Dictionary = {}
 var _frame_socket_states: Dictionary = {}
-var _source_sheet_available := false
-var _source_sheet_name := ""
+var _source_assets_available := false
+var _required_source_sheets: Array[String] = []
 
 
 func set_item(new_item_id: String, item_record: Dictionary) -> void:
-	_source_sheet_available = false
-	_source_sheet_name = ""
+	_source_assets_available = false
+	_required_source_sheets.clear()
 	super.set_item(new_item_id, item_record)
 	_prewarm_equipped_weapon()
 
@@ -34,9 +34,10 @@ func update() -> void:
 		_update_visibility()
 		return
 
-	# Missing optional source art is a normal state, not an error path. Keep the
-	# socket-driven procedural placeholder and never ask the asset loader again.
-	if not _source_sheet_available:
+	# Source art is resolved once while equipping. Attack/update never decodes,
+	# parses or probes files. If an atlas is unavailable, use the known-good
+	# socket placeholder without retrying anything in the frame loop.
+	if not _source_assets_available:
 		_update_fallback(_use_rest_figure())
 		_update_visibility()
 		return
@@ -60,14 +61,18 @@ func _prewarm_equipped_weapon() -> void:
 	if not attack_animation.is_empty() and rig != null and rig.has_method("prewarm_animation"):
 		rig.call("prewarm_animation", attack_animation)
 
-	_source_sheet_name = "ranged" if bool(weapon_data.get("ranged", false)) else "melee"
-	_source_sheet_available = SourceAssets.load_player_weapon_sheet(_source_sheet_name) != null
-	if not _source_sheet_available:
+	var held_figure := str(weapon_data.get("source_figure", "")).strip_edges()
+	var rest_figure := str(weapon_data.get("rest_source_figure", "")).strip_edges()
+	_required_source_sheets = _required_sheets_for_figures([held_figure, rest_figure])
+	_source_assets_available = not _required_source_sheets.is_empty()
+	for sheet_name in _required_source_sheets:
+		if SourceAssets.load_player_weapon_sheet(sheet_name) == null:
+			_source_assets_available = false
+
+	if not _source_assets_available:
 		_update_visibility()
 		return
 
-	var held_figure := str(weapon_data.get("source_figure", "")).strip_edges()
-	var rest_figure := str(weapon_data.get("rest_source_figure", "")).strip_edges()
 	if not held_figure.is_empty() and _has_source_figure(held_figure):
 		_build_source_figure(held_figure)
 	if not rest_figure.is_empty() and _has_source_figure(rest_figure):
@@ -78,9 +83,44 @@ func _prewarm_equipped_weapon() -> void:
 		_build_source_figure(desired)
 	_update_visibility()
 
+	print("BONES_WEAPON_READY item=%s figure=%s sheets=%s" % [item_id, held_figure, ",".join(_required_source_sheets)])
+
+
+func _required_sheets_for_figures(figure_names: Array) -> Array[String]:
+	var found := {}
+	var figures_value: Variant = _source_payload.get("figures", {})
+	if not figures_value is Dictionary:
+		return []
+	var figures: Dictionary = figures_value
+	for figure_name_value in figure_names:
+		var figure_name := str(figure_name_value).strip_edges()
+		if figure_name.is_empty():
+			continue
+		var figure_value: Variant = figures.get(figure_name, {})
+		_collect_sheet_names(figure_value, found)
+	var result: Array[String] = []
+	for sheet_name_value in found.keys():
+		result.append(str(sheet_name_value))
+	result.sort()
+	return result
+
+
+func _collect_sheet_names(value: Variant, output: Dictionary) -> void:
+	if value is Dictionary:
+		var dictionary: Dictionary = value
+		if dictionary.has("sheet"):
+			var sheet_name := str(dictionary.get("sheet", "")).strip_edges()
+			if not sheet_name.is_empty():
+				output[sheet_name] = true
+		for child in dictionary.values():
+			_collect_sheet_names(child, output)
+	elif value is Array:
+		for child in value as Array:
+			_collect_sheet_names(child, output)
+
 
 func _build_source_figure(figure_name: String) -> void:
-	if not _source_sheet_available:
+	if not _source_assets_available:
 		return
 	if _resident_figures.has(figure_name):
 		_activate_resident_figure(figure_name)
