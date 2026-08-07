@@ -1,7 +1,8 @@
 extends RefCounted
 class_name AlabasterPlayerVisualController
 
-const RigScript := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeProduction.gd")
+const JunoRigScript := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeProduction.gd")
+const PlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
 const DEFAULT_ACTIONS := {
 	"idle": "idle",
 	"walk": "walk",
@@ -38,9 +39,18 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 	var directional_value: Variant = character_data.get("rig_directional_animation_map", {})
 	if directional_value is Dictionary:
 		directional_action_map = (directional_value as Dictionary).duplicate(true)
-	rig = RigScript.new() as Node2D
+
+	if profile_id == "male_dummy" or profile_id == "male_temp":
+		var skin_rig = PlayableSkinRigScript.new()
+		if skin_rig == null:
+			return false
+		skin_rig.call("configure_skin_profile", profile_id)
+		rig = skin_rig as Node2D
+	else:
+		rig = JunoRigScript.new() as Node2D
 	if rig == null:
 		return false
+
 	rig.name = "AlabasterRigVisual"
 	owner.add_child(rig)
 	rig.position = visual_position
