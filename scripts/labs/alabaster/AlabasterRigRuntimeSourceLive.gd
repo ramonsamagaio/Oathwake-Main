@@ -49,20 +49,12 @@ func _load_data() -> void:
 	# transporting a large animation payload through the repository.
 	var full_anims: Dictionary = SourceImporter.load_juno_animations()
 	if full_anims.size() == SourceImporter.EXPECTED_ANIMATIONS:
-		_anims = full_anims
-		_figure["anims"] = _anims
-		_animation_bank_loaded = true
-		_animation_bank_source = "SOURCE_JSON"
-		print("ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=%d" % _anims.size())
+		_install_animation_catalog(full_anims, "SOURCE_JSON")
 	else:
 		# Secondary path: self-contained compact bank in the branch.
 		full_anims = AnimationBank.load_full_animation_bank()
 		if full_anims.size() == AnimationBank.EXPECTED_ANIMATIONS:
-			_anims = full_anims
-			_figure["anims"] = _anims
-			_animation_bank_loaded = true
-			_animation_bank_source = "PACKED"
-			print("ALABASTER_ANIMATION_BANK_OK source=PACKED animations=%d" % _anims.size())
+			_install_animation_catalog(full_anims, "PACKED")
 		else:
 			_animation_bank_loaded = false
 			_animation_bank_source = "FALLBACK"
@@ -70,6 +62,26 @@ func _load_data() -> void:
 
 	if not _anims.has("idle") or not _anims.has("walk") or not _anims.has("run"):
 		push_error("AlabasterRigRuntime: expected idle/walk/run animations")
+
+
+func load_external_animation_source(source_path: String) -> bool:
+	var full_anims: Dictionary = SourceImporter.load_juno_animations_from_path(source_path, true)
+	if full_anims.size() != SourceImporter.EXPECTED_ANIMATIONS:
+		return false
+	_install_animation_catalog(full_anims, "SOURCE_JSON")
+	current_animation = "idle"
+	animation_time = 0.0
+	_apply_pose()
+	return true
+
+
+func _install_animation_catalog(full_anims: Dictionary, source_name: String) -> void:
+	_anims = full_anims
+	_figure["anims"] = _anims
+	_track_cache.clear()
+	_animation_bank_loaded = true
+	_animation_bank_source = source_name
+	print("ALABASTER_ANIMATION_BANK_OK source=%s animations=%d" % [_animation_bank_source, _anims.size()])
 
 
 func get_runtime_summary() -> Dictionary:
