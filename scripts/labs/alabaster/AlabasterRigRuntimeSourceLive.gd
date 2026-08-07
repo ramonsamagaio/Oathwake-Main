@@ -15,10 +15,20 @@ const ANIMATION_CATEGORY_ORDER := {
 }
 
 const FULL_RUNTIME_MAX_BYTES := 8 * 1024 * 1024
+const PLAYER_ANIMATION_BANK_PATH := "res://data/labs/alabaster/juno_player_anims.json.gz.b64"
+const PLAYER_ANIMATION_MAX_BYTES := 512 * 1024
+const LAYER_NO_OVERRIDE := 999999
 
 var _active_record: Dictionary = {}
 var _animation_bank_loaded := false
 var _animation_bank_source := "FALLBACK"
+var _embedded_world_mode := false
+var animation_speed_scale := 1.0
+
+
+func _process(delta: float) -> void:
+	animation_time += delta * maxf(animation_speed_scale, 0.001)
+	_apply_pose()
 
 
 func _load_data() -> void:
@@ -60,6 +70,10 @@ func _load_data() -> void:
 			_animation_bank_source = "FALLBACK"
 			push_warning("AlabasterRigRuntime: full animation catalog unavailable; using runtime subset (%d animations)" % _anims.size())
 
+	# Gameplay must not depend on the 419-animation lab catalog. The tiny branch
+	# bank contains only the eight player actions wired by PlayerAlabasterRigSuite.
+	_merge_player_animation_bank()
+
 	if not _anims.has("idle") or not _anims.has("walk") or not _anims.has("run"):
 		push_error("AlabasterRigRuntime: expected idle/walk/run animations")
 
@@ -84,11 +98,57 @@ func _install_animation_catalog(full_anims: Dictionary, source_name: String) -> 
 	print("ALABASTER_ANIMATION_BANK_OK source=%s animations=%d" % [_animation_bank_source, _anims.size()])
 
 
+func _merge_player_animation_bank() -> void:
+	if _animation_bank_loaded:
+		return
+	if not FileAccess.file_exists(PLAYER_ANIMATION_BANK_PATH):
+		push_warning("AlabasterRigRuntime: player animation bank missing: %s" % PLAYER_ANIMATION_BANK_PATH)
+		return
+	var encoded := FileAccess.get_file_as_string(PLAYER_ANIMATION_BANK_PATH).strip_edges()
+	if encoded.is_empty():
+		push_warning("AlabasterRigRuntime: player animation bank is empty")
+		return
+	var compressed := Marshalls.base64_to_raw(encoded)
+	var raw := compressed.decompress_dynamic(PLAYER_ANIMATION_MAX_BYTES, FileAccess.COMPRESSION_GZIP)
+	if raw.is_empty():
+		push_warning("AlabasterRigRuntime: player animation bank could not be decompressed")
+		return
+	var parsed = JSON.parse_string(raw.get_string_from_utf8())
+	if typeof(parsed) != TYPE_DICTIONARY:
+		push_warning("AlabasterRigRuntime: player animation bank is invalid JSON")
+		return
+	var payload: Dictionary = parsed
+	var player_anims_variant: Variant = payload.get("anims", {})
+	if typeof(player_anims_variant) != TYPE_DICTIONARY:
+		push_warning("AlabasterRigRuntime: player animation bank has no anims dictionary")
+		return
+	var player_anims: Dictionary = player_anims_variant
+	for animation_name_variant in player_anims.keys():
+		_anims[animation_name_variant] = player_anims[animation_name_variant]
+	_figure["anims"] = _anims
+	_track_cache.clear()
+	_animation_bank_source = "PLAYER_PACK"
+	print("ALABASTER_PLAYER_BANK_OK gameplay=%d total=%d" % [player_anims.size(), _anims.size()])
+
+
+func set_embedded_world_mode(enabled: bool) -> void:
+	if _embedded_world_mode == enabled:
+		return
+	_embedded_world_mode = enabled
+	_apply_pose()
+
+
+func set_animation_speed_scale(value: float) -> void:
+	animation_speed_scale = maxf(value, 0.001)
+
+
 func get_runtime_summary() -> Dictionary:
 	var summary: Dictionary = super.get_runtime_summary()
 	summary["animation_count"] = _anims.size()
 	summary["animation_bank_loaded"] = _animation_bank_loaded
 	summary["animation_bank_source"] = _animation_bank_source
+	summary["embedded_world_mode"] = _embedded_world_mode
+	summary["animation_speed_scale"] = animation_speed_scale
 	return summary
 
 
@@ -112,7 +172,7 @@ func is_current_animation_finished() -> bool:
 	var anim: Dictionary = _anims[current_animation]
 	if bool(anim.get("repeat", true)):
 		return false
-	return animation_time >= get_animation_duration_seconds(current_animation)
+	return animation_time >= get_animation_duration_seconds(current_animation) / maxf(animation_speed_scale, 0.001)
 
 
 func get_animation_catalog() -> Array[Dictionary]:
@@ -150,6 +210,55 @@ func _update_sprite_source(record: Dictionary) -> void:
 	_active_record = record
 	super._update_sprite_source(record)
 	_active_record = {}
+	_apply_embedded_layer_mode(sprite)
+	_apply_directional_layer_override(record, sprite)
+
+
+func _apply_embedded_layer_mode(sprite: Sprite2D) -> void:
+	if not _embedded_world_mode:
+		sprite.z_as_relative = false
+		return
+	var figure_global_z := int(_figure.get("globalZOrder", 0))
+	var authored_absolute_layer := roundi(float(sprite.z_index) / 16.0)
+	sprite.z_as_relative = true
+	sprite.z_index = clampi(authored_absolute_layer - figure_global_z, -32, 32)
+
+
+func _apply_directional_layer_override(record: Dictionary, sprite: Sprite2D) -> void:
+	var node_name := String(record.get("node", ""))
+	var logical_layer := LAYER_NO_OVERRIDE
+
+	# Juno's hair ornament is authored below the head for most views. On the
+	# exact south/front sector it is physically on the visible face of the hair,
+	# so it must sit between head (2) and eyes (4). Do not touch diagonals.
+	if node_name == "headGear" and _angular_distance(facing_degrees, 180.0) <= 11.26:
+		logical_layer = 3
+
+	# Ponytail/braid depth follows the back of the skull. It stays behind when the
+	# character faces south, moves between body/head on the profile, and comes in
+	# front on the north/back hemisphere. Mirrored sectors reuse the same rule.
+	elif node_name == "tailEnd":
+		var north_distance := _angular_distance(facing_degrees, 0.0)
+		if north_distance <= 67.5:
+			logical_layer = 3
+		elif north_distance <= 112.5:
+			logical_layer = 1
+
+	if logical_layer == LAYER_NO_OVERRIDE:
+		return
+	if _embedded_world_mode:
+		sprite.z_as_relative = true
+		sprite.z_index = logical_layer
+	else:
+		sprite.z_as_relative = false
+		var figure_global_z := int(_figure.get("globalZOrder", 0))
+		sprite.z_index = clampi((figure_global_z + logical_layer) * 16, -4096, 4096)
+	sprite.set_meta("alabaster_layer_override", logical_layer)
+
+
+func _angular_distance(a: float, b: float) -> float:
+	var delta := absf(_normalize_degrees(a) - _normalize_degrees(b))
+	return minf(delta, 360.0 - delta)
 
 
 func _node_is_visible_for_animation(node_name: String) -> bool:
