@@ -78,7 +78,7 @@ func set_timeline_data(new_bones: Array, new_keys: Dictionary, new_current_frame
 		bone_names.append(str(bone_value))
 	key_data = new_keys.duplicate(true)
 	current_frame = maxi(new_current_frame, 0)
-	frame_count = maxi(new_frame_count, current_frame + 1, 1)
+	frame_count = maxi(maxi(new_frame_count, current_frame + 1), 1)
 	if selected_bone.is_empty() and not bone_names.is_empty():
 		selected_bone = bone_names[0]
 	_update_scrollbars()
@@ -202,8 +202,8 @@ func _draw_rows() -> void:
 			if x < LABEL_WIDTH - KEY_RADIUS or x > size.x - SCROLLBAR_SIZE + KEY_RADIUS:
 				continue
 			var center := Vector2(x, y + ROW_HEIGHT * 0.5)
-			var spline := str(frame_data.get("spline", "LINEAR"))
-			var color := COLOR_KEY_NORMAL if spline == "LINEAR" else COLOR_KEY_TWEEN
+			var tween_enabled := bool(frame_data.get("tween_enabled", str(frame_data.get("spline", "LINEAR")) != "LINEAR"))
+			var color := COLOR_KEY_TWEEN if tween_enabled else COLOR_KEY_NORMAL
 			_draw_diamond(center, KEY_RADIUS + 1.5, COLOR_KEY_OUTLINE)
 			_draw_diamond(center, KEY_RADIUS, color)
 
