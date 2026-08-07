@@ -6,15 +6,20 @@ const Importer := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationIm
 const Library := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
 const ALABASTER_TICK_RATE := 60.0
 
+# Keep these as literal constant values. Calling .normalized() inside a const
+# initializer is not accepted by GDScript's constant-expression parser.
 const MASTER_DIRECTIONS := {
-	"North": Vector2.UP,
-	"North-East": Vector2(1, -1).normalized(),
-	"East": Vector2.RIGHT,
-	"South-East": Vector2(1, 1).normalized(),
-	"South": Vector2.DOWN,
+	"North": Vector2(0.0, -1.0),
+	"North-East": Vector2(0.70710678, -0.70710678),
+	"East": Vector2(1.0, 0.0),
+	"South-East": Vector2(0.70710678, 0.70710678),
+	"South": Vector2(0.0, 1.0),
 }
 
-var rig: Node2D
+# Deliberately left dynamically typed: the runtime script exposes methods that
+# are not members of the Node2D base class, and the studio calls those methods
+# directly while hot-loading/editing animations.
+var rig
 var preview_world: Node2D
 var file_dialog: FileDialog
 var status_label: Label
@@ -346,7 +351,7 @@ func _rebuild_mapping_table() -> void:
 	if rig != null and rig.has_method("get_bone_names"):
 		var runtime_names: Variant = rig.call("get_bone_names")
 		if runtime_names is Array:
-			targets = (runtime_names as Array).duplicate()
+			targets = runtime_names.duplicate()
 	var auto := Importer.make_auto_retarget(source_bones)
 	for source_bone in source_bones:
 		var option := OptionButton.new()
@@ -368,10 +373,10 @@ func _preview_import() -> void:
 	var data := _build_import_animation()
 	if data.is_empty():
 		return
-	if not rig.install_runtime_animation("__import_preview", data):
+	if not bool(rig.call("install_runtime_animation", "__import_preview", data)):
 		_set_status("Could not install imported preview.", true)
 		return
-	rig.set_animation("__import_preview")
+	rig.call("set_animation", "__import_preview")
 	_set_status("Retarget preview running. Adjust mapping/corrections and preview again until it sits naturally on Juno.")
 
 
@@ -393,8 +398,8 @@ func _save_import() -> void:
 	if not Library.save_custom_animation(animation_name, data, meta):
 		_set_status("Could not save animation bank. Run the Bone Studio from the editable project, not an exported build.", true)
 		return
-	rig.install_runtime_animation(animation_name, data)
-	rig.set_animation(animation_name)
+	rig.call("install_runtime_animation", animation_name, data)
+	rig.call("set_animation", animation_name)
 	_set_status("Saved '%s' to %s." % [animation_name, Library.CUSTOM_BANK_PATH])
 
 
@@ -450,7 +455,7 @@ func _populate_manual_bones() -> void:
 	var runtime_names: Variant = rig.call("get_bone_names")
 	if not runtime_names is Array:
 		return
-	for bone_name in runtime_names as Array:
+	for bone_name in runtime_names:
 		manual_bone_option.add_item(str(bone_name))
 		manual_bone_option.set_item_metadata(manual_bone_option.item_count - 1, str(bone_name))
 
@@ -504,9 +509,9 @@ func _manual_select_key(index: int) -> void:
 	_select_option_metadata(manual_bone_option, bone)
 	var frame_data: Dictionary = manual_keys.get(frame, {})
 	var frame_xfm_value: Variant = frame_data.get("nodeXfm", {})
-	var frame_xfm: Dictionary = frame_xfm_value as Dictionary if frame_xfm_value is Dictionary else {}
+	var frame_xfm: Dictionary = frame_xfm_value if frame_xfm_value is Dictionary else {}
 	var bone_xfm_value: Variant = frame_xfm.get(bone, {})
-	var bone_xfm: Dictionary = bone_xfm_value as Dictionary if bone_xfm_value is Dictionary else {}
+	var bone_xfm: Dictionary = bone_xfm_value if bone_xfm_value is Dictionary else {}
 	var rot: Array = bone_xfm.get("rot", [0.0, 0.0, 0.0])
 	var trans: Array = bone_xfm.get("trans", [0.0, 0.0, 0.0])
 	manual_yaw.value = float(rot[0])
@@ -545,7 +550,7 @@ func _build_manual_animation() -> Dictionary:
 		var frame := int(frame_value)
 		var frame_data: Dictionary = manual_keys[frame]
 		var node_xfm_value: Variant = frame_data.get("nodeXfm", {})
-		var node_xfm: Dictionary = node_xfm_value as Dictionary if node_xfm_value is Dictionary else {}
+		var node_xfm: Dictionary = node_xfm_value if node_xfm_value is Dictionary else {}
 		transforms.append({
 			"frame": frame,
 			"spline": str(frame_data.get("spline", "LINEAR")),
@@ -574,8 +579,8 @@ func _preview_manual() -> void:
 	var data := _build_manual_animation()
 	if data.is_empty():
 		return
-	rig.install_runtime_animation("__manual_preview", data)
-	rig.set_animation("__manual_preview")
+	rig.call("install_runtime_animation", "__manual_preview", data)
+	rig.call("set_animation", "__manual_preview")
 	_set_status("Manual animation preview running.")
 
 
@@ -590,8 +595,8 @@ func _save_manual() -> void:
 	if not Library.save_custom_animation(animation_name, data, {"type": "manual", "studio": "AlabasterBoneStudio"}):
 		_set_status("Could not save custom animation bank.", true)
 		return
-	rig.install_runtime_animation(animation_name, data)
-	rig.set_animation(animation_name)
+	rig.call("install_runtime_animation", animation_name, data)
+	rig.call("set_animation", animation_name)
 	_set_status("Saved manual animation '%s' to the animation bank." % animation_name)
 
 
@@ -610,7 +615,7 @@ func _on_facing_selected(index: int) -> void:
 		return
 	var direction_value: Variant = facing_option.get_item_metadata(index)
 	if direction_value is Vector2:
-		rig.set_facing_from_vector(direction_value as Vector2)
+		rig.call("set_facing_from_vector", direction_value)
 
 
 func _manual_spline_value() -> String:
