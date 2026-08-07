@@ -77,21 +77,44 @@ static func _load_png_flexible(file_name: String) -> Texture2D:
 			var texture := ImageTexture.create_from_image(image)
 			_texture_cache[direct_path] = texture
 			return texture
+
 	var base64_path := direct_path + ".b64"
 	if FileAccess.file_exists(base64_path):
-		return _load_png_b64(file_name + ".b64")
-	var chunk_prefix := direct_path + ".b64.chunk"
+		var single := _load_png_b64(file_name + ".b64")
+		if single != null:
+			return single
+
+	# Current repository representation. Chunks are slices of one base64 PNG
+	# string and must be concatenated before decoding.
+	var chunk_text := _read_indexed_text(direct_path + ".b64.chunk")
+	if not chunk_text.is_empty():
+		var chunk_texture := _decode_png_text(direct_path + "#chunks", chunk_text)
+		if chunk_texture != null:
+			return chunk_texture
+
+	# Compatibility with the first import pass, which used .part00/.part01...
+	# for the larger melee atlas. This gives the melee weapons a second valid
+	# source path instead of silently disappearing if one embedded bundle is bad.
+	var part_text := _read_indexed_text(direct_path + ".b64.part")
+	if not part_text.is_empty():
+		var part_texture := _decode_png_text(direct_path + "#parts", part_text)
+		if part_texture != null:
+			return part_texture
+
+	push_warning("AlabasterSourceAssetLibrary: no valid PNG payload for %s" % direct_path)
+	return null
+
+
+static func _read_indexed_text(prefix: String) -> String:
 	var encoded := ""
 	var index := 0
 	while true:
-		var chunk_path := chunk_prefix + "%02d" % index
-		if not FileAccess.file_exists(chunk_path):
+		var path := prefix + "%02d" % index
+		if not FileAccess.file_exists(path):
 			break
-		encoded += FileAccess.get_file_as_string(chunk_path).strip_edges()
+		encoded += FileAccess.get_file_as_string(path).strip_edges()
 		index += 1
-	if index <= 0:
-		return null
-	return _decode_png_text(direct_path + "#chunks", encoded)
+	return encoded if index > 0 else ""
 
 
 static func _load_png_b64(file_name: String) -> Texture2D:
@@ -107,7 +130,12 @@ static func _load_png_b64(file_name: String) -> Texture2D:
 static func _decode_png_text(cache_key: String, encoded: String) -> Texture2D:
 	if _texture_cache.has(cache_key):
 		return _texture_cache[cache_key]
+	if encoded.is_empty():
+		return null
 	var raw := Marshalls.base64_to_raw(encoded)
+	if raw.is_empty():
+		push_warning("AlabasterSourceAssetLibrary: embedded PNG base64 is empty for %s" % cache_key)
+		return null
 	var image := Image.new()
 	var error := image.load_png_from_buffer(raw)
 	if error != OK:
