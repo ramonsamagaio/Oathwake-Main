@@ -28,7 +28,26 @@ var _juno_weapon_test_layer: CanvasLayer
 var _juno_weapon_test_panel: PanelContainer
 
 
+func _sync_character_id_from_player_tuning() -> void:
+	# Player Tuning is the single authority for which character record is active.
+	# Do not depend on an inherited scene default or stale in-memory character_id
+	# when the Content Editor has just reloaded content.
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db == null or not content_db.has_method("get_player_tuning"):
+		return
+	var tuning: Dictionary = content_db.get_player_tuning("default")
+	var selected_character_id := str(tuning.get("character_id", character_id)).strip_edges()
+	if selected_character_id.is_empty():
+		return
+	if content_db.has_method("has_character") and not content_db.has_character(selected_character_id):
+		push_warning("PlayerBones ignored unknown player_tuning.character_id: %s" % selected_character_id)
+		return
+	character_id = selected_character_id
+	set_meta("active_player_character_id", character_id)
+
+
 func _setup_character_visual() -> void:
+	_sync_character_id_from_player_tuning()
 	super._setup_character_visual()
 	var content_db := get_node_or_null("/root/ContentDB")
 	if content_db == null or not content_db.has_method("has_character") or not content_db.has_character(character_id):
@@ -71,6 +90,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _load_player_tuning() -> void:
 	super._load_player_tuning()
+	_sync_character_id_from_player_tuning()
 	_load_bones_weapon_tuning()
 
 
@@ -126,7 +146,7 @@ func _ensure_juno_weapon_test_panel() -> void:
 	title.add_theme_font_size_override("font_size", 15)
 	box.add_child(title)
 	var help := Label.new()
-	help.text = "Give + Preview grants the real content item. If optional source weapon art is absent, BonesWeapons uses its socket-driven procedural fallback without disk access during attack."
+	help.text = "Give + Preview grants the real content item. Source weapon FIGs use the project's real player-melee/player-ranged atlases and follow the bone sockets."
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.custom_minimum_size = Vector2(235, 0)
 	box.add_child(help)
@@ -341,6 +361,7 @@ func _set_player_visual_alpha(alpha: float) -> void:
 
 
 func refresh_alabaster_character_visual() -> void:
+	_sync_character_id_from_player_tuning()
 	_weapon_visual.dispose()
 	if _rig_visual.active:
 		_rig_visual.dispose()
