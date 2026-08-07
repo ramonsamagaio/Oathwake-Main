@@ -5,11 +5,13 @@ extends "res://scripts/labs/alabaster/AlabasterMechanicLab.gd"
 # animation dictionary from the demo's juno.json into the existing runtime.
 
 var _juno_source_dialog: FileDialog
+var _sprite_opacity_slider: HSlider
 
 
 func _ready() -> void:
 	super._ready()
 	_build_juno_source_dialog()
+	_build_sprite_opacity_control()
 	if hotkey_label != null:
 		hotkey_label.text = "F3 carregar juno.json • " + hotkey_label.text
 
@@ -38,6 +40,42 @@ func _build_juno_source_dialog() -> void:
 	add_child(_juno_source_dialog)
 
 
+func _build_sprite_opacity_control() -> void:
+	var layer := CanvasLayer.new()
+	layer.name = "SpriteOpacityControls"
+	layer.layer = 90
+	add_child(layer)
+	var panel := PanelContainer.new()
+	panel.position = Vector2(18, 112)
+	panel.custom_minimum_size = Vector2(310, 58)
+	layer.add_child(panel)
+	var row := HBoxContainer.new()
+	panel.add_child(row)
+	var label := Label.new()
+	label.text = "Sprite opacity"
+	label.custom_minimum_size = Vector2(115, 0)
+	row.add_child(label)
+	_sprite_opacity_slider = HSlider.new()
+	_sprite_opacity_slider.min_value = 0.0
+	_sprite_opacity_slider.max_value = 1.0
+	_sprite_opacity_slider.step = 0.05
+	_sprite_opacity_slider.value = 1.0
+	_sprite_opacity_slider.custom_minimum_size = Vector2(150, 0)
+	_sprite_opacity_slider.tooltip_text = "Lower this to inspect the bones underneath Juno's sprites."
+	_sprite_opacity_slider.value_changed.connect(_on_sprite_opacity_changed)
+	row.add_child(_sprite_opacity_slider)
+	var value_label := Label.new()
+	value_label.name = "Value"
+	value_label.text = "100%"
+	row.add_child(value_label)
+	_sprite_opacity_slider.value_changed.connect(func(value: float) -> void: value_label.text = "%d%%" % roundi(value * 100.0))
+
+
+func _on_sprite_opacity_changed(value: float) -> void:
+	if rig != null and rig.has_method("set_sprite_opacity"):
+		rig.call("set_sprite_opacity", value)
+
+
 func _open_juno_source_dialog() -> void:
 	if _juno_source_dialog != null:
 		_juno_source_dialog.popup_centered_ratio(0.82)
@@ -55,4 +93,6 @@ func _on_juno_source_selected(source_path: String) -> void:
 	_browser_index = 0
 	_refresh_catalog()
 	_update_status()
+	if _sprite_opacity_slider != null:
+		_on_sprite_opacity_changed(_sprite_opacity_slider.value)
 	print("ALABASTER_PLAYGROUND_SOURCE_READY animations=%d" % _catalog.size())
