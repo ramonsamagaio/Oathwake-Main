@@ -16,6 +16,7 @@ const DEFAULT_ACTIONS := {
 var rig: Node2D
 var active := false
 var action_map: Dictionary = DEFAULT_ACTIONS.duplicate(true)
+var directional_action_map: Dictionary = {}
 var profile_id := ""
 var last_facing := Vector2.DOWN
 var current_action := ""
@@ -27,12 +28,16 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 		return false
 	profile_id = str(character_data.get("rig_profile_id", "juno"))
 	action_map = DEFAULT_ACTIONS.duplicate(true)
+	directional_action_map = {}
 	var custom_map = character_data.get("rig_animation_map", {})
 	if custom_map is Dictionary:
 		for key in custom_map.keys():
 			var value := str(custom_map[key]).strip_edges()
 			if not value.is_empty():
 				action_map[str(key)] = value
+	var directional_value: Variant = character_data.get("rig_directional_animation_map", {})
+	if directional_value is Dictionary:
+		directional_action_map = (directional_value as Dictionary).duplicate(true)
 	rig = RigScript.new() as Node2D
 	if rig == null:
 		return false
@@ -56,6 +61,7 @@ func dispose() -> void:
 	current_action = ""
 	profile_id = ""
 	action_map = DEFAULT_ACTIONS.duplicate(true)
+	directional_action_map = {}
 
 
 func play(action_name: String, speed_scale := 1.0) -> bool:
@@ -70,7 +76,23 @@ func play(action_name: String, speed_scale := 1.0) -> bool:
 	return true
 
 
+func play_animation_name(animation_name: String, action_name := "custom", speed_scale := 1.0) -> bool:
+	var clean_name := animation_name.strip_edges()
+	if not active or rig == null or clean_name.is_empty() or not has_animation(clean_name):
+		return false
+	set_speed(speed_scale)
+	rig.call("set_animation", clean_name)
+	current_action = action_name
+	return true
+
+
 func animation_for(action_name: String) -> String:
+	var direction_key := _master_direction_key(last_facing)
+	var action_value: Variant = directional_action_map.get(action_name, {})
+	if action_value is Dictionary:
+		var override_name := str((action_value as Dictionary).get(direction_key, "")).strip_edges()
+		if not override_name.is_empty():
+			return override_name
 	return str(action_map.get(action_name, "")).strip_edges()
 
 
@@ -84,9 +106,12 @@ func has_animation(animation_name: String) -> bool:
 
 
 func duration_for(action_name: String) -> float:
+	return duration_for_animation(animation_for(action_name))
+
+
+func duration_for_animation(animation_name: String) -> float:
 	if rig == null or not rig.has_method("get_animation_duration_seconds"):
 		return 0.0
-	var animation_name := animation_for(action_name)
 	if animation_name.is_empty():
 		return 0.0
 	return float(rig.call("get_animation_duration_seconds", animation_name))
@@ -122,3 +147,16 @@ func summary() -> Dictionary:
 	if rig != null and rig.has_method("get_runtime_summary"):
 		return rig.call("get_runtime_summary") as Dictionary
 	return {}
+
+
+func _master_direction_key(direction: Vector2) -> String:
+	if direction.length_squared() <= 0.000001:
+		return "s"
+	var angle := fposmod(rad_to_deg(atan2(direction.x, -direction.y)), 360.0)
+	var index := int(round(angle / 45.0)) % 8
+	match index:
+		0: return "n"
+		1, 7: return "ne"
+		2, 6: return "e"
+		3, 5: return "se"
+		_: return "s"
