@@ -66,7 +66,7 @@ static func _load_gzip_json(file_name: String) -> Dictionary:
 	return result.duplicate(true)
 
 
-static func _load_png_flexible(file_name: String, expected_size := Vector2i.ZERO) -> Texture2D:
+static func _load_png_flexible(file_name: String, expected_size: Vector2i = Vector2i.ZERO) -> Texture2D:
 	var direct_path := SOURCE_DIR + file_name
 	if FileAccess.file_exists(direct_path):
 		if _texture_cache.has(direct_path):
@@ -123,7 +123,7 @@ static func _read_indexed_text(prefix: String) -> String:
 	return encoded if index > 0 else ""
 
 
-static func _load_png_b64(file_name: String, expected_size := Vector2i.ZERO) -> Texture2D:
+static func _load_png_b64(file_name: String, expected_size: Vector2i = Vector2i.ZERO) -> Texture2D:
 	var path := SOURCE_DIR + file_name
 	if _texture_cache.has(path):
 		return _texture_cache[path]
@@ -133,7 +133,7 @@ static func _load_png_b64(file_name: String, expected_size := Vector2i.ZERO) -> 
 	return _decode_png_text(path, FileAccess.get_file_as_string(path).strip_edges(), expected_size)
 
 
-static func _decode_png_text(cache_key: String, encoded: String, expected_size := Vector2i.ZERO) -> Texture2D:
+static func _decode_png_text(cache_key: String, encoded: String, expected_size: Vector2i = Vector2i.ZERO) -> Texture2D:
 	if _texture_cache.has(cache_key):
 		return _texture_cache[cache_key]
 	if encoded.is_empty():
