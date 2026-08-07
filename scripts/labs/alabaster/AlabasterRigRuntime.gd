@@ -1,7 +1,16 @@
 extends Node2D
 class_name AlabasterRigRuntime
 
-const DATA_PATH := "res://data/labs/alabaster/juno_runtime.json"
+const DATA_PARTS := [
+	"res://data/labs/alabaster/juno_runtime_00.part",
+	"res://data/labs/alabaster/juno_runtime_01.part",
+	"res://data/labs/alabaster/juno_runtime_02.part",
+	"res://data/labs/alabaster/juno_runtime_03.part",
+	"res://data/labs/alabaster/juno_runtime_04.part",
+	"res://data/labs/alabaster/juno_runtime_05.part",
+	"res://data/labs/alabaster/juno_runtime_06.part",
+	"res://data/labs/alabaster/juno_runtime_07.part"
+]
 const AtlasFactory := preload("res://scripts/labs/alabaster/AlabasterJunoAtlas.gd")
 
 const PIXELS_PER_UNIT := 16.0
@@ -88,10 +97,13 @@ func get_runtime_summary() -> Dictionary:
 
 
 func _load_data() -> void:
-	if not FileAccess.file_exists(DATA_PATH):
-		push_error("AlabasterRigRuntime: missing %s" % DATA_PATH)
-		return
-	var parsed = JSON.parse_string(FileAccess.get_file_as_string(DATA_PATH))
+	var source_json := ""
+	for path in DATA_PARTS:
+		if not FileAccess.file_exists(path):
+			push_error("AlabasterRigRuntime: missing %s" % path)
+			return
+		source_json += FileAccess.get_file_as_string(path)
+	var parsed = JSON.parse_string(source_json)
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_error("AlabasterRigRuntime: invalid runtime JSON")
 		return
