@@ -71,3 +71,12 @@ func _build_character_form() -> void:
 			if animation_map.has(action_name):
 				pairs.append("%s → %s" % [action_name, str(animation_map[action_name])])
 		_add_read_only_value("Gameplay Animation Map", ", ".join(pairs))
+
+
+func _refresh_live_players() -> void:
+	super._refresh_live_players()
+	if _runtime_shutting_down or get_tree() == null:
+		return
+	for player in get_tree().get_nodes_in_group("player"):
+		if player != null and is_instance_valid(player) and player.has_method("refresh_alabaster_character_visual"):
+			player.call_deferred("refresh_alabaster_character_visual")
