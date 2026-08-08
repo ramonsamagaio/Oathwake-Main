@@ -4,6 +4,7 @@ class_name AlabasterSourceAssetLibrary
 const SOURCE_DIR := "res://data/labs/alabaster/source/"
 const WEAPON_PLAYER_DIR := "res://assets/sprites/weapons/"
 const MAX_JSON_BYTES := 8 * 1024 * 1024
+const SKIN_SIZE := Vector2i(672, 120)
 const MELEE_SIZE := Vector2i(672, 152)
 const RANGED_SIZE := Vector2i(672, 88)
 
@@ -23,6 +24,21 @@ static func load_male_dummy_figure() -> Dictionary:
 	return payload.duplicate(true) if not payload.is_empty() else {}
 
 
+static func load_male_temp_figure() -> Dictionary:
+	var payload := _load_gzip_json("male_temp_figure.json.gz.b64")
+	return payload.duplicate(true) if not payload.is_empty() else {}
+
+
+static func load_skin_figure(profile_id: String) -> Dictionary:
+	match profile_id:
+		"male_dummy":
+			return load_male_dummy_figure()
+		"male_temp":
+			return load_male_temp_figure()
+		_:
+			return {}
+
+
 static func load_player_weapon_source() -> Dictionary:
 	return _load_gzip_json("player-weapon.json.gz.b64")
 
@@ -30,9 +46,9 @@ static func load_player_weapon_source() -> Dictionary:
 static func load_skin_texture(profile_id: String) -> Texture2D:
 	match profile_id:
 		"male_dummy":
-			return _load_png_b64("dummy.png.b64")
+			return _load_png_b64("dummy.png.b64", SKIN_SIZE)
 		"male_temp":
-			return _load_png_b64("male-temp01.png.b64")
+			return _load_png_b64("male-temp01.png.b64", SKIN_SIZE)
 		_:
 			return null
 
