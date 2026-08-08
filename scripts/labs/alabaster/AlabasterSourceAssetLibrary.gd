@@ -3,7 +3,7 @@ class_name AlabasterSourceAssetLibrary
 
 const SOURCE_DIR := "res://data/labs/alabaster/source/"
 const WEAPON_PLAYER_DIR := "res://assets/sprites/weapons/"
-const MAX_JSON_BYTES := 8 * 1024 * 1024
+const MAX_JSON_BYTES := 64 * 1024 * 1024
 const SKIN_SIZE := Vector2i(672, 120)
 const SKIN_CHROMA := Color8(255, 0, 195, 255)
 const MELEE_SIZE := Vector2i(672, 152)
@@ -48,20 +48,21 @@ static func get_skin_figure_name(profile_id: String) -> String:
 
 
 static func _load_named_skin_figure(profile_id: String, file_name: String) -> Dictionary:
+	print("ALABASTER_SKIN_SOURCE_REQUEST profile=%s file=%s" % [profile_id, file_name])
 	var payload := _load_gzip_json(file_name)
 	if payload.is_empty():
+		push_error("AlabasterSourceAssetLibrary: empty source payload for %s" % profile_id)
 		return {}
 	return _extract_skin_figure(payload, profile_id)
 
 
 static func _extract_skin_figure(payload: Dictionary, profile_id: String) -> Dictionary:
-	# The original Alabaster figure files are NOT figure dictionaries at their
-	# root. They are wrappers shaped like:
-	#   {"figures":{"Male-Dummy":{...figure...}}}
-	# Older generated fixtures may already contain the extracted figure, so keep
-	# that shape supported too.
+	# Native source files wrap the actual figure in a top-level `figures` table.
+	# Keep an already-extracted figure shape supported for generated fixtures.
 	if payload.has("nodes") and payload.has("anims"):
-		return payload.duplicate(true)
+		var direct_figure := _runtime_figure_copy(payload)
+		_report_skin_figure(profile_id, get_skin_figure_name(profile_id), direct_figure)
+		return direct_figure
 
 	var figure_name := get_skin_figure_name(profile_id)
 	if figure_name.is_empty():
@@ -73,29 +74,66 @@ static func _extract_skin_figure(payload: Dictionary, profile_id: String) -> Dic
 		push_error("AlabasterSourceAssetLibrary: %s source has no figures dictionary" % profile_id)
 		return {}
 	var figures := figures_value as Dictionary
+	print("ALABASTER_SKIN_SOURCE_FIGURES profile=%s requested=%s available=%s" % [
+		profile_id,
+		figure_name,
+		str(figures.keys()),
+	])
+
 	var figure_value: Variant = figures.get(figure_name, {})
 	if figure_value is Dictionary and not (figure_value as Dictionary).is_empty():
-		var figure := (figure_value as Dictionary).duplicate(true)
-		print("ALABASTER_SKIN_FIGURE_EXTRACTED profile=%s figure=%s nodes=%d anims=%d" % [
-			profile_id,
-			figure_name,
-			(figure.get("nodes", {}) as Dictionary).size() if figure.get("nodes", {}) is Dictionary else 0,
-			(figure.get("anims", {}) as Dictionary).size() if figure.get("anims", {}) is Dictionary else 0,
-		])
+		var figure := _runtime_figure_copy(figure_value as Dictionary)
+		_report_skin_figure(profile_id, figure_name, figure)
 		return figure
 
-	# Be tolerant of a renamed wrapper only when the source contains exactly one
-	# figure. This keeps the loader useful for future NPC/monster source files
-	# without silently selecting the wrong entry from a multi-figure JSON.
+	# A future source may rename a single wrapped figure. Never apply this fallback
+	# to Dummy when multiple source figures exist, because Male-Head is a distinct
+	# authored figure and must not be selected as the player body.
 	if figures.size() == 1:
-		var only_name := str(figures.keys()[0])
-		var only_value: Variant = figures[figures.keys()[0]]
+		var only_key: Variant = figures.keys()[0]
+		var only_name := str(only_key)
+		var only_value: Variant = figures[only_key]
 		if only_value is Dictionary:
 			push_warning("AlabasterSourceAssetLibrary: expected figure %s for %s, using sole source figure %s" % [figure_name, profile_id, only_name])
-			return (only_value as Dictionary).duplicate(true)
+			var sole_figure := _runtime_figure_copy(only_value as Dictionary)
+			_report_skin_figure(profile_id, only_name, sole_figure)
+			return sole_figure
 
 	push_error("AlabasterSourceAssetLibrary: figure %s not found for profile %s; available=%s" % [figure_name, profile_id, str(figures.keys())])
 	return {}
+
+
+static func _runtime_figure_copy(source: Dictionary) -> Dictionary:
+	# Deep-copying the complete Alabaster source tree duplicates every animation
+	# transform/key recursively. Dummy/Male are large authored JSON documents and
+	# that work is unnecessary. Runtime only mutates the top-level nodes/anims
+	# dictionaries (weapon sockets and optional installed clips), so clone those
+	# containers while sharing the immutable authored nested data.
+	var result := source.duplicate(false)
+	var nodes_value: Variant = source.get("nodes", {})
+	if nodes_value is Dictionary:
+		result["nodes"] = (nodes_value as Dictionary).duplicate(false)
+	else:
+		result["nodes"] = {}
+	var anims_value: Variant = source.get("anims", {})
+	if anims_value is Dictionary:
+		result["anims"] = (anims_value as Dictionary).duplicate(false)
+	else:
+		result["anims"] = {}
+	return result
+
+
+static func _report_skin_figure(profile_id: String, figure_name: String, figure: Dictionary) -> void:
+	var nodes_value: Variant = figure.get("nodes", {})
+	var anims_value: Variant = figure.get("anims", {})
+	var node_count := (nodes_value as Dictionary).size() if nodes_value is Dictionary else 0
+	var anim_count := (anims_value as Dictionary).size() if anims_value is Dictionary else 0
+	print("ALABASTER_SKIN_FIGURE_EXTRACTED profile=%s figure=%s nodes=%d anims=%d" % [
+		profile_id,
+		figure_name,
+		node_count,
+		anim_count,
+	])
 
 
 static func load_player_weapon_source() -> Dictionary:
@@ -172,23 +210,83 @@ static func _report_weapon_sheet(sheet_name: String, path: String, texture: Text
 static func _load_gzip_json(file_name: String) -> Dictionary:
 	var path := SOURCE_DIR + file_name
 	if _json_cache.has(path):
-		return (_json_cache[path] as Dictionary).duplicate(true)
+		var cached_value: Variant = _json_cache[path]
+		if cached_value is Dictionary:
+			print("ALABASTER_EMBED_JSON_CACHE path=%s" % path)
+			return (cached_value as Dictionary).duplicate(false)
+		_json_cache.erase(path)
+
 	if not FileAccess.file_exists(path):
 		push_warning("AlabasterSourceAssetLibrary: missing %s" % path)
 		return {}
+
 	var encoded := FileAccess.get_file_as_string(path).strip_edges()
+	if encoded.is_empty():
+		push_error("AlabasterSourceAssetLibrary: embedded JSON text is empty: %s" % path)
+		return {}
+	print("ALABASTER_EMBED_JSON_BEGIN path=%s encoded_chars=%d" % [path, encoded.length()])
+
 	var compressed := Marshalls.base64_to_raw(encoded)
-	var raw := compressed.decompress_dynamic(MAX_JSON_BYTES, FileAccess.COMPRESSION_GZIP)
+	if compressed.is_empty():
+		push_error("AlabasterSourceAssetLibrary: base64 decode failed for %s" % path)
+		return {}
+
+	var expected_size := _gzip_uncompressed_size(compressed)
+	print("ALABASTER_EMBED_JSON_BYTES path=%s compressed=%d gzip_size=%d limit=%d" % [
+		path,
+		compressed.size(),
+		expected_size,
+		MAX_JSON_BYTES,
+	])
+	if expected_size > MAX_JSON_BYTES:
+		push_error("AlabasterSourceAssetLibrary: %s expands to %d bytes, above safety limit %d" % [path, expected_size, MAX_JSON_BYTES])
+		return {}
+
+	var raw := PackedByteArray()
+	if expected_size > 0:
+		raw = compressed.decompress(expected_size, FileAccess.COMPRESSION_GZIP)
 	if raw.is_empty():
-		push_error("AlabasterSourceAssetLibrary: failed to decompress %s" % path)
+		# Keep a dynamic fallback for gzip producers whose footer does not expose a
+		# usable ISIZE. The raised ceiling is still bounded to avoid runaway data.
+		raw = compressed.decompress_dynamic(MAX_JSON_BYTES, FileAccess.COMPRESSION_GZIP)
+	if raw.is_empty():
+		push_error("AlabasterSourceAssetLibrary: failed to decompress %s (compressed=%d expected=%d)" % [path, compressed.size(), expected_size])
 		return {}
-	var parsed: Variant = JSON.parse_string(raw.get_string_from_utf8())
+	print("ALABASTER_EMBED_JSON_RAW path=%s raw_bytes=%d" % [path, raw.size()])
+
+	var json := JSON.new()
+	var parse_error := json.parse(raw.get_string_from_utf8())
+	if parse_error != OK:
+		push_error("AlabasterSourceAssetLibrary: invalid JSON in %s line=%d error=%s" % [
+			path,
+			json.get_error_line(),
+			json.get_error_message(),
+		])
+		return {}
+	var parsed: Variant = json.data
 	if not parsed is Dictionary:
-		push_error("AlabasterSourceAssetLibrary: invalid JSON in %s" % path)
+		push_error("AlabasterSourceAssetLibrary: JSON root is not a dictionary in %s" % path)
 		return {}
-	var result: Dictionary = (parsed as Dictionary).duplicate(true)
+
+	var result := parsed as Dictionary
 	_json_cache[path] = result
-	return result.duplicate(true)
+	print("ALABASTER_EMBED_JSON_OK path=%s root_keys=%s" % [path, str(result.keys())])
+	return result.duplicate(false)
+
+
+static func _gzip_uncompressed_size(data: PackedByteArray) -> int:
+	# RFC 1952 stores the source size modulo 2^32 in little-endian order in the
+	# final four bytes. These embedded source files are far below 4 GiB, so ISIZE
+	# gives the exact buffer size and avoids guessing a decompression ceiling.
+	if data.size() < 4:
+		return 0
+	var n := data.size()
+	return (
+		int(data[n - 4])
+		| (int(data[n - 3]) << 8)
+		| (int(data[n - 2]) << 16)
+		| (int(data[n - 1]) << 24)
+	)
 
 
 static func _load_skin_png_b64(file_name: String) -> Texture2D:
