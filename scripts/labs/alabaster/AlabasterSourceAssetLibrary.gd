@@ -5,6 +5,7 @@ const SOURCE_DIR := "res://data/labs/alabaster/source/"
 const WEAPON_PLAYER_DIR := "res://assets/sprites/weapons/"
 const MAX_JSON_BYTES := 8 * 1024 * 1024
 const SKIN_SIZE := Vector2i(672, 120)
+const SKIN_CHROMA := Color8(255, 0, 195, 255)
 const MELEE_SIZE := Vector2i(672, 152)
 const RANGED_SIZE := Vector2i(672, 88)
 
@@ -46,9 +47,9 @@ static func load_player_weapon_source() -> Dictionary:
 static func load_skin_texture(profile_id: String) -> Texture2D:
 	match profile_id:
 		"male_dummy":
-			return _load_png_b64("dummy.png.b64", SKIN_SIZE)
+			return _load_skin_png_b64("dummy.png.b64")
 		"male_temp":
-			return _load_png_b64("male-temp01.png.b64", SKIN_SIZE)
+			return _load_skin_png_b64("male-temp01.png.b64")
 		_:
 			return null
 
@@ -58,9 +59,6 @@ static func get_player_weapon_sheet_path(sheet_name: String) -> String:
 
 
 static func load_player_weapon_sheet(sheet_name: String) -> Texture2D:
-	# Weapon art is a normal Godot project asset. No Base64, no FileAccess,
-	# no Image.load and no runtime PNG decoding are allowed in the weapon path.
-	# ResourceLoader/Godot's importer owns the PNG and returns the cached Texture2D.
 	if _weapon_sheet_cache.has(sheet_name):
 		return _weapon_sheet_cache[sheet_name] as Texture2D
 
@@ -133,6 +131,47 @@ static func _load_gzip_json(file_name: String) -> Dictionary:
 	var result: Dictionary = (parsed as Dictionary).duplicate(true)
 	_json_cache[path] = result
 	return result.duplicate(true)
+
+
+static func _load_skin_png_b64(file_name: String) -> Texture2D:
+	var path := SOURCE_DIR + file_name
+	if _texture_cache.has(path):
+		return _texture_cache[path]
+	if not FileAccess.file_exists(path):
+		push_warning("AlabasterSourceAssetLibrary: missing %s" % path)
+		return null
+	var encoded := FileAccess.get_file_as_string(path).strip_edges()
+	var raw := Marshalls.base64_to_raw(encoded)
+	if raw.is_empty():
+		push_warning("AlabasterSourceAssetLibrary: embedded PNG base64 is empty for %s" % path)
+		return null
+	var image := Image.new()
+	var error := image.load_png_from_buffer(raw)
+	if error != OK:
+		push_warning("AlabasterSourceAssetLibrary: failed to decode embedded PNG %s, error=%s" % [path, error])
+		return null
+	if not _image_size_is_valid(image, SKIN_SIZE):
+		push_warning("AlabasterSourceAssetLibrary: rejected %s size=%sx%s expected=%sx%s" % [
+			path, image.get_width(), image.get_height(), SKIN_SIZE.x, SKIN_SIZE.y,
+		])
+		return null
+	_apply_skin_chroma_key(image)
+	var texture := ImageTexture.create_from_image(image)
+	_texture_cache[path] = texture
+	return texture
+
+
+static func _apply_skin_chroma_key(image: Image) -> void:
+	# The demo test atlases use opaque RGB magenta (255,0,195) instead of alpha.
+	# Convert only that exact source key once when the atlas is loaded.
+	if image.get_format() != Image.FORMAT_RGBA8:
+		image.convert(Image.FORMAT_RGBA8)
+	for y in range(image.get_height()):
+		for x in range(image.get_width()):
+			var pixel := image.get_pixel(x, y)
+			if pixel.r8 == SKIN_CHROMA.r8 and pixel.g8 == SKIN_CHROMA.g8 and pixel.b8 == SKIN_CHROMA.b8:
+				pixel.a = 0.0
+				image.set_pixel(x, y, pixel)
 
 
 static func _load_png_b64(file_name: String, expected_size: Vector2i = Vector2i.ZERO) -> Texture2D:
