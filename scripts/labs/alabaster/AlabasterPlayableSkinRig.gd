@@ -2,12 +2,14 @@ extends "res://scripts/systems/bones/BonesSystem.gd"
 class_name AlabasterPlayableSkinRig
 
 const SourceAssets := preload("res://scripts/labs/alabaster/AlabasterSourceAssetLibrary.gd")
+const ExternalSkinSource := preload("res://scripts/labs/alabaster/AlabasterExternalSkinSource.gd")
 
 var skin_profile_id := "male_dummy"
 var _skin_figure_source := "Male-Dummy"
 var _skin_ready := false
 var _skin_initialized := false
 var _skin_initializing := false
+var _skin_data_source := ""
 
 
 func configure_skin_profile(profile_id: String) -> void:
@@ -49,8 +51,9 @@ func initialize_skin() -> bool:
 		_skin_initializing = false
 		return false
 
-	print("ALABASTER_SKIN_INIT_FIGURE profile=%s nodes=%d anims=%d" % [
+	print("ALABASTER_SKIN_INIT_FIGURE profile=%s source=%s nodes=%d anims=%d" % [
 		skin_profile_id,
+		_skin_data_source,
 		_nodes.size(),
 		_anims.size(),
 	])
@@ -92,9 +95,10 @@ func initialize_skin() -> bool:
 	_skin_initializing = false
 	set_process(_skin_ready)
 
-	print("ALABASTER_SKIN_READY profile=%s figure=%s atlas=%dx%d nodes=%d pieces=%d visible=%d anims=%d ready=%s" % [
+	print("ALABASTER_SKIN_READY profile=%s figure=%s source=%s atlas=%dx%d nodes=%d pieces=%d visible=%d anims=%d ready=%s" % [
 		skin_profile_id,
 		_skin_figure_source,
+		_skin_data_source,
 		_atlas.get_width(), _atlas.get_height(),
 		_nodes.size(),
 		_sprite_records.size(),
@@ -129,6 +133,7 @@ func _reset_partial_skin_runtime() -> void:
 	_states.clear()
 	current_animation = ""
 	animation_time = 0.0
+	_skin_data_source = ""
 
 
 func _count_visible_pieces() -> int:
@@ -142,7 +147,19 @@ func _count_visible_pieces() -> int:
 
 
 func _load_skin_data() -> void:
-	_figure = SourceAssets.load_skin_figure(skin_profile_id)
+	# The installed Alabaster Dawn demo is already used by the Juno source-runtime
+	# during development. Prefer the original Dummy/Male JSON from that same
+	# installation when present. This also gives us a clean recovery path when an
+	# embedded development fixture is damaged, while packaged builds still fall
+	# back to the repository copy without requiring the demo to be installed.
+	_figure = ExternalSkinSource.load_skin_figure(skin_profile_id)
+	if not _figure.is_empty():
+		_skin_data_source = "EXTERNAL_SOURCE_JSON"
+	else:
+		print("ALABASTER_SKIN_EXTERNAL_SOURCE_MISSING profile=%s using=EMBEDDED" % skin_profile_id)
+		_figure = SourceAssets.load_skin_figure(skin_profile_id)
+		_skin_data_source = "EMBEDDED_SOURCE_JSON"
+
 	if _figure.is_empty():
 		push_error("AlabasterPlayableSkinRig: figure could not be loaded for %s" % skin_profile_id)
 		return
@@ -151,7 +168,12 @@ func _load_skin_data() -> void:
 	var anims_value: Variant = _figure.get("anims", {})
 	_nodes = nodes_value as Dictionary if nodes_value is Dictionary else {}
 	_anims = anims_value as Dictionary if anims_value is Dictionary else {}
-	print("ALABASTER_SKIN_DATA_LOADED profile=%s nodes=%d anims=%d" % [skin_profile_id, _nodes.size(), _anims.size()])
+	print("ALABASTER_SKIN_DATA_LOADED profile=%s source=%s nodes=%d anims=%d" % [
+		skin_profile_id,
+		_skin_data_source,
+		_nodes.size(),
+		_anims.size(),
+	])
 	if _nodes.is_empty():
 		push_error("AlabasterPlayableSkinRig: %s has no nodes" % _skin_figure_source)
 		return
@@ -160,7 +182,7 @@ func _load_skin_data() -> void:
 	_figure["nodes"] = _nodes
 	_figure["anims"] = _anims
 	_animation_bank_loaded = true
-	_animation_bank_source = "BUNDLED_%s" % _skin_figure_source.to_upper().replace("-", "_")
+	_animation_bank_source = "%s_%s" % [_skin_data_source, _skin_figure_source.to_upper().replace("-", "_")]
 	_track_cache.clear()
 	_root_dirs.clear()
 
@@ -215,6 +237,7 @@ func get_runtime_summary() -> Dictionary:
 	var result := super.get_runtime_summary()
 	result["skin_profile_id"] = skin_profile_id
 	result["figure_source"] = _skin_figure_source
+	result["skin_data_source"] = _skin_data_source
 	result["animation_bank_source"] = _animation_bank_source
 	result["skin_ready"] = _skin_ready
 	result["skin_initialized"] = _skin_initialized
