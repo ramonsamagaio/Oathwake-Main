@@ -4,6 +4,7 @@ class_name AlabasterPlayableSkinRig
 const SourceAssets := preload("res://scripts/labs/alabaster/AlabasterSourceAssetLibrary.gd")
 
 var skin_profile_id := "male_dummy"
+var _skin_figure_source := "Male-Dummy"
 
 
 func configure_skin_profile(profile_id: String) -> void:
@@ -11,6 +12,7 @@ func configure_skin_profile(profile_id: String) -> void:
 		push_warning("AlabasterPlayableSkinRig: configure_skin_profile must be called before add_child().")
 		return
 	skin_profile_id = "male_temp" if profile_id == "male_temp" else "male_dummy"
+	_skin_figure_source = "Male-Temp-01" if skin_profile_id == "male_temp" else "Male-Dummy"
 
 
 func _ready() -> void:
@@ -28,27 +30,36 @@ func _ready() -> void:
 	if has_method("_merge_custom_animation_library"):
 		call("_merge_custom_animation_library")
 	prewarm_animations(CORE_GAMEPLAY_ANIMATIONS)
-	print("ALABASTER_SKIN_READY profile=%s nodes=%d anims=%d" % [skin_profile_id, _nodes.size(), _anims.size()])
+	print("ALABASTER_SKIN_READY profile=%s figure=%s nodes=%d pieces=%d anims=%d" % [
+		skin_profile_id,
+		_skin_figure_source,
+		_nodes.size(),
+		_sprite_records.size(),
+		_anims.size(),
+	])
 
 
 func _load_skin_data() -> void:
-	_figure = SourceAssets.load_male_dummy_figure()
+	_figure = SourceAssets.load_skin_figure(skin_profile_id)
 	if _figure.is_empty():
-		push_error("AlabasterPlayableSkinRig: Male-Dummy figure could not be loaded")
+		push_error("AlabasterPlayableSkinRig: figure could not be loaded for %s" % skin_profile_id)
 		return
 	_nodes = _figure.get("nodes", {})
 	_anims = _figure.get("anims", {})
+	if _nodes.is_empty():
+		push_error("AlabasterPlayableSkinRig: %s has no nodes" % _skin_figure_source)
+		return
 	_install_weapon_sockets()
 	_figure["nodes"] = _nodes
 	_animation_bank_loaded = true
-	_animation_bank_source = "BUNDLED_MALE_DUMMY"
+	_animation_bank_source = "BUNDLED_%s" % _skin_figure_source.to_upper().replace("-", "_")
 	_track_cache.clear()
 	_root_dirs.clear()
 
 
 func _install_weapon_sockets() -> void:
-	# The test Male-Dummy figure predates the player weapon attachment nodes.
-	# These sockets are graphics-free and inherit hand/body motion.
+	# These source test figures predate the player weapon attachment nodes.
+	# The sockets are graphics-free and inherit the authored hand/body transforms.
 	if not _nodes.has("weaponR"):
 		_nodes["weaponR"] = {
 			"parent": "handR",
@@ -84,6 +95,6 @@ func _install_weapon_sockets() -> void:
 func get_runtime_summary() -> Dictionary:
 	var result := super.get_runtime_summary()
 	result["skin_profile_id"] = skin_profile_id
-	result["figure_source"] = "Male-Dummy"
+	result["figure_source"] = _skin_figure_source
 	result["animation_bank_source"] = _animation_bank_source
 	return result
