@@ -109,12 +109,12 @@
 		"visual_runtime": "alabaster",
 		"rig_profile_id": "male_dummy",
 		"bones_ground_offset": {"x":0.0,"y":8.0},
-		"rig_animation_map": {"idle":"idle","walk":"walk","run":"run","attack":"punch","block":"idle","death":"laying","hurt":"idle","dash":"dash"},
+		"rig_animation_map": {"idle":"__rest__","walk":"walk","run":"run","attack":"punch","block":"__rest__","death":"laying","hurt":"__rest__","dash":"run"},
 		"attack_animation_variants": ["punch"],
 		"avoid_immediate_attack_repeat": true
 	},
 	"male_temp_alabaster": {
-		"animation_set_id": "alabaster_male_dummy",
+		"animation_set_id": "alabaster_male_temp",
 		"attack_hit_time": 0.08,
 		"attack_recovery_time": 0.16,
 		"attack_timing_enabled": true,
@@ -128,7 +128,7 @@
 		"visual_runtime": "alabaster",
 		"rig_profile_id": "male_temp",
 		"bones_ground_offset": {"x":0.0,"y":8.0},
-		"rig_animation_map": {"idle":"idle","walk":"walk","run":"run","attack":"punch","block":"idle","death":"laying","hurt":"idle","dash":"dash"},
+		"rig_animation_map": {"idle":"__rest__","walk":"walk","run":"run","attack":"punch","block":"__rest__","death":"laying","hurt":"damage","dash":"run"},
 		"attack_animation_variants": ["punch"],
 		"avoid_immediate_attack_repeat": true
 	}
