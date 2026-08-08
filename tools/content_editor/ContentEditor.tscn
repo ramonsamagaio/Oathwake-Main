@@ -1,9 +1,9 @@
 [gd_scene load_steps=5 format=3 uid="uid://cn6juf8fptk0e"]
 
-; ContentEditorAlabasterPlayerSuite.gd extends the complete editor chain.
-; It adds the active player-character selector while preserving every existing
-; Player Tuning key that is not currently visible in the form.
-[ext_resource type="Script" path="res://tools/content_editor/ContentEditorAlabasterPlayerSuite.gd" id="1_content_editor_script"]
+; ContentEditorPlayerCharacterExactSuite.gd extends the complete editor chain.
+; It captures Player Tuning character_id directly from OptionButton.item_selected
+; and persists that exact event value instead of re-reading stale UI selection.
+[ext_resource type="Script" path="res://tools/content_editor/ContentEditorPlayerCharacterExactSuite.gd" id="1_content_editor_script"]
 [ext_resource type="Script" path="res://scripts/test/RuntimeContentEditorContractProbe.gd" id="2_contract_probe"]
 [ext_resource type="Script" path="res://tools/content_editor/StandaloneSystemCursorGuard.gd" id="3_cursor_guard"]
 [ext_resource type="Script" path="res://scripts/test/PetInventoryFxContractProbe.gd" id="4_pet_contract_probe"]
