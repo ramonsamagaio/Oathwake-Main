@@ -5,6 +5,7 @@ const SourceAssets := preload("res://scripts/labs/alabaster/AlabasterSourceAsset
 
 var skin_profile_id := "male_dummy"
 var _skin_figure_source := "Male-Dummy"
+var _skin_ready := false
 
 
 func configure_skin_profile(profile_id: String) -> void:
@@ -16,6 +17,7 @@ func configure_skin_profile(profile_id: String) -> void:
 
 
 func _ready() -> void:
+	_skin_ready = false
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_load_skin_data()
 	if _figure.is_empty():
@@ -26,17 +28,13 @@ func _ready() -> void:
 		return
 	_build_sprite_records()
 	_apply_pose()
-	set_process(true)
 	if has_method("_merge_custom_animation_library"):
 		call("_merge_custom_animation_library")
 	prewarm_animations(CORE_GAMEPLAY_ANIMATIONS)
-	var visible_pieces := 0
-	for record_variant in _sprite_records:
-		var record: Dictionary = record_variant
-		var sprite := record.get("sprite") as Sprite2D
-		if sprite != null and sprite.visible:
-			visible_pieces += 1
-	print("ALABASTER_SKIN_READY profile=%s figure=%s atlas=%dx%d nodes=%d pieces=%d visible=%d anims=%d" % [
+	var visible_pieces := _count_visible_pieces()
+	_skin_ready = not _sprite_records.is_empty() and visible_pieces > 0
+	set_process(_skin_ready)
+	print("ALABASTER_SKIN_READY profile=%s figure=%s atlas=%dx%d nodes=%d pieces=%d visible=%d anims=%d ready=%s" % [
 		skin_profile_id,
 		_skin_figure_source,
 		_atlas.get_width(), _atlas.get_height(),
@@ -44,9 +42,24 @@ func _ready() -> void:
 		_sprite_records.size(),
 		visible_pieces,
 		_anims.size(),
+		str(_skin_ready),
 	])
-	if _sprite_records.is_empty() or visible_pieces == 0:
+	if not _skin_ready:
 		push_error("AlabasterPlayableSkinRig: %s built no visible sprite pieces" % _skin_figure_source)
+
+
+func is_skin_ready() -> bool:
+	return _skin_ready and _atlas != null and not _figure.is_empty() and not _sprite_records.is_empty()
+
+
+func _count_visible_pieces() -> int:
+	var visible_pieces := 0
+	for record_variant in _sprite_records:
+		var record: Dictionary = record_variant
+		var sprite := record.get("sprite") as Sprite2D
+		if sprite != null and sprite.visible:
+			visible_pieces += 1
+	return visible_pieces
 
 
 func _load_skin_data() -> void:
@@ -119,4 +132,5 @@ func get_runtime_summary() -> Dictionary:
 	result["skin_profile_id"] = skin_profile_id
 	result["figure_source"] = _skin_figure_source
 	result["animation_bank_source"] = _animation_bank_source
+	result["skin_ready"] = _skin_ready
 	return result
