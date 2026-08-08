@@ -5,7 +5,7 @@ const SOURCE_DIR := "res://data/labs/alabaster/source/"
 const WEAPON_PLAYER_DIR := "res://assets/sprites/weapons/"
 const MAX_JSON_BYTES := 64 * 1024 * 1024
 const SKIN_SIZE := Vector2i(672, 120)
-const SKIN_CHROMA := Color8(255, 0, 195, 255)
+const SKIN_CHROMA_RGB := Vector3i(255, 0, 195)
 const MELEE_SIZE := Vector2i(672, 152)
 const RANGED_SIZE := Vector2i(672, 88)
 
@@ -57,8 +57,8 @@ static func _load_named_skin_figure(profile_id: String, file_name: String) -> Di
 
 
 static func _extract_skin_figure(payload: Dictionary, profile_id: String) -> Dictionary:
-	# Native source files wrap the actual figure in a top-level `figures` table.
-	# Keep an already-extracted figure shape supported for generated fixtures.
+	# Native source files may be either the actual figure at the root or a
+	# top-level `figures` wrapper. Keep both forms supported.
 	if payload.has("nodes") and payload.has("anims"):
 		var direct_figure := _runtime_figure_copy(payload)
 		_report_skin_figure(profile_id, get_skin_figure_name(profile_id), direct_figure)
@@ -86,9 +86,6 @@ static func _extract_skin_figure(payload: Dictionary, profile_id: String) -> Dic
 		_report_skin_figure(profile_id, figure_name, figure)
 		return figure
 
-	# A future source may rename a single wrapped figure. Never apply this fallback
-	# to Dummy when multiple source figures exist, because Male-Head is a distinct
-	# authored figure and must not be selected as the player body.
 	if figures.size() == 1:
 		var only_key: Variant = figures.keys()[0]
 		var only_name := str(only_key)
@@ -104,11 +101,8 @@ static func _extract_skin_figure(payload: Dictionary, profile_id: String) -> Dic
 
 
 static func _runtime_figure_copy(source: Dictionary) -> Dictionary:
-	# Deep-copying the complete Alabaster source tree duplicates every animation
-	# transform/key recursively. Dummy/Male are large authored JSON documents and
-	# that work is unnecessary. Runtime only mutates the top-level nodes/anims
-	# dictionaries (weapon sockets and optional installed clips), so clone those
-	# containers while sharing the immutable authored nested data.
+	# Runtime only mutates the top-level nodes/anims containers. Sharing the
+	# immutable authored nested animation data avoids a very expensive deep copy.
 	var result := source.duplicate(false)
 	var nodes_value: Variant = source.get("nodes", {})
 	if nodes_value is Dictionary:
@@ -141,13 +135,19 @@ static func load_player_weapon_source() -> Dictionary:
 
 
 static func load_skin_texture(profile_id: String) -> Texture2D:
+	var file_name := ""
 	match profile_id:
 		"male_dummy":
-			return _load_skin_png_b64("dummy.png.b64")
+			file_name = "dummy.png.b64"
 		"male_temp":
-			return _load_skin_png_b64("male-temp01.png.b64")
+			file_name = "male-temp01.png.b64"
 		_:
+			push_error("AlabasterSourceAssetLibrary: unknown skin texture profile %s" % profile_id)
 			return null
+	print("ALABASTER_SKIN_ATLAS_REQUEST profile=%s file=%s" % [profile_id, file_name])
+	var texture := _load_skin_png_b64(file_name)
+	print("ALABASTER_SKIN_ATLAS_RESULT profile=%s ok=%s" % [profile_id, str(texture != null)])
+	return texture
 
 
 static func get_player_weapon_sheet_path(sheet_name: String) -> String:
@@ -246,8 +246,6 @@ static func _load_gzip_json(file_name: String) -> Dictionary:
 	if expected_size > 0:
 		raw = compressed.decompress(expected_size, FileAccess.COMPRESSION_GZIP)
 	if raw.is_empty():
-		# Keep a dynamic fallback for gzip producers whose footer does not expose a
-		# usable ISIZE. The raised ceiling is still bounded to avoid runaway data.
 		raw = compressed.decompress_dynamic(MAX_JSON_BYTES, FileAccess.COMPRESSION_GZIP)
 	if raw.is_empty():
 		push_error("AlabasterSourceAssetLibrary: failed to decompress %s (compressed=%d expected=%d)" % [path, compressed.size(), expected_size])
@@ -275,9 +273,6 @@ static func _load_gzip_json(file_name: String) -> Dictionary:
 
 
 static func _gzip_uncompressed_size(data: PackedByteArray) -> int:
-	# RFC 1952 stores the source size modulo 2^32 in little-endian order in the
-	# final four bytes. These embedded source files are far below 4 GiB, so ISIZE
-	# gives the exact buffer size and avoids guessing a decompression ceiling.
 	if data.size() < 4:
 		return 0
 	var n := data.size()
@@ -292,18 +287,43 @@ static func _gzip_uncompressed_size(data: PackedByteArray) -> int:
 static func _load_skin_png_b64(file_name: String) -> Texture2D:
 	var path := SOURCE_DIR + file_name
 	if _texture_cache.has(path):
-		return _texture_cache[path]
+		var cached: Variant = _texture_cache[path]
+		if cached is Texture2D:
+			print("ALABASTER_SKIN_ATLAS_CACHE path=%s" % path)
+			return cached as Texture2D
+		_texture_cache.erase(path)
+
+	print("ALABASTER_SKIN_ATLAS_BEGIN path=%s exists=%s" % [path, str(FileAccess.file_exists(path))])
 	if not FileAccess.file_exists(path):
 		push_warning("AlabasterSourceAssetLibrary: missing %s" % path)
 		return null
+
 	var encoded := FileAccess.get_file_as_string(path).strip_edges()
-	var raw := Marshalls.base64_to_raw(encoded)
-	if raw.is_empty():
-		push_warning("AlabasterSourceAssetLibrary: embedded PNG base64 is empty for %s" % path)
+	print("ALABASTER_SKIN_ATLAS_TEXT path=%s chars=%d" % [path, encoded.length()])
+	if encoded.is_empty():
+		push_warning("AlabasterSourceAssetLibrary: embedded PNG text is empty for %s" % path)
 		return null
+
+	var raw := Marshalls.base64_to_raw(encoded)
+	print("ALABASTER_SKIN_ATLAS_BYTES path=%s bytes=%d" % [path, raw.size()])
+	if raw.is_empty():
+		push_warning("AlabasterSourceAssetLibrary: embedded PNG base64 decode failed for %s" % path)
+		return null
+	if raw.size() < 24 or raw[0] != 137 or raw[1] != 80 or raw[2] != 78 or raw[3] != 71:
+		push_warning("AlabasterSourceAssetLibrary: embedded PNG signature is invalid for %s" % path)
+		return null
+
 	var image := Image.new()
 	var error := image.load_png_from_buffer(raw)
-	if error != OK:
+	print("ALABASTER_SKIN_ATLAS_DECODE path=%s error=%d empty=%s size=%dx%d format=%d" % [
+		path,
+		error,
+		str(image.is_empty()),
+		image.get_width(),
+		image.get_height(),
+		int(image.get_format()),
+	])
+	if error != OK or image.is_empty():
 		push_warning("AlabasterSourceAssetLibrary: failed to decode embedded PNG %s, error=%s" % [path, error])
 		return null
 	if not _image_size_is_valid(image, SKIN_SIZE):
@@ -311,29 +331,44 @@ static func _load_skin_png_b64(file_name: String) -> Texture2D:
 			path, image.get_width(), image.get_height(), SKIN_SIZE.x, SKIN_SIZE.y,
 		])
 		return null
-	_apply_skin_chroma_key(image)
-	var texture := ImageTexture.create_from_image(image)
-	_texture_cache[path] = texture
-	return texture
 
-
-static func _apply_skin_chroma_key(image: Image) -> void:
-	# The demo test atlases use opaque RGB magenta (255,0,195) instead of alpha.
-	# Convert only that exact source key once when the atlas is loaded.
+	# Work on raw RGBA8 bytes instead of calling get_pixel/set_pixel thousands of
+	# times. Besides being much faster, this avoids Color conversion quirks while
+	# preserving every authored pixel exactly.
 	if image.get_format() != Image.FORMAT_RGBA8:
 		image.convert(Image.FORMAT_RGBA8)
-	for y in range(image.get_height()):
-		for x in range(image.get_width()):
-			var pixel := image.get_pixel(x, y)
-			if pixel.r8 == SKIN_CHROMA.r8 and pixel.g8 == SKIN_CHROMA.g8 and pixel.b8 == SKIN_CHROMA.b8:
-				pixel.a = 0.0
-				image.set_pixel(x, y, pixel)
+	print("ALABASTER_SKIN_ATLAS_RGBA path=%s format=%d" % [path, int(image.get_format())])
+	var rgba := image.get_data()
+	var expected_bytes := image.get_width() * image.get_height() * 4
+	print("ALABASTER_SKIN_ATLAS_DATA path=%s bytes=%d expected=%d" % [path, rgba.size(), expected_bytes])
+	if rgba.size() != expected_bytes:
+		push_error("AlabasterSourceAssetLibrary: unexpected RGBA byte count for %s: %d expected %d" % [path, rgba.size(), expected_bytes])
+		return null
+
+	var keyed_pixels := 0
+	var i := 0
+	while i + 3 < rgba.size():
+		if int(rgba[i]) == SKIN_CHROMA_RGB.x and int(rgba[i + 1]) == SKIN_CHROMA_RGB.y and int(rgba[i + 2]) == SKIN_CHROMA_RGB.z:
+			rgba[i + 3] = 0
+			keyed_pixels += 1
+		i += 4
+	image.set_data(image.get_width(), image.get_height(), false, Image.FORMAT_RGBA8, rgba)
+	print("ALABASTER_SKIN_ATLAS_CHROMA path=%s keyed=%d" % [path, keyed_pixels])
+
+	var texture := ImageTexture.create_from_image(image)
+	if texture == null:
+		push_error("AlabasterSourceAssetLibrary: ImageTexture creation failed for %s" % path)
+		return null
+	print("ALABASTER_SKIN_ATLAS_READY path=%s size=%dx%d" % [path, texture.get_width(), texture.get_height()])
+	_texture_cache[path] = texture
+	return texture
 
 
 static func _load_png_b64(file_name: String, expected_size: Vector2i = Vector2i.ZERO) -> Texture2D:
 	var path := SOURCE_DIR + file_name
 	if _texture_cache.has(path):
-		return _texture_cache[path]
+		var cached: Variant = _texture_cache[path]
+		return cached as Texture2D if cached is Texture2D else null
 	if not FileAccess.file_exists(path):
 		push_warning("AlabasterSourceAssetLibrary: missing %s" % path)
 		return null
@@ -342,7 +377,8 @@ static func _load_png_b64(file_name: String, expected_size: Vector2i = Vector2i.
 
 static func _decode_png_text(cache_key: String, encoded: String, expected_size: Vector2i = Vector2i.ZERO) -> Texture2D:
 	if _texture_cache.has(cache_key):
-		return _texture_cache[cache_key]
+		var cached: Variant = _texture_cache[cache_key]
+		return cached as Texture2D if cached is Texture2D else null
 	if encoded.is_empty():
 		return null
 	var raw := Marshalls.base64_to_raw(encoded)
