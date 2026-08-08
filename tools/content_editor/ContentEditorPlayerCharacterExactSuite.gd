@@ -1,7 +1,7 @@
 extends "res://tools/content_editor/ContentEditorAlabasterPlayerSuite.gd"
 
 # Single authoritative owner for Player Tuning -> character_id.
-# Older editor suites may have created/registerd character OptionButtons in the
+# Older editor suites may have created/registered character OptionButtons in the
 # same form. This layer removes every character-list picker after the inherited
 # form is built, then creates exactly one named selector and reads that exact
 # node during Save. No shared field_controls lookup is used for character_id.
@@ -18,6 +18,7 @@ func _build_player_tuning_form() -> void:
 	super._build_player_tuning_form()
 	_pending_player_character_id = str(current_record.get("character_id", "juno_alabaster")).strip_edges()
 	_remove_all_character_picker_candidates()
+	_remove_legacy_character_picker_labels()
 	_build_exact_player_character_picker()
 
 
@@ -40,6 +41,20 @@ func _remove_all_character_picker_candidates() -> void:
 	# A legacy suite may still have stored one of the removed controls here.
 	# Never let Save or another getter accidentally read that stale reference.
 	field_controls.erase("character_id")
+
+
+func _remove_legacy_character_picker_labels() -> void:
+	var remove_nodes: Array[Node] = []
+	for child in form_container.get_children():
+		if not child is Label:
+			continue
+		var text := (child as Label).text.strip_edges()
+		if text == "Player Character" or text.begins_with("Chooses which Characters record drives the player visual"):
+			remove_nodes.append(child)
+	for child in remove_nodes:
+		if child.get_parent() == form_container:
+			form_container.remove_child(child)
+		child.queue_free()
 
 
 func _collect_character_picker_rows(node: Node, valid_character_ids: Dictionary, rows: Array[Node]) -> void:
@@ -101,7 +116,7 @@ func _build_exact_player_character_picker() -> void:
 
 	_add_subsection_title("Active Player Character")
 	var note := Label.new()
-	note.text = "This is the single authoritative character selector. Saving writes this exact selection to player_tuning.default.character_id."
+	note.text = "Single authoritative selector. Saving writes this exact value to player_tuning.default.character_id."
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	form_container.add_child(note)
 	_add_form_row("Character", option)
