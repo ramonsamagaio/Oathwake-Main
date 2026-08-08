@@ -36,10 +36,19 @@ func set_animation(animation_name: String) -> void:
 	# the combat input frame.
 
 
+func set_rest_pose() -> void:
+	# Some source figures do not author a separate "idle" clip. Their idle is the
+	# unanimated/rest transform stored directly on each node. Empty animation name
+	# intentionally samples no tracks, leaving the authored node transforms intact.
+	current_animation = ""
+	animation_time = 0.0
+	_apply_pose()
+
+
 func prewarm_animations(animation_names: Array) -> void:
 	for raw_name in animation_names:
 		var animation_name := str(raw_name).strip_edges()
-		if animation_name.is_empty() or not _anims.has(animation_name):
+		if animation_name.is_empty() or animation_name == "__rest__" or not _anims.has(animation_name):
 			continue
 		var cache_key := "source:" + animation_name
 		if _track_cache.has(cache_key):
@@ -73,7 +82,7 @@ func remove_runtime_animation(animation_name: String) -> bool:
 	_figure["anims"] = _anims
 	_track_cache.erase("source:" + clean_name)
 	if current_animation == clean_name:
-		set_animation("idle")
+		set_rest_pose()
 	return true
 
 
