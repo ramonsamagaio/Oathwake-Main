@@ -14,6 +14,26 @@ const DEFAULT_ACTIONS := {
 	"hurt": "damage",
 	"dash": "dash",
 }
+const MALE_DUMMY_ACTIONS := {
+	"idle": REST_POSE,
+	"walk": "walk",
+	"run": "run",
+	"attack": "punch",
+	"block": REST_POSE,
+	"death": "laying",
+	"hurt": REST_POSE,
+	"dash": "run",
+}
+const MALE_TEMP_ACTIONS := {
+	"idle": REST_POSE,
+	"walk": "walk",
+	"run": "run",
+	"attack": "punch",
+	"block": REST_POSE,
+	"death": "laying",
+	"hurt": "damage",
+	"dash": "run",
+}
 
 var rig: Node2D
 var active := false
@@ -26,10 +46,13 @@ var current_action := ""
 
 func configure(owner: Node2D, character_data: Dictionary, visual_position: Vector2, visual_scale: float) -> bool:
 	dispose()
-	if str(character_data.get("visual_runtime", "sprite_sheet")) != "alabaster":
+	var declared_runtime := str(character_data.get("visual_runtime", "sprite_sheet")).strip_edges()
+	profile_id = _resolve_profile_id(character_data)
+	var inferred_alabaster := profile_id == "male_dummy" or profile_id == "male_temp"
+	if declared_runtime != "alabaster" and not inferred_alabaster:
 		return false
-	profile_id = str(character_data.get("rig_profile_id", "juno"))
-	action_map = DEFAULT_ACTIONS.duplicate(true)
+
+	action_map = _default_actions_for_profile(profile_id)
 	directional_action_map = {}
 	var custom_map = character_data.get("rig_animation_map", {})
 	if custom_map is Dictionary:
@@ -40,6 +63,13 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 	var directional_value: Variant = character_data.get("rig_directional_animation_map", {})
 	if directional_value is Dictionary:
 		directional_action_map = (directional_value as Dictionary).duplicate(true)
+
+	print("BONES_VISUAL_CONFIGURE runtime=%s profile=%s animation_set=%s inferred=%s" % [
+		declared_runtime,
+		profile_id,
+		str(character_data.get("animation_set_id", "")),
+		str(inferred_alabaster and declared_runtime != "alabaster"),
+	])
 
 	var uses_playable_skin := profile_id == "male_dummy" or profile_id == "male_temp"
 	if uses_playable_skin:
@@ -72,6 +102,34 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 	face(Vector2.DOWN)
 	play("idle")
 	return true
+
+
+func _resolve_profile_id(character_data: Dictionary) -> String:
+	var declared_profile := str(character_data.get("rig_profile_id", "")).strip_edges()
+	if not declared_profile.is_empty():
+		return declared_profile
+
+	# Content Editor versions predating the bone-rig fields could save a Character
+	# record while stripping visual_runtime/rig_profile_id. Dummy and Male have
+	# unique animation_set_ids, so recover their intended native source rigs rather
+	# than silently falling back to the old AnimatedSprite/WIP visual.
+	match str(character_data.get("animation_set_id", "")).strip_edges():
+		"alabaster_male_dummy":
+			return "male_dummy"
+		"alabaster_male_temp":
+			return "male_temp"
+		_:
+			return "juno" if str(character_data.get("visual_runtime", "")).strip_edges() == "alabaster" else ""
+
+
+func _default_actions_for_profile(resolved_profile_id: String) -> Dictionary:
+	match resolved_profile_id:
+		"male_dummy":
+			return MALE_DUMMY_ACTIONS.duplicate(true)
+		"male_temp":
+			return MALE_TEMP_ACTIONS.duplicate(true)
+		_:
+			return DEFAULT_ACTIONS.duplicate(true)
 
 
 func dispose() -> void:
