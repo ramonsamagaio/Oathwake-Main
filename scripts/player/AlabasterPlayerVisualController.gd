@@ -41,7 +41,8 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 	if directional_value is Dictionary:
 		directional_action_map = (directional_value as Dictionary).duplicate(true)
 
-	if profile_id == "male_dummy" or profile_id == "male_temp":
+	var uses_playable_skin := profile_id == "male_dummy" or profile_id == "male_temp"
+	if uses_playable_skin:
 		var skin_rig = PlayableSkinRigScript.new()
 		if skin_rig == null:
 			return false
@@ -54,6 +55,15 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 
 	rig.name = "BonesRigVisual"
 	owner.add_child(rig)
+	# add_child() synchronously runs _ready(). A playable skin is only considered
+	# active after its source figure, atlas and visible sprite records all exist.
+	if uses_playable_skin and (not rig.has_method("is_skin_ready") or not bool(rig.call("is_skin_ready"))):
+		push_error("AlabasterPlayerVisualController: playable skin failed to initialize profile=%s" % profile_id)
+		rig.queue_free()
+		rig = null
+		active = false
+		return false
+
 	rig.position = visual_position
 	rig.scale = Vector2.ONE * visual_scale
 	if rig.has_method("set_embedded_world_mode"):
