@@ -30,13 +30,23 @@ func _ready() -> void:
 	if has_method("_merge_custom_animation_library"):
 		call("_merge_custom_animation_library")
 	prewarm_animations(CORE_GAMEPLAY_ANIMATIONS)
-	print("ALABASTER_SKIN_READY profile=%s figure=%s nodes=%d pieces=%d anims=%d" % [
+	var visible_pieces := 0
+	for record_variant in _sprite_records:
+		var record: Dictionary = record_variant
+		var sprite := record.get("sprite") as Sprite2D
+		if sprite != null and sprite.visible:
+			visible_pieces += 1
+	print("ALABASTER_SKIN_READY profile=%s figure=%s atlas=%dx%d nodes=%d pieces=%d visible=%d anims=%d" % [
 		skin_profile_id,
 		_skin_figure_source,
+		_atlas.get_width(), _atlas.get_height(),
 		_nodes.size(),
 		_sprite_records.size(),
+		visible_pieces,
 		_anims.size(),
 	])
+	if _sprite_records.is_empty() or visible_pieces == 0:
+		push_error("AlabasterPlayableSkinRig: %s built no visible sprite pieces" % _skin_figure_source)
 
 
 func _load_skin_data() -> void:
@@ -90,6 +100,18 @@ func _install_weapon_sockets() -> void:
 			"frameAnims": {},
 			"frameKeys": [],
 		}
+
+
+func _apply_directional_layer_override(_record: Dictionary, _sprite: Sprite2D) -> void:
+	# Dummy/Male have their own authored zOrder tables. The Production layer also
+	# contains Oathwake corrections made specifically for Juno's arm/leg/headGear
+	# crossings; those must never overwrite a different source figure.
+	pass
+
+
+func _apply_profile_front_arm_over_legs() -> void:
+	# Same rule as above: these test figures use their native source layer order.
+	pass
 
 
 func get_runtime_summary() -> Dictionary:
