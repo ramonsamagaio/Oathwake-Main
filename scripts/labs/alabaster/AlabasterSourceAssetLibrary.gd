@@ -9,6 +9,11 @@ const SKIN_CHROMA := Color8(255, 0, 195, 255)
 const MELEE_SIZE := Vector2i(672, 152)
 const RANGED_SIZE := Vector2i(672, 88)
 
+const SKIN_FIGURE_NAMES := {
+	"male_dummy": "Male-Dummy",
+	"male_temp": "Male-Temp-01",
+}
+
 const WEAPON_SHEET_PATHS := {
 	"melee": WEAPON_PLAYER_DIR + "player-melee.png",
 	"ranged": WEAPON_PLAYER_DIR + "player-ranged.png",
@@ -21,13 +26,11 @@ static var _weapon_sheet_status_reported: Dictionary = {}
 
 
 static func load_male_dummy_figure() -> Dictionary:
-	var payload := _load_gzip_json("male_dummy_figure.json.gz.b64")
-	return payload.duplicate(true) if not payload.is_empty() else {}
+	return _load_named_skin_figure("male_dummy", "male_dummy_figure.json.gz.b64")
 
 
 static func load_male_temp_figure() -> Dictionary:
-	var payload := _load_gzip_json("male_temp_figure.json.gz.b64")
-	return payload.duplicate(true) if not payload.is_empty() else {}
+	return _load_named_skin_figure("male_temp", "male_temp_figure.json.gz.b64")
 
 
 static func load_skin_figure(profile_id: String) -> Dictionary:
@@ -38,6 +41,61 @@ static func load_skin_figure(profile_id: String) -> Dictionary:
 			return load_male_temp_figure()
 		_:
 			return {}
+
+
+static func get_skin_figure_name(profile_id: String) -> String:
+	return str(SKIN_FIGURE_NAMES.get(profile_id, ""))
+
+
+static func _load_named_skin_figure(profile_id: String, file_name: String) -> Dictionary:
+	var payload := _load_gzip_json(file_name)
+	if payload.is_empty():
+		return {}
+	return _extract_skin_figure(payload, profile_id)
+
+
+static func _extract_skin_figure(payload: Dictionary, profile_id: String) -> Dictionary:
+	# The original Alabaster figure files are NOT figure dictionaries at their
+	# root. They are wrappers shaped like:
+	#   {"figures":{"Male-Dummy":{...figure...}}}
+	# Older generated fixtures may already contain the extracted figure, so keep
+	# that shape supported too.
+	if payload.has("nodes") and payload.has("anims"):
+		return payload.duplicate(true)
+
+	var figure_name := get_skin_figure_name(profile_id)
+	if figure_name.is_empty():
+		push_error("AlabasterSourceAssetLibrary: unknown skin profile %s" % profile_id)
+		return {}
+
+	var figures_value: Variant = payload.get("figures", {})
+	if not figures_value is Dictionary:
+		push_error("AlabasterSourceAssetLibrary: %s source has no figures dictionary" % profile_id)
+		return {}
+	var figures := figures_value as Dictionary
+	var figure_value: Variant = figures.get(figure_name, {})
+	if figure_value is Dictionary and not (figure_value as Dictionary).is_empty():
+		var figure := (figure_value as Dictionary).duplicate(true)
+		print("ALABASTER_SKIN_FIGURE_EXTRACTED profile=%s figure=%s nodes=%d anims=%d" % [
+			profile_id,
+			figure_name,
+			(figure.get("nodes", {}) as Dictionary).size() if figure.get("nodes", {}) is Dictionary else 0,
+			(figure.get("anims", {}) as Dictionary).size() if figure.get("anims", {}) is Dictionary else 0,
+		])
+		return figure
+
+	# Be tolerant of a renamed wrapper only when the source contains exactly one
+	# figure. This keeps the loader useful for future NPC/monster source files
+	# without silently selecting the wrong entry from a multi-figure JSON.
+	if figures.size() == 1:
+		var only_name := str(figures.keys()[0])
+		var only_value: Variant = figures[figures.keys()[0]]
+		if only_value is Dictionary:
+			push_warning("AlabasterSourceAssetLibrary: expected figure %s for %s, using sole source figure %s" % [figure_name, profile_id, only_name])
+			return (only_value as Dictionary).duplicate(true)
+
+	push_error("AlabasterSourceAssetLibrary: figure %s not found for profile %s; available=%s" % [figure_name, profile_id, str(figures.keys())])
+	return {}
 
 
 static func load_player_weapon_source() -> Dictionary:
