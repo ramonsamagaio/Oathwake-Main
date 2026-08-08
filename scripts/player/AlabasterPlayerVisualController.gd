@@ -3,6 +3,7 @@ class_name AlabasterPlayerVisualController
 
 const JunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 const PlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
+const REST_POSE := "__rest__"
 const DEFAULT_ACTIONS := {
 	"idle": "idle",
 	"walk": "walk",
@@ -78,6 +79,13 @@ func play(action_name: String, speed_scale := 1.0) -> bool:
 	if not active or rig == null:
 		return false
 	var animation_name := animation_for(action_name)
+	if animation_name == REST_POSE:
+		if not rig.has_method("set_rest_pose"):
+			return false
+		set_speed(1.0)
+		rig.call("set_rest_pose")
+		current_action = action_name
+		return true
 	if animation_name.is_empty() or not has_animation(animation_name):
 		return false
 	set_speed(speed_scale)
@@ -108,6 +116,8 @@ func animation_for(action_name: String) -> String:
 
 func has_action(action_name: String) -> bool:
 	var animation_name := animation_for(action_name)
+	if animation_name == REST_POSE:
+		return rig != null and rig.has_method("set_rest_pose")
 	return not animation_name.is_empty() and has_animation(animation_name)
 
 
@@ -120,6 +130,8 @@ func duration_for(action_name: String) -> float:
 
 
 func duration_for_animation(animation_name: String) -> float:
+	if animation_name == REST_POSE:
+		return 0.0
 	if rig == null or not rig.has_method("get_animation_duration_seconds"):
 		return 0.0
 	if animation_name.is_empty():
@@ -128,6 +140,8 @@ func duration_for_animation(animation_name: String) -> float:
 
 
 func prewarm_animation(animation_name: String) -> void:
+	if animation_name == REST_POSE:
+		return
 	if rig != null and rig.has_method("prewarm_animation"):
 		rig.call("prewarm_animation", animation_name)
 
@@ -138,14 +152,14 @@ func prewarm_actions() -> void:
 	var names := []
 	for action_name in action_map.keys():
 		var animation_name := str(action_map[action_name]).strip_edges()
-		if not animation_name.is_empty() and not names.has(animation_name):
+		if not animation_name.is_empty() and animation_name != REST_POSE and not names.has(animation_name):
 			names.append(animation_name)
 	for action_name in directional_action_map.keys():
 		var directional_value: Variant = directional_action_map[action_name]
 		if directional_value is Dictionary:
 			for direction_key in (directional_value as Dictionary).keys():
 				var animation_name := str((directional_value as Dictionary)[direction_key]).strip_edges()
-				if not animation_name.is_empty() and not names.has(animation_name):
+				if not animation_name.is_empty() and animation_name != REST_POSE and not names.has(animation_name):
 					names.append(animation_name)
 	rig.call("prewarm_animations", names)
 
