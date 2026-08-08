@@ -10,6 +10,7 @@ var _skin_ready := false
 var _skin_initialized := false
 var _skin_initializing := false
 var _skin_data_source := ""
+var _skin_texture_source := ""
 
 
 func configure_skin_profile(profile_id: String) -> void:
@@ -21,8 +22,6 @@ func configure_skin_profile(profile_id: String) -> void:
 
 
 func _ready() -> void:
-	# Playable skins own their source figure/atlas bootstrap and intentionally do
-	# not call the inherited Juno _ready() chain.
 	initialize_skin()
 
 
@@ -58,14 +57,15 @@ func initialize_skin() -> bool:
 		_anims.size(),
 	])
 
-	_atlas = SourceAssets.load_skin_texture(skin_profile_id)
+	_load_skin_atlas()
 	if _atlas == null:
 		push_error("AlabasterPlayableSkinRig: missing atlas for %s" % skin_profile_id)
 		_skin_initializing = false
 		return false
 
-	print("ALABASTER_SKIN_INIT_ATLAS profile=%s size=%dx%d" % [
+	print("ALABASTER_SKIN_INIT_ATLAS profile=%s source=%s size=%dx%d" % [
 		skin_profile_id,
+		_skin_texture_source,
 		_atlas.get_width(),
 		_atlas.get_height(),
 	])
@@ -77,16 +77,9 @@ func initialize_skin() -> bool:
 		_skin_initializing = false
 		return false
 
-	# Both source figures have no dedicated idle clip. Start from the authored
-	# static transforms before gameplay asks for a mapped action.
 	current_animation = ""
 	animation_time = 0.0
 	_apply_pose()
-
-	# Do NOT merge the Juno custom-animation bank into native Dummy/Male rigs.
-	# That bank targets Juno's authored skeleton and is not a shared animation
-	# source for arbitrary Alabaster figures. Native figure animations remain the
-	# authority here; retargeting can be added later as an explicit operation.
 	prewarm_animations(CORE_GAMEPLAY_ANIMATIONS)
 
 	var visible_pieces := _count_visible_pieces()
@@ -95,10 +88,11 @@ func initialize_skin() -> bool:
 	_skin_initializing = false
 	set_process(_skin_ready)
 
-	print("ALABASTER_SKIN_READY profile=%s figure=%s source=%s atlas=%dx%d nodes=%d pieces=%d visible=%d anims=%d ready=%s" % [
+	print("ALABASTER_SKIN_READY profile=%s figure=%s data_source=%s texture_source=%s atlas=%dx%d nodes=%d pieces=%d visible=%d anims=%d ready=%s" % [
 		skin_profile_id,
 		_skin_figure_source,
 		_skin_data_source,
+		_skin_texture_source,
 		_atlas.get_width(), _atlas.get_height(),
 		_nodes.size(),
 		_sprite_records.size(),
@@ -134,6 +128,7 @@ func _reset_partial_skin_runtime() -> void:
 	current_animation = ""
 	animation_time = 0.0
 	_skin_data_source = ""
+	_skin_texture_source = ""
 
 
 func _count_visible_pieces() -> int:
@@ -147,11 +142,6 @@ func _count_visible_pieces() -> int:
 
 
 func _load_skin_data() -> void:
-	# The installed Alabaster Dawn demo is already used by the Juno source-runtime
-	# during development. Prefer the original Dummy/Male JSON from that same
-	# installation when present. This also gives us a clean recovery path when an
-	# embedded development fixture is damaged, while packaged builds still fall
-	# back to the repository copy without requiring the demo to be installed.
 	_figure = ExternalSkinSource.load_skin_figure(skin_profile_id)
 	if not _figure.is_empty():
 		_skin_data_source = "EXTERNAL_SOURCE_JSON"
@@ -168,9 +158,10 @@ func _load_skin_data() -> void:
 	var anims_value: Variant = _figure.get("anims", {})
 	_nodes = nodes_value as Dictionary if nodes_value is Dictionary else {}
 	_anims = anims_value as Dictionary if anims_value is Dictionary else {}
-	print("ALABASTER_SKIN_DATA_LOADED profile=%s source=%s nodes=%d anims=%d" % [
+	print("ALABASTER_SKIN_DATA_LOADED profile=%s source=%s path=%s nodes=%d anims=%d" % [
 		skin_profile_id,
 		_skin_data_source,
+		ExternalSkinSource.get_source_path(skin_profile_id) if _skin_data_source == "EXTERNAL_SOURCE_JSON" else "embedded",
 		_nodes.size(),
 		_anims.size(),
 	])
@@ -187,9 +178,28 @@ func _load_skin_data() -> void:
 	_root_dirs.clear()
 
 
+func _load_skin_atlas() -> void:
+	_atlas = null
+	_skin_texture_source = ""
+
+	# The JSON and body sheet belong to the same authored source package. When the
+	# original demo JSON is available, load its original media/char atlas too. The
+	# repository's early .b64 fixtures were only a development convenience and are
+	# known to be damaged on some profiles, so they are a fallback rather than the
+	# primary source in development.
+	if _skin_data_source == "EXTERNAL_SOURCE_JSON":
+		_atlas = ExternalSkinSource.load_skin_texture(skin_profile_id)
+		if _atlas != null:
+			_skin_texture_source = "EXTERNAL_SOURCE_PNG"
+			return
+		print("ALABASTER_SKIN_EXTERNAL_ATLAS_FALLBACK profile=%s using=EMBEDDED" % skin_profile_id)
+
+	_atlas = SourceAssets.load_skin_texture(skin_profile_id)
+	if _atlas != null:
+		_skin_texture_source = "EMBEDDED_SOURCE_PNG"
+
+
 func _install_weapon_sockets() -> void:
-	# These source test figures predate the player weapon attachment nodes.
-	# The sockets are graphics-free and inherit the authored hand/body transforms.
 	if not _nodes.has("weaponR"):
 		_nodes["weaponR"] = {
 			"parent": "handR",
@@ -223,13 +233,10 @@ func _install_weapon_sockets() -> void:
 
 
 func _apply_directional_layer_override(_record: Dictionary, _sprite: Sprite2D) -> void:
-	# Dummy/Male have their own authored zOrder tables. Production also contains
-	# Oathwake corrections made specifically for Juno; never apply them here.
 	pass
 
 
 func _apply_profile_front_arm_over_legs() -> void:
-	# Native Dummy/Male source layer order is authoritative.
 	pass
 
 
@@ -238,6 +245,7 @@ func get_runtime_summary() -> Dictionary:
 	result["skin_profile_id"] = skin_profile_id
 	result["figure_source"] = _skin_figure_source
 	result["skin_data_source"] = _skin_data_source
+	result["skin_texture_source"] = _skin_texture_source
 	result["animation_bank_source"] = _animation_bank_source
 	result["skin_ready"] = _skin_ready
 	result["skin_initialized"] = _skin_initialized
