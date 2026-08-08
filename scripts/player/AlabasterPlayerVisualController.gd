@@ -85,14 +85,30 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 
 	rig.name = "BonesRigVisual"
 	owner.add_child(rig)
-	# add_child() synchronously runs _ready(). A playable skin is only considered
-	# active after its source figure, atlas and visible sprite records all exist.
-	if uses_playable_skin and (not rig.has_method("is_skin_ready") or not bool(rig.call("is_skin_ready"))):
-		push_error("AlabasterPlayerVisualController: playable skin failed to initialize profile=%s" % profile_id)
-		rig.queue_free()
-		rig = null
-		active = false
-		return false
+
+	# Playable skin setup is explicit instead of assuming add_child() has already
+	# delivered Node._ready(). When the rig is created from the player's own
+	# _ready()/live-refresh path, that assumption can be false and the old code
+	# immediately rejected a perfectly valid Dummy/Male before its _ready ran.
+	if uses_playable_skin:
+		if not rig.has_method("initialize_skin"):
+			push_error("AlabasterPlayerVisualController: playable skin has no initialize_skin() profile=%s" % profile_id)
+			rig.queue_free()
+			rig = null
+			active = false
+			return false
+		var initialized := bool(rig.call("initialize_skin"))
+		print("BONES_PLAYABLE_SKIN_INIT profile=%s initialized=%s ready=%s" % [
+			profile_id,
+			str(initialized),
+			str(bool(rig.call("is_skin_ready")) if rig.has_method("is_skin_ready") else false),
+		])
+		if not initialized or not rig.has_method("is_skin_ready") or not bool(rig.call("is_skin_ready")):
+			push_error("AlabasterPlayerVisualController: playable skin failed to initialize profile=%s" % profile_id)
+			rig.queue_free()
+			rig = null
+			active = false
+			return false
 
 	rig.position = visual_position
 	rig.scale = Vector2.ONE * visual_scale
