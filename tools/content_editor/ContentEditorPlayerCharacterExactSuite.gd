@@ -1,14 +1,14 @@
 extends "res://tools/content_editor/ContentEditorAlabasterPlayerSuite.gd"
 
 # Single authoritative owner for Player Tuning -> character_id.
-# Older editor suites may have created/registered character OptionButtons in the
-# same form. This layer removes every character-list picker after the inherited
-# form is built, then creates exactly one named selector and reads that exact
-# node during Save. No shared field_controls lookup is used for character_id.
+# Older editor suites still create legacy character OptionButtons. They are kept
+# alive but hidden so ancestral getters never hold freed references. The exact
+# selector synchronizes every legacy picker before any super save/getter runs.
 
 const EXACT_PLAYER_TUNING_SECTION := "player_tuning"
 const EXACT_CHARACTERS_SECTION := "characters"
 const EXACT_SELECTOR_NAME := "ActivePlayerCharacterSelector"
+const LEGACY_CHARACTER_FIELDS := ["active_character_id", "character_id"]
 
 var _pending_player_character_id := ""
 var _exact_player_character_option: OptionButton = null
@@ -17,44 +17,42 @@ var _exact_player_character_option: OptionButton = null
 func _build_player_tuning_form() -> void:
 	super._build_player_tuning_form()
 	_pending_player_character_id = str(current_record.get("character_id", "juno_alabaster")).strip_edges()
-	_remove_all_character_picker_candidates()
-	_remove_legacy_character_picker_labels()
+	_hide_all_character_picker_candidates()
+	_hide_legacy_character_picker_labels()
 	_build_exact_player_character_picker()
+	_sync_legacy_character_controls(_pending_player_character_id)
 
 
-func _remove_all_character_picker_candidates() -> void:
+func _hide_all_character_picker_candidates() -> void:
 	var valid_character_ids := {}
 	for character_record in data_store.get_records(ContentEditorData.SECTION_CHARACTERS):
 		var character_id := str(character_record.get("id", "")).strip_edges()
 		if not character_id.is_empty():
 			valid_character_ids[character_id] = true
 
-	var rows_to_remove: Array[Node] = []
-	_collect_character_picker_rows(form_container, valid_character_ids, rows_to_remove)
-	for row in rows_to_remove:
+	var rows_to_hide: Array[Node] = []
+	_collect_character_picker_rows(form_container, valid_character_ids, rows_to_hide)
+	for row in rows_to_hide:
 		if row == null or not is_instance_valid(row):
 			continue
-		if row.get_parent() == form_container:
-			form_container.remove_child(row)
-		row.queue_free()
-
-	# A legacy suite may still have stored one of the removed controls here.
-	# Never let Save or another getter accidentally read that stale reference.
-	field_controls.erase("character_id")
+		if row is CanvasItem:
+			(row as CanvasItem).visible = false
+		row.set_meta("legacy_character_picker_hidden", true)
 
 
-func _remove_legacy_character_picker_labels() -> void:
-	var remove_nodes: Array[Node] = []
+func _hide_legacy_character_picker_labels() -> void:
 	for child in form_container.get_children():
 		if not child is Label:
 			continue
-		var text := (child as Label).text.strip_edges()
-		if text == "Player Character" or text.begins_with("Chooses which Characters record drives the player visual"):
-			remove_nodes.append(child)
-	for child in remove_nodes:
-		if child.get_parent() == form_container:
-			form_container.remove_child(child)
-		child.queue_free()
+		var label := child as Label
+		var text := label.text.strip_edges()
+		if (
+			text == "Player Character"
+			or text == "Active Player Character"
+			or text.begins_with("Chooses which Characters record drives the player visual")
+		):
+			label.visible = false
+			label.set_meta("legacy_character_picker_hidden", true)
 
 
 func _collect_character_picker_rows(node: Node, valid_character_ids: Dictionary, rows: Array[Node]) -> void:
@@ -66,9 +64,6 @@ func _collect_character_picker_rows(node: Node, valid_character_ids: Dictionary,
 				var metadata_id := str(option.get_item_metadata(item_index)).strip_edges()
 				if valid_character_ids.has(metadata_id):
 					matching_ids += 1
-			# Active-character pickers contain the character catalogue, while other
-			# option controls do not. Two matching character IDs are enough to prove
-			# this is a duplicate character selector.
 			if matching_ids >= 2:
 				var top_row := _top_level_form_row(option)
 				if top_row != null and not rows.has(top_row):
@@ -138,6 +133,7 @@ func _on_exact_player_character_selected(index: int) -> void:
 		return
 	_pending_player_character_id = selected_character_id
 	current_record["character_id"] = selected_character_id
+	_sync_legacy_character_controls(selected_character_id)
 	_mark_dirty()
 	_set_status("Selected player character: %s (press Save to persist)" % selected_character_id)
 	print("PLAYER_CHARACTER_PICK node=%s index=%d id=%s selected_property=%d" % [
@@ -146,6 +142,23 @@ func _on_exact_player_character_selected(index: int) -> void:
 		selected_character_id,
 		_exact_player_character_option.selected,
 	])
+
+
+func _sync_legacy_character_controls(selected_character_id: String) -> void:
+	var clean_id := selected_character_id.strip_edges()
+	if clean_id.is_empty():
+		return
+	for field_name in LEGACY_CHARACTER_FIELDS:
+		var control_value: Variant = field_controls.get(field_name)
+		if not (control_value is OptionButton):
+			continue
+		var option := control_value as OptionButton
+		if not is_instance_valid(option):
+			continue
+		for item_index in range(option.item_count):
+			if str(option.get_item_metadata(item_index)).strip_edges() == clean_id:
+				option.select(item_index)
+				break
 
 
 func _read_exact_player_character_option() -> String:
@@ -158,30 +171,34 @@ func _read_exact_player_character_option() -> String:
 
 
 func _get_player_tuning_form_record() -> Dictionary:
-	var record := super._get_player_tuning_form_record()
 	var selected_character_id := _read_exact_player_character_option()
 	if selected_character_id.is_empty():
 		selected_character_id = _pending_player_character_id.strip_edges()
 	if selected_character_id.is_empty():
 		selected_character_id = str(current_record.get("character_id", "")).strip_edges()
+
+	_sync_legacy_character_controls(selected_character_id)
+	var record := super._get_player_tuning_form_record()
 	if not selected_character_id.is_empty():
 		record["character_id"] = selected_character_id
 	return record
 
 
 func _save_player_tuning_exact() -> void:
-	# The named selector is now the first authority. The pending/event value and
-	# current record are only fallbacks if the form is being saved headlessly.
 	var selected_character_id := _read_exact_player_character_option()
 	if selected_character_id.is_empty():
 		selected_character_id = _pending_player_character_id.strip_edges()
 	if selected_character_id.is_empty():
 		selected_character_id = str(current_record.get("character_id", "")).strip_edges()
 
-	print("PLAYER_CHARACTER_SAVE_INPUT selector=%s pending=%s record=%s" % [
+	_sync_legacy_character_controls(selected_character_id)
+
+	print("PLAYER_CHARACTER_SAVE_INPUT selector=%s pending=%s record=%s legacy_active=%s legacy_character=%s" % [
 		_read_exact_player_character_option(),
 		_pending_player_character_id,
 		str(current_record.get("character_id", "")),
+		_read_legacy_character_control("active_character_id"),
+		_read_legacy_character_control("character_id"),
 	])
 
 	if selected_character_id.is_empty():
@@ -248,3 +265,15 @@ func _save_player_tuning_exact() -> void:
 	_refresh_live_players()
 	_set_status("Saved Player Tuning. Active character: %s" % selected_character_id)
 	print("PLAYER_CHARACTER_SAVE_OK selected=%s persisted=%s" % [selected_character_id, persisted_character])
+
+
+func _read_legacy_character_control(field_name: String) -> String:
+	var control_value: Variant = field_controls.get(field_name)
+	if not (control_value is OptionButton):
+		return "<none>"
+	var option := control_value as OptionButton
+	if not is_instance_valid(option):
+		return "<invalid>"
+	if option.selected < 0 or option.selected >= option.item_count:
+		return "<unselected>"
+	return str(option.get_item_metadata(option.selected)).strip_edges()
