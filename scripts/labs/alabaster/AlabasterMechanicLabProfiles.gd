@@ -3,7 +3,6 @@ class_name AlabasterMechanicLabProfiles
 
 const JunoRigScript := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeSourceLive.gd")
 const PlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
-const SharedActions := preload("res://scripts/labs/alabaster/AlabasterSharedActions.gd")
 
 const PROFILE_JUNO := "juno"
 const PROFILE_DUMMY := "male_dummy"
@@ -57,8 +56,8 @@ func _build_profile_switcher() -> void:
 		button.text = str(PROFILE_LABELS[profile_id])
 		button.toggle_mode = true
 		button.button_group = group
-		# Important: the profile selector must not keep keyboard focus and swallow
-		# SPACE/ENTER, because those keys are animation actions in this lab.
+		# The base lab owns SharedActions and the keyboard action map. Keep these
+		# buttons focus-free so SPACE/ENTER and the combat hotkeys always reach it.
 		button.focus_mode = Control.FOCUS_NONE
 		button.custom_minimum_size = Vector2(104.0, 34.0)
 		button.tooltip_text = "Switch the complete source figure. Dummy/Male use the exact same playable rig class as gameplay."
@@ -113,6 +112,9 @@ func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
 		rig.call("set_facing_from_vector", Vector2.DOWN)
 	_set_profile_idle()
 
+	# SharedActions is inherited from AlabasterMechanicLab. Do not redeclare it in
+	# this subclass: GDScript treats inherited constants as members and duplicate
+	# declaration is a parser error.
 	var missing_actions := SharedActions.missing_lab_actions(rig)
 	print("ALABASTER_LAB_ACTIONS profile=%s available=%d/%d missing=%s" % [
 		profile_id,
