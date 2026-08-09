@@ -2,7 +2,7 @@ extends RefCounted
 class_name AlabasterBoneAnimationLibrary
 
 const CUSTOM_BANK_PATH := "res://data/labs/alabaster/custom_bone_animations.json"
-const AnimationBank := preload("res://scripts/labs/alabaster/AlabasterAnimationBank.gd")
+const JunoGameplayBank := preload("res://scripts/labs/alabaster/AlabasterJunoGameplayBank.gd")
 const RepoSkinSource := preload("res://scripts/labs/alabaster/AlabasterExternalSkinSource.gd")
 const CORE_ANIMATIONS := ["idle", "walk", "run", "atkSwordN1", "guard", "damage", "dead", "dash"]
 const PROFILE_JUNO := "juno"
@@ -35,7 +35,10 @@ static func load_custom_animations(profile_id: String = PROFILE_JUNO) -> Diction
 static func load_builtin_animations(profile_id: String = PROFILE_JUNO) -> Dictionary:
 	match profile_id:
 		PROFILE_JUNO:
-			return AnimationBank.load_full_animation_bank()
+			# Use the repository-local gameplay/runtime pack that the working Juno
+			# renderer already consumes. The old multipart 419-animation archive is
+			# incomplete in this branch and must not be decoded from the editor path.
+			return JunoGameplayBank.load_gameplay_bank()
 		PROFILE_DUMMY, PROFILE_MALE:
 			var figure := RepoSkinSource.load_skin_figure(profile_id)
 			var anims_value: Variant = figure.get("anims", {})
@@ -151,7 +154,7 @@ static func get_builtin_animation_names(profile_id: String = PROFILE_JUNO) -> Ar
 		names.append(str(key))
 	if profile_id == PROFILE_JUNO:
 		for fallback in CORE_ANIMATIONS:
-			if not names.has(fallback):
+			if bank.has(fallback) and not names.has(fallback):
 				names.append(fallback)
 	names.sort()
 	return names
