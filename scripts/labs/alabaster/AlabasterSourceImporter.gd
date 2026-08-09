@@ -2,14 +2,14 @@ extends RefCounted
 class_name AlabasterSourceImporter
 
 const EXPECTED_ANIMATIONS := 419
-const RELATIVE_JUNO := "steamapps/common/Alabaster Dawn Demo/terra/data/figures/char/player/juno.json"
+# Repository-local sources only. Runtime must never depend on a user's Steam
+# installation. When a raw juno.json is absent, AlabasterAnimationBank supplies
+# the committed packed 419-animation bank instead.
 const CANDIDATES := [
-	"C:/Program Files (x86)/Steam/" + RELATIVE_JUNO,
-	"C:/Program Files/Steam/" + RELATIVE_JUNO,
-	"D:/SteamLibrary/" + RELATIVE_JUNO,
-	"E:/SteamLibrary/" + RELATIVE_JUNO,
-	"F:/SteamLibrary/" + RELATIVE_JUNO,
 	"res://data/labs/alabaster/source/juno.json",
+	"res://data/labs/alabaster/juno.json",
+	"res://terra/data/figures/char/player/juno.json",
+	"res://data/figures/char/player/juno.json",
 ]
 
 
