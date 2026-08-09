@@ -1,10 +1,10 @@
 {
-  "version": 1,
+  "version": 2,
   "format": "oathwake_alabaster_figure_library",
   "playable_profiles": {
     "juno": {"character_id":"juno_alabaster","rig_family":"juno","selectable":true},
-    "male_dummy": {"character_id":"male_dummy_alabaster","rig_family":"male_dummy","figure":"Male-Dummy","atlas":"dummy.png","selectable":true},
-    "male_temp": {"character_id":"male_temp_alabaster","rig_family":"male_dummy","figure":"Male-Dummy","atlas":"male-temp01.png","selectable":true,"notes":"Uses Male-Dummy geometry and animation bank with alternate atlas."}
+    "male_dummy": {"character_id":"male_dummy_alabaster","rig_family":"male_dummy","figure":"Male-Dummy","json":"res://data/labs/alabaster/characters/dummy.json","atlas":"res://assets/sprites/characters/alabaster/dummy.png","selectable":true},
+    "male_temp": {"character_id":"male_temp_alabaster","rig_family":"male_temp","figure":"Male-Temp-01","json":"res://data/labs/alabaster/characters/male-temp-01.json","atlas":"res://assets/sprites/characters/alabaster/male-temp01.png","selectable":true,"notes":"Own authored figure, pivots, z-order and animation bank; not a Male-Dummy atlas swap."}
   },
   "player_weapons": {
     "sword": {"item_id":"JUNO_SWORD","family":"melee","sockets":["weaponR"]},
