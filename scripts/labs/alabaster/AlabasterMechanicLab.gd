@@ -1,31 +1,13 @@
 extends Node2D
 
 const RigRuntime := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeSourceLive.gd")
+const SharedActions := preload("res://scripts/labs/alabaster/AlabasterSharedActions.gd")
 
 const SCREEN_SIZE := Vector2(1600.0, 900.0)
 const WALK_SPEED := 150.0
 const RUN_SPEED := 240.0
 const CATEGORY_ORDER := ["ALL", "COMBAT", "DEFAULT", "PUZZLE", "OTHER", "CUTSCENE"]
-
-const QUICK_ANIMATIONS := {
-	KEY_SPACE: "idleJump1",
-	KEY_H: "damage",
-	KEY_K: "dead",
-	KEY_G: "guard",
-	KEY_P: "guardParry",
-	KEY_X: "respawn",
-	KEY_C: "castPoint",
-	KEY_1: "atkSwordN1",
-	KEY_2: "atkSwordN2",
-	KEY_3: "atkSwordNFinisher",
-	KEY_4: "atkSwordTripleSlash",
-	KEY_5: "atkSwordCrossStrike",
-	KEY_6: "atkHammer1fast",
-	KEY_7: "atkHammer2",
-	KEY_8: "atkHammer3",
-	KEY_9: "atkSpear1",
-	KEY_0: "atkTonfa1-punch",
-}
+const QUICK_ANIMATIONS := SharedActions.QUICK_KEYS
 
 var player: CharacterBody2D
 var rig
@@ -154,7 +136,7 @@ func _play_browser_animation() -> void:
 
 func _play_manual_animation(animation_name: String) -> void:
 	if animation_name.is_empty() or not rig.has_animation(animation_name):
-		push_warning("AlabasterMechanicLab: animation not available: %s" % animation_name)
+		push_warning("AlabasterMechanicLab: animation not available on active shared rig: %s" % animation_name)
 		return
 	_manual_active = true
 	_manual_elapsed = 0.0
