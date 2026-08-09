@@ -144,8 +144,15 @@ func _count_visible_pieces() -> int:
 func _load_skin_data() -> void:
 	_figure = ExternalSkinSource.load_skin_figure(skin_profile_id)
 	if not _figure.is_empty():
-		_skin_data_source = "EXTERNAL_SOURCE_JSON"
+		var resolved_kind := ExternalSkinSource.get_source_kind(skin_profile_id)
+		_skin_data_source = resolved_kind if not resolved_kind.is_empty() else "EXTERNAL_SOURCE_JSON"
 	else:
+		# The old embedded Dummy fixture is known to be corrupt. Do not feed it to
+		# the gzip decoder repeatedly and obscure the real requirement: the authored
+		# dummy.json must be present either in the repo or the local demo source.
+		if skin_profile_id == "male_dummy":
+			push_error("AlabasterPlayableSkinRig: Male-Dummy source JSON is not available. Add dummy.json to res://assets/sprites/characters/alabaster/ (or res://data/labs/alabaster/source/). The old embedded Dummy fixture is intentionally not used because it is corrupt.")
+			return
 		print("ALABASTER_SKIN_EXTERNAL_SOURCE_MISSING profile=%s using=EMBEDDED" % skin_profile_id)
 		_figure = SourceAssets.load_skin_figure(skin_profile_id)
 		_skin_data_source = "EMBEDDED_SOURCE_JSON"
@@ -161,7 +168,7 @@ func _load_skin_data() -> void:
 	print("ALABASTER_SKIN_DATA_LOADED profile=%s source=%s path=%s nodes=%d anims=%d" % [
 		skin_profile_id,
 		_skin_data_source,
-		ExternalSkinSource.get_source_path(skin_profile_id) if _skin_data_source == "EXTERNAL_SOURCE_JSON" else "embedded",
+		ExternalSkinSource.get_source_path(skin_profile_id) if _skin_data_source != "EMBEDDED_SOURCE_JSON" else "embedded",
 		_nodes.size(),
 		_anims.size(),
 	])
@@ -182,18 +189,22 @@ func _load_skin_atlas() -> void:
 	_atlas = null
 	_skin_texture_source = ""
 
-	# The JSON and body sheet belong to the same authored source package. When the
-	# original demo JSON is available, load its original media/char atlas too. The
-	# repository's early .b64 fixtures were only a development convenience and are
-	# known to be damaged on some profiles, so they are a fallback rather than the
-	# primary source in development.
-	if _skin_data_source == "EXTERNAL_SOURCE_JSON":
-		_atlas = ExternalSkinSource.load_skin_texture(skin_profile_id)
-		if _atlas != null:
+	# Body art is now canonical inside the Oathwake repo. Always ask the external
+	# source adapter first because it resolves the committed res:// atlas before
+	# considering the installed demo. This is independent of where the JSON came
+	# from, so Male can use its valid embedded JSON with the repo-local PNG.
+	_atlas = ExternalSkinSource.load_skin_texture(skin_profile_id)
+	if _atlas != null:
+		var repo_path := ExternalSkinSource.get_repo_atlas_path(skin_profile_id)
+		if not repo_path.is_empty() and (ResourceLoader.exists(repo_path) or FileAccess.file_exists(repo_path)):
+			_skin_texture_source = "REPO_SOURCE_PNG"
+		else:
 			_skin_texture_source = "EXTERNAL_SOURCE_PNG"
-			return
-		print("ALABASTER_SKIN_EXTERNAL_ATLAS_FALLBACK profile=%s using=EMBEDDED" % skin_profile_id)
+		return
 
+	# Last-resort compatibility path for old branches/builds that do not yet carry
+	# the normal body PNGs. New development should never need this.
+	print("ALABASTER_SKIN_REPO_ATLAS_FALLBACK profile=%s using=EMBEDDED" % skin_profile_id)
 	_atlas = SourceAssets.load_skin_texture(skin_profile_id)
 	if _atlas != null:
 		_skin_texture_source = "EMBEDDED_SOURCE_PNG"
