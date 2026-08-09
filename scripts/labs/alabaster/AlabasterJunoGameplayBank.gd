@@ -9,9 +9,6 @@ const PLAYER_MAX_BYTES := 512 * 1024
 const RUNTIME_MAX_BYTES := 8 * 1024 * 1024
 const REQUIRED_LOCOMOTION := ["idle", "walk", "run"]
 
-# Try the self-contained 419-animation pack without falling through to the old
-# broken gameplay-part decoder. If this pack is not complete we simply use the
-# repository-local player/runtime banks below.
 const FULL_PARTS := [
 	"res://data/labs/alabaster/anims/juno_anims_bin_00.part",
 	"res://data/labs/alabaster/anims/juno_anims_bin_01.part",
@@ -30,7 +27,6 @@ static func load_gameplay_bank() -> Dictionary:
 	if not _cache.is_empty():
 		return _cache.duplicate(true)
 
-	# Best case: all authored Juno animations are already packed in the repo.
 	var full := _load_safe_full_bank()
 	if full.size() >= EXPECTED_FULL_ANIMATIONS:
 		_cache = full.duplicate(true)
@@ -38,9 +34,6 @@ static func load_gameplay_bank() -> Dictionary:
 		print("ALABASTER_JUNO_SHARED_BANK source=%s animations=%d" % [_last_source, _cache.size()])
 		return _cache.duplicate(true)
 
-	# Guaranteed gameplay fallback used by the production Juno runtime. This is
-	# intentionally independent from Steam/local folders and from the historical
-	# juno_gameplay_anims_*.part files that can contain malformed Base64.
 	var result := _load_player_bank()
 	var runtime := _load_runtime_bank()
 	for animation_name in runtime.keys():
@@ -119,28 +112,44 @@ static func clear_cache() -> void:
 
 
 static func _load_safe_full_bank() -> Dictionary:
-	var encoded := ""
+	var parts: Array[String] = []
 	for path_variant in FULL_PARTS:
 		var path := str(path_variant)
 		if not FileAccess.file_exists(path):
 			return {}
-		encoded += FileAccess.get_file_as_string(path)
-	encoded = _strip_base64_whitespace(encoded)
-	if not _looks_like_base64(encoded):
+		var part := _strip_base64_whitespace(FileAccess.get_file_as_string(path))
+		if part.is_empty():
+			return {}
+		parts.append(part)
+
+	# These files are slices of one Base64 stream, not independent archives.
+	# Join the textual stream first and validate it before asking CryptoCore to
+	# decode, preventing the noisy b64_decode errors seen with malformed chunks.
+	var joined := "".join(parts)
+	if not _looks_like_base64(joined):
+		push_warning("AlabasterJunoGameplayBank: packed 419-animation Base64 stream is incomplete; using repository gameplay fallback.")
 		return {}
-	var compressed := Marshalls.base64_to_raw(encoded)
+	var compressed := Marshalls.base64_to_raw(joined)
 	if compressed.is_empty():
 		return {}
-	var raw := compressed.decompress(FULL_DECOMPRESSED_BYTES, FileAccess.COMPRESSION_ZSTD)
-	if raw.size() != FULL_DECOMPRESSED_BYTES:
+
+	# Do not trust a historical hard-coded byte count if the ZSTD frame declares
+	# its own content size. This makes the committed pack self-describing.
+	var frame_size := int(AnimationBank._zstd_frame_content_size(compressed))
+	if frame_size <= 0:
+		frame_size = FULL_DECOMPRESSED_BYTES
+	var raw := compressed.decompress(frame_size, FileAccess.COMPRESSION_ZSTD)
+	if raw.size() != frame_size:
+		push_warning("AlabasterJunoGameplayBank: packed Juno bank decompressed %d/%d bytes; using gameplay fallback." % [raw.size(), frame_size])
 		return {}
-	# _decode_payload is an internal helper of the existing bank decoder, but it
-	# is deterministic and already understands the JANI1 format used by FULL_PARTS.
 	var decoded: Variant = AnimationBank._decode_payload(raw)
 	if not decoded is Dictionary:
 		return {}
 	var anims := decoded as Dictionary
-	return anims if anims.size() >= EXPECTED_FULL_ANIMATIONS else {}
+	if anims.size() < EXPECTED_FULL_ANIMATIONS:
+		push_warning("AlabasterJunoGameplayBank: packed Juno bank contains %d/%d animations; using gameplay fallback." % [anims.size(), EXPECTED_FULL_ANIMATIONS])
+		return {}
+	return anims
 
 
 static func _strip_base64_whitespace(value: String) -> String:
@@ -153,7 +162,7 @@ static func _looks_like_base64(value: String) -> bool:
 	var padding_started := false
 	for index in range(value.length()):
 		var code := value.unicode_at(index)
-		if code == 61: # =
+		if code == 61:
 			padding_started = true
 			if index < value.length() - 2:
 				return false
