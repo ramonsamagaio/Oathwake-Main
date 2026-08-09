@@ -3,6 +3,9 @@ class_name AlabasterPlayableSkinRig
 
 const RepoSkinSource := preload("res://scripts/labs/alabaster/AlabasterExternalSkinSource.gd")
 const HumanoidRetarget := preload("res://scripts/labs/alabaster/AlabasterHumanoidAnimationRetarget.gd")
+const JunoGameplayBank := preload("res://scripts/labs/alabaster/AlabasterJunoGameplayBank.gd")
+
+const BODY_DEPTH_MOTION_NAMES := ["", "idle", "walk", "run", "dash"]
 
 var skin_profile_id := "male_dummy"
 var _skin_figure_source := "Male-Dummy"
@@ -50,11 +53,10 @@ func initialize_skin() -> bool:
 		_skin_initializing = false
 		return false
 
-	# Dummy and Male share Juno's complete core humanoid bone names. Retarget only
-	# animation deltas onto the target nodes: the target figure keeps its own base
-	# proportions, pivots, z-order, facing rules and atlas. The original native
-	# walk/run clips remain untouched and available for A/B comparison in the lab.
-	_retarget_summary = HumanoidRetarget.install_juno_locomotion(self, skin_profile_id)
+	# This is the canonical shared animation installation point for Dummy/Male.
+	# Gameplay, Mechanic Lab and Bone Studio all instantiate this same rig class,
+	# therefore every correction made here is automatically shared everywhere.
+	_retarget_summary = HumanoidRetarget.install_juno_gameplay(self, skin_profile_id)
 
 	print("ALABASTER_SKIN_INIT_FIGURE profile=%s source=%s path=%s nodes=%d anims=%d" % [
 		skin_profile_id,
@@ -88,13 +90,15 @@ func initialize_skin() -> bool:
 		_skin_initializing = false
 		return false
 
-	# Dummy and Male-Temp have no authored `idle` animation. Their native neutral
-	# state is the source figure's rest transform. Juno's idle is also installed as
-	# juno_idle_retarget for comparison/editor use, but gameplay may keep rest idle.
-	current_animation = ""
+	# Juno idle is now part of the same shared bank as walk/run/combat. If that
+	# bank is unavailable for any reason, fall back to the authored rest pose.
+	if _anims.has("idle"):
+		current_animation = "idle"
+	else:
+		current_animation = ""
 	animation_time = 0.0
 	_apply_pose()
-	prewarm_animations(_native_prewarm_animations())
+	prewarm_animations(_shared_prewarm_animations())
 
 	var visible_pieces := _count_visible_pieces()
 	_skin_ready = visible_pieces > 0
@@ -192,12 +196,12 @@ func _load_skin_atlas() -> void:
 	_skin_texture_source = "REPO_SOURCE_PNG" if _atlas != null else ""
 
 
-func _native_prewarm_animations() -> Array:
+func _shared_prewarm_animations() -> Array:
 	var desired := [
-		"walk", "run", "punch", "laying", "damage",
-		HumanoidRetarget.get_retarget_name("idle"),
-		HumanoidRetarget.get_retarget_name("walk"),
-		HumanoidRetarget.get_retarget_name("run"),
+		"idle", "walk", "run", "dash", "guard", "damage", "dead", "atkSwordN1",
+		HumanoidRetarget.get_native_name("walk"),
+		HumanoidRetarget.get_native_name("run"),
+		HumanoidRetarget.get_native_name("punch"),
 	]
 	var available := []
 	for animation_name_variant in desired:
@@ -208,49 +212,147 @@ func _native_prewarm_animations() -> Array:
 
 
 func _install_weapon_sockets() -> void:
-	# These source figures contain body/limb bones but no Oathwake weapon sockets.
-	# Add graphics-free sockets only; authored body z-order/pivots remain untouched.
-	if not _nodes.has("weaponR"):
-		_nodes["weaponR"] = {
-			"parent": "handR",
-			"part": "PART_7",
-			"pos": [0.0, 0.5, 0.0],
-			"colls": [],
-			"gfx": [],
-			"frameAnims": {},
-			"frameKeys": ["down", "swoosh", "swooshDown"],
-		}
-	if not _nodes.has("weaponL"):
-		_nodes["weaponL"] = {
-			"parent": "handL",
-			"part": "PART_6",
-			"pos": [0.0, 0.5, 0.0],
-			"colls": [],
-			"gfx": [],
-			"frameAnims": {},
-			"frameKeys": ["down", "swoosh", "swooshDown"],
-		}
-	if not _nodes.has("weaponBelt"):
-		_nodes["weaponBelt"] = {
-			"parent": "bottom",
-			"part": "PART_7",
-			"pos": [0.0, -0.25, -0.25],
-			"colls": [],
-			"gfx": [],
-			"frameAnims": {},
-			"frameKeys": [],
-		}
+	# Use Juno's authored socket definitions whenever they are available. This is
+	# what makes Juno weapon animations transferable instead of animating guessed
+	# hand offsets. The socket has no body graphics of its own on Dummy/Male.
+	var authored_sockets := JunoGameplayBank.load_socket_nodes()
+	for socket_name in ["weaponR", "weaponL", "weaponBelt"]:
+		if _nodes.has(socket_name):
+			continue
+		var socket_value: Variant = authored_sockets.get(socket_name, {})
+		if socket_value is Dictionary and not (socket_value as Dictionary).is_empty():
+			var socket := (socket_value as Dictionary).duplicate(true)
+			socket["gfx"] = []
+			socket["colls"] = []
+			_nodes[socket_name] = socket
+			continue
+		_nodes[socket_name] = _fallback_socket(socket_name)
+
+
+func _fallback_socket(socket_name: String) -> Dictionary:
+	match socket_name:
+		"weaponL":
+			return {
+				"parent": "handL", "part": "PART_6", "pOff": [0.0, 0.5, 0.0],
+				"colls": [], "gfx": [], "frameAnims": {}, "frameKeys": ["down", "swoosh", "swooshDown"],
+			}
+		"weaponBelt":
+			return {
+				"parent": "bottom", "part": "PART_7", "pOff": [0.0, -0.25, -0.25],
+				"colls": [], "gfx": [], "frameAnims": {}, "frameKeys": [],
+			}
+		_:
+			return {
+				"parent": "handR", "part": "PART_7", "pOff": [0.0, 0.5, 0.0],
+				"colls": [], "gfx": [], "frameAnims": {}, "frameKeys": ["down", "swoosh", "swooshDown"],
+			}
 
 
 func _apply_directional_layer_override(_record: Dictionary, _sprite: Sprite2D) -> void:
-	# Juno-specific production layer corrections must never alter these authored
-	# test figures. Their own JSON zOrder is authoritative.
+	# Do not inherit Juno-specific headGear/tail rules. Dummy/Male instead receive
+	# the generic humanoid depth correction below, based on their actual 3D bone
+	# anchors, so the same rule works in the lab and in gameplay.
 	pass
 
 
 func _apply_profile_front_arm_over_legs() -> void:
-	# Same rule: keep the Dummy/Male source layer order exactly as authored.
-	pass
+	# Production calls this after every sprite record has been resolved, making it
+	# the right place to correct whole limb chains without depending on record order.
+	# Only neutral/locomotion is corrected here. Combat keeps animation-authored
+	# crossing order until we inspect those clips individually in the lab.
+	var motion_name := _normalized_motion_name(current_animation)
+	if motion_name not in BODY_DEPTH_MOTION_NAMES:
+		return
+	_apply_humanoid_arm_torso_depth()
+
+
+func _normalized_motion_name(animation_name: String) -> String:
+	if animation_name.begins_with(HumanoidRetarget.NATIVE_PREFIX):
+		return animation_name.trim_prefix(HumanoidRetarget.NATIVE_PREFIX)
+	for base_name in ["idle", "walk", "run"]:
+		if animation_name == HumanoidRetarget.get_retarget_name(base_name):
+			return base_name
+	return animation_name
+
+
+func _apply_humanoid_arm_torso_depth() -> void:
+	if not _states.has("shoulderL") or not _states.has("shoulderR"):
+		return
+	var left_front := _side_front_state("shoulderL", "shoulderR", "L")
+	if left_front == 0:
+		# Exact front/back views have no meaningful shoulder depth separation. Keep
+		# the figure's authored cardinal ordering there.
+		return
+
+	var torso_bounds := _visible_z_bounds(["top"])
+	if not bool(torso_bounds.get("found", false)):
+		return
+	var front_suffix := "L" if left_front == 1 else "R"
+	var back_suffix := "R" if front_suffix == "L" else "L"
+	var front_nodes := ["arm" + front_suffix, "hand" + front_suffix, "finger" + front_suffix]
+	var back_nodes := ["arm" + back_suffix, "hand" + back_suffix, "finger" + back_suffix]
+	var layer_step := 1 if _embedded_world_mode else 16
+	_shift_chain_above(front_nodes, int(torso_bounds.get("max", 0)), layer_step)
+	_shift_chain_below(back_nodes, int(torso_bounds.get("min", 0)), layer_step)
+
+
+func _visible_z_bounds(node_names: Array) -> Dictionary:
+	var found := false
+	var min_z := 4096
+	var max_z := -4096
+	for record_variant in _sprite_records:
+		if not record_variant is Dictionary:
+			continue
+		var record := record_variant as Dictionary
+		var node_name := str(record.get("node", ""))
+		if node_name not in node_names:
+			continue
+		var sprite := record.get("sprite") as Sprite2D
+		if sprite == null or not sprite.visible:
+			continue
+		found = true
+		min_z = mini(min_z, sprite.z_index)
+		max_z = maxi(max_z, sprite.z_index)
+	return {"found": found, "min": min_z, "max": max_z}
+
+
+func _shift_chain_above(node_names: Array, reference_z: int, layer_step: int) -> void:
+	var bounds := _visible_z_bounds(node_names)
+	if not bool(bounds.get("found", false)):
+		return
+	var chain_min := int(bounds.get("min", reference_z + layer_step))
+	var required_min := reference_z + layer_step
+	if chain_min >= required_min:
+		return
+	_shift_visible_nodes(node_names, required_min - chain_min, "front_arm")
+
+
+func _shift_chain_below(node_names: Array, reference_z: int, layer_step: int) -> void:
+	var bounds := _visible_z_bounds(node_names)
+	if not bool(bounds.get("found", false)):
+		return
+	var chain_max := int(bounds.get("max", reference_z - layer_step))
+	var required_max := reference_z - layer_step
+	if chain_max <= required_max:
+		return
+	_shift_visible_nodes(node_names, required_max - chain_max, "rear_arm")
+
+
+func _shift_visible_nodes(node_names: Array, delta_z: int, reason: String) -> void:
+	if delta_z == 0:
+		return
+	for record_variant in _sprite_records:
+		if not record_variant is Dictionary:
+			continue
+		var record := record_variant as Dictionary
+		if str(record.get("node", "")) not in node_names:
+			continue
+		var sprite := record.get("sprite") as Sprite2D
+		if sprite == null or not sprite.visible:
+			continue
+		sprite.z_index = clampi(sprite.z_index + delta_z, -4096, 4096)
+		sprite.set_meta("alabaster_humanoid_depth_reason", reason)
+		sprite.set_meta("alabaster_humanoid_depth_shift", delta_z)
 
 
 func get_runtime_summary() -> Dictionary:
@@ -264,5 +366,5 @@ func get_runtime_summary() -> Dictionary:
 	result["skin_initialized"] = _skin_initialized
 	result["source_path"] = RepoSkinSource.get_source_path(skin_profile_id)
 	result["atlas_path"] = RepoSkinSource.get_repo_atlas_path(skin_profile_id)
-	result["juno_locomotion_retarget"] = _retarget_summary.duplicate(true)
+	result["juno_shared_retarget"] = _retarget_summary.duplicate(true)
 	return result
