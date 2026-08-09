@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://c3o4fog4qs67y"
+
+[deps]
+
+files=["res://docs/alabaster/JUNO_ATLAS_REGIONS.gfx.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.entry.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.x.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.y.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.w.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.h.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.facing.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.tex.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.pitch.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.pivot.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.pivot.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.z.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.cut.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.cut.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.parent.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.parent.translation"]
+
+source_file="res://docs/alabaster/JUNO_ATLAS_REGIONS.csv"
+dest_files=["res://docs/alabaster/JUNO_ATLAS_REGIONS.gfx.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.entry.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.x.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.y.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.w.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.h.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.facing.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.tex.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.pitch.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.pivot.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.pivot.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.z.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.cut.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.cut.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.parent.translation", "res://docs/alabaster/JUNO_ATLAS_REGIONS.parent.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true
