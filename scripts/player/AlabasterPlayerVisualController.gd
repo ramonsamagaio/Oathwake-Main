@@ -14,26 +14,6 @@ const DEFAULT_ACTIONS := {
 	"hurt": "damage",
 	"dash": "dash",
 }
-const MALE_DUMMY_ACTIONS := {
-	"idle": REST_POSE,
-	"walk": "walk",
-	"run": "run",
-	"attack": "punch",
-	"block": REST_POSE,
-	"death": "laying",
-	"hurt": REST_POSE,
-	"dash": "run",
-}
-const MALE_TEMP_ACTIONS := {
-	"idle": REST_POSE,
-	"walk": "walk",
-	"run": "run",
-	"attack": "punch",
-	"block": REST_POSE,
-	"death": "laying",
-	"hurt": "damage",
-	"dash": "run",
-}
 
 var rig: Node2D
 var active := false
@@ -52,7 +32,10 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 	if declared_runtime != "alabaster" and not inferred_alabaster:
 		return false
 
-	action_map = _default_actions_for_profile(profile_id)
+	# All playable Alabaster humanoids expose the same gameplay animation names.
+	# Dummy/Male retarget Juno inside AlabasterPlayableSkinRig itself, so the
+	# controller no longer carries a separate native-animation behavior for them.
+	action_map = DEFAULT_ACTIONS.duplicate(true)
 	directional_action_map = {}
 	var custom_map = character_data.get("rig_animation_map", {})
 	if custom_map is Dictionary:
@@ -138,14 +121,10 @@ func _resolve_profile_id(character_data: Dictionary) -> String:
 			return "juno" if str(character_data.get("visual_runtime", "")).strip_edges() == "alabaster" else ""
 
 
-func _default_actions_for_profile(resolved_profile_id: String) -> Dictionary:
-	match resolved_profile_id:
-		"male_dummy":
-			return MALE_DUMMY_ACTIONS.duplicate(true)
-		"male_temp":
-			return MALE_TEMP_ACTIONS.duplicate(true)
-		_:
-			return DEFAULT_ACTIONS.duplicate(true)
+func _default_actions_for_profile(_resolved_profile_id: String) -> Dictionary:
+	# Kept for API compatibility with older callers. All playable humanoid profiles
+	# now resolve the same public action namespace on their own rig implementation.
+	return DEFAULT_ACTIONS.duplicate(true)
 
 
 func dispose() -> void:
