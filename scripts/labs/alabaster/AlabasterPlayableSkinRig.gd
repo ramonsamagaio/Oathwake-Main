@@ -1,8 +1,7 @@
 extends "res://scripts/systems/bones/BonesSystem.gd"
 class_name AlabasterPlayableSkinRig
 
-const SourceAssets := preload("res://scripts/labs/alabaster/AlabasterSourceAssetLibrary.gd")
-const ExternalSkinSource := preload("res://scripts/labs/alabaster/AlabasterExternalSkinSource.gd")
+const RepoSkinSource := preload("res://scripts/labs/alabaster/AlabasterExternalSkinSource.gd")
 
 var skin_profile_id := "male_dummy"
 var _skin_figure_source := "Male-Dummy"
@@ -43,29 +42,33 @@ func initialize_skin() -> bool:
 		str(is_inside_tree()),
 	])
 
-	print("ALABASTER_SKIN_INIT_LOAD_FIGURE profile=%s" % skin_profile_id)
 	_load_skin_data()
 	if _figure.is_empty() or _nodes.is_empty():
-		push_error("AlabasterPlayableSkinRig: initialization stopped because figure/nodes are empty for %s" % skin_profile_id)
+		push_error("AlabasterPlayableSkinRig: repository figure/nodes are empty for %s" % skin_profile_id)
 		_skin_initializing = false
 		return false
 
-	print("ALABASTER_SKIN_INIT_FIGURE profile=%s source=%s nodes=%d anims=%d" % [
+	print("ALABASTER_SKIN_INIT_FIGURE profile=%s source=%s path=%s nodes=%d anims=%d" % [
 		skin_profile_id,
 		_skin_data_source,
+		RepoSkinSource.get_source_path(skin_profile_id),
 		_nodes.size(),
 		_anims.size(),
 	])
 
 	_load_skin_atlas()
 	if _atlas == null:
-		push_error("AlabasterPlayableSkinRig: missing atlas for %s" % skin_profile_id)
+		push_error("AlabasterPlayableSkinRig: repository atlas is missing/invalid for %s path=%s" % [
+			skin_profile_id,
+			RepoSkinSource.get_repo_atlas_path(skin_profile_id),
+		])
 		_skin_initializing = false
 		return false
 
-	print("ALABASTER_SKIN_INIT_ATLAS profile=%s source=%s size=%dx%d" % [
+	print("ALABASTER_SKIN_INIT_ATLAS profile=%s source=%s path=%s size=%dx%d" % [
 		skin_profile_id,
 		_skin_texture_source,
+		RepoSkinSource.get_repo_atlas_path(skin_profile_id),
 		_atlas.get_width(),
 		_atlas.get_height(),
 	])
@@ -77,13 +80,15 @@ func initialize_skin() -> bool:
 		_skin_initializing = false
 		return false
 
+	# Dummy and Male-Temp have no authored `idle` animation. Their neutral state is
+	# the source figure's rest transform, so start there instead of inventing a clip.
 	current_animation = ""
 	animation_time = 0.0
 	_apply_pose()
-	prewarm_animations(CORE_GAMEPLAY_ANIMATIONS)
+	prewarm_animations(_native_prewarm_animations())
 
 	var visible_pieces := _count_visible_pieces()
-	_skin_ready = not _sprite_records.is_empty() and visible_pieces > 0
+	_skin_ready = visible_pieces > 0
 	_skin_initialized = _skin_ready
 	_skin_initializing = false
 	set_process(_skin_ready)
@@ -134,7 +139,9 @@ func _reset_partial_skin_runtime() -> void:
 func _count_visible_pieces() -> int:
 	var visible_pieces := 0
 	for record_variant in _sprite_records:
-		var record: Dictionary = record_variant
+		if not record_variant is Dictionary:
+			continue
+		var record := record_variant as Dictionary
 		var sprite := record.get("sprite") as Sprite2D
 		if sprite != null and sprite.visible:
 			visible_pieces += 1
@@ -142,75 +149,52 @@ func _count_visible_pieces() -> int:
 
 
 func _load_skin_data() -> void:
-	_figure = ExternalSkinSource.load_skin_figure(skin_profile_id)
-	if not _figure.is_empty():
-		var resolved_kind := ExternalSkinSource.get_source_kind(skin_profile_id)
-		_skin_data_source = resolved_kind if not resolved_kind.is_empty() else "EXTERNAL_SOURCE_JSON"
-	else:
-		# The old embedded Dummy fixture is known to be corrupt. Do not feed it to
-		# the gzip decoder repeatedly and obscure the real requirement: the authored
-		# dummy.json must be present either in the repo or the local demo source.
-		if skin_profile_id == "male_dummy":
-			push_error("AlabasterPlayableSkinRig: Male-Dummy source JSON is not available. Add dummy.json to res://assets/sprites/characters/alabaster/ (or res://data/labs/alabaster/source/). The old embedded Dummy fixture is intentionally not used because it is corrupt.")
-			return
-		print("ALABASTER_SKIN_EXTERNAL_SOURCE_MISSING profile=%s using=EMBEDDED" % skin_profile_id)
-		_figure = SourceAssets.load_skin_figure(skin_profile_id)
-		_skin_data_source = "EMBEDDED_SOURCE_JSON"
-
+	_figure = RepoSkinSource.load_skin_figure(skin_profile_id)
 	if _figure.is_empty():
-		push_error("AlabasterPlayableSkinRig: figure could not be loaded for %s" % skin_profile_id)
+		push_error("AlabasterPlayableSkinRig: canonical repository JSON could not be loaded profile=%s path=%s" % [
+			skin_profile_id,
+			RepoSkinSource.get_source_path(skin_profile_id),
+		])
 		return
 
 	var nodes_value: Variant = _figure.get("nodes", {})
 	var anims_value: Variant = _figure.get("anims", {})
 	_nodes = nodes_value as Dictionary if nodes_value is Dictionary else {}
 	_anims = anims_value as Dictionary if anims_value is Dictionary else {}
-	print("ALABASTER_SKIN_DATA_LOADED profile=%s source=%s path=%s nodes=%d anims=%d" % [
-		skin_profile_id,
-		_skin_data_source,
-		ExternalSkinSource.get_source_path(skin_profile_id) if _skin_data_source != "EMBEDDED_SOURCE_JSON" else "embedded",
-		_nodes.size(),
-		_anims.size(),
-	])
-	if _nodes.is_empty():
-		push_error("AlabasterPlayableSkinRig: %s has no nodes" % _skin_figure_source)
+	_skin_data_source = "REPO_SOURCE_JSON"
+	if _nodes.is_empty() or _anims.is_empty():
+		push_error("AlabasterPlayableSkinRig: canonical figure is incomplete profile=%s nodes=%d anims=%d" % [
+			skin_profile_id, _nodes.size(), _anims.size(),
+		])
 		return
 
 	_install_weapon_sockets()
 	_figure["nodes"] = _nodes
 	_figure["anims"] = _anims
 	_animation_bank_loaded = true
-	_animation_bank_source = "%s_%s" % [_skin_data_source, _skin_figure_source.to_upper().replace("-", "_")]
+	_animation_bank_source = "REPO_%s" % _skin_figure_source.to_upper().replace("-", "_")
 	_track_cache.clear()
 	_root_dirs.clear()
 
 
 func _load_skin_atlas() -> void:
-	_atlas = null
-	_skin_texture_source = ""
+	_atlas = RepoSkinSource.load_skin_texture(skin_profile_id)
+	_skin_texture_source = "REPO_SOURCE_PNG" if _atlas != null else ""
 
-	# Body art is now canonical inside the Oathwake repo. Always ask the external
-	# source adapter first because it resolves the committed res:// atlas before
-	# considering the installed demo. This is independent of where the JSON came
-	# from, so Male can use its valid embedded JSON with the repo-local PNG.
-	_atlas = ExternalSkinSource.load_skin_texture(skin_profile_id)
-	if _atlas != null:
-		var repo_path := ExternalSkinSource.get_repo_atlas_path(skin_profile_id)
-		if not repo_path.is_empty() and (ResourceLoader.exists(repo_path) or FileAccess.file_exists(repo_path)):
-			_skin_texture_source = "REPO_SOURCE_PNG"
-		else:
-			_skin_texture_source = "EXTERNAL_SOURCE_PNG"
-		return
 
-	# Last-resort compatibility path for old branches/builds that do not yet carry
-	# the normal body PNGs. New development should never need this.
-	print("ALABASTER_SKIN_REPO_ATLAS_FALLBACK profile=%s using=EMBEDDED" % skin_profile_id)
-	_atlas = SourceAssets.load_skin_texture(skin_profile_id)
-	if _atlas != null:
-		_skin_texture_source = "EMBEDDED_SOURCE_PNG"
+func _native_prewarm_animations() -> Array:
+	var desired := ["walk", "run", "punch", "laying", "damage"]
+	var available := []
+	for animation_name_variant in desired:
+		var animation_name := str(animation_name_variant)
+		if _anims.has(animation_name):
+			available.append(animation_name)
+	return available
 
 
 func _install_weapon_sockets() -> void:
+	# These source figures contain body/limb bones but no Oathwake weapon sockets.
+	# Add graphics-free sockets only; authored body z-order/pivots remain untouched.
 	if not _nodes.has("weaponR"):
 		_nodes["weaponR"] = {
 			"parent": "handR",
@@ -244,10 +228,13 @@ func _install_weapon_sockets() -> void:
 
 
 func _apply_directional_layer_override(_record: Dictionary, _sprite: Sprite2D) -> void:
+	# Juno-specific production layer corrections must never alter these authored
+	# test figures. Their own JSON zOrder is authoritative.
 	pass
 
 
 func _apply_profile_front_arm_over_legs() -> void:
+	# Same rule: keep the Dummy/Male source layer order exactly as authored.
 	pass
 
 
@@ -260,4 +247,6 @@ func get_runtime_summary() -> Dictionary:
 	result["animation_bank_source"] = _animation_bank_source
 	result["skin_ready"] = _skin_ready
 	result["skin_initialized"] = _skin_initialized
+	result["source_path"] = RepoSkinSource.get_source_path(skin_profile_id)
+	result["atlas_path"] = RepoSkinSource.get_repo_atlas_path(skin_profile_id)
 	return result
