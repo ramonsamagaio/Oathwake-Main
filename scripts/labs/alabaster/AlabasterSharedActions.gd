@@ -77,9 +77,8 @@ static func gameplay_action_map() -> Dictionary:
 
 static func missing_lab_actions(rig: Object) -> Array[String]:
 	var missing: Array[String] = []
-	if rig == null or not rig.has_method("has_animation"):
-		return LAB_ACTION_ANIMATIONS.duplicate()
-	for animation_name in LAB_ACTION_ANIMATIONS:
-		if not bool(rig.call("has_animation", animation_name)):
+	for animation_name_value in LAB_ACTION_ANIMATIONS:
+		var animation_name := str(animation_name_value)
+		if rig == null or not rig.has_method("has_animation") or not bool(rig.call("has_animation", animation_name)):
 			missing.append(animation_name)
 	return missing
