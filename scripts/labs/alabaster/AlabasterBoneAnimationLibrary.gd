@@ -9,6 +9,12 @@ const PROFILE_JUNO := "juno"
 const PROFILE_DUMMY := "male_dummy"
 const PROFILE_MALE := "male_temp"
 const VALID_PROFILES := [PROFILE_JUNO, PROFILE_DUMMY, PROFILE_MALE]
+const NATIVE_PREFIX := "native__"
+const LEGACY_RETARGET_ALIASES := {
+	"juno_idle_retarget": "idle",
+	"juno_walk_retarget": "walk",
+	"juno_run_retarget": "run",
+}
 
 
 static func load_custom_animations(profile_id: String = PROFILE_JUNO) -> Dictionary:
@@ -35,9 +41,8 @@ static func load_custom_animations(profile_id: String = PROFILE_JUNO) -> Diction
 static func load_builtin_animations(profile_id: String = PROFILE_JUNO) -> Dictionary:
 	match profile_id:
 		PROFILE_JUNO:
-			# Use the repository-local gameplay/runtime pack that the working Juno
-			# renderer already consumes. The old multipart 419-animation archive is
-			# incomplete in this branch and must not be decoded from the editor path.
+			# Same repository-local bank used by the playable runtime. No Steam/local
+			# source and no separate editor-only decoder path.
 			return JunoGameplayBank.load_gameplay_bank()
 		PROFILE_DUMMY, PROFILE_MALE:
 			var figure := RepoSkinSource.load_skin_figure(profile_id)
@@ -103,6 +108,27 @@ static func is_builtin_animation(profile_id: String, animation_name: String) -> 
 	return load_builtin_animations(profile_id).has(animation_name.strip_edges())
 
 
+static func is_read_only_animation(profile_id: String, animation_name: String) -> bool:
+	var clean_name := animation_name.strip_edges()
+	if clean_name.is_empty():
+		return false
+	if is_builtin_animation(profile_id, clean_name):
+		return true
+	if profile_id == PROFILE_DUMMY or profile_id == PROFILE_MALE:
+		# Juno animations are generated onto Dummy/Male at runtime but are still
+		# source material. They must only be edited through a saved copy.
+		var juno_bank := JunoGameplayBank.load_gameplay_bank()
+		if juno_bank.has(clean_name):
+			return true
+		if LEGACY_RETARGET_ALIASES.has(clean_name) and juno_bank.has(str(LEGACY_RETARGET_ALIASES[clean_name])):
+			return true
+		if clean_name.begins_with(NATIVE_PREFIX):
+			var native_name := clean_name.trim_prefix(NATIVE_PREFIX)
+			if is_builtin_animation(profile_id, native_name):
+				return true
+	return false
+
+
 static func save_custom_animation(animation_name: String, animation_data: Dictionary, source_meta: Dictionary = {}) -> bool:
 	var clean_name := animation_name.strip_edges()
 	if clean_name.is_empty() or animation_data.is_empty():
@@ -110,8 +136,8 @@ static func save_custom_animation(animation_name: String, animation_data: Dictio
 	var target_profile := str(source_meta.get("target_profile", PROFILE_JUNO)).strip_edges()
 	if target_profile not in VALID_PROFILES:
 		target_profile = PROFILE_JUNO
-	if is_builtin_animation(target_profile, clean_name):
-		push_error("AlabasterBoneAnimationLibrary: refusing to overwrite read-only Alabaster source animation '%s' for profile=%s. Save it with a copy name." % [clean_name, target_profile])
+	if is_read_only_animation(target_profile, clean_name):
+		push_error("AlabasterBoneAnimationLibrary: refusing to overwrite read-only source/retarget animation '%s' for profile=%s. Save it with a copy name." % [clean_name, target_profile])
 		return false
 
 	var payload := _load_payload()
