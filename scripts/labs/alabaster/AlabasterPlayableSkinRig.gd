@@ -2,6 +2,7 @@ extends "res://scripts/systems/bones/BonesSystem.gd"
 class_name AlabasterPlayableSkinRig
 
 const RepoSkinSource := preload("res://scripts/labs/alabaster/AlabasterExternalSkinSource.gd")
+const HumanoidRetarget := preload("res://scripts/labs/alabaster/AlabasterHumanoidAnimationRetarget.gd")
 
 var skin_profile_id := "male_dummy"
 var _skin_figure_source := "Male-Dummy"
@@ -10,6 +11,7 @@ var _skin_initialized := false
 var _skin_initializing := false
 var _skin_data_source := ""
 var _skin_texture_source := ""
+var _retarget_summary: Dictionary = {}
 
 
 func configure_skin_profile(profile_id: String) -> void:
@@ -48,6 +50,12 @@ func initialize_skin() -> bool:
 		_skin_initializing = false
 		return false
 
+	# Dummy and Male share Juno's complete core humanoid bone names. Retarget only
+	# animation deltas onto the target nodes: the target figure keeps its own base
+	# proportions, pivots, z-order, facing rules and atlas. The original native
+	# walk/run clips remain untouched and available for A/B comparison in the lab.
+	_retarget_summary = HumanoidRetarget.install_juno_locomotion(self, skin_profile_id)
+
 	print("ALABASTER_SKIN_INIT_FIGURE profile=%s source=%s path=%s nodes=%d anims=%d" % [
 		skin_profile_id,
 		_skin_data_source,
@@ -80,8 +88,9 @@ func initialize_skin() -> bool:
 		_skin_initializing = false
 		return false
 
-	# Dummy and Male-Temp have no authored `idle` animation. Their neutral state is
-	# the source figure's rest transform, so start there instead of inventing a clip.
+	# Dummy and Male-Temp have no authored `idle` animation. Their native neutral
+	# state is the source figure's rest transform. Juno's idle is also installed as
+	# juno_idle_retarget for comparison/editor use, but gameplay may keep rest idle.
 	current_animation = ""
 	animation_time = 0.0
 	_apply_pose()
@@ -134,6 +143,7 @@ func _reset_partial_skin_runtime() -> void:
 	animation_time = 0.0
 	_skin_data_source = ""
 	_skin_texture_source = ""
+	_retarget_summary = {}
 
 
 func _count_visible_pieces() -> int:
@@ -183,7 +193,12 @@ func _load_skin_atlas() -> void:
 
 
 func _native_prewarm_animations() -> Array:
-	var desired := ["walk", "run", "punch", "laying", "damage"]
+	var desired := [
+		"walk", "run", "punch", "laying", "damage",
+		HumanoidRetarget.get_retarget_name("idle"),
+		HumanoidRetarget.get_retarget_name("walk"),
+		HumanoidRetarget.get_retarget_name("run"),
+	]
 	var available := []
 	for animation_name_variant in desired:
 		var animation_name := str(animation_name_variant)
@@ -249,4 +264,5 @@ func get_runtime_summary() -> Dictionary:
 	result["skin_initialized"] = _skin_initialized
 	result["source_path"] = RepoSkinSource.get_source_path(skin_profile_id)
 	result["atlas_path"] = RepoSkinSource.get_repo_atlas_path(skin_profile_id)
+	result["juno_locomotion_retarget"] = _retarget_summary.duplicate(true)
 	return result
