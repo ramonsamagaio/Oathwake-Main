@@ -95,7 +95,7 @@
 		"avoid_immediate_attack_repeat": true
 	},
 	"male_dummy_alabaster": {
-		"animation_set_id": "alabaster_male_dummy",
+		"animation_set_id": "player_templar_body",
 		"attack_hit_time": 0.08,
 		"attack_recovery_time": 0.16,
 		"attack_timing_enabled": true,
@@ -104,7 +104,7 @@
 		"base_stats": {"agi":5.0,"dex":5.0,"int":3.0,"luk":4.0,"str":6.0,"vit":6.0,"wis":3.0},
 		"display_name": "Dummy",
 		"level": 1.0,
-		"sprite_sheet_id": "alabaster_male_dummy",
+		"sprite_sheet_id": "player_templar",
 		"orientation_mode": "alabaster_16dir",
 		"visual_runtime": "alabaster",
 		"rig_profile_id": "male_dummy",
@@ -114,16 +114,16 @@
 		"avoid_immediate_attack_repeat": true
 	},
 	"male_temp_alabaster": {
-		"animation_set_id": "alabaster_male_temp",
+		"animation_set_id": "player_templar_body",
 		"attack_hit_time": 0.08,
 		"attack_recovery_time": 0.16,
 		"attack_timing_enabled": true,
 		"attack_windup_time": 0.06,
-		"base_combat": {"attack_cooldown":0.34,"attack_speed_bonus":0.0,"base_attack":2.0,"base_crit_chance":0.03,"base_crit_damage":1.5,"base_defense":1.0,"base_flee":5.0,"base_hit":75.0,"base_invulnerability_duration":2.0,"base_magic_defense":1.0},
+		"base_combat": {"attack_cooldown":0.34,"attack_speed_bonus":0.0,"base_attack":2.0,"base_crit_chance":1.5,"base_defense":1.0,"base_flee":5.0,"base_hit":75.0,"base_invulnerability_duration":2.0,"base_magic_defense":1.0},
 		"base_stats": {"agi":5.0,"dex":5.0,"int":3.0,"luk":4.0,"str":6.0,"vit":6.0,"wis":3.0},
 		"display_name": "Male",
 		"level": 1.0,
-		"sprite_sheet_id": "alabaster_male_temp",
+		"sprite_sheet_id": "player_templar",
 		"orientation_mode": "alabaster_16dir",
 		"visual_runtime": "alabaster",
 		"rig_profile_id": "male_temp",
