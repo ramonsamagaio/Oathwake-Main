@@ -1,7 +1,7 @@
 extends RefCounted
 class_name AlabasterHumanoidAnimationRetarget
 
-const AnimationBank := preload("res://scripts/labs/alabaster/AlabasterAnimationBank.gd")
+const JunoGameplayBank := preload("res://scripts/labs/alabaster/AlabasterJunoGameplayBank.gd")
 const RepoSkinSource := preload("res://scripts/labs/alabaster/AlabasterExternalSkinSource.gd")
 
 const RETARGET_NAMES := {
@@ -28,10 +28,11 @@ static func get_retarget_name(source_animation: String) -> String:
 static func get_juno_locomotion_bank() -> Dictionary:
 	if not _juno_bank_cache.is_empty():
 		return _juno_bank_cache
-	var bank := AnimationBank.load_full_animation_bank()
+	var bank := JunoGameplayBank.load_locomotion_bank()
 	for clip in LOCOMOTION_CLIPS:
-		if bank.get(clip, {}) is Dictionary:
-			_juno_bank_cache[clip] = (bank[clip] as Dictionary).duplicate(true)
+		var clip_value: Variant = bank.get(clip, null)
+		if clip_value is Dictionary and not (clip_value as Dictionary).is_empty():
+			_juno_bank_cache[clip] = (clip_value as Dictionary).duplicate(true)
 	return _juno_bank_cache
 
 
@@ -183,3 +184,4 @@ static func install_juno_locomotion(rig: Object, profile_id: String) -> Dictiona
 
 static func clear_cache() -> void:
 	_juno_bank_cache.clear()
+	JunoGameplayBank.clear_cache()
