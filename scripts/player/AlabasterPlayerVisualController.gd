@@ -3,17 +3,9 @@ class_name AlabasterPlayerVisualController
 
 const JunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 const PlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
+const SharedActions := preload("res://scripts/labs/alabaster/AlabasterSharedActions.gd")
 const REST_POSE := "__rest__"
-const DEFAULT_ACTIONS := {
-	"idle": "idle",
-	"walk": "walk",
-	"run": "run",
-	"attack": "atkSwordN1",
-	"block": "guard",
-	"death": "dead",
-	"hurt": "damage",
-	"dash": "dash",
-}
+const DEFAULT_ACTIONS := SharedActions.GAMEPLAY_ACTIONS
 
 var rig: Node2D
 var active := false
@@ -32,10 +24,7 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 	if declared_runtime != "alabaster" and not inferred_alabaster:
 		return false
 
-	# All playable Alabaster humanoids expose the same gameplay animation names.
-	# Dummy/Male retarget Juno inside AlabasterPlayableSkinRig itself, so the
-	# controller no longer carries a separate native-animation behavior for them.
-	action_map = DEFAULT_ACTIONS.duplicate(true)
+	action_map = SharedActions.gameplay_action_map()
 	directional_action_map = {}
 	var custom_map = character_data.get("rig_animation_map", {})
 	if custom_map is Dictionary:
@@ -69,10 +58,6 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 	rig.name = "BonesRigVisual"
 	owner.add_child(rig)
 
-	# Playable skin setup is explicit instead of assuming add_child() has already
-	# delivered Node._ready(). When the rig is created from the player's own
-	# _ready()/live-refresh path, that assumption can be false and the old code
-	# immediately rejected a perfectly valid Dummy/Male before its _ready ran.
 	if uses_playable_skin:
 		if not rig.has_method("initialize_skin"):
 			push_error("AlabasterPlayerVisualController: playable skin has no initialize_skin() profile=%s" % profile_id)
@@ -107,24 +92,14 @@ func _resolve_profile_id(character_data: Dictionary) -> String:
 	var declared_profile := str(character_data.get("rig_profile_id", "")).strip_edges()
 	if not declared_profile.is_empty():
 		return declared_profile
-
-	# Content Editor versions predating the bone-rig fields could save a Character
-	# record while stripping visual_runtime/rig_profile_id. Dummy and Male have
-	# unique animation_set_ids, so recover their intended native source rigs rather
-	# than silently falling back to the old AnimatedSprite/WIP visual.
 	match str(character_data.get("animation_set_id", "")).strip_edges():
-		"alabaster_male_dummy":
-			return "male_dummy"
-		"alabaster_male_temp":
-			return "male_temp"
-		_:
-			return "juno" if str(character_data.get("visual_runtime", "")).strip_edges() == "alabaster" else ""
+		"alabaster_male_dummy": return "male_dummy"
+		"alabaster_male_temp": return "male_temp"
+		_: return "juno" if str(character_data.get("visual_runtime", "")).strip_edges() == "alabaster" else ""
 
 
 func _default_actions_for_profile(_resolved_profile_id: String) -> Dictionary:
-	# Kept for API compatibility with older callers. All playable humanoid profiles
-	# now resolve the same public action namespace on their own rig implementation.
-	return DEFAULT_ACTIONS.duplicate(true)
+	return SharedActions.gameplay_action_map()
 
 
 func dispose() -> void:
@@ -134,7 +109,7 @@ func dispose() -> void:
 	active = false
 	current_action = ""
 	profile_id = ""
-	action_map = DEFAULT_ACTIONS.duplicate(true)
+	action_map = SharedActions.gameplay_action_map()
 	directional_action_map = {}
 
 
