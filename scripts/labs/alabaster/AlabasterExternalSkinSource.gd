@@ -3,6 +3,24 @@ class_name AlabasterExternalSkinSource
 
 const SourceImporter := preload("res://scripts/labs/alabaster/AlabasterSourceImporter.gd")
 
+const REPO_SKIN_DIR := "res://assets/sprites/characters/alabaster/"
+const REPO_JSON_PATHS := {
+	"male_dummy": [
+		REPO_SKIN_DIR + "dummy.json",
+		"res://data/labs/alabaster/source/dummy.json",
+	],
+	"male_temp": [
+		REPO_SKIN_DIR + "male-temp-01.json",
+		REPO_SKIN_DIR + "male-temp01.json",
+		"res://data/labs/alabaster/source/male-temp-01.json",
+		"res://data/labs/alabaster/source/male-temp01.json",
+	],
+}
+const REPO_ATLAS_PATHS := {
+	"male_dummy": REPO_SKIN_DIR + "dummy.png",
+	"male_temp": REPO_SKIN_DIR + "male-temp01.png",
+}
+
 const PROFILE_FILES := {
 	"male_dummy": ["dummy.json"],
 	"male_temp": ["male-temp-01.json", "male-temp01.json"],
@@ -21,10 +39,19 @@ const MAX_JSON_SEARCH_DEPTH := 4
 
 static var _bundle_cache: Dictionary = {}
 static var _texture_cache: Dictionary = {}
+static var _source_kind_cache: Dictionary = {}
 
 
 static func load_skin_figure(profile_id: String) -> Dictionary:
+	var repo_bundle := _load_repo_bundle(profile_id)
+	if not repo_bundle.is_empty():
+		_source_kind_cache[profile_id] = "REPO_JSON"
+		var repo_figure_value: Variant = repo_bundle.get("figure", {})
+		return _runtime_figure_copy(repo_figure_value as Dictionary) if repo_figure_value is Dictionary else {}
+
 	var bundle := _load_skin_bundle(profile_id)
+	if not bundle.is_empty():
+		_source_kind_cache[profile_id] = "EXTERNAL_JSON"
 	var figure_value: Variant = bundle.get("figure", {})
 	return _runtime_figure_copy(figure_value as Dictionary) if figure_value is Dictionary else {}
 
@@ -36,6 +63,24 @@ static func load_skin_texture(profile_id: String) -> Texture2D:
 			return cached as Texture2D
 		_texture_cache.erase(profile_id)
 
+	# Canonical runtime atlas is now the normal PNG committed to the Oathwake repo.
+	# Do not depend on Base64 fixtures or an installed Alabaster demo for body art.
+	var repo_path := str(REPO_ATLAS_PATHS.get(profile_id, ""))
+	if not repo_path.is_empty():
+		var repo_texture := _load_repo_png(repo_path)
+		if repo_texture != null:
+			_texture_cache[profile_id] = repo_texture
+			print("ALABASTER_SKIN_REPO_ATLAS_OK profile=%s source=%s size=%dx%d" % [
+				profile_id,
+				repo_path,
+				repo_texture.get_width(),
+				repo_texture.get_height(),
+			])
+			return repo_texture
+		print("ALABASTER_SKIN_REPO_ATLAS_MISSING profile=%s source=%s" % [profile_id, repo_path])
+
+	# Development fallback only. This remains useful while source JSONs are being
+	# migrated into the repo, but it is no longer the primary atlas path.
 	var bundle := _load_skin_bundle(profile_id)
 	if bundle.is_empty():
 		return null
@@ -62,17 +107,70 @@ static func load_skin_texture(profile_id: String) -> Texture2D:
 
 
 static func get_source_path(profile_id: String) -> String:
+	var repo_bundle := _load_repo_bundle(profile_id)
+	if not repo_bundle.is_empty():
+		return str(repo_bundle.get("source_path", ""))
 	return str(_load_skin_bundle(profile_id).get("source_path", ""))
+
+
+static func get_source_kind(profile_id: String) -> String:
+	if _source_kind_cache.has(profile_id):
+		return str(_source_kind_cache[profile_id])
+	if not _load_repo_bundle(profile_id).is_empty():
+		return "REPO_JSON"
+	if not _load_skin_bundle(profile_id).is_empty():
+		return "EXTERNAL_JSON"
+	return ""
+
+
+static func get_repo_atlas_path(profile_id: String) -> String:
+	return str(REPO_ATLAS_PATHS.get(profile_id, ""))
 
 
 static func clear_cache() -> void:
 	_bundle_cache.clear()
 	_texture_cache.clear()
+	_source_kind_cache.clear()
+
+
+static func _load_repo_bundle(profile_id: String) -> Dictionary:
+	var cache_key := "repo:%s" % profile_id
+	if _bundle_cache.has(cache_key):
+		var cached: Variant = _bundle_cache[cache_key]
+		if cached is Dictionary:
+			return (cached as Dictionary).duplicate(false)
+
+	var paths_value: Variant = REPO_JSON_PATHS.get(profile_id, [])
+	if not paths_value is Array:
+		return {}
+	var figure_name := str(PROFILE_FIGURES.get(profile_id, ""))
+	if figure_name.is_empty():
+		return {}
+	for path_value in paths_value as Array:
+		var path := str(path_value)
+		if not FileAccess.file_exists(path):
+			continue
+		var bundle := _load_bundle_from_path(path, figure_name)
+		if bundle.is_empty():
+			continue
+		_bundle_cache[cache_key] = bundle.duplicate(false)
+		var figure_value: Variant = bundle.get("figure", {})
+		var figure := figure_value as Dictionary if figure_value is Dictionary else {}
+		print("ALABASTER_SKIN_REPO_SOURCE_OK profile=%s figure=%s source=%s nodes=%d anims=%d" % [
+			profile_id,
+			figure_name,
+			path,
+			(figure.get("nodes", {}) as Dictionary).size() if figure.get("nodes", {}) is Dictionary else 0,
+			(figure.get("anims", {}) as Dictionary).size() if figure.get("anims", {}) is Dictionary else 0,
+		])
+		return bundle.duplicate(false)
+	return {}
 
 
 static func _load_skin_bundle(profile_id: String) -> Dictionary:
-	if _bundle_cache.has(profile_id):
-		var cached: Variant = _bundle_cache[profile_id]
+	var cache_key := "external:%s" % profile_id
+	if _bundle_cache.has(cache_key):
+		var cached: Variant = _bundle_cache[cache_key]
 		if cached is Dictionary:
 			return (cached as Dictionary).duplicate(false)
 
@@ -104,23 +202,23 @@ static func _load_skin_bundle(profile_id: String) -> Dictionary:
 				var source_path := str(source_path_variant)
 				var bundle := _load_bundle_from_path(source_path, figure_name)
 				if not bundle.is_empty():
-					return _cache_bundle(profile_id, figure_name, bundle)
+					return _cache_bundle(cache_key, profile_id, figure_name, bundle)
 
 			var recursive_match := _find_file_recursive(char_dir, file_name, MAX_JSON_SEARCH_DEPTH)
 			if not recursive_match.is_empty():
 				var recursive_bundle := _load_bundle_from_path(recursive_match, figure_name)
 				if not recursive_bundle.is_empty():
-					return _cache_bundle(profile_id, figure_name, recursive_bundle)
+					return _cache_bundle(cache_key, profile_id, figure_name, recursive_bundle)
 
 	print("ALABASTER_SKIN_EXTERNAL_SEARCH_FAILED profile=%s files=%s" % [profile_id, str(file_names)])
 	return {}
 
 
-static func _cache_bundle(profile_id: String, figure_name: String, bundle: Dictionary) -> Dictionary:
+static func _cache_bundle(cache_key: String, profile_id: String, figure_name: String, bundle: Dictionary) -> Dictionary:
 	var source_path := str(bundle.get("source_path", ""))
 	var install_root := _find_install_root(source_path)
 	bundle["install_root"] = install_root
-	_bundle_cache[profile_id] = bundle.duplicate(false)
+	_bundle_cache[cache_key] = bundle.duplicate(false)
 	var figure_value: Variant = bundle.get("figure", {})
 	var figure := figure_value as Dictionary if figure_value is Dictionary else {}
 	print("ALABASTER_SKIN_EXTERNAL_SOURCE_OK profile=%s figure=%s source=%s install_root=%s atlas_rel=%s nodes=%d anims=%d" % [
@@ -246,6 +344,47 @@ static func _resolve_atlas_path(profile_id: String, source_path: String, install
 		if FileAccess.file_exists(candidate):
 			return candidate
 	return ""
+
+
+static func _load_repo_png(path: String) -> Texture2D:
+	if path.is_empty():
+		return null
+	var image: Image = null
+
+	# Prefer the imported Godot resource. This works in editor and exported builds,
+	# unlike relying on raw source PNG bytes being available after export.
+	if ResourceLoader.exists(path):
+		var resource := load(path)
+		if resource is Texture2D:
+			var imported := resource as Texture2D
+			if imported.get_width() != EXPECTED_ATLAS_SIZE.x or imported.get_height() != EXPECTED_ATLAS_SIZE.y:
+				push_warning("AlabasterExternalSkinSource: rejected repo atlas %s size=%dx%d expected=%dx%d" % [
+					path,
+					imported.get_width(), imported.get_height(),
+					EXPECTED_ATLAS_SIZE.x, EXPECTED_ATLAS_SIZE.y,
+				])
+				return null
+			image = imported.get_image()
+
+	# Raw fallback is useful on the first editor scan before the import cache has
+	# finished creating the Texture2D resource.
+	if (image == null or image.is_empty()) and FileAccess.file_exists(path):
+		image = Image.new()
+		var raw_error := image.load(path)
+		if raw_error != OK:
+			image = null
+
+	if image == null or image.is_empty():
+		return null
+	if image.get_width() != EXPECTED_ATLAS_SIZE.x or image.get_height() != EXPECTED_ATLAS_SIZE.y:
+		push_warning("AlabasterExternalSkinSource: rejected repo atlas %s size=%dx%d expected=%dx%d" % [
+			path,
+			image.get_width(), image.get_height(),
+			EXPECTED_ATLAS_SIZE.x, EXPECTED_ATLAS_SIZE.y,
+		])
+		return null
+	_apply_chroma_key(image)
+	return ImageTexture.create_from_image(image)
 
 
 static func _load_external_png(path: String) -> Texture2D:
