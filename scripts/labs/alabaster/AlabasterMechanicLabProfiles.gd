@@ -3,7 +3,6 @@ class_name AlabasterMechanicLabProfiles
 
 const JunoRigScript := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeSourceLive.gd")
 const PlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
-const Retarget := preload("res://scripts/labs/alabaster/AlabasterHumanoidAnimationRetarget.gd")
 
 const PROFILE_JUNO := "juno"
 const PROFILE_DUMMY := "male_dummy"
@@ -58,14 +57,14 @@ func _build_profile_switcher() -> void:
 		button.toggle_mode = true
 		button.button_group = group
 		button.custom_minimum_size = Vector2(104.0, 34.0)
-		button.tooltip_text = "Switch the complete source figure without changing the lab movement controller."
+		button.tooltip_text = "Switch the complete source figure. Dummy/Male use the exact same playable rig class as gameplay."
 		button.pressed.connect(_on_profile_pressed.bind(profile_id))
 		row.add_child(button)
 		_profile_buttons[profile_id] = button
 	_update_profile_buttons()
 
 	var note := Label.new()
-	note.text = "Dummy/Male WASD = Juno locomotion retarget · native clips stay in browser"
+	note.text = "Dummy/Male = SAME GAME RIG · Juno gameplay bank · native clips preserved as native__*"
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	note.add_theme_font_size_override("font_size", 11)
 	note.modulate = Color(0.72, 0.78, 0.88)
@@ -95,6 +94,9 @@ func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
 		rig.name = "JunoRig"
 		player.add_child(rig)
 	else:
+		# This is intentionally the same class instantiated by
+		# AlabasterPlayerVisualController in actual gameplay. The lab contains no
+		# separate locomotion/combat retarget path anymore.
 		var skin_rig = PlayableSkinRigScript.new()
 		skin_rig.call("configure_skin_profile", profile_id)
 		rig = skin_rig
@@ -146,31 +148,20 @@ func _physics_process(delta: float) -> void:
 		player.position.x = clampf(player.position.x, 72.0, SCREEN_SIZE.x - 72.0)
 		player.position.y = clampf(player.position.y, 92.0, SCREEN_SIZE.y - 72.0)
 		rig.set_facing_from_vector(input_dir)
-		rig.set_animation(_locomotion_clip("run" if running else "walk"))
+		# Same animation names used by gameplay. Dummy/Male resolve these names
+		# because AlabasterPlayableSkinRig installs Juno onto their bones itself.
+		rig.set_animation("run" if running else "walk")
 	else:
 		player.velocity = Vector2.ZERO
 		_set_profile_idle()
 	_update_status()
 
 
-func _locomotion_clip(base_name: String) -> String:
-	if _active_profile == PROFILE_JUNO:
-		return base_name
-	var retarget_name := Retarget.get_retarget_name(base_name)
-	if not retarget_name.is_empty() and rig != null and rig.has_method("has_animation") and bool(rig.call("has_animation", retarget_name)):
-		return retarget_name
-	return base_name
-
-
 func _set_profile_idle() -> void:
 	if rig == null:
 		return
-	if _active_profile == PROFILE_JUNO:
-		rig.set_animation("idle")
-		return
-	var retarget_idle := Retarget.get_retarget_name("idle")
-	if rig.has_method("has_animation") and bool(rig.call("has_animation", retarget_idle)):
-		rig.set_animation(retarget_idle)
+	if rig.has_method("has_animation") and bool(rig.call("has_animation", "idle")):
+		rig.call("set_animation", "idle")
 	elif rig.has_method("set_rest_pose"):
 		rig.call("set_rest_pose")
 
@@ -194,9 +185,9 @@ func _update_status() -> void:
 	super._update_status()
 	if status_label == null:
 		return
-	var motion := "JUNO SOURCE" if _active_profile == PROFILE_JUNO else "JUNO RETARGET"
-	status_label.text = "figure=%s   locomotion=%s   %s" % [
+	var runtime_label := "JUNO SOURCE RIG" if _active_profile == PROFILE_JUNO else "SHARED PLAYABLE RIG"
+	status_label.text = "figure=%s   runtime=%s   %s" % [
 		str(PROFILE_LABELS.get(_active_profile, _active_profile)),
-		motion,
+		runtime_label,
 		status_label.text,
 	]
