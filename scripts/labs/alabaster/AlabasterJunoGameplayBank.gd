@@ -1,19 +1,46 @@
 extends RefCounted
 class_name AlabasterJunoGameplayBank
 
+const AnimationBank := preload("res://scripts/labs/alabaster/AlabasterAnimationBank.gd")
+
 const PLAYER_BANK_PATH := "res://data/labs/alabaster/juno_player_anims.json.gz.b64"
 const RUNTIME_PATH := "res://data/labs/alabaster/juno_runtime.json.gz.b64"
 const PLAYER_MAX_BYTES := 512 * 1024
 const RUNTIME_MAX_BYTES := 8 * 1024 * 1024
 const REQUIRED_LOCOMOTION := ["idle", "walk", "run"]
 
+# Try the self-contained 419-animation pack without falling through to the old
+# broken gameplay-part decoder. If this pack is not complete we simply use the
+# repository-local player/runtime banks below.
+const FULL_PARTS := [
+	"res://data/labs/alabaster/anims/juno_anims_bin_00.part",
+	"res://data/labs/alabaster/anims/juno_anims_bin_01.part",
+]
+const FULL_DECOMPRESSED_BYTES := 671589
+const EXPECTED_FULL_ANIMATIONS := 419
+
+const SOCKET_NAMES := ["weaponR", "weaponL", "weaponBelt"]
+
 static var _cache: Dictionary = {}
+static var _runtime_figure_cache: Dictionary = {}
+static var _last_source := "NONE"
 
 
 static func load_gameplay_bank() -> Dictionary:
 	if not _cache.is_empty():
 		return _cache.duplicate(true)
 
+	# Best case: all authored Juno animations are already packed in the repo.
+	var full := _load_safe_full_bank()
+	if full.size() >= EXPECTED_FULL_ANIMATIONS:
+		_cache = full.duplicate(true)
+		_last_source = "FULL_PACKED"
+		print("ALABASTER_JUNO_SHARED_BANK source=%s animations=%d" % [_last_source, _cache.size()])
+		return _cache.duplicate(true)
+
+	# Guaranteed gameplay fallback used by the production Juno runtime. This is
+	# intentionally independent from Steam/local folders and from the historical
+	# juno_gameplay_anims_*.part files that can contain malformed Base64.
 	var result := _load_player_bank()
 	var runtime := _load_runtime_bank()
 	for animation_name in runtime.keys():
@@ -22,9 +49,12 @@ static func load_gameplay_bank() -> Dictionary:
 
 	if result.is_empty():
 		push_warning("AlabasterJunoGameplayBank: no repository-local Juno gameplay animations could be loaded.")
+		_last_source = "NONE"
 		return {}
 
 	_cache = result.duplicate(true)
+	_last_source = "PLAYER_RUNTIME"
+	print("ALABASTER_JUNO_SHARED_BANK source=%s animations=%d" % [_last_source, _cache.size()])
 	return _cache.duplicate(true)
 
 
@@ -38,8 +68,102 @@ static func load_locomotion_bank() -> Dictionary:
 	return result
 
 
+static func load_runtime_figure() -> Dictionary:
+	if not _runtime_figure_cache.is_empty():
+		return _runtime_figure_cache.duplicate(true)
+	if not FileAccess.file_exists(RUNTIME_PATH):
+		return {}
+	var encoded := FileAccess.get_file_as_string(RUNTIME_PATH).strip_edges()
+	if encoded.is_empty():
+		return {}
+	var compressed := Marshalls.base64_to_raw(encoded)
+	if compressed.is_empty():
+		return {}
+	var raw := compressed.decompress_dynamic(RUNTIME_MAX_BYTES, FileAccess.COMPRESSION_GZIP)
+	if raw.is_empty():
+		return {}
+	var parsed: Variant = JSON.parse_string(raw.get_string_from_utf8())
+	if not parsed is Dictionary:
+		return {}
+	var figure_value: Variant = (parsed as Dictionary).get("figure", {})
+	if not figure_value is Dictionary or (figure_value as Dictionary).is_empty():
+		return {}
+	_runtime_figure_cache = (figure_value as Dictionary).duplicate(true)
+	return _runtime_figure_cache.duplicate(true)
+
+
+static func load_socket_nodes() -> Dictionary:
+	var result := {}
+	var figure := load_runtime_figure()
+	var nodes_value: Variant = figure.get("nodes", {})
+	if not nodes_value is Dictionary:
+		return result
+	var nodes := nodes_value as Dictionary
+	for socket_name in SOCKET_NAMES:
+		var node_value: Variant = nodes.get(socket_name, {})
+		if node_value is Dictionary and not (node_value as Dictionary).is_empty():
+			result[socket_name] = (node_value as Dictionary).duplicate(true)
+	return result
+
+
+static func get_source_name() -> String:
+	if _cache.is_empty():
+		load_gameplay_bank()
+	return _last_source
+
+
 static func clear_cache() -> void:
 	_cache.clear()
+	_runtime_figure_cache.clear()
+	_last_source = "NONE"
+
+
+static func _load_safe_full_bank() -> Dictionary:
+	var encoded := ""
+	for path_variant in FULL_PARTS:
+		var path := str(path_variant)
+		if not FileAccess.file_exists(path):
+			return {}
+		encoded += FileAccess.get_file_as_string(path)
+	encoded = _strip_base64_whitespace(encoded)
+	if not _looks_like_base64(encoded):
+		return {}
+	var compressed := Marshalls.base64_to_raw(encoded)
+	if compressed.is_empty():
+		return {}
+	var raw := compressed.decompress(FULL_DECOMPRESSED_BYTES, FileAccess.COMPRESSION_ZSTD)
+	if raw.size() != FULL_DECOMPRESSED_BYTES:
+		return {}
+	# _decode_payload is an internal helper of the existing bank decoder, but it
+	# is deterministic and already understands the JANI1 format used by FULL_PARTS.
+	var decoded: Variant = AnimationBank._decode_payload(raw)
+	if not decoded is Dictionary:
+		return {}
+	var anims := decoded as Dictionary
+	return anims if anims.size() >= EXPECTED_FULL_ANIMATIONS else {}
+
+
+static func _strip_base64_whitespace(value: String) -> String:
+	return value.replace("\r", "").replace("\n", "").replace("\t", "").replace(" ", "").strip_edges()
+
+
+static func _looks_like_base64(value: String) -> bool:
+	if value.is_empty() or value.length() % 4 != 0:
+		return false
+	var padding_started := false
+	for index in range(value.length()):
+		var code := value.unicode_at(index)
+		if code == 61: # =
+			padding_started = true
+			if index < value.length() - 2:
+				return false
+			continue
+		if padding_started:
+			return false
+		var valid := (code >= 65 and code <= 90) or (code >= 97 and code <= 122) or (code >= 48 and code <= 57) or code == 43 or code == 47
+		if not valid:
+			return false
+	return true
 
 
 static func _load_player_bank() -> Dictionary:
@@ -64,24 +188,8 @@ static func _load_player_bank() -> Dictionary:
 
 
 static func _load_runtime_bank() -> Dictionary:
-	if not FileAccess.file_exists(RUNTIME_PATH):
-		return {}
-	var encoded := FileAccess.get_file_as_string(RUNTIME_PATH).strip_edges()
-	if encoded.is_empty():
-		return {}
-	var compressed := Marshalls.base64_to_raw(encoded)
-	if compressed.is_empty():
-		return {}
-	var raw := compressed.decompress_dynamic(RUNTIME_MAX_BYTES, FileAccess.COMPRESSION_GZIP)
-	if raw.is_empty():
-		return {}
-	var parsed: Variant = JSON.parse_string(raw.get_string_from_utf8())
-	if not parsed is Dictionary:
-		return {}
-	var figure_value: Variant = (parsed as Dictionary).get("figure", {})
-	if not figure_value is Dictionary:
-		return {}
-	var anims_value: Variant = (figure_value as Dictionary).get("anims", {})
+	var figure := load_runtime_figure()
+	var anims_value: Variant = figure.get("anims", {})
 	if not anims_value is Dictionary:
 		return {}
 	return (anims_value as Dictionary).duplicate(true)
