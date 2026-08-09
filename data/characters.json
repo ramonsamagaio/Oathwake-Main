@@ -96,10 +96,10 @@
 	},
 	"male_dummy_alabaster": {
 		"animation_set_id": "player_templar_body",
-		"attack_hit_time": 0.08,
-		"attack_recovery_time": 0.16,
+		"attack_hit_time": 0.02,
+		"attack_recovery_time": 0.14,
 		"attack_timing_enabled": true,
-		"attack_windup_time": 0.06,
+		"attack_windup_time": 0.04,
 		"base_combat": {"attack_cooldown":0.34,"attack_speed_bonus":0.0,"base_attack":2.0,"base_crit_chance":0.03,"base_crit_damage":1.5,"base_defense":1.0,"base_flee":5.0,"base_hit":75.0,"base_invulnerability_duration":2.0,"base_magic_defense":1.0},
 		"base_stats": {"agi":5.0,"dex":5.0,"int":3.0,"luk":4.0,"str":6.0,"vit":6.0,"wis":3.0},
 		"display_name": "Dummy",
@@ -109,16 +109,16 @@
 		"visual_runtime": "alabaster",
 		"rig_profile_id": "male_dummy",
 		"bones_ground_offset": {"x":0.0,"y":8.0},
-		"rig_animation_map": {"idle":"__rest__","walk":"juno_walk_retarget","run":"juno_run_retarget","attack":"punch","block":"__rest__","death":"laying","hurt":"__rest__","dash":"juno_run_retarget"},
-		"attack_animation_variants": ["punch"],
+		"rig_animation_map": {"idle":"idle","walk":"walk","run":"run","attack":"atkSwordN1","block":"guard","death":"dead","hurt":"damage","dash":"dash"},
+		"attack_animation_variants": ["atkSwordN1"],
 		"avoid_immediate_attack_repeat": true
 	},
 	"male_temp_alabaster": {
 		"animation_set_id": "player_templar_body",
-		"attack_hit_time": 0.08,
-		"attack_recovery_time": 0.16,
+		"attack_hit_time": 0.02,
+		"attack_recovery_time": 0.14,
 		"attack_timing_enabled": true,
-		"attack_windup_time": 0.06,
+		"attack_windup_time": 0.04,
 		"base_combat": {"attack_cooldown":0.34,"attack_speed_bonus":0.0,"base_attack":2.0,"base_crit_chance":0.03,"base_crit_damage":1.5,"base_defense":1.0,"base_flee":5.0,"base_hit":75.0,"base_invulnerability_duration":2.0,"base_magic_defense":1.0},
 		"base_stats": {"agi":5.0,"dex":5.0,"int":3.0,"luk":4.0,"str":6.0,"vit":6.0,"wis":3.0},
 		"display_name": "Male",
@@ -128,8 +128,8 @@
 		"visual_runtime": "alabaster",
 		"rig_profile_id": "male_temp",
 		"bones_ground_offset": {"x":0.0,"y":8.0},
-		"rig_animation_map": {"idle":"__rest__","walk":"juno_walk_retarget","run":"juno_run_retarget","attack":"punch","block":"__rest__","death":"laying","hurt":"damage","dash":"juno_run_retarget"},
-		"attack_animation_variants": ["punch"],
+		"rig_animation_map": {"idle":"idle","walk":"walk","run":"run","attack":"atkSwordN1","block":"guard","death":"dead","hurt":"damage","dash":"dash"},
+		"attack_animation_variants": ["atkSwordN1"],
 		"avoid_immediate_attack_repeat": true
 	}
 }
