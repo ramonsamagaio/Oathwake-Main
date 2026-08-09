@@ -15,7 +15,6 @@ const FULL_PARTS := [
 ]
 const FULL_DECOMPRESSED_BYTES := 671589
 const EXPECTED_FULL_ANIMATIONS := 419
-
 const SOCKET_NAMES := ["weaponR", "weaponL", "weaponBelt"]
 
 static var _cache: Dictionary = {}
@@ -26,25 +25,21 @@ static var _last_source := "NONE"
 static func load_gameplay_bank() -> Dictionary:
 	if not _cache.is_empty():
 		return _cache.duplicate(true)
-
 	var full := _load_safe_full_bank()
 	if full.size() >= EXPECTED_FULL_ANIMATIONS:
 		_cache = full.duplicate(true)
 		_last_source = "FULL_PACKED"
 		print("ALABASTER_JUNO_SHARED_BANK source=%s animations=%d" % [_last_source, _cache.size()])
 		return _cache.duplicate(true)
-
 	var result := _load_player_bank()
 	var runtime := _load_runtime_bank()
 	for animation_name in runtime.keys():
 		if not result.has(animation_name):
 			result[animation_name] = runtime[animation_name]
-
 	if result.is_empty():
 		push_warning("AlabasterJunoGameplayBank: no repository-local Juno gameplay animations could be loaded.")
 		_last_source = "NONE"
 		return {}
-
 	_cache = result.duplicate(true)
 	_last_source = "PLAYER_RUNTIME"
 	print("ALABASTER_JUNO_SHARED_BANK source=%s animations=%d" % [_last_source, _cache.size()])
@@ -66,7 +61,7 @@ static func load_runtime_figure() -> Dictionary:
 		return _runtime_figure_cache.duplicate(true)
 	if not FileAccess.file_exists(RUNTIME_PATH):
 		return {}
-	var encoded := FileAccess.get_file_as_string(RUNTIME_PATH).strip_edges()
+	var encoded := _normalize_base64(FileAccess.get_file_as_string(RUNTIME_PATH))
 	if encoded.is_empty():
 		return {}
 	var compressed := Marshalls.base64_to_raw(encoded)
@@ -112,29 +107,19 @@ static func clear_cache() -> void:
 
 
 static func _load_safe_full_bank() -> Dictionary:
-	var parts: Array[String] = []
+	var joined := ""
 	for path_variant in FULL_PARTS:
 		var path := str(path_variant)
 		if not FileAccess.file_exists(path):
 			return {}
-		var part := _strip_base64_whitespace(FileAccess.get_file_as_string(path))
-		if part.is_empty():
-			return {}
-		parts.append(part)
-
-	# These files are slices of one Base64 stream, not independent archives.
-	# Join the textual stream first and validate it before asking CryptoCore to
-	# decode, preventing the noisy b64_decode errors seen with malformed chunks.
-	var joined := "".join(parts)
-	if not _looks_like_base64(joined):
+		joined += _strip_base64_whitespace(FileAccess.get_file_as_string(path))
+	joined = _normalize_base64(joined)
+	if joined.is_empty() or not _looks_like_base64(joined):
 		push_warning("AlabasterJunoGameplayBank: packed 419-animation Base64 stream is incomplete; using repository gameplay fallback.")
 		return {}
 	var compressed := Marshalls.base64_to_raw(joined)
 	if compressed.is_empty():
 		return {}
-
-	# Do not trust a historical hard-coded byte count if the ZSTD frame declares
-	# its own content size. This makes the committed pack self-describing.
 	var frame_size := int(AnimationBank._zstd_frame_content_size(compressed))
 	if frame_size <= 0:
 		frame_size = FULL_DECOMPRESSED_BYTES
@@ -154,6 +139,20 @@ static func _load_safe_full_bank() -> Dictionary:
 
 static func _strip_base64_whitespace(value: String) -> String:
 	return value.replace("\r", "").replace("\n", "").replace("\t", "").replace(" ", "").strip_edges()
+
+
+static func _normalize_base64(value: String) -> String:
+	var clean := _strip_base64_whitespace(value)
+	if clean.is_empty():
+		return ""
+	var remainder := clean.length() % 4
+	if remainder == 1:
+		return ""
+	if remainder == 2:
+		clean += "=="
+	elif remainder == 3:
+		clean += "="
+	return clean
 
 
 static func _looks_like_base64(value: String) -> bool:
@@ -178,7 +177,7 @@ static func _looks_like_base64(value: String) -> bool:
 static func _load_player_bank() -> Dictionary:
 	if not FileAccess.file_exists(PLAYER_BANK_PATH):
 		return {}
-	var encoded := FileAccess.get_file_as_string(PLAYER_BANK_PATH).strip_edges()
+	var encoded := _normalize_base64(FileAccess.get_file_as_string(PLAYER_BANK_PATH))
 	if encoded.is_empty():
 		return {}
 	var compressed := Marshalls.base64_to_raw(encoded)
