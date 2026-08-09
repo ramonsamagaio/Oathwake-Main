@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/labs/alabaster/AlabasterBoneStudioPro.gd" id="1_bone_studio"]
+[ext_resource type="Script" path="res://scripts/labs/alabaster/AlabasterBoneStudioProfiles.gd" id="1_bone_studio"]
 
 [node name="AlabasterBoneStudio" type="Control"]
 layout_mode = 3
