@@ -1,4 +1,4 @@
-extends "res://scripts/labs/alabaster/AlabasterBoneStudioProfiles.gd"
+extends "res://scripts/labs/alabaster/AlabasterBoneStudioLiveTuning.gd"
 class_name AlabasterBoneStudioSharedProfiles
 
 # Thin editor-only presentation layer. Dummy/Male rendering, depth, sockets and
