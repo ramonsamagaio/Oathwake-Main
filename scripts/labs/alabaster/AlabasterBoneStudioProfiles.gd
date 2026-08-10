@@ -66,7 +66,6 @@ func _build_profile_and_load_toolbar() -> void:
 		button.text = str(PROFILE_LABELS[profile_id])
 		button.toggle_mode = true
 		button.button_group = group
-		button.focus_mode = Control.FOCUS_NONE
 		button.custom_minimum_size = Vector2(82.0, 30.0)
 		button.tooltip_text = "Switch the target figure used by retarget import, direct bone editing and existing-animation loading."
 		button.pressed.connect(_on_profile_button_pressed.bind(profile_id))
