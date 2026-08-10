@@ -7,7 +7,16 @@ const SCREEN_SIZE := Vector2(1600.0, 900.0)
 const WALK_SPEED := 150.0
 const RUN_SPEED := 240.0
 const CATEGORY_ORDER := ["ALL", "COMBAT", "DEFAULT", "PUZZLE", "OTHER", "CUTSCENE"]
-const QUICK_ANIMATIONS := SharedActions.QUICK_KEYS
+
+# Global-state polling is intentional in this isolated mechanic lab. It makes
+# SPACE/ENTER/number-row previews independent from whichever Control currently
+# owns keyboard focus. A latch turns a held key into one clean press edge.
+const POLLED_KEYS := [
+	KEY_F1, KEY_ESCAPE, KEY_TAB, KEY_PAGEUP, KEY_PAGEDOWN, KEY_ENTER, KEY_KP_ENTER, KEY_F2,
+	KEY_SPACE, KEY_H, KEY_K, KEY_G, KEY_P, KEY_X, KEY_C,
+	KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9,
+	KEY_KP_0, KEY_KP_1, KEY_KP_2, KEY_KP_3, KEY_KP_4, KEY_KP_5, KEY_KP_6, KEY_KP_7, KEY_KP_8, KEY_KP_9,
+]
 
 var player: CharacterBody2D
 var rig
@@ -23,6 +32,8 @@ var _catalog: Array[Dictionary] = []
 var _browser_entries: Array[Dictionary] = []
 var _browser_category_index := 0
 var _browser_index := 0
+var _key_latch: Dictionary = {}
+var _left_mouse_latched := false
 
 
 func _ready() -> void:
@@ -34,6 +45,8 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_poll_lab_commands()
+
 	if _manual_active:
 		_manual_elapsed += delta
 		if _manual_duration > 0.0 and _manual_elapsed >= _manual_duration:
@@ -65,69 +78,74 @@ func _physics_process(delta: float) -> void:
 	_update_status()
 
 
-func _input(event: InputEvent) -> void:
-	# Capture lab commands before Control/Button keyboard handling. This prevents
-	# SPACE/ENTER and number-row attacks from being consumed by the profile UI.
-	if not (event is InputEventKey):
-		return
-	var key_event := event as InputEventKey
-	if not key_event.pressed or key_event.echo:
-		return
-	if _handle_lab_key(key_event):
-		get_viewport().set_input_as_handled()
+func _poll_lab_commands() -> void:
+	for key_value in POLLED_KEYS:
+		var key := int(key_value) as Key
+		var down := Input.is_key_pressed(key)
+		var was_down := bool(_key_latch.get(int(key), false))
+		if down and not was_down:
+			_handle_polled_key(key)
+		_key_latch[int(key)] = down
+
+	var mouse_down := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	if mouse_down and not _left_mouse_latched and not _pointer_over_gui():
+		_play_semantic_action("attack")
+	_left_mouse_latched = mouse_down
 
 
-func _handle_lab_key(event: InputEventKey) -> bool:
-	if _event_matches_key(event, KEY_F1):
+func _handle_polled_key(key: Key) -> void:
+	if key == KEY_F1:
 		_debug_enabled = not _debug_enabled
 		if rig != null and rig.has_method("set_debug_enabled"):
 			rig.call("set_debug_enabled", _debug_enabled)
 		_update_status()
-		return true
-	if _event_matches_key(event, KEY_ESCAPE):
+		return
+	if key == KEY_ESCAPE:
 		_auto_showcase = false
 		_stop_manual_animation()
-		return true
-	if _event_matches_key(event, KEY_TAB):
+		return
+	if key == KEY_TAB:
 		_browser_category_index = (_browser_category_index + 1) % CATEGORY_ORDER.size()
 		_rebuild_browser_entries()
-		return true
-	if _event_matches_key(event, KEY_PAGEUP):
+		return
+	if key == KEY_PAGEUP:
 		_navigate_browser(-1)
-		return true
-	if _event_matches_key(event, KEY_PAGEDOWN):
+		return
+	if key == KEY_PAGEDOWN:
 		_navigate_browser(1)
-		return true
-	if _event_matches_key(event, KEY_ENTER) or _event_matches_key(event, KEY_KP_ENTER):
+		return
+	if key == KEY_ENTER or key == KEY_KP_ENTER:
 		_play_browser_animation()
-		return true
-	if _event_matches_key(event, KEY_F2):
+		return
+	if key == KEY_F2:
 		_auto_showcase = not _auto_showcase
 		if _auto_showcase:
 			_play_browser_animation()
 		else:
 			_stop_manual_animation()
 		_update_browser_label()
-		return true
+		return
 
-	var quick_animation := _quick_animation_for_event(event)
-	if not quick_animation.is_empty():
+	var action_name := str(SharedActions.QUICK_ACTIONS.get(key, ""))
+	if not action_name.is_empty():
 		_auto_showcase = false
-		_play_manual_animation(quick_animation)
-		return true
-	return false
+		_play_semantic_action(action_name)
 
 
-func _event_matches_key(event: InputEventKey, expected_key: int) -> bool:
-	return int(event.keycode) == expected_key or int(event.physical_keycode) == expected_key
+func _play_semantic_action(action_name: String) -> void:
+	var animation_name := SharedActions.resolve_action_animation(rig, action_name)
+	if animation_name.is_empty():
+		push_warning("AlabasterMechanicLab: no animation resolved for action '%s'. catalog=%d" % [action_name, _catalog.size()])
+		return
+	print("ALABASTER_LAB_ACTION action=%s animation=%s" % [action_name, animation_name])
+	_play_manual_animation(animation_name)
 
 
-func _quick_animation_for_event(event: InputEventKey) -> String:
-	for key_value in QUICK_ANIMATIONS.keys():
-		var expected_key := int(key_value)
-		if _event_matches_key(event, expected_key):
-			return str(QUICK_ANIMATIONS[key_value])
-	return ""
+func _pointer_over_gui() -> bool:
+	var hovered := get_viewport().gui_get_hovered_control()
+	if hovered == null:
+		return false
+	return hovered.mouse_filter != Control.MOUSE_FILTER_IGNORE
 
 
 func _refresh_catalog() -> void:
@@ -208,32 +226,37 @@ func _build_ui() -> void:
 	title.position = Vector2(28.0, 24.0)
 	title.text = "ALABASTER MECHANIC LAB • FULL ANIMATION PLAYGROUND"
 	title.add_theme_font_size_override("font_size", 24)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(title)
 
 	var help := Label.new()
 	help.position = Vector2(28.0, 58.0)
-	help.text = "WASD mover • SHIFT correr • F1 skeleton • TAB categoria • PgUp/PgDn navegar • ENTER tocar • F2 autoplay • ESC idle"
+	help.text = "WASD mover • SHIFT correr • LMB ataque • F1 skeleton • TAB categoria • PgUp/PgDn navegar • ENTER tocar • F2 autoplay • ESC idle"
 	help.add_theme_font_size_override("font_size", 16)
 	help.modulate = Color(0.82, 0.86, 0.94)
+	help.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(help)
 
 	status_label = Label.new()
 	status_label.position = Vector2(28.0, 86.0)
 	status_label.add_theme_font_size_override("font_size", 15)
 	status_label.modulate = Color(0.60, 0.94, 0.80)
+	status_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(status_label)
 
 	browser_label = Label.new()
 	browser_label.position = Vector2(28.0, 118.0)
 	browser_label.add_theme_font_size_override("font_size", 15)
 	browser_label.modulate = Color(0.93, 0.82, 0.48)
+	browser_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(browser_label)
 
 	hotkey_label = Label.new()
 	hotkey_label.position = Vector2(28.0, SCREEN_SIZE.y - 108.0)
-	hotkey_label.text = "SPACE jump • H hurt • K death • G guard • P parry • X respawn • C cast\n1 sword1 • 2 sword2 • 3 finisher • 4 triple slash • 5 cross strike • 6/7/8 2H hammer • 9 spear • 0 tonfa"
+	hotkey_label.text = "SPACE jump • H hurt • K death • G guard • P parry • X respawn • C cast • LMB normal attack\n1 sword1 • 2 sword2 • 3 finisher • 4 triple slash • 5 cross strike • 6/7/8 hammer • 9 spear • 0 tonfa"
 	hotkey_label.add_theme_font_size_override("font_size", 14)
 	hotkey_label.modulate = Color(0.78, 0.82, 0.90)
+	hotkey_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(hotkey_label)
 
 	_update_browser_label()
