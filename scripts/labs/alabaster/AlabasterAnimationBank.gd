@@ -2,11 +2,11 @@ extends RefCounted
 
 # Repository-local animation-bank loader for the Alabaster tools/runtime.
 #
-# IMPORTANT: the committed *.part files are chunked Base64 payloads. A chunk is
-# not guaranteed to be a literal continuation of the previous Base64 string.
-# Some chunks were produced by Base64-encoding byte slices independently. Joining
-# their TEXT first corrupts the compressed stream. Decode each part first, append
-# the resulting bytes, then decompress the reconstructed ZSTD frame.
+# IMPORTANT: the committed *.part files are literal slices of ONE Base64 text
+# stream. They must be concatenated as text first and decoded once. Decoding the
+# parts separately corrupts the ZSTD byte stream because part boundaries are not
+# Base64 block boundaries. This is the same reconstruction path that previously
+# loaded all 419 Juno animations correctly.
 
 const FULL_PARTS := [
 	"res://data/labs/alabaster/anims/juno_anims_bin_00.part",
@@ -15,8 +15,7 @@ const FULL_PARTS := [
 const FULL_DECOMPRESSED_BYTES := 671589
 const EXPECTED_ANIMATIONS := 419
 
-# Repo-only source fallbacks. Never search the Steam install or arbitrary local
-# filesystem locations from production/lab code.
+# Repository-only fallbacks. Do not inspect Steam or arbitrary local paths.
 const SOURCE_CANDIDATES := [
 	"res://data/labs/alabaster/characters/juno.json",
 	"res://data/labs/alabaster/source/juno.json",
@@ -163,9 +162,22 @@ static func _set_success(source: String, count: int, parts: int) -> void:
 
 
 static func _load_known_full_bank() -> Dictionary:
-	var raw := _load_chunked_zstd(FULL_PARTS, FULL_DECOMPRESSED_BYTES)
-	if raw.is_empty():
-		last_error = "full-bank chunk reconstruction/ZSTD decode failed"
+	var encoded := ""
+	for path_variant in FULL_PARTS:
+		var path := String(path_variant)
+		if not FileAccess.file_exists(path):
+			last_error = "full-bank part missing: %s" % path
+			return {}
+		encoded += _strip_base64_whitespace(FileAccess.get_file_as_string(path))
+
+	var compressed := Marshalls.base64_to_raw(encoded)
+	if compressed.is_empty():
+		last_error = "full-bank base64 decode failed"
+		return {}
+
+	var raw := compressed.decompress(FULL_DECOMPRESSED_BYTES, FileAccess.COMPRESSION_ZSTD)
+	if raw.size() != FULL_DECOMPRESSED_BYTES:
+		last_error = "full-bank ZSTD incomplete (%d/%d bytes); trying source/gameplay fallback" % [raw.size(), FULL_DECOMPRESSED_BYTES]
 		return {}
 
 	var anims := _decode_payload(raw)
@@ -193,14 +205,26 @@ static func _load_gameplay_chunks() -> Dictionary:
 		if files.is_empty():
 			continue
 
-		var paths: Array = []
+		var encoded := ""
 		for filename_variant in files:
-			paths.append(dir_path.path_join(String(filename_variant)))
+			var filename := String(filename_variant)
+			var path := dir_path.path_join(filename)
+			encoded += _strip_base64_whitespace(FileAccess.get_file_as_string(path))
 		last_part_count = files.size()
 
-		var raw := _load_chunked_zstd(paths, -1)
-		if raw.is_empty():
-			last_error = "gameplay-bank chunk reconstruction/ZSTD decode failed (%d parts)" % files.size()
+		var compressed := Marshalls.base64_to_raw(encoded)
+		if compressed.is_empty():
+			last_error = "gameplay-bank base64 decode failed (%d parts)" % files.size()
+			continue
+
+		var frame_size := _zstd_frame_content_size(compressed)
+		if frame_size <= 0:
+			last_error = "gameplay-bank ZSTD frame does not expose a valid content size"
+			continue
+
+		var raw := compressed.decompress(frame_size, FileAccess.COMPRESSION_ZSTD)
+		if raw.size() != frame_size:
+			last_error = "gameplay-bank ZSTD incomplete (%d/%d bytes from %d parts)" % [raw.size(), frame_size, files.size()]
 			continue
 
 		var anims := _decode_payload(raw)
@@ -209,106 +233,8 @@ static func _load_gameplay_chunks() -> Dictionary:
 	return {}
 
 
-# Reconstruct one compressed byte stream from Base64 chunk files. We first try
-# the format actually used by the committed banks: decode every chunk separately
-# and append its bytes. As a compatibility fallback we also try a literal joined
-# Base64 stream for older exports.
-static func _load_chunked_zstd(paths: Array, expected_size: int) -> PackedByteArray:
-	var texts: Array = []
-	for path_variant in paths:
-		var path := String(path_variant)
-		if not FileAccess.file_exists(path):
-			return PackedByteArray()
-		var text := _strip_base64_whitespace(FileAccess.get_file_as_string(path))
-		if text.is_empty():
-			return PackedByteArray()
-		texts.append(text)
-
-	var per_part := PackedByteArray()
-	var per_part_ok := true
-	for text_variant in texts:
-		var bytes := _safe_base64_decode(String(text_variant))
-		if bytes.is_empty():
-			per_part_ok = false
-			break
-		per_part.append_array(bytes)
-	if per_part_ok:
-		var raw := _try_zstd_decompress(per_part, expected_size)
-		if not raw.is_empty():
-			return raw
-
-	var joined := ""
-	for text_variant in texts:
-		joined += String(text_variant)
-	var joined_bytes := _safe_base64_decode(joined)
-	if not joined_bytes.is_empty():
-		var joined_raw := _try_zstd_decompress(joined_bytes, expected_size)
-		if not joined_raw.is_empty():
-			return joined_raw
-
-	return PackedByteArray()
-
-
-static func _try_zstd_decompress(compressed: PackedByteArray, expected_size: int) -> PackedByteArray:
-	if not _looks_like_zstd(compressed):
-		return PackedByteArray()
-	var frame_size := expected_size
-	if frame_size <= 0:
-		frame_size = _zstd_frame_content_size(compressed)
-	if frame_size <= 0:
-		return PackedByteArray()
-	var raw := compressed.decompress(frame_size, FileAccess.COMPRESSION_ZSTD)
-	if raw.size() != frame_size:
-		return PackedByteArray()
-	return raw
-
-
-static func _safe_base64_decode(value: String) -> PackedByteArray:
-	var clean := _normalize_base64(value)
-	if clean.is_empty() or not _looks_like_base64(clean):
-		return PackedByteArray()
-	return Marshalls.base64_to_raw(clean)
-
-
 static func _strip_base64_whitespace(value: String) -> String:
 	return value.replace("\r", "").replace("\n", "").replace("\t", "").replace(" ", "").strip_edges()
-
-
-static func _normalize_base64(value: String) -> String:
-	var clean := _strip_base64_whitespace(value)
-	if clean.is_empty():
-		return ""
-	var remainder := clean.length() % 4
-	if remainder == 1:
-		return ""
-	if remainder == 2:
-		clean += "=="
-	elif remainder == 3:
-		clean += "="
-	return clean
-
-
-static func _looks_like_base64(value: String) -> bool:
-	if value.is_empty() or value.length() % 4 != 0:
-		return false
-	var padding_started := false
-	for index in range(value.length()):
-		var code := value.unicode_at(index)
-		if code == 61:
-			padding_started = true
-			if index < value.length() - 2:
-				return false
-			continue
-		if padding_started:
-			return false
-		var valid := (code >= 65 and code <= 90) or (code >= 97 and code <= 122) or (code >= 48 and code <= 57) or code == 43 or code == 47
-		if not valid:
-			return false
-	return true
-
-
-static func _looks_like_zstd(data: PackedByteArray) -> bool:
-	return data.size() >= 4 and int(data[0]) == 0x28 and int(data[1]) == 0xB5 and int(data[2]) == 0x2F and int(data[3]) == 0xFD
 
 
 static func _find_part_files(dir_path: String, prefix: String) -> Array[String]:
@@ -354,7 +280,7 @@ static func _extract_anims_from_json_text(text: String) -> Dictionary:
 static func _zstd_frame_content_size(data: PackedByteArray) -> int:
 	if data.size() < 6:
 		return -1
-	if not _looks_like_zstd(data):
+	if int(data[0]) != 0x28 or int(data[1]) != 0xB5 or int(data[2]) != 0x2F or int(data[3]) != 0xFD:
 		return -1
 
 	var descriptor := int(data[4])
