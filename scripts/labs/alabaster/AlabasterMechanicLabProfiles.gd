@@ -1,8 +1,9 @@
 extends "res://scripts/labs/alabaster/AlabasterMechanicLab.gd"
 class_name AlabasterMechanicLabProfiles
 
-const JunoRigScript := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeSourceLive.gd")
+const JunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 const PlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
+const ProfileLibrary := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
 
 const PROFILE_JUNO := "juno"
 const PROFILE_DUMMY := "male_dummy"
@@ -61,7 +62,7 @@ func _build_profile_switcher() -> void:
 		button.button_group = group
 		button.focus_mode = Control.FOCUS_NONE
 		button.custom_minimum_size = Vector2(104.0, 34.0)
-		button.tooltip_text = "Switch the complete source figure. Dummy/Male use the exact same playable rig class as gameplay."
+		button.tooltip_text = "Switch the complete source figure. Mechanic Lab and gameplay share the same bone runtime."
 		button.pressed.connect(_on_profile_pressed.bind(profile_id))
 		row.add_child(button)
 		_profile_buttons[profile_id] = button
@@ -139,10 +140,12 @@ func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
 
 	_active_profile = profile_id
 	if profile_id == PROFILE_JUNO:
+		# Same production BonesSystem used by the actual player.
 		rig = JunoRigScript.new()
 		rig.name = "JunoRig"
 		player.add_child(rig)
 	else:
+		# Same playable skin rig instantiated by AlabasterPlayerVisualController.
 		var skin_rig = PlayableSkinRigScript.new()
 		skin_rig.call("configure_skin_profile", profile_id)
 		rig = skin_rig
@@ -151,6 +154,7 @@ func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
 		if rig.has_method("initialize_skin") and not bool(rig.call("initialize_skin")):
 			push_error("AlabasterMechanicLabProfiles: could not initialize profile %s" % profile_id)
 
+	_install_profile_custom_animations(profile_id)
 	rig.scale = Vector2(2.5, 2.5)
 	if rig.has_method("set_debug_enabled"):
 		rig.call("set_debug_enabled", _debug_enabled)
@@ -178,6 +182,18 @@ func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
 			str(PROFILE_LABELS[_active_profile]),
 			_catalog.size(),
 		])
+
+
+func _install_profile_custom_animations(profile_id: String) -> void:
+	if rig == null or not rig.has_method("install_runtime_animation"):
+		return
+	var custom := ProfileLibrary.load_custom_animations(profile_id)
+	for animation_name_value in custom.keys():
+		var data_value: Variant = custom[animation_name_value]
+		if data_value is Dictionary:
+			rig.call("install_runtime_animation", str(animation_name_value), data_value as Dictionary)
+	if not custom.is_empty():
+		print("ALABASTER_LAB_CUSTOM_BANK profile=%s animations=%d" % [profile_id, custom.size()])
 
 
 func _physics_process(delta: float) -> void:
@@ -214,7 +230,7 @@ func _update_status() -> void:
 	super._update_status()
 	if status_label == null:
 		return
-	var runtime_label := "JUNO SOURCE RIG" if _active_profile == PROFILE_JUNO else "SHARED PLAYABLE RIG"
+	var runtime_label := "GAME BONES SYSTEM" if _active_profile == PROFILE_JUNO else "GAME PLAYABLE SKIN RIG"
 	status_label.text = "figure=%s   runtime=%s   opacity=%d%%   %s" % [
 		str(PROFILE_LABELS.get(_active_profile, _active_profile)),
 		runtime_label,
