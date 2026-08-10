@@ -65,43 +65,69 @@ func _physics_process(delta: float) -> void:
 	_update_status()
 
 
-func _unhandled_key_input(event: InputEvent) -> void:
-	if not (event is InputEventKey) or not event.pressed or event.echo:
+func _input(event: InputEvent) -> void:
+	# Capture lab commands before Control/Button keyboard handling. This prevents
+	# SPACE/ENTER and number-row attacks from being consumed by the profile UI.
+	if not (event is InputEventKey):
 		return
+	var key_event := event as InputEventKey
+	if not key_event.pressed or key_event.echo:
+		return
+	if _handle_lab_key(key_event):
+		get_viewport().set_input_as_handled()
 
-	if event.keycode == KEY_F1:
+
+func _handle_lab_key(event: InputEventKey) -> bool:
+	if _event_matches_key(event, KEY_F1):
 		_debug_enabled = not _debug_enabled
-		rig.set_debug_enabled(_debug_enabled)
+		if rig != null and rig.has_method("set_debug_enabled"):
+			rig.call("set_debug_enabled", _debug_enabled)
 		_update_status()
-		return
-	if event.keycode == KEY_ESCAPE:
+		return true
+	if _event_matches_key(event, KEY_ESCAPE):
 		_auto_showcase = false
 		_stop_manual_animation()
-		return
-	if event.keycode == KEY_TAB:
+		return true
+	if _event_matches_key(event, KEY_TAB):
 		_browser_category_index = (_browser_category_index + 1) % CATEGORY_ORDER.size()
 		_rebuild_browser_entries()
-		return
-	if event.keycode == KEY_PAGEUP:
+		return true
+	if _event_matches_key(event, KEY_PAGEUP):
 		_navigate_browser(-1)
-		return
-	if event.keycode == KEY_PAGEDOWN:
+		return true
+	if _event_matches_key(event, KEY_PAGEDOWN):
 		_navigate_browser(1)
-		return
-	if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+		return true
+	if _event_matches_key(event, KEY_ENTER) or _event_matches_key(event, KEY_KP_ENTER):
 		_play_browser_animation()
-		return
-	if event.keycode == KEY_F2:
+		return true
+	if _event_matches_key(event, KEY_F2):
 		_auto_showcase = not _auto_showcase
 		if _auto_showcase:
 			_play_browser_animation()
 		else:
 			_stop_manual_animation()
 		_update_browser_label()
-		return
-	if QUICK_ANIMATIONS.has(event.keycode):
+		return true
+
+	var quick_animation := _quick_animation_for_event(event)
+	if not quick_animation.is_empty():
 		_auto_showcase = false
-		_play_manual_animation(String(QUICK_ANIMATIONS[event.keycode]))
+		_play_manual_animation(quick_animation)
+		return true
+	return false
+
+
+func _event_matches_key(event: InputEventKey, expected_key: Key) -> bool:
+	return event.keycode == expected_key or event.physical_keycode == expected_key
+
+
+func _quick_animation_for_event(event: InputEventKey) -> String:
+	for key_value in QUICK_ANIMATIONS.keys():
+		var expected_key := int(key_value) as Key
+		if _event_matches_key(event, expected_key):
+			return str(QUICK_ANIMATIONS[key_value])
+	return ""
 
 
 func _refresh_catalog() -> void:
@@ -135,13 +161,13 @@ func _play_browser_animation() -> void:
 
 
 func _play_manual_animation(animation_name: String) -> void:
-	if animation_name.is_empty() or not rig.has_animation(animation_name):
+	if animation_name.is_empty() or rig == null or not rig.has_method("has_animation") or not bool(rig.call("has_animation", animation_name)):
 		push_warning("AlabasterMechanicLab: animation not available on active shared rig: %s" % animation_name)
 		return
 	_manual_active = true
 	_manual_elapsed = 0.0
-	_manual_duration = rig.get_animation_duration_seconds(animation_name)
-	rig.set_animation(animation_name)
+	_manual_duration = float(rig.call("get_animation_duration_seconds", animation_name)) if rig.has_method("get_animation_duration_seconds") else 0.0
+	rig.call("set_animation", animation_name)
 	_update_status()
 
 
@@ -149,7 +175,8 @@ func _stop_manual_animation() -> void:
 	_manual_active = false
 	_manual_elapsed = 0.0
 	_manual_duration = 0.0
-	rig.set_animation("idle")
+	if rig != null and rig.has_method("set_animation"):
+		rig.call("set_animation", "idle")
 	_update_status()
 
 
