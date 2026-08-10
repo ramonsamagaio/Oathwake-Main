@@ -357,7 +357,7 @@ func _load_live_animation_record(record: Dictionary) -> void:
 			var suffix := "juno"
 			if _active_profile == PROFILE_DUMMY:
 				suffix = "dummy"
-		elif _active_profile == PROFILE_MALE:
+			elif _active_profile == PROFILE_MALE:
 				suffix = "male"
 			_live_save_name.text = _sanitize_name("%s_%s_tuned" % [source_name, suffix])
 		else:
