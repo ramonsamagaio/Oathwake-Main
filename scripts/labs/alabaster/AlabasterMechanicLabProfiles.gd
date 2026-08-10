@@ -102,8 +102,6 @@ func _build_profile_switcher() -> void:
 
 
 func _on_profile_pressed(profile_id: String) -> void:
-	# Explicitly clear GUI focus too. The lab also captures its commands in
-	# Node._input(), so SPACE and ENTER remain animation controls after a click.
 	get_viewport().gui_release_focus()
 	_replace_rig(profile_id, true)
 
@@ -131,6 +129,8 @@ func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
 	_auto_showcase = false
 	_manual_elapsed = 0.0
 	_manual_duration = 0.0
+	_key_latch.clear()
+	_left_mouse_latched = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 
 	if rig != null and is_instance_valid(rig):
 		if rig.get_parent() != null:
@@ -160,12 +160,14 @@ func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
 	_set_profile_idle()
 
 	var missing_actions := SharedActions.missing_lab_actions(rig)
+	var resolved_actions := SharedActions.resolved_lab_actions(rig)
 	print("ALABASTER_LAB_ACTIONS profile=%s available=%d/%d missing=%s" % [
 		profile_id,
-		SharedActions.LAB_ACTION_ANIMATIONS.size() - missing_actions.size(),
-		SharedActions.LAB_ACTION_ANIMATIONS.size(),
+		SharedActions.LAB_ACTIONS.size() - missing_actions.size(),
+		SharedActions.LAB_ACTIONS.size(),
 		str(missing_actions),
 	])
+	print("ALABASTER_LAB_ACTION_MAP profile=%s resolved=%s" % [profile_id, str(resolved_actions)])
 
 	if refresh_ui:
 		_refresh_catalog()
@@ -179,35 +181,9 @@ func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if _manual_active:
-		_manual_elapsed += delta
-		if _manual_duration > 0.0 and _manual_elapsed >= _manual_duration:
-			if _auto_showcase:
-				_navigate_browser(1)
-				_play_browser_animation()
-			else:
-				_stop_manual_animation()
-		player.velocity = Vector2.ZERO
-		_update_status()
-		return
-
-	var input_dir := Vector2(
-		float(Input.is_key_pressed(KEY_D)) - float(Input.is_key_pressed(KEY_A)),
-		float(Input.is_key_pressed(KEY_S)) - float(Input.is_key_pressed(KEY_W))
-	)
-	var running := Input.is_key_pressed(KEY_SHIFT)
-	if input_dir.length_squared() > 0.0:
-		input_dir = input_dir.normalized()
-		player.velocity = input_dir * (RUN_SPEED if running else WALK_SPEED)
-		player.move_and_slide()
-		player.position.x = clampf(player.position.x, 72.0, SCREEN_SIZE.x - 72.0)
-		player.position.y = clampf(player.position.y, 92.0, SCREEN_SIZE.y - 72.0)
-		rig.set_facing_from_vector(input_dir)
-		rig.set_animation("run" if running else "walk")
-	else:
-		player.velocity = Vector2.ZERO
-		_set_profile_idle()
-	_update_status()
+	# Base class owns all keyboard/mouse command polling. Profile mode only changes
+	# which shared rig receives those actions.
+	super._physics_process(delta)
 
 
 func _set_profile_idle() -> void:
