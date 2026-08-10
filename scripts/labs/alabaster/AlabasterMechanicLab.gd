@@ -118,13 +118,13 @@ func _handle_lab_key(event: InputEventKey) -> bool:
 	return false
 
 
-func _event_matches_key(event: InputEventKey, expected_key: Key) -> bool:
-	return event.keycode == expected_key or event.physical_keycode == expected_key
+func _event_matches_key(event: InputEventKey, expected_key: int) -> bool:
+	return int(event.keycode) == expected_key or int(event.physical_keycode) == expected_key
 
 
 func _quick_animation_for_event(event: InputEventKey) -> String:
 	for key_value in QUICK_ANIMATIONS.keys():
-		var expected_key := int(key_value) as Key
+		var expected_key := int(key_value)
 		if _event_matches_key(event, expected_key):
 			return str(QUICK_ANIMATIONS[key_value])
 	return ""
