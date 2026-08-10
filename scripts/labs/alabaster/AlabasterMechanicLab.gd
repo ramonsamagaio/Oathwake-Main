@@ -78,6 +78,14 @@ func _physics_process(delta: float) -> void:
 	_update_status()
 
 
+func reset_command_latches() -> void:
+	# Profile switching may happen while a key or mouse button is held. Reset the
+	# edge detector through a public base-class API instead of reaching into an
+	# inherited private implementation detail from AlabasterMechanicLabProfiles.
+	_key_latch.clear()
+	_left_mouse_latched = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+
+
 func _poll_lab_commands() -> void:
 	for key_value in POLLED_KEYS:
 		var key := int(key_value) as Key
@@ -253,7 +261,7 @@ func _build_ui() -> void:
 
 	hotkey_label = Label.new()
 	hotkey_label.position = Vector2(28.0, SCREEN_SIZE.y - 108.0)
-	hotkey_label.text = "SPACE jump • H hurt • K death • G guard • P parry • X respawn • C cast • LMB normal attack\n1 sword1 • 2 sword2 • 3 finisher • 4 triple slash • 5 cross strike • 6/7/8 hammer • 9 spear • 0 tonfa"
+	hotkey_label.text = "SPACE jump • H hurt • K death • G guard • P parry • X respawn • C cast\n1 sword1 • 2 sword2 • 3 finisher • 4 triple slash • 5 cross strike • 6/7/8 2H hammer • 9 spear • 0 tonfa"
 	hotkey_label.add_theme_font_size_override("font_size", 14)
 	hotkey_label.modulate = Color(0.78, 0.82, 0.90)
 	hotkey_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
