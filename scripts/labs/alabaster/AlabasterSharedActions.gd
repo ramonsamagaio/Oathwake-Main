@@ -29,6 +29,9 @@ const ACTION_TO_ANIMATION := {
 	"tonfa_1": "atkTonfa1-punch",
 }
 
+# Both the main number row and numeric keypad are accepted by the mechanic lab.
+# The lab also checks physical_keycode, so keyboard layout/focus cannot silently
+# steal combat preview shortcuts.
 const QUICK_KEYS := {
 	KEY_SPACE: "idleJump1",
 	KEY_H: "damage",
@@ -47,6 +50,16 @@ const QUICK_KEYS := {
 	KEY_8: "atkHammer3",
 	KEY_9: "atkSpear1",
 	KEY_0: "atkTonfa1-punch",
+	KEY_KP_1: "atkSwordN1",
+	KEY_KP_2: "atkSwordN2",
+	KEY_KP_3: "atkSwordNFinisher",
+	KEY_KP_4: "atkSwordTripleSlash",
+	KEY_KP_5: "atkSwordCrossStrike",
+	KEY_KP_6: "atkHammer1fast",
+	KEY_KP_7: "atkHammer2",
+	KEY_KP_8: "atkHammer3",
+	KEY_KP_9: "atkSpear1",
+	KEY_KP_0: "atkTonfa1-punch",
 }
 
 const GAMEPLAY_ACTIONS := {
