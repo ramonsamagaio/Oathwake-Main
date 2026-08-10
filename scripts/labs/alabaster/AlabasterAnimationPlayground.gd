@@ -1,10 +1,10 @@
 extends "res://scripts/labs/alabaster/AlabasterMechanicLab.gd"
 
-const ProductionRigRuntime := preload("res://scripts/labs/alabaster/AlabasterRigRuntimeProduction.gd")
+const SharedJunoRigRuntime := preload("res://scripts/systems/bones/BonesSystem.gd")
 
-# UI layer over the validated mechanic lab. The playground uses the same
-# production rig/runtime and the same repository-local animation bank as gameplay.
-# No Steam/local-install source lookup is needed.
+# UI layer over the validated mechanic lab. The playground now instantiates the
+# exact same BonesSystem used by gameplay, Mechanic Lab Juno and Bone Studio.
+# Animation-bank recovery/fallback behavior therefore cannot diverge here.
 
 var _sprite_opacity_slider: HSlider
 
@@ -20,16 +20,14 @@ func _build_player() -> void:
 	player.position = SCREEN_SIZE * 0.5 + Vector2(0.0, 80.0)
 	add_child(player)
 
-	rig = ProductionRigRuntime.new()
-	rig.name = "JunoProductionRig"
+	rig = SharedJunoRigRuntime.new()
+	rig.name = "JunoSharedBonesRig"
 	rig.scale = Vector2(2.5, 2.5)
 	player.add_child(rig)
 
 
-# AlabasterMechanicLab intentionally handles keyboard commands by polling global
-# key state in _physics_process(). Do not call super._unhandled_key_input(): the
-# parent does not define that virtual callback, and Godot treats that as a parser
-# error before the playground can open.
+# AlabasterMechanicLab owns the keyboard command path in _input(). There is no
+# parent _unhandled_key_input() callback to chain here.
 
 
 func _build_sprite_opacity_control() -> void:
