@@ -7,6 +7,7 @@ class_name AlabasterRigRuntimeTunable
 #   frames[frame][bone] -> additive correction for exactly one source frame
 # The source Alabaster animation data itself is never rewritten.
 
+const SharedAnimationBank := preload("res://scripts/labs/alabaster/AlabasterAnimationBank.gd")
 const TUNING_KEY := "oathwake_tuning"
 const GLOBAL_KEY := "global"
 const FRAMES_KEY := "frames"
@@ -14,6 +15,27 @@ const HIGHLIGHT_GREEN := Color(0.08, 1.0, 0.22, 1.0)
 
 var selected_sprite_part := ""
 var selection_green_intensity := 0.65
+
+
+# SourceLive historically falls back to juno_player_anims.json.gz.b64 when the
+# complete 419-animation catalog is unavailable. That legacy payload is not a
+# reliable repository source anymore and was producing a second Base64/GZIP
+# failure after the real bank failure. Production, Mechanic Lab and Bone Studio
+# all pass through this Tunable runtime, so use the canonical repository gameplay
+# chunks instead. If the full bank loaded, this method is a no-op.
+func _merge_player_animation_bank() -> void:
+	if _animation_bank_loaded:
+		return
+	var gameplay := SharedAnimationBank.load_gameplay_animation_bank()
+	if gameplay.is_empty():
+		push_warning("AlabasterRigRuntime: repository gameplay fallback unavailable; keeping runtime subset (%d animations)" % _anims.size())
+		return
+	var diagnostics := SharedAnimationBank.get_diagnostics()
+	_install_animation_catalog(gameplay, "GAMEPLAY_PACK")
+	print("ALABASTER_RUNTIME_GAMEPLAY_FALLBACK source=%s animations=%d" % [
+		str(diagnostics.get("source", "GAMEPLAY")),
+		gameplay.size(),
+	])
 
 
 func _sample_animation_source(animation_name: String) -> Dictionary:
