@@ -91,6 +91,98 @@ func invalidate_animation_bank_cache() -> void:
 	_compiled_animation_count = 0
 
 
+func _source_tracks(animation_name: String) -> Dictionary:
+	# Alabaster's frameCnt is an EXCLUSIVE loop boundary. Some authored clips,
+	# notably Dummy/Male run, still contain a transform key exactly at frameCnt.
+	# The source clock wraps before that frame is displayed, but ordinary spline
+	# sampling would interpolate toward that hidden endpoint during the last visible
+	# frame. In the shipped run clip that endpoint contains a radically different
+	# Euler representation, producing the one-frame body explosion seen in the lab.
+	#
+	# Compile repeating tracks with a synthetic closure at frameCnt that equals the
+	# pose at loopStart. This keeps interpolation continuous while preserving the
+	# source rule that frameCnt itself is never displayed.
+	var cache_key := "source:" + animation_name
+	if _track_cache.has(cache_key):
+		var cached_value: Variant = _track_cache[cache_key]
+		return cached_value as Dictionary if cached_value is Dictionary else {}
+
+	var tracks: Dictionary = super._source_tracks(animation_name)
+	if tracks.is_empty() or not _anims.has(animation_name):
+		return tracks
+
+	var anim_value: Variant = _anims.get(animation_name, {})
+	if not anim_value is Dictionary:
+		return tracks
+	var anim := anim_value as Dictionary
+	if not bool(anim.get("repeat", true)):
+		return tracks
+
+	var frame_count := maxf(float(anim.get("frameCnt", 1.0)), 1.0)
+	var loop_frame := float(anim.get("loopStart", anim.get("animStart", 0.0)))
+	var anim_repeat := maxf(float(anim.get("frameRepeat", 1.0)), 1.0)
+	if frame_count <= loop_frame:
+		return tracks
+
+	var repaired_tracks := 0
+	for node_name_variant in tracks.keys():
+		var track_value: Variant = tracks[node_name_variant]
+		if not track_value is Array:
+			continue
+		var track := track_value as Array
+		if not _track_has_exclusive_boundary_key(track, frame_count):
+			continue
+		tracks[node_name_variant] = _repair_exclusive_loop_boundary(track, frame_count, loop_frame, anim_repeat)
+		repaired_tracks += 1
+
+	_track_cache[cache_key] = tracks
+	if repaired_tracks > 0:
+		print("ALABASTER_LOOP_BOUNDARY_REPAIRED animation=%s frameCnt=%.0f loopStart=%.0f tracks=%d" % [
+			animation_name, frame_count, loop_frame, repaired_tracks,
+		])
+	return tracks
+
+
+func _track_has_exclusive_boundary_key(track: Array, frame_count: float) -> bool:
+	for key_value in track:
+		if key_value is Dictionary and float((key_value as Dictionary).get("frame", 0.0)) >= frame_count:
+			return true
+	return false
+
+
+func _repair_exclusive_loop_boundary(track: Array, frame_count: float, loop_frame: float, anim_repeat: float) -> Array:
+	var visible_track: Array = []
+	for key_value in track:
+		if not key_value is Dictionary:
+			continue
+		var key := key_value as Dictionary
+		if float(key.get("frame", 0.0)) < frame_count:
+			visible_track.append(key)
+
+	# A track authored only at the exclusive endpoint has no visible animation data.
+	# Dropping it is safer than turning an undisplayed endpoint into a full-loop pose.
+	if visible_track.is_empty():
+		return visible_track
+
+	var loop_pose := _sample_source_track(visible_track, loop_frame, anim_repeat)
+	if not bool(loop_pose.get("present", false)):
+		return visible_track
+
+	visible_track.append({
+		"frame": frame_count,
+		"rot": loop_pose.get("rot", Quaternion.IDENTITY),
+		"trans": loop_pose.get("trans", Vector3.ZERO),
+		"scale": float(loop_pose.get("scale", 1.0)),
+		"spline": "LINEAR",
+		"frame_repeat": 1.0,
+		"rot_toggle": bool(loop_pose.get("rot_toggle", false)),
+		"present": true,
+		"anim_repeat": anim_repeat,
+		"synthetic_loop_closure": true,
+	})
+	return visible_track
+
+
 func _sample_source_track(track: Array, frame: float, anim_repeat: float) -> Dictionary:
 	# Production path uses binary search instead of scanning every key in every
 	# bone track on every rendered frame. Interpolation semantics are unchanged.
