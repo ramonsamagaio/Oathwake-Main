@@ -12,6 +12,12 @@ func _ready() -> void:
 	super._ready()
 	_live_tuning_panel = LiveTuningPanelScript.new()
 	_live_tuning_panel.call("setup", self)
+	# Replace the editor-only Juno ProductionRig with the exact BonesSystem used
+	# by gameplay. Dummy/Male are also created by the same PlayableSkinRig used by
+	# the player, so Live Tuning and the game now share one interpretation path.
+	_live_tuning_panel.call("_replace_host_rig", "juno")
+	_live_tuning_panel.call("_rebuild_parts_list")
+	_live_tuning_panel.call_deferred("_select_default_idle")
 
 
 func _on_viewport_bone_transform_delta(bone_name: String, mode: String, delta_value: Vector3) -> void:
