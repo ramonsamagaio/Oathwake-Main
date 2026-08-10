@@ -6,6 +6,8 @@ const HumanoidRetarget := preload("res://scripts/labs/alabaster/AlabasterHumanoi
 const JunoGameplayBank := preload("res://scripts/labs/alabaster/AlabasterJunoGameplayBank.gd")
 
 const BODY_DEPTH_MOTION_NAMES := ["", "idle", "walk", "run", "dash"]
+const AUXILIARY_LAYER_NODE_NAMES := ["headGear", "tail", "tailEnd"]
+const DEPTH_SCORE_EPSILON := 0.01
 
 var skin_profile_id := "male_dummy"
 var _skin_figure_source := "Male-Dummy"
@@ -183,6 +185,7 @@ func _load_skin_data() -> void:
 		return
 
 	_install_weapon_sockets()
+	_install_auxiliary_layer_nodes()
 	_figure["nodes"] = _nodes
 	_figure["anims"] = _anims
 	_animation_bank_loaded = true
@@ -229,6 +232,47 @@ func _install_weapon_sockets() -> void:
 		_nodes[socket_name] = _fallback_socket(socket_name)
 
 
+func _install_auxiliary_layer_nodes() -> void:
+	# Dummy/Male keep two currently-empty attachment strata matching Juno's rig:
+	# headGear is the future head/halo layer; tail -> tailEnd is the future back
+	# layer for capes/wings. They intentionally build no sprites yet.
+	var juno_figure := JunoGameplayBank.load_runtime_figure()
+	var juno_nodes_value: Variant = juno_figure.get("nodes", {})
+	var juno_nodes := juno_nodes_value as Dictionary if juno_nodes_value is Dictionary else {}
+	for node_name in AUXILIARY_LAYER_NODE_NAMES:
+		if _nodes.has(node_name):
+			continue
+		var source_value: Variant = juno_nodes.get(node_name, {})
+		var node: Dictionary
+		if source_value is Dictionary and not (source_value as Dictionary).is_empty():
+			node = (source_value as Dictionary).duplicate(true)
+		else:
+			node = _fallback_auxiliary_layer_node(node_name)
+		node["gfx"] = []
+		node["colls"] = []
+		node["hidden"] = false
+		_nodes[node_name] = node
+
+
+func _fallback_auxiliary_layer_node(node_name: String) -> Dictionary:
+	match node_name:
+		"headGear":
+			return {
+				"parent": "head", "pos": [0.0, 0.0, 0.0],
+				"colls": [], "gfx": [], "frameAnims": {}, "frameKeys": [],
+			}
+		"tailEnd":
+			return {
+				"parent": "tail", "pos": [0.0, 0.0, 0.0],
+				"colls": [], "gfx": [], "frameAnims": {}, "frameKeys": [],
+			}
+		_:
+			return {
+				"parent": "head", "pos": [0.0, 0.0, 0.0],
+				"colls": [], "gfx": [], "frameAnims": {}, "frameKeys": [],
+			}
+
+
 func _fallback_socket(socket_name: String) -> Dictionary:
 	match socket_name:
 		"weaponL":
@@ -249,21 +293,21 @@ func _fallback_socket(socket_name: String) -> Dictionary:
 
 
 func _apply_directional_layer_override(_record: Dictionary, _sprite: Sprite2D) -> void:
-	# Do not inherit Juno-specific headGear/tail rules. Dummy/Male instead receive
-	# the generic humanoid depth correction below, based on their actual 3D bone
-	# anchors, so the same rule works in the lab and in gameplay.
+	# Dummy/Male use the whole-chain humanoid policy below. Keeping the per-piece
+	# Juno override disabled avoids mixing two depth systems on the same profile.
 	pass
 
 
 func _apply_profile_front_arm_over_legs() -> void:
-	# Production calls this after every sprite record has been resolved, making it
-	# the right place to correct whole limb chains without depending on record order.
-	# Only neutral/locomotion is corrected here. Combat keeps animation-authored
-	# crossing order until we inspect those clips individually in the lab.
+	# Production invokes this only after every sprite has its authored z value.
+	# Resolve complete leg chains every frame, preserve the proven arm/torso rule
+	# for neutral locomotion, then make the skull a hard ceiling over bare hands.
+	_apply_humanoid_leg_chain_depth()
 	var motion_name := _normalized_motion_name(current_animation)
-	if motion_name not in BODY_DEPTH_MOTION_NAMES:
-		return
-	_apply_humanoid_arm_torso_depth()
+	if motion_name in BODY_DEPTH_MOTION_NAMES:
+		_apply_humanoid_arm_torso_depth()
+	_apply_humanoid_head_ceiling()
+	_apply_auxiliary_layer_depth()
 
 
 func _normalized_motion_name(animation_name: String) -> String:
@@ -273,6 +317,61 @@ func _normalized_motion_name(animation_name: String) -> String:
 		if animation_name == HumanoidRetarget.get_retarget_name(base_name):
 			return base_name
 	return animation_name
+
+
+func _apply_humanoid_leg_chain_depth() -> void:
+	var left_front := _resolve_leg_front_state()
+	if left_front == 0:
+		return
+	var front_suffix := "L" if left_front == 1 else "R"
+	var back_suffix := "R" if front_suffix == "L" else "L"
+	var front_nodes := ["leg" + front_suffix, "foot" + front_suffix, "toe" + front_suffix]
+	var back_nodes := ["leg" + back_suffix, "foot" + back_suffix, "toe" + back_suffix]
+	var layer_step := 1 if _embedded_world_mode else 16
+	_shift_visible_nodes(front_nodes, layer_step, "front_leg_chain")
+	_shift_visible_nodes(back_nodes, -layer_step, "rear_leg_chain")
+
+
+func _resolve_leg_front_state() -> int:
+	# Profile/diagonal views can use the stable hip anchors. Exact north/south
+	# views collapse both hips to the same depth, so use the animated leg chain.
+	var hip_state := _side_front_state("hipL", "hipR", "L")
+	if hip_state != 0:
+		return hip_state
+	var left_depth := _chain_camera_depth(["legL", "footL", "toeL"])
+	var right_depth := _chain_camera_depth(["legR", "footR", "toeR"])
+	if is_nan(left_depth) or is_nan(right_depth):
+		return 0
+	var delta := left_depth - right_depth
+	if absf(delta) <= DEPTH_SCORE_EPSILON:
+		return 0
+	return 1 if delta > 0.0 else -1
+
+
+func _chain_camera_depth(node_names: Array) -> float:
+	var total := 0.0
+	var count := 0
+	for node_name_value in node_names:
+		var node_name := str(node_name_value)
+		if not _states.has(node_name):
+			continue
+		var state_value: Variant = _states[node_name]
+		if not state_value is Dictionary:
+			continue
+		var world: Vector3 = (state_value as Dictionary).get("g_self", Vector3.ZERO)
+		total += _camera_depth_score(world)
+		count += 1
+	if count == 0:
+		return NAN
+	return total / float(count)
+
+
+func _camera_depth_score(world: Vector3) -> float:
+	# Same view-space Z used by the source perspective camera, without the camera
+	# translation constant. Larger values are closer to the camera.
+	var source_y := -world.y + CAMERA_SKEW * world.z
+	var camera_rotation := deg_to_rad(editor_camera_pitch_degrees) if editor_camera_enabled else CAMERA_X_ROT
+	return source_y * sin(camera_rotation) + world.z * cos(camera_rotation)
 
 
 func _apply_humanoid_arm_torso_depth() -> void:
@@ -292,8 +391,37 @@ func _apply_humanoid_arm_torso_depth() -> void:
 	var front_nodes := ["arm" + front_suffix, "hand" + front_suffix, "finger" + front_suffix]
 	var back_nodes := ["arm" + back_suffix, "hand" + back_suffix, "finger" + back_suffix]
 	var layer_step := 1 if _embedded_world_mode else 16
-	_shift_chain_above(front_nodes, int(torso_bounds.get("max", 0)), layer_step)
-	_shift_chain_below(back_nodes, int(torso_bounds.get("min", 0)), layer_step)
+	_shift_chain_above(front_nodes, int(torso_bounds.get("max", 0)), layer_step, "front_arm")
+	_shift_chain_below(back_nodes, int(torso_bounds.get("min", 0)), layer_step, "rear_arm")
+
+
+func _apply_humanoid_head_ceiling() -> void:
+	# Male-Temp has arm pieces authored above its head layer. During attacks that
+	# lets a raised hand paint over the skull. The head remains the top body layer
+	# for Dummy/Male while equipment keeps its own independent weapon ordering.
+	var arm_bounds := _visible_z_bounds([
+		"armL", "handL", "fingerL",
+		"armR", "handR", "fingerR",
+	])
+	if not bool(arm_bounds.get("found", false)):
+		return
+	var layer_step := 1 if _embedded_world_mode else 16
+	_shift_chain_above(["head"], int(arm_bounds.get("max", 0)), layer_step, "head_over_hands")
+
+
+func _apply_auxiliary_layer_depth() -> void:
+	var layer_step := 1 if _embedded_world_mode else 16
+	var head_bounds := _visible_z_bounds(["head"])
+	if bool(head_bounds.get("found", false)):
+		_shift_chain_above(["headGear"], int(head_bounds.get("max", 0)), layer_step, "head_attachment_layer")
+
+	var body_bounds := _visible_z_bounds([
+		"root", "top", "head", "bottom",
+		"legL", "footL", "toeL", "legR", "footR", "toeR",
+		"armL", "handL", "fingerL", "armR", "handR", "fingerR",
+	])
+	if bool(body_bounds.get("found", false)):
+		_shift_chain_below(["tail", "tailEnd"], int(body_bounds.get("min", 0)), layer_step, "back_attachment_layer")
 
 
 func _visible_z_bounds(node_names: Array) -> Dictionary:
@@ -316,7 +444,7 @@ func _visible_z_bounds(node_names: Array) -> Dictionary:
 	return {"found": found, "min": min_z, "max": max_z}
 
 
-func _shift_chain_above(node_names: Array, reference_z: int, layer_step: int) -> void:
+func _shift_chain_above(node_names: Array, reference_z: int, layer_step: int, reason: String = "front_chain") -> void:
 	var bounds := _visible_z_bounds(node_names)
 	if not bool(bounds.get("found", false)):
 		return
@@ -324,10 +452,10 @@ func _shift_chain_above(node_names: Array, reference_z: int, layer_step: int) ->
 	var required_min := reference_z + layer_step
 	if chain_min >= required_min:
 		return
-	_shift_visible_nodes(node_names, required_min - chain_min, "front_arm")
+	_shift_visible_nodes(node_names, required_min - chain_min, reason)
 
 
-func _shift_chain_below(node_names: Array, reference_z: int, layer_step: int) -> void:
+func _shift_chain_below(node_names: Array, reference_z: int, layer_step: int, reason: String = "rear_chain") -> void:
 	var bounds := _visible_z_bounds(node_names)
 	if not bool(bounds.get("found", false)):
 		return
@@ -335,7 +463,7 @@ func _shift_chain_below(node_names: Array, reference_z: int, layer_step: int) ->
 	var required_max := reference_z - layer_step
 	if chain_max <= required_max:
 		return
-	_shift_visible_nodes(node_names, required_max - chain_max, "rear_arm")
+	_shift_visible_nodes(node_names, required_max - chain_max, reason)
 
 
 func _shift_visible_nodes(node_names: Array, delta_z: int, reason: String) -> void:
@@ -367,4 +495,7 @@ func get_runtime_summary() -> Dictionary:
 	result["source_path"] = RepoSkinSource.get_source_path(skin_profile_id)
 	result["atlas_path"] = RepoSkinSource.get_repo_atlas_path(skin_profile_id)
 	result["juno_shared_retarget"] = _retarget_summary.duplicate(true)
+	result["auxiliary_head_layer"] = "headGear"
+	result["auxiliary_back_layer"] = "tailEnd"
+	result["auxiliary_layers_active"] = false
 	return result
