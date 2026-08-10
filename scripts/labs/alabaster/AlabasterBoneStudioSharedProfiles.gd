@@ -1,12 +1,27 @@
 extends "res://scripts/labs/alabaster/AlabasterBoneStudioPro.gd"
 
-# Stable Bone Studio entry point. Live Tuning is loaded dynamically at runtime.
-# If the optional panel ever fails to parse/load, the base Bone Studio still
-# opens instead of becoming part of the same parser failure chain.
+# Stable Bone Studio entry point. Live Tuning is loaded dynamically at runtime,
+# while the preview itself starts with the exact BonesSystem used by gameplay.
+# This avoids an editor-only Juno runtime silently diverging from the player.
 
-const LIVE_TUNING_PANEL_PATH = "res://scripts/labs/alabaster/AlabasterBoneStudioLiveTuningPanel.gd"
+const LIVE_TUNING_PANEL_PATH = "res://scripts/labs/alabaster/AlabasterBoneStudioLiveTuningPanelFixed.gd"
+const SharedJunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 
 var _live_tuning_panel: Node = null
+
+
+func _build_preview() -> void:
+	rig = SharedJunoRigScript.new()
+	rig.name = "JunoBoneStudioSharedRig"
+	preview_world.add_child(rig)
+	rig.scale = Vector2.ONE * 3.2
+	if rig.has_method("set_sprite_opacity"):
+		rig.call_deferred("set_sprite_opacity", opacity_slider.value)
+	if rig.has_method("set_debug_enabled"):
+		rig.call_deferred("set_debug_enabled", true)
+	if rig.has_method("set_facing_from_vector"):
+		rig.call_deferred("set_facing_from_vector", Vector2.DOWN)
+	call_deferred("_populate_manual_bones")
 
 
 func _ready() -> void:
