@@ -6,6 +6,7 @@ const EXPECTED_ANIMATIONS := 419
 # installation. When a raw juno.json is absent, AlabasterAnimationBank supplies
 # the committed packed 419-animation bank instead.
 const CANDIDATES := [
+	"res://data/labs/alabaster/characters/juno.json",
 	"res://data/labs/alabaster/source/juno.json",
 	"res://data/labs/alabaster/juno.json",
 	"res://terra/data/figures/char/player/juno.json",
