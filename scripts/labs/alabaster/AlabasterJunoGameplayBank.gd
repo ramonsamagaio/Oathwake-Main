@@ -2,6 +2,7 @@ extends RefCounted
 class_name AlabasterJunoGameplayBank
 
 const AnimationBank := preload("res://scripts/labs/alabaster/AlabasterAnimationBank.gd")
+const SourceImporter := preload("res://scripts/labs/alabaster/AlabasterSourceImporter.gd")
 
 const RUNTIME_PATH := "res://data/labs/alabaster/juno_runtime.json.gz.b64"
 const RUNTIME_MAX_BYTES := 8 * 1024 * 1024
@@ -17,9 +18,18 @@ static func load_gameplay_bank() -> Dictionary:
 	if not _cache.is_empty():
 		return _cache.duplicate(true)
 
-	# One canonical loader for LAB, playground, retarget and gameplay. The old
-	# implementation decoded the same chunk files a second way and recreated the
-	# exact corruption bug we fixed in AlabasterAnimationBank.
+	# The raw Alabaster figure JSON is authoritative when it is committed to the
+	# repository. It contains figures.default.anims with all 419 authored clips and
+	# avoids any ambiguity in the historical packed/chunk exports.
+	var source_bank := SourceImporter.load_juno_animations()
+	if source_bank.size() == SourceImporter.EXPECTED_ANIMATIONS:
+		_cache = source_bank.duplicate(true)
+		_last_source = "SOURCE_JSON"
+		print("ALABASTER_JUNO_SHARED_BANK source=%s animations=%d" % [_last_source, _cache.size()])
+		return _cache.duplicate(true)
+
+	# Repository packed data remains a fully offline fallback for builds where the
+	# raw source file is intentionally not distributed.
 	var bank := AnimationBank.load_full_animation_bank()
 	if bank.is_empty():
 		push_warning("AlabasterJunoGameplayBank: repository-local Juno animation bank is empty.")
