@@ -130,8 +130,7 @@ func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
 	_auto_showcase = false
 	_manual_elapsed = 0.0
 	_manual_duration = 0.0
-	_key_latch.clear()
-	_left_mouse_latched = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	reset_command_latches()
 
 	if rig != null and is_instance_valid(rig):
 		if rig.get_parent() != null:
