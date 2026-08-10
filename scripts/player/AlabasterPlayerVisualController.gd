@@ -4,6 +4,7 @@ class_name AlabasterPlayerVisualController
 const JunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 const PlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
 const SharedActions := preload("res://scripts/labs/alabaster/AlabasterSharedActions.gd")
+const BoneAnimationLibrary := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
 const REST_POSE := "__rest__"
 const DEFAULT_ACTIONS := SharedActions.GAMEPLAY_ACTIONS
 
@@ -78,6 +79,11 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 			active = false
 			return false
 
+	# Bone Studio custom/tuned animations are repository data, not an editor-only
+	# preview. Install the same target-profile bank on the gameplay rig so a tuned
+	# copy behaves identically when referenced by the player's action map.
+	_install_profile_custom_animations()
+
 	rig.position = visual_position
 	rig.scale = Vector2.ONE * visual_scale
 	if rig.has_method("set_embedded_world_mode"):
@@ -86,6 +92,18 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 	face(Vector2.DOWN)
 	play("idle")
 	return true
+
+
+func _install_profile_custom_animations() -> void:
+	if rig == null or not rig.has_method("install_runtime_animation") or profile_id.is_empty():
+		return
+	var custom := BoneAnimationLibrary.load_custom_animations(profile_id)
+	for animation_name_value in custom.keys():
+		var data_value: Variant = custom[animation_name_value]
+		if data_value is Dictionary:
+			rig.call("install_runtime_animation", str(animation_name_value), data_value as Dictionary)
+	if not custom.is_empty():
+		print("BONES_CUSTOM_PROFILE_BANK profile=%s animations=%d" % [profile_id, custom.size()])
 
 
 func _resolve_profile_id(character_data: Dictionary) -> String:
