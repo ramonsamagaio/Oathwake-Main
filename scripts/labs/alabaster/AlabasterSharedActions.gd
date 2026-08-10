@@ -1,11 +1,7 @@
 extends RefCounted
 class_name AlabasterSharedActions
 
-# Canonical public animation namespace shared by the mechanic lab and gameplay.
-# Preferred names are the names we expect from Juno. The resolver below also
-# searches the active rig catalog, because the 419-animation source contains
-# historical naming variants and preview hotkeys must not silently die because
-# one authored clip has a slightly different name.
+# Canonical public animation namespace shared by gameplay and every Alabaster lab.
 const ACTION_TO_ANIMATION := {
 	"idle": "idle",
 	"walk": "walk",
@@ -31,8 +27,9 @@ const ACTION_TO_ANIMATION := {
 	"tonfa_1": "atkTonfa1-punch",
 }
 
-# Keys map to semantic actions. The mechanic lab resolves those actions against
-# the animation catalog of whichever figure is active.
+# Key -> semantic action. The input layer handles keycode/physical_keycode and
+# then resolves through this single table, so the same action names are used by
+# Juno, Dummy and Male.
 const QUICK_ACTIONS := {
 	KEY_SPACE: "jump",
 	KEY_H: "hurt",
@@ -80,15 +77,21 @@ const LAB_ACTIONS := [
 	"hammer_1", "hammer_2", "hammer_3", "spear_1", "tonfa_1",
 ]
 
+# Exact aliases are intentionally generous. Native Dummy/Male clips are
+# preserved as native__* while Juno names are overlaid by the shared retarget.
 const ACTION_EXACT_CANDIDATES := {
+	"idle": ["idle", "juno_idle_retarget", "native__idle"],
+	"walk": ["walk", "juno_walk_retarget", "native__walk"],
+	"run": ["run", "juno_run_retarget", "native__run"],
+	"dash": ["dash", "run", "juno_run_retarget", "native__run"],
 	"jump": ["idleJump1", "jump", "jump1", "idleJump"],
-	"hurt": ["damage", "hurt", "hit"],
-	"death": ["dead", "death", "laying"],
+	"hurt": ["damage", "hurt", "hit", "native__damage"],
+	"death": ["dead", "death", "laying", "native__laying"],
 	"block": ["guard", "block", "guardIdle"],
 	"parry": ["guardParry", "parry", "guard-parry"],
 	"respawn": ["respawn", "revive", "getUp"],
 	"cast": ["castPoint", "cast", "casting"],
-	"attack": ["atkSwordN1", "attack", "punch"],
+	"attack": ["atkSwordN1", "attack", "punch", "native__punch"],
 	"sword_1": ["atkSwordN1", "atkSword1"],
 	"sword_2": ["atkSwordN2", "atkSword2"],
 	"sword_finisher": ["atkSwordNFinisher", "atkSwordFinisher"],
@@ -102,6 +105,10 @@ const ACTION_EXACT_CANDIDATES := {
 }
 
 const ACTION_TOKEN_GROUPS := {
+	"idle": [["idle"]],
+	"walk": [["walk"]],
+	"run": [["run"]],
+	"dash": [["dash"]],
 	"jump": [["jump"]],
 	"hurt": [["damage"], ["hurt"]],
 	"death": [["dead"], ["death"], ["laying"]],
@@ -109,7 +116,7 @@ const ACTION_TOKEN_GROUPS := {
 	"parry": [["parry"]],
 	"respawn": [["respawn"], ["revive"], ["getup"]],
 	"cast": [["cast"]],
-	"attack": [["sword", "n1"], ["sword", "1"], ["punch"]],
+	"attack": [["sword", "n1"], ["sword", "1"], ["attack"], ["punch"]],
 	"sword_1": [["sword", "n1"], ["sword", "1"]],
 	"sword_2": [["sword", "n2"], ["sword", "2"]],
 	"sword_finisher": [["sword", "finisher"]],
@@ -181,8 +188,8 @@ static func resolve_action_animation(rig: Object, action_name: String) -> String
 		if ordinal >= 0 and ordinal < family_matches.size():
 			return family_matches[ordinal]
 
-	# A normal attack should always remain testable in the lab. If no sword-ish
-	# clip exists, use the first COMBAT clip instead of making LMB look dead.
+	# Normal attack stays useful even if the source uses a weapon name we did not
+	# anticipate. Pick the first COMBAT clip as a final fallback.
 	if action_name == "attack" and rig.has_method("get_animation_catalog"):
 		var catalog_value: Variant = rig.call("get_animation_catalog")
 		if catalog_value is Array:
