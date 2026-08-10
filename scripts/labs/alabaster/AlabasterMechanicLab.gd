@@ -8,10 +8,10 @@ const WALK_SPEED := 150.0
 const RUN_SPEED := 240.0
 const CATEGORY_ORDER := ["ALL", "COMBAT", "DEFAULT", "PUZZLE", "OTHER", "CUTSCENE"]
 
-# Global-state polling is intentional in this isolated mechanic lab. It makes
-# SPACE/ENTER/number-row previews independent from whichever Control currently
-# owns keyboard focus. A latch turns a held key into one clean press edge.
-const POLLED_KEYS := [
+# Commands are handled in _input(), before Controls can consume Enter/Space/
+# number-row keys. keycode and physical_keycode are both accepted so the lab is
+# independent from keyboard layout and from which UI control was clicked last.
+const COMMAND_KEYS := [
 	KEY_F1, KEY_ESCAPE, KEY_TAB, KEY_PAGEUP, KEY_PAGEDOWN, KEY_ENTER, KEY_KP_ENTER, KEY_F2,
 	KEY_SPACE, KEY_H, KEY_K, KEY_G, KEY_P, KEY_X, KEY_C,
 	KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9,
@@ -44,9 +44,36 @@ func _ready() -> void:
 	queue_redraw()
 
 
-func _physics_process(delta: float) -> void:
-	_poll_lab_commands()
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey:
+		var key_event := event as InputEventKey
+		if not key_event.pressed or key_event.echo:
+			return
+		var command_key := _resolve_command_key(key_event)
+		if command_key != KEY_NONE:
+			_handle_command_key(command_key)
+			get_viewport().set_input_as_handled()
+			return
 
+	if event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed and not _pointer_over_gui():
+			_auto_showcase = false
+			_play_semantic_action("attack")
+			get_viewport().set_input_as_handled()
+
+
+func _resolve_command_key(event: InputEventKey) -> Key:
+	var logical := event.keycode
+	if logical in COMMAND_KEYS:
+		return logical
+	var physical := event.physical_keycode
+	if physical in COMMAND_KEYS:
+		return physical
+	return KEY_NONE
+
+
+func _physics_process(delta: float) -> void:
 	if _manual_active:
 		_manual_elapsed += delta
 		if _manual_duration > 0.0 and _manual_elapsed >= _manual_duration:
@@ -70,38 +97,35 @@ func _physics_process(delta: float) -> void:
 		player.move_and_slide()
 		player.position.x = clampf(player.position.x, 72.0, SCREEN_SIZE.x - 72.0)
 		player.position.y = clampf(player.position.y, 92.0, SCREEN_SIZE.y - 72.0)
-		rig.set_facing_from_vector(input_dir)
-		rig.set_animation("run" if running else "walk")
+		if rig != null and rig.has_method("set_facing_from_vector"):
+			rig.call("set_facing_from_vector", input_dir)
+		_set_locomotion_action("run" if running else "walk")
 	else:
 		player.velocity = Vector2.ZERO
-		rig.set_animation("idle")
+		_set_locomotion_action("idle")
 	_update_status()
 
 
 func reset_command_latches() -> void:
-	# Profile switching may happen while a key or mouse button is held. Reset the
-	# edge detector through a public base-class API instead of reaching into an
-	# inherited private implementation detail from AlabasterMechanicLabProfiles.
+	# Kept as a public compatibility hook for profile switching. Commands now use
+	# _input(), but clearing these values also prevents stale state if an older lab
+	# layer still polls them.
 	_key_latch.clear()
-	_left_mouse_latched = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	_left_mouse_latched = false
 
 
-func _poll_lab_commands() -> void:
-	for key_value in POLLED_KEYS:
-		var key := int(key_value) as Key
-		var down := Input.is_key_pressed(key)
-		var was_down := bool(_key_latch.get(int(key), false))
-		if down and not was_down:
-			_handle_polled_key(key)
-		_key_latch[int(key)] = down
-
-	var mouse_down := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-	if mouse_down and not _left_mouse_latched and not _pointer_over_gui():
-		_play_semantic_action("attack")
-	_left_mouse_latched = mouse_down
+func _set_locomotion_action(action_name: String) -> void:
+	if rig == null:
+		return
+	var animation_name := SharedActions.resolve_action_animation(rig, action_name)
+	if not animation_name.is_empty() and rig.has_method("set_animation"):
+		rig.call("set_animation", animation_name)
+		return
+	if action_name == "idle" and rig.has_method("set_rest_pose"):
+		rig.call("set_rest_pose")
 
 
-func _handle_polled_key(key: Key) -> void:
+func _handle_command_key(key: Key) -> void:
 	if key == KEY_F1:
 		_debug_enabled = not _debug_enabled
 		if rig != null and rig.has_method("set_debug_enabled"):
@@ -143,7 +167,12 @@ func _handle_polled_key(key: Key) -> void:
 func _play_semantic_action(action_name: String) -> void:
 	var animation_name := SharedActions.resolve_action_animation(rig, action_name)
 	if animation_name.is_empty():
-		push_warning("AlabasterMechanicLab: no animation resolved for action '%s'. catalog=%d" % [action_name, _catalog.size()])
+		var source := "UNKNOWN"
+		if rig != null and rig.has_method("get_runtime_summary"):
+			var summary_value: Variant = rig.call("get_runtime_summary")
+			if summary_value is Dictionary:
+				source = str((summary_value as Dictionary).get("animation_bank_source", "UNKNOWN"))
+		push_warning("AlabasterMechanicLab: no animation resolved for action '%s'. catalog=%d source=%s" % [action_name, _catalog.size(), source])
 		return
 	print("ALABASTER_LAB_ACTION action=%s animation=%s" % [action_name, animation_name])
 	_play_manual_animation(animation_name)
@@ -157,7 +186,13 @@ func _pointer_over_gui() -> bool:
 
 
 func _refresh_catalog() -> void:
-	_catalog = rig.get_animation_catalog()
+	_catalog.clear()
+	if rig != null and rig.has_method("get_animation_catalog"):
+		var catalog_value: Variant = rig.call("get_animation_catalog")
+		if catalog_value is Array:
+			for entry_value in catalog_value as Array:
+				if entry_value is Dictionary:
+					_catalog.append((entry_value as Dictionary).duplicate(true))
 	_rebuild_browser_entries()
 
 
@@ -201,8 +236,7 @@ func _stop_manual_animation() -> void:
 	_manual_active = false
 	_manual_elapsed = 0.0
 	_manual_duration = 0.0
-	if rig != null and rig.has_method("set_animation"):
-		rig.call("set_animation", "idle")
+	_set_locomotion_action("idle")
 	_update_status()
 
 
