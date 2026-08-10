@@ -2,15 +2,15 @@ extends RefCounted
 
 # Repository-local animation-bank loader for the Alabaster tools/runtime.
 #
-# The committed juno_anims_bin files are literal slices of ONE Base64 text
-# stream. They must be concatenated as text first, padded only after the complete
-# stream is assembled, decoded once, and only then decompressed as ZSTD.
+# IMPORTANT: the committed *.part files are independent Base64 encodings of
+# consecutive COMPRESSED BYTE SLICES. Their Base64 text must never be joined.
+# Decode each part independently, append the decoded bytes in logical order,
+# then decompress the reconstructed ZSTD frame once.
 #
 # Several historical uploads combine two logical slices in one repository file
 # (05_06, 07_08, 09_10, ...). The standalone 09 file overlaps 09_10 and MUST NOT
-# be appended as well. FULL_PARTS below is the canonical non-overlapping 00..20
-# sequence. This is intentionally explicit so alphabetical file discovery can
-# never duplicate an overlapping slice again.
+# be appended as well. FULL_PARTS is therefore an explicit, non-overlapping
+# sequence for logical slices 00..20.
 
 const FULL_PARTS := [
 	"res://data/labs/alabaster/anims/juno_anims_bin_00.part",
@@ -28,16 +28,8 @@ const FULL_PARTS := [
 	"res://data/labs/alabaster/anims/juno_anims_bin_19_20.part",
 ]
 
-# Kept only as a diagnostic compatibility attempt for old checkouts. It is not
-# expected to contain the current complete 419-animation payload.
-const LEGACY_FULL_PARTS := [
-	"res://data/labs/alabaster/anims/juno_anims_bin_00.part",
-	"res://data/labs/alabaster/anims/juno_anims_bin_01.part",
-]
-
 const FULL_DECOMPRESSED_BYTES := 671589
 const EXPECTED_ANIMATIONS := 419
-const MAX_ZSTD_OUTPUT_BYTES := 8 * 1024 * 1024
 
 # Repository-only source fallbacks. Runtime never probes Steam or arbitrary
 # machine-local paths.
@@ -136,7 +128,7 @@ static func load_full_animation_bank() -> Dictionary:
 
 	var full := _load_known_full_bank()
 	if full.size() == EXPECTED_ANIMATIONS:
-		_set_success("FULL_JANI1", full.size(), last_part_count)
+		_set_success("FULL_JANI1", full.size(), FULL_PARTS.size())
 		_report_required_clips("FULL_JANI1", full)
 		return full
 
@@ -210,34 +202,26 @@ static func _set_success(source: String, count: int, parts: int) -> void:
 
 
 static func _load_known_full_bank() -> Dictionary:
-	var candidate_sets: Array = [FULL_PARTS, LEGACY_FULL_PARTS]
-	var candidate_labels := ["canonical_00_20", "legacy_00_01"]
-	var errors: Array[String] = []
+	var compressed := _decode_base64_parts(FULL_PARTS, "full:canonical_00_20")
+	if compressed.is_empty():
+		return {}
 
-	for candidate_index in range(candidate_sets.size()):
-		var paths: Array = candidate_sets[candidate_index]
-		var label := str(candidate_labels[candidate_index])
-		var compressed := _decode_base64_parts(paths, "full:%s" % label)
-		if compressed.is_empty():
-			errors.append("%s decode: %s" % [label, last_error])
-			continue
+	var raw := _try_zstd_decompress(compressed, FULL_DECOMPRESSED_BYTES)
+	if raw.size() != FULL_DECOMPRESSED_BYTES:
+		if last_error.is_empty():
+			last_error = "full:canonical_00_20 ZSTD got %d/%d bytes" % [raw.size(), FULL_DECOMPRESSED_BYTES]
+		return {}
 
-		var raw := _try_zstd_decompress(compressed, FULL_DECOMPRESSED_BYTES)
-		if raw.size() != FULL_DECOMPRESSED_BYTES:
-			errors.append("%s zstd: got %d/%d bytes" % [label, raw.size(), FULL_DECOMPRESSED_BYTES])
-			continue
+	var anims := _decode_payload(raw)
+	if anims.size() != EXPECTED_ANIMATIONS:
+		last_error = "full:canonical_00_20 payload decoded %d/%d animations (%s)" % [anims.size(), EXPECTED_ANIMATIONS, last_error]
+		return {}
 
-		var anims := _decode_payload(raw)
-		if anims.size() != EXPECTED_ANIMATIONS:
-			errors.append("%s payload: decoded %d/%d animations (%s)" % [label, anims.size(), EXPECTED_ANIMATIONS, last_error])
-			continue
-
-		last_part_count = paths.size()
-		print("ALABASTER_BANK_FULL_OK layout=%s parts=%d raw=%d animations=%d" % [label, paths.size(), raw.size(), anims.size()])
-		return anims
-
-	last_error = "full-bank candidates failed: %s" % " ; ".join(errors)
-	return {}
+	last_part_count = FULL_PARTS.size()
+	print("ALABASTER_BANK_FULL_OK layout=canonical_00_20 parts=%d compressed=%d raw=%d animations=%d" % [
+		FULL_PARTS.size(), compressed.size(), raw.size(), anims.size(),
+	])
+	return anims
 
 
 static func _load_source_candidates() -> Dictionary:
@@ -272,64 +256,76 @@ static func _load_gameplay_chunks() -> Dictionary:
 
 		var raw := _try_zstd_decompress(compressed, -1)
 		if raw.is_empty():
-			attempt_errors.append("%s zstd failed (compressed=%d)" % [dir_path, compressed.size()])
+			attempt_errors.append("%s zstd: %s" % [dir_path, last_error])
 			continue
 
 		var anims := _decode_payload(raw)
 		if not anims.is_empty():
-			print("ALABASTER_BANK_GAMEPLAY_OK dir=%s parts=%d raw=%d animations=%d" % [dir_path, files.size(), raw.size(), anims.size()])
+			print("ALABASTER_BANK_GAMEPLAY_OK dir=%s parts=%d compressed=%d raw=%d animations=%d" % [
+				dir_path, files.size(), compressed.size(), raw.size(), anims.size(),
+			])
 			return anims
-		attempt_errors.append("%s payload decode failed: %s" % [dir_path, last_error])
+		attempt_errors.append("%s payload: %s" % [dir_path, last_error])
 
 	last_error = "gameplay-bank failed: %s" % " ; ".join(attempt_errors)
 	return {}
 
 
-# Every file in `paths` is a literal text slice of one Base64 stream. Padding is
-# therefore validated/added only AFTER the entire stream has been concatenated.
+# Each file is its own Base64 unit. Decode it independently and append the raw
+# compressed bytes. Joining the text is invalid: the current committed full and
+# gameplay sets both produce impossible Base64 length mod 4 == 1 when concatenated.
 static func _decode_base64_parts(paths: Array, label: String) -> PackedByteArray:
-	var encoded := ""
-	for path_variant in paths:
-		var path := String(path_variant)
+	var compressed := PackedByteArray()
+	for part_index in range(paths.size()):
+		var path := String(paths[part_index])
 		if not FileAccess.file_exists(path):
-			last_error = "%s missing part: %s" % [label, path]
+			last_error = "%s missing part[%d]: %s" % [label, part_index, path]
 			return PackedByteArray()
+
 		var text := _strip_base64_whitespace(FileAccess.get_file_as_string(path))
 		if text.is_empty():
-			last_error = "%s empty part: %s" % [label, path]
+			last_error = "%s empty part[%d]: %s" % [label, part_index, path]
 			return PackedByteArray()
-		encoded += text
 
-	var unpadded_length := encoded.length()
-	var normalized := _normalize_base64_stream(encoded)
-	if normalized.is_empty():
-		last_error = "%s invalid Base64 stream chars=%d mod4=%d parts=%d" % [label, unpadded_length, unpadded_length % 4, paths.size()]
-		return PackedByteArray()
+		var bytes := _safe_base64_decode(text)
+		if bytes.is_empty():
+			last_error = "%s invalid Base64 part[%d] path=%s chars=%d mod4=%d" % [
+				label, part_index, path, text.length(), text.length() % 4,
+			]
+			return PackedByteArray()
 
-	var compressed := Marshalls.base64_to_raw(normalized)
+		compressed.append_array(bytes)
+		print("ALABASTER_BANK_PART kind=%s index=%d/%d chars=%d bytes=%d total=%d" % [
+			label, part_index + 1, paths.size(), text.length(), bytes.size(), compressed.size(),
+		])
+
 	if compressed.is_empty():
-		last_error = "%s Base64 decode returned zero bytes chars=%d padded=%d" % [label, unpadded_length, normalized.length()]
+		last_error = "%s reconstructed zero compressed bytes" % label
+		return PackedByteArray()
+	if not _looks_like_zstd(compressed):
+		last_error = "%s reconstructed bytes are not a ZSTD frame first4=%s" % [label, _first_bytes_hex(compressed, 4)]
 		return PackedByteArray()
 
-	print("ALABASTER_BANK_STREAM kind=%s parts=%d chars=%d mod4=%d padded=%d compressed=%d zstd=%s" % [
-		label,
-		paths.size(),
-		unpadded_length,
-		unpadded_length % 4,
-		normalized.length() - unpadded_length,
-		compressed.size(),
-		str(_looks_like_zstd(compressed)),
+	print("ALABASTER_BANK_STREAM kind=%s parts=%d compressed=%d zstd=true frame_size=%d" % [
+		label, paths.size(), compressed.size(), _zstd_frame_content_size(compressed),
 	])
 	return compressed
 
 
-static func _normalize_base64_stream(value: String) -> String:
+static func _safe_base64_decode(value: String) -> PackedByteArray:
+	var clean := _normalize_base64_unit(value)
+	if clean.is_empty() or not _looks_like_base64(clean):
+		return PackedByteArray()
+	return Marshalls.base64_to_raw(clean)
+
+
+static func _normalize_base64_unit(value: String) -> String:
 	var clean := _strip_base64_whitespace(value).replace("-", "+").replace("_", "/")
 	if clean.is_empty():
 		return ""
 
-	# Existing '=' is legal only as trailing padding. Strip it and recreate exact
-	# RFC 4648 padding from the complete stream length.
+	# A part may already have legal trailing padding. Remove it and recreate the
+	# exact padding from this PART's own length, never from a concatenated stream.
 	var padding_index := clean.find("=")
 	if padding_index >= 0:
 		for index in range(padding_index, clean.length()):
@@ -353,26 +349,47 @@ static func _normalize_base64_stream(value: String) -> String:
 	return clean
 
 
+static func _looks_like_base64(value: String) -> bool:
+	if value.is_empty() or value.length() % 4 != 0:
+		return false
+	var padding_started := false
+	for index in range(value.length()):
+		var code := value.unicode_at(index)
+		if code == 61:
+			padding_started = true
+			if index < value.length() - 2:
+				return false
+			continue
+		if padding_started:
+			return false
+		var valid := (code >= 65 and code <= 90) or (code >= 97 and code <= 122) or (code >= 48 and code <= 57) or code == 43 or code == 47
+		if not valid:
+			return false
+	return true
+
+
+# PackedByteArray.decompress_dynamic() does not accept ZSTD. ZSTD must use the
+# fixed-size decompress() path, with the known uncompressed size or the content
+# size advertised by the ZSTD frame header.
 static func _try_zstd_decompress(compressed: PackedByteArray, expected_size: int) -> PackedByteArray:
 	if not _looks_like_zstd(compressed):
-		last_error = "decoded stream is not ZSTD"
+		last_error = "decoded stream is not ZSTD first4=%s" % _first_bytes_hex(compressed, 4)
 		return PackedByteArray()
 
 	var frame_size := expected_size
 	if frame_size <= 0:
 		frame_size = _zstd_frame_content_size(compressed)
-	if frame_size > 0:
-		var raw := compressed.decompress(frame_size, FileAccess.COMPRESSION_ZSTD)
-		if raw.size() == frame_size:
-			return raw
+	if frame_size <= 0:
+		last_error = "ZSTD frame has no usable content size compressed=%d" % compressed.size()
+		return PackedByteArray()
 
-	# Defensive fallback for a valid ZSTD frame that does not publish content size
-	# in the header or when an older export has a stale expected-size constant.
-	var dynamic_raw := compressed.decompress_dynamic(MAX_ZSTD_OUTPUT_BYTES, FileAccess.COMPRESSION_ZSTD)
-	if not dynamic_raw.is_empty():
-		return dynamic_raw
-	last_error = "ZSTD decompression failed compressed=%d expected=%d" % [compressed.size(), frame_size]
-	return PackedByteArray()
+	var raw := compressed.decompress(frame_size, FileAccess.COMPRESSION_ZSTD)
+	if raw.size() != frame_size:
+		last_error = "ZSTD fixed decompression failed compressed=%d expected=%d got=%d" % [
+			compressed.size(), frame_size, raw.size(),
+		]
+		return PackedByteArray()
+	return raw
 
 
 static func _report_required_clips(source: String, anims: Dictionary) -> void:
@@ -397,6 +414,14 @@ static func _looks_like_zstd(data: PackedByteArray) -> bool:
 	return data.size() >= 4 and int(data[0]) == 0x28 and int(data[1]) == 0xB5 and int(data[2]) == 0x2F and int(data[3]) == 0xFD
 
 
+static func _first_bytes_hex(data: PackedByteArray, count: int) -> String:
+	var result := ""
+	var limit := mini(maxi(count, 0), data.size())
+	for index in range(limit):
+		result += "%02X" % int(data[index])
+	return result
+
+
 static func _find_part_files(dir_path: String, prefix: String) -> Array[String]:
 	var result: Array[String] = []
 	var dir := DirAccess.open(dir_path)
@@ -413,7 +438,10 @@ static func _find_part_files(dir_path: String, prefix: String) -> Array[String]:
 static func _decode_payload(raw: PackedByteArray) -> Dictionary:
 	if raw.size() >= 5 and raw.slice(0, 5).get_string_from_utf8() == "JANI1":
 		return _decode_jani1(raw)
-	return _extract_anims_from_json_text(raw.get_string_from_utf8())
+	var json_anims := _extract_anims_from_json_text(raw.get_string_from_utf8())
+	if json_anims.is_empty() and last_error.is_empty():
+		last_error = "payload is neither JANI1 nor a supported animation JSON"
+	return json_anims
 
 
 static func _extract_anims_from_json_text(text: String) -> Dictionary:
@@ -428,6 +456,14 @@ static func _extract_anims_from_json_text(text: String) -> Dictionary:
 		var figure: Dictionary = root["figure"]
 		if figure.has("anims") and typeof(figure["anims"]) == TYPE_DICTIONARY:
 			return figure["anims"]
+
+	if root.has("figures") and typeof(root["figures"]) == TYPE_DICTIONARY:
+		var figures: Dictionary = root["figures"]
+		var default_value: Variant = figures.get("default", {})
+		if default_value is Dictionary:
+			var default_figure: Dictionary = default_value
+			if default_figure.has("anims") and typeof(default_figure["anims"]) == TYPE_DICTIONARY:
+				return default_figure["anims"]
 
 	if root.has("anims") and typeof(root["anims"]) == TYPE_DICTIONARY:
 		return root["anims"]
