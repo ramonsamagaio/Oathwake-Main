@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "format": "oathwake_alabaster_profile",
+  "profile_id": "default",
+  "display_name": "Default",
+  "base_profile": "male_dummy",
+  "base_figure": "Male-Dummy",
+  "base_json": "res://data/labs/alabaster/characters/dummy.json",
+  "current_atlas": "res://assets/sprites/characters/alabaster/dummy.png",
+  "authored_atlas_target": "res://assets/sprites/characters/alabaster/default.png",
+  "runtime": "AlabasterDefaultPlayableSkinRig",
+  "independent_runtime_copy": true,
+  "shared_juno_animation_retarget": true,
+  "reserved_layers": {
+    "head": "headGear",
+    "back": "tailEnd"
+  },
+  "notes": "DEFAULT is the Oathwake-owned body fork. Dummy remains the frozen reference source; future body/equipment/custom-animation work targets DEFAULT."
+}
