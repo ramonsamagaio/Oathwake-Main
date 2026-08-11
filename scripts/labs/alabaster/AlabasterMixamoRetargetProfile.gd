@@ -3,15 +3,21 @@ class_name AlabasterMixamoRetargetProfile
 
 const FOLD_PREFIX := "@fold:"
 
-# Mixamo and Alabaster do NOT have the same hierarchy.
+# Mixamo and Alabaster do NOT have anatomical 1:1 bone names.
 #
-# Mixamo Hips is the common parent of both spine and legs. In Alabaster that
-# semantic role belongs to `root`, because `top` and `bottom` are both children
-# of root. Mapping Hips -> bottom (the old profile) forced the whole torso and
-# leg tree through the pelvis child and was structurally wrong.
+# Default/Dummy semantics discovered from the actual node.position hierarchy:
+#   shoulderL/R = attachment pivot, not upper arm
+#   armL/R      = upper arm
+#   handL/R     = forearm endpoint / hand sprite
+#   hipL/R      = attachment pivot, not thigh
+#   legL/R      = thigh
+#   footL/R     = shin endpoint / foot sprite
+#   toeL/R      = foot/toe segment
 #
-# AUTO FOLD rows are informational ownership markers for the smart converter.
-# They do not independently write another transform to the destination bone.
+# AUTO FOLD means the source bone contributes to the semantic solve but does not
+# independently overwrite another Alabaster bone. V4 intentionally keeps the
+# shoulder and hip attachment pivots stabilized to torso/pelvis; the main limb
+# motion begins at armL/R and legL/R.
 const AUTO_MAP := {
 	"root": "root",
 	"hips": "root",
@@ -21,59 +27,56 @@ const AUTO_MAP := {
 	"neck": "@fold:head",
 	"head": "head",
 	"headtopend": "",
-	"leftshoulder": "@fold:shoulderL",
-	"leftarm": "shoulderL",
-	"leftforearm": "armL",
-	"lefthand": "handL",
-	# The Alabaster finger sprite is too coarse to benefit from Mixamo's finger
-	# chain. Keep it rigidly parented to the hand instead of importing noisy hand
-	# articulation into a single 8 px part.
-	"lefthandindex1": "",
+
+	"leftshoulder": "@fold:armL",
+	"leftarm": "armL",
+	"leftforearm": "handL",
+	"lefthand": "@fold:fingerL",
+	"lefthandindex1": "fingerL",
 	"lefthandindex2": "",
 	"lefthandindex3": "",
 	"lefthandindex4": "",
-	"rightshoulder": "@fold:shoulderR",
-	"rightarm": "shoulderR",
-	"rightforearm": "armR",
-	"righthand": "handR",
-	"righthandindex1": "",
+
+	"rightshoulder": "@fold:armR",
+	"rightarm": "armR",
+	"rightforearm": "handR",
+	"righthand": "@fold:fingerR",
+	"righthandindex1": "fingerR",
 	"righthandindex2": "",
 	"righthandindex3": "",
 	"righthandindex4": "",
-	"leftupleg": "hipL",
-	"leftleg": "legL",
-	"leftfoot": "footL",
+
+	"leftupleg": "legL",
+	"leftleg": "footL",
+	"leftfoot": "@fold:toeL",
 	"lefttoebase": "toeL",
 	"lefttoeend": "",
-	"rightupleg": "hipR",
-	"rightleg": "legR",
-	"rightfoot": "footR",
+
+	"rightupleg": "legR",
+	"rightleg": "footR",
+	"rightfoot": "@fold:toeR",
 	"righttoebase": "toeR",
 	"righttoeend": "",
 }
 
-# Track-only fallback for AnimationLibrary sources that do not expose a
-# Skeleton3D. Packed Mixamo FBX/GLB should use AlabasterMixamoRestSpaceConverter
-# instead. Notice that Hips is now owned by root, and top receives only the
-# relative spine chain, preventing the old double-Hips rotation.
+# Lower-fidelity track-only fallback for resources that expose no Skeleton3D.
+# Raw FBX/GLB should use the Anatomical V4 converter instead.
 const TARGET_CHAINS := {
 	"root": ["hips"],
 	"top": ["spine", "spine1", "spine2"],
 	"head": ["neck", "head"],
-	"shoulderL": ["leftshoulder", "leftarm"],
-	"armL": ["leftforearm"],
-	"handL": ["lefthand"],
-	"shoulderR": ["rightshoulder", "rightarm"],
-	"armR": ["rightforearm"],
-	"handR": ["righthand"],
-	"hipL": ["leftupleg"],
-	"legL": ["leftleg"],
-	"footL": ["leftfoot"],
-	"toeL": ["lefttoebase"],
-	"hipR": ["rightupleg"],
-	"legR": ["rightleg"],
-	"footR": ["rightfoot"],
-	"toeR": ["righttoebase"],
+	"armL": ["leftshoulder", "leftarm"],
+	"handL": ["leftforearm"],
+	"fingerL": ["lefthand", "lefthandindex1"],
+	"armR": ["rightshoulder", "rightarm"],
+	"handR": ["rightforearm"],
+	"fingerR": ["righthand", "righthandindex1"],
+	"legL": ["leftupleg"],
+	"footL": ["leftleg"],
+	"toeL": ["leftfoot", "lefttoebase"],
+	"legR": ["rightupleg"],
+	"footR": ["rightleg"],
+	"toeR": ["rightfoot", "righttoebase"],
 }
 
 static func normalize(value: String) -> String:
