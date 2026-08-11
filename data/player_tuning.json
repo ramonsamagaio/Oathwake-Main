@@ -11,7 +11,7 @@
 			"zoom_smoothing_speed": 10.0,
 			"zoom_step": 0.15
 		},
-		"character_id": "male_temp_alabaster",
+		"character_id": "default_alabaster",
 		"dash_cooldown": 0.34,
 		"dash_duration": 0.14,
 		"dash_smoke_end_count": 0,
