@@ -26,9 +26,9 @@ func _on_source_selected(path: String) -> void:
 	var retarget_mode := str(info.get("retarget_mode", "generic_track"))
 	if profile == "mixamo":
 		import_reference_pose.button_pressed = false
-		if retarget_mode == "mixamo_semantic_v3":
+		if retarget_mode == "mixamo_anatomical_v4":
 			import_reference_pose.disabled = true
-			import_reference_pose.tooltip_text = "Mixamo Semantic V3 uses the true FBX Skeleton3D Bone Rest and anatomical joint directions. Frame-zero subtraction is not used."
+			import_reference_pose.tooltip_text = "Mixamo Anatomical V4 evaluates the real FBX Skeleton3D pose and fits anatomical segments to the Default target chain. Frame-zero subtraction is not used."
 		else:
 			import_reference_pose.disabled = false
 			import_reference_pose.tooltip_text = "No Skeleton3D was exposed by this import, so only the lower-fidelity track fallback is available."
@@ -43,8 +43,8 @@ func _on_source_selected(path: String) -> void:
 		import_name_edit.text = "OW_%s" % _sanitize_name(str(source_clip_option.get_item_metadata(0)))
 
 	var kind := str(info.get("resource_kind", "godot_resource"))
-	if retarget_mode == "mixamo_semantic_v3":
-		_set_status("Mixamo Semantic V3 detected: %d clips, %d bones. Limb motion is transferred from anatomical joint directions; pelvis/torso use body frames; Mixamo local bone axes are not copied." % [source_clip_option.item_count, source_bones.size()])
+	if retarget_mode == "mixamo_anatomical_v4":
+		_set_status("Mixamo Anatomical V4 detected: %d clips, %d bones. Default shoulder/hip nodes are treated as attachment pivots; Arm/ForeArm and UpLeg/Leg are fitted to the actual Alabaster limb segments from the evaluated FBX pose." % [source_clip_option.item_count, source_bones.size()])
 	elif profile == "mixamo":
 		_set_status("Mixamo detected, but this resource exposes no Skeleton3D. Track-only fallback is available; importing the raw FBX as a scene is recommended.")
 	else:
@@ -72,7 +72,7 @@ func _rebuild_mapping_table() -> void:
 			var fold_target := auto_value.trim_prefix(FOLD_PREFIX)
 			option.add_item("AUTO FOLD -> %s" % fold_target)
 			option.set_item_metadata(option.item_count - 1, auto_value)
-			option.set_item_tooltip(option.item_count - 1, "This Mixamo helper/intermediate bone participates in the semantic chain ending at %s. It does not independently overwrite that Alabaster bone." % fold_target)
+			option.set_item_tooltip(option.item_count - 1, "This Mixamo joint is an endpoint/helper used by the anatomical solve for %s. It does not independently overwrite an Alabaster transform." % fold_target)
 			selected = option.item_count - 1
 		for target_value in targets:
 			var target := str(target_value)
@@ -103,5 +103,5 @@ func _build_import_animation() -> Dictionary:
 		_get_import_settings()
 	)
 	if result.is_empty():
-		_set_status("The clip was found but could not be converted. For Mixamo, keep the automatic mapping unchanged so Semantic V3 can use the imported Skeleton3D.", true)
+		_set_status("The clip was found but could not be converted. For Mixamo, keep the automatic mapping unchanged so Anatomical V4 can use the evaluated FBX Skeleton3D.", true)
 	return result
