@@ -5,10 +5,11 @@ const CUSTOM_BANK_PATH := "res://data/labs/alabaster/custom_bone_animations.json
 const JunoGameplayBank := preload("res://scripts/labs/alabaster/AlabasterJunoGameplayBank.gd")
 const RepoSkinSource := preload("res://scripts/labs/alabaster/AlabasterExternalSkinSource.gd")
 const CORE_ANIMATIONS := ["idle", "walk", "run", "atkSwordN1", "guard", "damage", "dead", "dash"]
+const PROFILE_DEFAULT := "default"
 const PROFILE_JUNO := "juno"
 const PROFILE_DUMMY := "male_dummy"
 const PROFILE_MALE := "male_temp"
-const VALID_PROFILES := [PROFILE_JUNO, PROFILE_DUMMY, PROFILE_MALE]
+const VALID_PROFILES := [PROFILE_DEFAULT, PROFILE_JUNO, PROFILE_DUMMY, PROFILE_MALE]
 const NATIVE_PREFIX := "native__"
 const LEGACY_RETARGET_ALIASES := {
 	"juno_idle_retarget": "idle",
@@ -44,6 +45,12 @@ static func load_builtin_animations(profile_id: String = PROFILE_JUNO) -> Dictio
 			# Same repository-local bank used by the playable runtime. No Steam/local
 			# source and no separate editor-only decoder path.
 			return JunoGameplayBank.load_gameplay_bank()
+		PROFILE_DEFAULT:
+			# DEFAULT begins as an exact authored clone of Male-Dummy but owns a
+			# separate profile/custom-animation namespace from this point forward.
+			var default_figure := RepoSkinSource.load_skin_figure(PROFILE_DUMMY)
+			var default_anims_value: Variant = default_figure.get("anims", {})
+			return (default_anims_value as Dictionary).duplicate(true) if default_anims_value is Dictionary else {}
 		PROFILE_DUMMY, PROFILE_MALE:
 			var figure := RepoSkinSource.load_skin_figure(profile_id)
 			var anims_value: Variant = figure.get("anims", {})
@@ -114,9 +121,9 @@ static func is_read_only_animation(profile_id: String, animation_name: String) -
 		return false
 	if is_builtin_animation(profile_id, clean_name):
 		return true
-	if profile_id == PROFILE_DUMMY or profile_id == PROFILE_MALE:
-		# Juno animations are generated onto Dummy/Male at runtime but are still
-		# source material. They must only be edited through a saved copy.
+	if profile_id in [PROFILE_DEFAULT, PROFILE_DUMMY, PROFILE_MALE]:
+		# Juno animations are generated onto DEFAULT/Dummy/Male at runtime but are
+		# still source material. They must only be edited through a saved copy.
 		var juno_bank := JunoGameplayBank.load_gameplay_bank()
 		if juno_bank.has(clean_name):
 			return true
