@@ -11,6 +11,7 @@ class_name AlabasterDefaultPlayableSkinRig
 # only DEFAULT's atlas loader needs to move to that file; Dummy remains frozen as
 # the reference source.
 
+const DefaultRepoSkinSource := preload("res://scripts/labs/alabaster/AlabasterExternalSkinSource.gd")
 const DEFAULT_PROFILE_ID := "default"
 const BASE_PROFILE_ID := "male_dummy"
 const DEFAULT_FIGURE_LABEL := "Default"
@@ -36,7 +37,7 @@ func configure_skin_profile(profile_id: String) -> void:
 func _load_skin_data() -> void:
 	# Deep-copy the proven Dummy source so DEFAULT can receive runtime overlays and
 	# tuning without sharing mutable dictionaries with the reference profile.
-	var source_figure := RepoSkinSource.load_skin_figure(BASE_PROFILE_ID)
+	var source_figure := DefaultRepoSkinSource.load_skin_figure(BASE_PROFILE_ID)
 	_figure = source_figure.duplicate(true) if not source_figure.is_empty() else {}
 	if _figure.is_empty():
 		push_error("AlabasterDefaultPlayableSkinRig: base figure could not be cloned from %s" % BASE_PROFILE_ID)
@@ -64,7 +65,7 @@ func _load_skin_data() -> void:
 func _load_skin_atlas() -> void:
 	# Binary default.png will become the authored atlas. Until it is committed,
 	# use the exact Dummy texture so DEFAULT is visually/structurally identical.
-	_atlas = RepoSkinSource.load_skin_texture(BASE_PROFILE_ID)
+	_atlas = DefaultRepoSkinSource.load_skin_texture(BASE_PROFILE_ID)
 	_skin_texture_source = "DEFAULT_CLONE_OF_DUMMY_PNG" if _atlas != null else ""
 
 
@@ -73,7 +74,7 @@ func get_runtime_summary() -> Dictionary:
 	result["skin_profile_id"] = DEFAULT_PROFILE_ID
 	result["figure_source"] = DEFAULT_FIGURE_LABEL
 	result["default_base_profile"] = BASE_PROFILE_ID
-	result["default_base_json"] = RepoSkinSource.get_source_path(BASE_PROFILE_ID)
-	result["default_base_atlas"] = RepoSkinSource.get_repo_atlas_path(BASE_PROFILE_ID)
+	result["default_base_json"] = DefaultRepoSkinSource.get_source_path(BASE_PROFILE_ID)
+	result["default_base_atlas"] = DefaultRepoSkinSource.get_repo_atlas_path(BASE_PROFILE_ID)
 	result["default_has_independent_runtime_copy"] = true
 	return result
