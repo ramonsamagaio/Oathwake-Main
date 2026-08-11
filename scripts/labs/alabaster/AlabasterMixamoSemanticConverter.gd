@@ -194,40 +194,35 @@ static func convert_scene(player: AnimationPlayer, skeleton: Skeleton3D, clip_na
 static func _build_semantic_global_motion(rest_global: Dictionary, pose_global: Dictionary) -> Dictionary:
 	var result := {}
 
-	# Root/pelvis orientation. This frame is independent of Mixamo's private Hips
-	# local axis: it is rebuilt from anatomical landmarks instead.
-	var rest_pelvis := _body_frame(rest_global, "hips", "leftupleg", "rightupleg", "spine")
-	var pose_pelvis := _body_frame(pose_global, "hips", "leftupleg", "rightupleg", "spine")
-	if rest_pelvis.is_empty() or pose_pelvis.is_empty():
+	var rest_pelvis: Variant = _body_frame(rest_global, "hips", "leftupleg", "rightupleg", "spine")
+	var pose_pelvis: Variant = _body_frame(pose_global, "hips", "leftupleg", "rightupleg", "spine")
+	if rest_pelvis == null or pose_pelvis == null:
 		return {}
 	var root_motion := _basis_delta(rest_pelvis, pose_pelvis)
 	result["root"] = _convert_basis(root_motion)
-	# bottom is a visual pelvis child in Alabaster. Let it inherit root rather than
-	# applying the Mixamo Hips rotation a second time.
+	# bottom is a visual pelvis child in Alabaster; inherit root and do not apply
+	# the Mixamo Hips rotation twice.
 	result["bottom"] = result["root"]
 
-	# Torso frame from shoulder line + neck. This collapses Spine/Spine1/Spine2
-	# into the orientation actually visible at the chest.
-	var rest_torso := _body_frame(rest_global, "spine2", "leftshoulder", "rightshoulder", "neck")
-	var pose_torso := _body_frame(pose_global, "spine2", "leftshoulder", "rightshoulder", "neck")
-	if not rest_torso.is_empty() and not pose_torso.is_empty():
+	var rest_torso: Variant = _body_frame(rest_global, "spine2", "leftshoulder", "rightshoulder", "neck")
+	var pose_torso: Variant = _body_frame(pose_global, "spine2", "leftshoulder", "rightshoulder", "neck")
+	if rest_torso != null and pose_torso != null:
 		result["top"] = _convert_basis(_basis_delta(rest_torso, pose_torso))
 	else:
 		result["top"] = result["root"]
 
-	# Head keeps its true global rest-space orientation. Unlike limb twist this is
-	# useful because head yaw controls directional sprite selection.
-	var head_motion := _global_basis_motion(rest_global, pose_global, "head")
-	result["head"] = _convert_basis(head_motion) if not head_motion.is_empty() else result["top"]
+	# Head yaw/roll matter for directional sprite selection, so keep its complete
+	# global rest-space orientation delta rather than reducing it to one vector.
+	var head_motion: Variant = _global_basis_motion(rest_global, pose_global, "head")
+	result["head"] = _convert_basis(head_motion) if head_motion != null else result["top"]
 
 	for target_value in SEGMENTS.keys():
 		var target := str(target_value)
 		var pair: Array = SEGMENTS[target_value]
-		var motion := _segment_swing(rest_global, pose_global, str(pair[0]), str(pair[1]))
-		if motion.is_empty():
-			# Finger/toe end bones are sometimes omitted by animation-only exports.
-			# Falling back to the parent's global motion is preferable to inventing a
-			# rotation or transferring a mismatched FBX local axis.
+		var motion: Variant = _segment_swing(rest_global, pose_global, str(pair[0]), str(pair[1]))
+		if motion == null:
+			# End bones are sometimes absent. Parent-follow is stable and avoids
+			# inventing a rotation from an unrelated FBX local axis.
 			var parent := str(TARGET_PARENT.get(target, ""))
 			if result.has(parent):
 				result[target] = result[parent]
@@ -254,13 +249,17 @@ static func _segment_swing(rest_global: Dictionary, pose_global: Dictionary, sta
 
 
 static func _body_frame(data: Dictionary, origin_name: String, left_name: String, right_name: String, up_name: String) -> Variant:
-	for name in [origin_name, left_name, right_name, up_name]:
-		if not data.has(name):
+	for bone_name in [origin_name, left_name, right_name, up_name]:
+		if not data.has(bone_name):
 			return null
-	var origin: Vector3 = (data[origin_name] as Transform3D).origin
-	var left: Vector3 = (data[left_name] as Transform3D).origin
-	var right: Vector3 = (data[right_name] as Transform3D).origin
-	var up_point: Vector3 = (data[up_name] as Transform3D).origin
+	var origin_xfm: Transform3D = data[origin_name]
+	var left_xfm: Transform3D = data[left_name]
+	var right_xfm: Transform3D = data[right_name]
+	var up_xfm: Transform3D = data[up_name]
+	var origin := origin_xfm.origin
+	var left := left_xfm.origin
+	var right := right_xfm.origin
+	var up_point := up_xfm.origin
 	var x_axis := right - left
 	var y_axis := up_point - origin
 	if x_axis.length_squared() <= EPS or y_axis.length_squared() <= EPS:
@@ -295,11 +294,13 @@ static func _global_basis_motion(rest_global: Dictionary, pose_global: Dictionar
 static func _hips_translation_delta(rest_global: Dictionary, pose_global: Dictionary) -> Vector3:
 	if not rest_global.has("hips") or not pose_global.has("hips"):
 		return Vector3.ZERO
-	return (pose_global["hips"] as Transform3D).origin - (rest_global["hips"] as Transform3D).origin
+	var rest_hips: Transform3D = rest_global["hips"]
+	var pose_hips: Transform3D = pose_global["hips"]
+	return pose_hips.origin - rest_hips.origin
 
 
 static func _sample_global_transforms(animation: Animation, skeleton: Skeleton3D, rotation_tracks: Dictionary, position_tracks: Dictionary, time: float) -> Dictionary:
-	var result := {}
+	var indexed := {}
 	# Skeleton3D guarantees parent index < child index.
 	for bone_index in range(skeleton.get_bone_count()):
 		var semantic := normalize(skeleton.get_bone_name(bone_index))
@@ -315,11 +316,12 @@ static func _sample_global_transforms(animation: Animation, skeleton: Skeleton3D
 			local_origin = animation.position_track_interpolate(pos_track, time)
 		var local := Transform3D(local_basis, local_origin)
 		var parent_index := skeleton.get_bone_parent(bone_index)
-		if parent_index >= 0 and result.has(parent_index):
-			result[bone_index] = (result[parent_index] as Transform3D) * local
+		if parent_index >= 0 and indexed.has(parent_index):
+			var parent_global: Transform3D = indexed[parent_index]
+			indexed[bone_index] = parent_global * local
 		else:
-			result[bone_index] = local
-	return _index_transforms_by_semantic(result, skeleton)
+			indexed[bone_index] = local
+	return _index_transforms_by_semantic(indexed, skeleton)
 
 
 static func _index_transforms_by_semantic(indexed: Dictionary, skeleton: Skeleton3D) -> Dictionary:
@@ -364,9 +366,9 @@ static func _required_missing(indices: Dictionary) -> Array[String]:
 		"rightupleg", "rightleg", "rightfoot", "righttoebase",
 	]
 	var missing: Array[String] = []
-	for name in required:
-		if not indices.has(name):
-			missing.append(name)
+	for bone_name in required:
+		if not indices.has(bone_name):
+			missing.append(bone_name)
 	return missing
 
 
