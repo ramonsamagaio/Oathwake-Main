@@ -14,7 +14,7 @@ static func inspect_scene(source_path: String) -> Dictionary:
 	var kind := str(opened.get("kind", ""))
 	var has_skeleton := false
 
-	if kind == "packed_scene":
+	if _is_scene_kind(kind):
 		var player := opened.get("player") as AnimationPlayer
 		var skeleton := opened.get("skeleton") as Skeleton3D
 		has_skeleton = skeleton != null
@@ -75,7 +75,7 @@ static func import_scene_clip(source_path: String, clip_name: String, sample_fps
 	var player: AnimationPlayer = null
 	var skeleton: Skeleton3D = null
 	var kind := str(opened.get("kind", ""))
-	if kind == "packed_scene":
+	if _is_scene_kind(kind):
 		player = opened.get("player") as AnimationPlayer
 		skeleton = opened.get("skeleton") as Skeleton3D
 		if player != null and player.has_animation(clip_name):
@@ -94,20 +94,17 @@ static func import_scene_clip(source_path: String, clip_name: String, sample_fps
 	var profile := LegacyImporter.detect_source_profile(source_bones)
 	var result := {}
 
-	if profile == "mixamo" and kind == "packed_scene" and skeleton != null and _mapping_matches_auto(source_bones, custom_retarget):
-		# Authoritative path for Mixamo. The converter reads the actual imported
-		# Skeleton3D rest axes and pose, so FBX PreRotation/Bone Rest differences are
-		# removed before the motion is projected into Alabaster's smaller hierarchy.
+	if profile == "mixamo" and _is_scene_kind(kind) and skeleton != null and _mapping_matches_auto(source_bones, custom_retarget):
+		# Authoritative Mixamo path. This uses the actual FBX Skeleton3D Bone Rest
+		# axes and reconstructs global pose deltas before projecting the movement to
+		# Alabaster's reduced hierarchy.
 		result = RestSpaceConverter.convert_scene(player, skeleton, clip_name, sample_fps, loop, translation_scale, settings)
 		if result.is_empty():
-			push_warning("Mixamo Rest-Space conversion failed. Refusing to fall back to raw local Euler transfer because that path is known to distort Mixamo motion.")
+			push_warning("Mixamo Rest-Space conversion failed. Refusing to silently replace it with the known-distorting raw-local-Euler path.")
 	else:
-		# Generic/manual mappings and animation-only resources retain the old bridge.
-		# For a Mixamo AnimationLibrary this is explicitly a lower-fidelity fallback,
-		# because no Skeleton3D rest pose exists in the loaded resource.
 		result = LegacyImporter.convert_animation(animation, sample_fps, loop, translation_scale, custom_retarget, settings)
 		if profile == "mixamo" and skeleton == null:
-			push_warning("Mixamo source has no Skeleton3D; using track-only fallback. Import the FBX/GLB as a scene to enable Rest-Space retargeting.")
+			push_warning("Mixamo source has no Skeleton3D; using track-only fallback. A raw FBX/GLB scene is recommended for correct rest-axis retargeting.")
 
 	_free_opened_source(opened)
 	return result
@@ -130,6 +127,18 @@ static func _mapping_matches_auto(source_bones: Array[String], mapping: Dictiona
 static func _open_source(source_path: String) -> Dictionary:
 	if source_path.strip_edges().is_empty():
 		return {"ok": false, "error": "No source animation file selected."}
+
+	# Mixamo FBX files are often imported by Godot as an AnimationLibrary. That
+	# gives us the animation curves but hides the Skeleton3D Bone Rest, which is
+	# precisely the information required to retarget between different bone axes.
+	# Godot 4.3+ can parse FBX through FBXDocument/FBXState at runtime, so for an
+	# FBX source we reconstruct a transient scene directly from the raw repository
+	# file first. The normal imported resource remains the fallback.
+	if source_path.get_extension().to_lower() == "fbx":
+		var raw_fbx := _open_runtime_fbx_scene(source_path)
+		if bool(raw_fbx.get("ok", false)):
+			return raw_fbx
+
 	if not ResourceLoader.exists(source_path):
 		return {
 			"ok": false,
@@ -152,13 +161,7 @@ static func _open_source(source_path: String) -> Dictionary:
 				"resource_kind": "packed_scene",
 			}
 		var skeleton := _find_skeleton3d(root)
-		return {
-			"ok": true,
-			"kind": "packed_scene",
-			"root": root,
-			"player": player,
-			"skeleton": skeleton,
-		}
+		return {"ok": true, "kind": "packed_scene", "root": root, "player": player, "skeleton": skeleton}
 
 	if resource is AnimationLibrary:
 		return {"ok": true, "kind": "animation_library", "library": resource as AnimationLibrary}
@@ -168,6 +171,53 @@ static func _open_source(source_path: String) -> Dictionary:
 		"error": "Unsupported imported resource type '%s'. Bone Studio accepts a Godot PackedScene or AnimationLibrary generated from FBX/GLB/GLTF/TSCN." % resource.get_class(),
 		"resource_kind": resource.get_class(),
 	}
+
+
+static func _open_runtime_fbx_scene(source_path: String) -> Dictionary:
+	if not ClassDB.class_exists("FBXDocument") or not ClassDB.class_exists("FBXState"):
+		return {"ok": false, "error": "This Godot build does not expose FBXDocument/FBXState."}
+	if not FileAccess.file_exists(source_path):
+		return {"ok": false, "error": "Raw FBX file is missing: %s" % source_path}
+
+	var document := FBXDocument.new()
+	var state := FBXState.new()
+	# Geometry-helper nodes preserve FBX pivot/pre-rotation semantics. The source
+	# files are motion-only, but preserving these transforms makes the Skeleton3D
+	# rest axes authoritative for the retargeter.
+	state.allow_geometry_helper_nodes = true
+	var filesystem_path := ProjectSettings.globalize_path(source_path)
+	var error := document.append_from_file(filesystem_path, state)
+	if error != OK:
+		return {"ok": false, "error": "FBXDocument could not parse %s error=%s" % [source_path, error_string(error)]}
+
+	# Keep immutable tracks: Mixamo's rest/constant transforms are useful to the
+	# retarget inspection and should not be optimized away in this transient tool
+	# scene. UI sample FPS may differ later; 30 is only the generated source scene.
+	var root := document.generate_scene(state, 30.0, false, false)
+	if root == null:
+		return {"ok": false, "error": "FBXDocument parsed the file but could not generate a scene: %s" % source_path}
+	var player := LegacyImporter.find_animation_player(root)
+	var skeleton := _find_skeleton3d(root)
+	if player == null or skeleton == null:
+		root.free()
+		return {"ok": false, "error": "Raw FBX scene is missing AnimationPlayer or Skeleton3D: %s" % source_path}
+
+	print("ALABASTER_MIXAMO_FBX_SCENE_OK path=%s clips=%d bones=%d" % [
+		source_path,
+		player.get_animation_list().size(),
+		skeleton.get_bone_count(),
+	])
+	return {
+		"ok": true,
+		"kind": "fbx_runtime_scene",
+		"root": root,
+		"player": player,
+		"skeleton": skeleton,
+	}
+
+
+static func _is_scene_kind(kind: String) -> bool:
+	return kind == "packed_scene" or kind == "fbx_runtime_scene"
 
 
 static func _find_skeleton3d(node: Node) -> Skeleton3D:
