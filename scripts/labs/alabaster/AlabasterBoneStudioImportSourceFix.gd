@@ -24,11 +24,12 @@ func _on_source_selected(path: String) -> void:
 
 	var profile := str(info.get("retarget_profile", "generic"))
 	var retarget_mode := str(info.get("retarget_mode", "generic_track"))
+	var has_mixamo_scene := profile == "mixamo" and bool(info.get("has_skeleton", false)) and retarget_mode != "mixamo_track_fallback"
 	if profile == "mixamo":
 		import_reference_pose.button_pressed = false
-		if retarget_mode == "mixamo_rest_delta_v5":
+		if has_mixamo_scene:
 			import_reference_pose.disabled = true
-			import_reference_pose.tooltip_text = "Mixamo Rest-Delta V5 writes the imported animation tracks into Skeleton3D bone pose, then transfers only rest-to-pose anatomical motion onto Default. The Mixamo T-pose itself is not copied."
+			import_reference_pose.tooltip_text = "Mixamo Track-Hierarchy V7 reads the FBX transform curves and composes them through the real Skeleton3D parent/rest hierarchy. Only rest-to-pose anatomical motion is transferred to Default."
 		else:
 			import_reference_pose.disabled = false
 			import_reference_pose.tooltip_text = "No Skeleton3D was exposed by this import, so only the lower-fidelity track fallback is available."
@@ -43,8 +44,8 @@ func _on_source_selected(path: String) -> void:
 		import_name_edit.text = "OW_%s" % _sanitize_name(str(source_clip_option.get_item_metadata(0)))
 
 	var kind := str(info.get("resource_kind", "godot_resource"))
-	if retarget_mode == "mixamo_rest_delta_v5":
-		_set_status("Mixamo Rest-Delta V5 detected: %d clips, %d bones. Source tracks are sampled directly into Skeleton3D; only movement relative to the Mixamo rest pose is transferred to Default's own compact rest pose." % [source_clip_option.item_count, source_bones.size()])
+	if has_mixamo_scene:
+		_set_status("Mixamo Track-Hierarchy V7 detected: %d clips, %d bones. FBX tracks will be composed deterministically through the source hierarchy, avoiding the detached Skeleton3D pose-cache problem." % [source_clip_option.item_count, source_bones.size()])
 	elif profile == "mixamo":
 		_set_status("Mixamo detected, but this resource exposes no Skeleton3D. Track-only fallback is available; importing the raw FBX as a scene is recommended.")
 	else:
@@ -72,7 +73,7 @@ func _rebuild_mapping_table() -> void:
 			var fold_target := auto_value.trim_prefix(FOLD_PREFIX)
 			option.add_item("AUTO FOLD -> %s" % fold_target)
 			option.set_item_metadata(option.item_count - 1, auto_value)
-			option.set_item_tooltip(option.item_count - 1, "This Mixamo joint is an endpoint/helper used by the rest-delta anatomical solve for %s. It does not independently overwrite an Alabaster transform." % fold_target)
+			option.set_item_tooltip(option.item_count - 1, "This Mixamo joint is an endpoint/helper used by the anatomical solve for %s. It does not independently overwrite an Alabaster transform." % fold_target)
 			selected = option.item_count - 1
 		for target_value in targets:
 			var target := str(target_value)
@@ -103,5 +104,5 @@ func _build_import_animation() -> Dictionary:
 		_get_import_settings()
 	)
 	if result.is_empty():
-		_set_status("The clip was found but could not be converted. For Mixamo, keep the automatic mapping unchanged so Rest-Delta V5 can use the raw FBX Skeleton3D hierarchy.", true)
+		_set_status("The clip was found but could not be converted. For Mixamo, keep the automatic mapping unchanged so Track-Hierarchy V7 can use the raw FBX hierarchy.", true)
 	return result
