@@ -7,14 +7,16 @@ class_name AlabasterDefaultPlayableSkinRig
 # while keeping a distinct runtime/profile id for future body, equipment and
 # custom-animation work.
 #
-# The body atlas currently falls back to dummy.png. Once default.png is committed,
-# only DEFAULT's atlas loader needs to move to that file; Dummy remains frozen as
-# the reference source.
+# default.png is now a drop-in authored atlas. Until it is committed, this rig
+# deliberately falls back to dummy.png, keeping DEFAULT functional at all times.
 
 const DefaultRepoSkinSource := preload("res://scripts/labs/alabaster/AlabasterExternalSkinSource.gd")
 const DEFAULT_PROFILE_ID := "default"
 const BASE_PROFILE_ID := "male_dummy"
 const DEFAULT_FIGURE_LABEL := "Default"
+const DEFAULT_ATLAS_PATH := "res://assets/sprites/characters/alabaster/default.png"
+const EXPECTED_ATLAS_SIZE := Vector2i(672, 120)
+const DEFAULT_CHROMA_RGB := Vector3i(255, 0, 195)
 
 
 func _init() -> void:
@@ -63,10 +65,56 @@ func _load_skin_data() -> void:
 
 
 func _load_skin_atlas() -> void:
-	# Binary default.png will become the authored atlas. Until it is committed,
-	# use the exact Dummy texture so DEFAULT is visually/structurally identical.
+	# A real default.png wins automatically. The loader repeats Dummy's exact
+	# chroma-key contract so changing only DEFAULT artwork never touches Dummy.
+	var authored := _load_authored_default_texture()
+	if authored != null:
+		_atlas = authored
+		_skin_texture_source = "REPO_DEFAULT_PNG"
+		return
+
 	_atlas = DefaultRepoSkinSource.load_skin_texture(BASE_PROFILE_ID)
 	_skin_texture_source = "DEFAULT_CLONE_OF_DUMMY_PNG" if _atlas != null else ""
+
+
+func _load_authored_default_texture() -> Texture2D:
+	if not FileAccess.file_exists(DEFAULT_ATLAS_PATH) and not ResourceLoader.exists(DEFAULT_ATLAS_PATH):
+		return null
+	var image: Image = null
+	if ResourceLoader.exists(DEFAULT_ATLAS_PATH):
+		var resource := load(DEFAULT_ATLAS_PATH)
+		if resource is Texture2D:
+			image = (resource as Texture2D).get_image()
+	if image == null or image.is_empty():
+		image = Image.new()
+		var load_error := image.load(DEFAULT_ATLAS_PATH)
+		if load_error != OK or image.is_empty():
+			push_error("AlabasterDefaultPlayableSkinRig: failed to load %s error=%s" % [DEFAULT_ATLAS_PATH, load_error])
+			return null
+	if image.get_width() != EXPECTED_ATLAS_SIZE.x or image.get_height() != EXPECTED_ATLAS_SIZE.y:
+		push_error("AlabasterDefaultPlayableSkinRig: rejected %s size=%dx%d expected=%dx%d" % [
+			DEFAULT_ATLAS_PATH,
+			image.get_width(), image.get_height(),
+			EXPECTED_ATLAS_SIZE.x, EXPECTED_ATLAS_SIZE.y,
+		])
+		return null
+	if image.get_format() != Image.FORMAT_RGBA8:
+		image.convert(Image.FORMAT_RGBA8)
+	var rgba := image.get_data()
+	var keyed_pixels := 0
+	var index := 0
+	while index + 3 < rgba.size():
+		if int(rgba[index]) == DEFAULT_CHROMA_RGB.x and int(rgba[index + 1]) == DEFAULT_CHROMA_RGB.y and int(rgba[index + 2]) == DEFAULT_CHROMA_RGB.z:
+			rgba[index + 3] = 0
+			keyed_pixels += 1
+		index += 4
+	image.set_data(image.get_width(), image.get_height(), false, Image.FORMAT_RGBA8, rgba)
+	var texture := ImageTexture.create_from_image(image)
+	if texture != null:
+		print("ALABASTER_DEFAULT_ATLAS_OK path=%s size=%dx%d chroma_pixels=%d" % [
+			DEFAULT_ATLAS_PATH, texture.get_width(), texture.get_height(), keyed_pixels,
+		])
+	return texture
 
 
 func get_runtime_summary() -> Dictionary:
@@ -76,5 +124,6 @@ func get_runtime_summary() -> Dictionary:
 	result["default_base_profile"] = BASE_PROFILE_ID
 	result["default_base_json"] = DefaultRepoSkinSource.get_source_path(BASE_PROFILE_ID)
 	result["default_base_atlas"] = DefaultRepoSkinSource.get_repo_atlas_path(BASE_PROFILE_ID)
+	result["default_authored_atlas"] = DEFAULT_ATLAS_PATH
 	result["default_has_independent_runtime_copy"] = true
 	return result
