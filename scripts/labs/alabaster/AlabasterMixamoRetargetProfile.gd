@@ -3,11 +3,18 @@ class_name AlabasterMixamoRetargetProfile
 
 const FOLD_PREFIX := "@fold:"
 
-# One visible owner per Alabaster bone. Intermediate Mixamo bones are folded
-# into a target chain instead of being independently written to the same bone.
+# Mixamo and Alabaster do NOT have the same hierarchy.
+#
+# Mixamo Hips is the common parent of both spine and legs. In Alabaster that
+# semantic role belongs to `root`, because `top` and `bottom` are both children
+# of root. Mapping Hips -> bottom (the old profile) forced the whole torso and
+# leg tree through the pelvis child and was structurally wrong.
+#
+# AUTO FOLD rows are informational ownership markers for the smart converter.
+# They do not independently write another transform to the destination bone.
 const AUTO_MAP := {
 	"root": "root",
-	"hips": "bottom",
+	"hips": "root",
 	"spine": "@fold:top",
 	"spine1": "@fold:top",
 	"spine2": "top",
@@ -18,7 +25,10 @@ const AUTO_MAP := {
 	"leftarm": "shoulderL",
 	"leftforearm": "armL",
 	"lefthand": "handL",
-	"lefthandindex1": "fingerL",
+	# The Alabaster finger sprite is too coarse to benefit from Mixamo's finger
+	# chain. Keep it rigidly parented to the hand instead of importing noisy hand
+	# articulation into a single 8 px part.
+	"lefthandindex1": "",
 	"lefthandindex2": "",
 	"lefthandindex3": "",
 	"lefthandindex4": "",
@@ -26,7 +36,7 @@ const AUTO_MAP := {
 	"rightarm": "shoulderR",
 	"rightforearm": "armR",
 	"righthand": "handR",
-	"righthandindex1": "fingerR",
+	"righthandindex1": "",
 	"righthandindex2": "",
 	"righthandindex3": "",
 	"righthandindex4": "",
@@ -42,21 +52,20 @@ const AUTO_MAP := {
 	"righttoeend": "",
 }
 
-# Mixamo Hips owns the Spine tree; Alabaster top/bottom are siblings. Therefore
-# Hips must contribute to both bottom and the collapsed upper-body chain.
+# Track-only fallback for AnimationLibrary sources that do not expose a
+# Skeleton3D. Packed Mixamo FBX/GLB should use AlabasterMixamoRestSpaceConverter
+# instead. Notice that Hips is now owned by root, and top receives only the
+# relative spine chain, preventing the old double-Hips rotation.
 const TARGET_CHAINS := {
-	"root": ["root"],
-	"bottom": ["hips"],
-	"top": ["hips", "spine", "spine1", "spine2"],
+	"root": ["hips"],
+	"top": ["spine", "spine1", "spine2"],
 	"head": ["neck", "head"],
 	"shoulderL": ["leftshoulder", "leftarm"],
 	"armL": ["leftforearm"],
 	"handL": ["lefthand"],
-	"fingerL": ["lefthandindex1"],
 	"shoulderR": ["rightshoulder", "rightarm"],
 	"armR": ["rightforearm"],
 	"handR": ["righthand"],
-	"fingerR": ["righthandindex1"],
 	"hipL": ["leftupleg"],
 	"legL": ["leftleg"],
 	"footL": ["leftfoot"],
