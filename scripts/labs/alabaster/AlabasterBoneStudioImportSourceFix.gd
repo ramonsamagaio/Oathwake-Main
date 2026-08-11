@@ -25,13 +25,10 @@ func _on_source_selected(path: String) -> void:
 	var profile := str(info.get("retarget_profile", "generic"))
 	var retarget_mode := str(info.get("retarget_mode", "generic_track"))
 	if profile == "mixamo":
-		# The new Mixamo path uses the TRUE Skeleton3D Bone Rest every sample. The
-		# legacy checkbox referred to subtracting animation frame zero, not the FBX
-		# bind/rest pose, so it is deliberately disabled for Rest-Space conversion.
 		import_reference_pose.button_pressed = false
-		if retarget_mode == "mixamo_rest_space":
+		if retarget_mode == "mixamo_semantic_v3":
 			import_reference_pose.disabled = true
-			import_reference_pose.tooltip_text = "Mixamo Rest-Space uses the FBX Skeleton3D Bone Rest automatically. Frame-zero subtraction is neither needed nor used."
+			import_reference_pose.tooltip_text = "Mixamo Semantic V3 uses the true FBX Skeleton3D Bone Rest and anatomical joint directions. Frame-zero subtraction is not used."
 		else:
 			import_reference_pose.disabled = false
 			import_reference_pose.tooltip_text = "No Skeleton3D was exposed by this import, so only the lower-fidelity track fallback is available."
@@ -46,10 +43,10 @@ func _on_source_selected(path: String) -> void:
 		import_name_edit.text = "OW_%s" % _sanitize_name(str(source_clip_option.get_item_metadata(0)))
 
 	var kind := str(info.get("resource_kind", "godot_resource"))
-	if retarget_mode == "mixamo_rest_space":
-		_set_status("Mixamo Rest-Space V2 detected: %d clips, %d bones. Hips drives Alabaster root; bottom follows root; spine/neck/clavicle chains are solved from Skeleton3D global pose vs true Bone Rest." % [source_clip_option.item_count, source_bones.size()])
+	if retarget_mode == "mixamo_semantic_v3":
+		_set_status("Mixamo Semantic V3 detected: %d clips, %d bones. Limb motion is transferred from anatomical joint directions; pelvis/torso use body frames; Mixamo local bone axes are not copied." % [source_clip_option.item_count, source_bones.size()])
 	elif profile == "mixamo":
-		_set_status("Mixamo detected, but this resource exposes no Skeleton3D. Track-only fallback is available; importing the FBX as a scene is recommended for correct rest-axis retargeting.")
+		_set_status("Mixamo detected, but this resource exposes no Skeleton3D. Track-only fallback is available; importing the raw FBX as a scene is recommended.")
 	else:
 		_set_status("Loaded %d clips and %d source bones from %s." % [source_clip_option.item_count, source_bones.size(), kind])
 
@@ -75,7 +72,7 @@ func _rebuild_mapping_table() -> void:
 			var fold_target := auto_value.trim_prefix(FOLD_PREFIX)
 			option.add_item("AUTO FOLD -> %s" % fold_target)
 			option.set_item_metadata(option.item_count - 1, auto_value)
-			option.set_item_tooltip(option.item_count - 1, "This source bone participates in the rest-space chain ending at %s. It does not write a second independent Alabaster transform." % fold_target)
+			option.set_item_tooltip(option.item_count - 1, "This Mixamo helper/intermediate bone participates in the semantic chain ending at %s. It does not independently overwrite that Alabaster bone." % fold_target)
 			selected = option.item_count - 1
 		for target_value in targets:
 			var target := str(target_value)
@@ -106,5 +103,5 @@ func _build_import_animation() -> Dictionary:
 		_get_import_settings()
 	)
 	if result.is_empty():
-		_set_status("The clip was found but could not be converted. For Mixamo, keep the automatic mapping unchanged so Rest-Space mode can use the imported Skeleton3D.", true)
+		_set_status("The clip was found but could not be converted. For Mixamo, keep the automatic mapping unchanged so Semantic V3 can use the imported Skeleton3D.", true)
 	return result
