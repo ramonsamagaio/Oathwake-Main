@@ -4,7 +4,7 @@ extends "res://scripts/labs/alabaster/AlabasterBoneStudioPro.gd"
 # while the preview itself starts with the exact BonesSystem used by gameplay.
 # This avoids an editor-only Juno runtime silently diverging from the player.
 
-const LIVE_TUNING_PANEL_PATH = "res://scripts/labs/alabaster/AlabasterBoneStudioLiveTuningPanelFixed.gd"
+const LIVE_TUNING_PANEL_PATH = "res://scripts/labs/alabaster/AlabasterBoneStudioLiveTuningDefault.gd"
 const SharedJunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 
 var _live_tuning_panel: Node = null
