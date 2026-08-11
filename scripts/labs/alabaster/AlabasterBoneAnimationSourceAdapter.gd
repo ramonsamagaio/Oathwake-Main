@@ -2,6 +2,8 @@ extends RefCounted
 class_name AlabasterBoneAnimationSourceAdapter
 
 const LegacyImporter := preload("res://scripts/labs/alabaster/AlabasterSmartBoneAnimationImporter.gd")
+const RestSpaceConverter := preload("res://scripts/labs/alabaster/AlabasterMixamoRestSpaceConverter.gd")
+
 
 static func inspect_scene(source_path: String) -> Dictionary:
 	var opened := _open_source(source_path)
@@ -10,8 +12,12 @@ static func inspect_scene(source_path: String) -> Dictionary:
 	var clips: Array[String] = []
 	var bones: Array[String] = []
 	var kind := str(opened.get("kind", ""))
+	var has_skeleton := false
+
 	if kind == "packed_scene":
 		var player := opened.get("player") as AnimationPlayer
+		var skeleton := opened.get("skeleton") as Skeleton3D
+		has_skeleton = skeleton != null
 		if player == null:
 			_free_opened_source(opened)
 			return {"ok": false, "error": "Imported scene contains no AnimationPlayer."}
@@ -33,47 +39,106 @@ static func inspect_scene(source_path: String) -> Dictionary:
 				continue
 			clips.append(clip_name)
 			_append_unique_bones(bones, LegacyImporter.get_source_bones(animation))
+
 	clips.sort()
 	bones.sort()
+	var profile := LegacyImporter.detect_source_profile(bones)
+	var retarget_mode := "generic_track"
+	if profile == "mixamo":
+		retarget_mode = "mixamo_rest_space" if has_skeleton else "mixamo_track_fallback"
 	_free_opened_source(opened)
+
 	if clips.is_empty():
-		return {"ok": false, "error": "Godot loaded %s, but it contains no animation clips. Check the FBX Import dock and Reimport with animations enabled." % kind, "resource_kind": kind}
-	return {"ok": true, "clips": clips, "bones": bones, "resource_kind": kind, "retarget_profile": LegacyImporter.detect_source_profile(bones)}
+		return {
+			"ok": false,
+			"error": "Godot loaded %s, but it contains no animation clips. Check the FBX Import dock and Reimport with animations enabled." % kind,
+			"resource_kind": kind,
+		}
+	return {
+		"ok": true,
+		"clips": clips,
+		"bones": bones,
+		"resource_kind": kind,
+		"retarget_profile": profile,
+		"retarget_mode": retarget_mode,
+		"has_skeleton": has_skeleton,
+	}
+
 
 static func import_scene_clip(source_path: String, clip_name: String, sample_fps := 60.0, loop := true, translation_scale := 0.0, custom_retarget: Dictionary = {}, settings: Dictionary = {}) -> Dictionary:
 	var opened := _open_source(source_path)
 	if not bool(opened.get("ok", false)):
 		push_warning(str(opened.get("error", "Could not open animation source.")))
 		return {}
+
 	var animation: Animation = null
+	var player: AnimationPlayer = null
+	var skeleton: Skeleton3D = null
 	var kind := str(opened.get("kind", ""))
 	if kind == "packed_scene":
-		var player := opened.get("player") as AnimationPlayer
+		player = opened.get("player") as AnimationPlayer
+		skeleton = opened.get("skeleton") as Skeleton3D
 		if player != null and player.has_animation(clip_name):
 			animation = player.get_animation(clip_name)
 	elif kind == "animation_library":
 		var library := opened.get("library") as AnimationLibrary
 		if library != null and library.has_animation(clip_name):
 			animation = library.get_animation(clip_name)
+
 	if animation == null:
 		_free_opened_source(opened)
 		push_warning("Animation '%s' not found in %s (%s)." % [clip_name, source_path, kind])
 		return {}
-	var result := LegacyImporter.convert_animation(animation, sample_fps, loop, translation_scale, custom_retarget, settings)
+
+	var source_bones := LegacyImporter.get_source_bones(animation)
+	var profile := LegacyImporter.detect_source_profile(source_bones)
+	var result := {}
+
+	if profile == "mixamo" and kind == "packed_scene" and skeleton != null and _mapping_matches_auto(source_bones, custom_retarget):
+		# Authoritative path for Mixamo. The converter reads the actual imported
+		# Skeleton3D rest axes and pose, so FBX PreRotation/Bone Rest differences are
+		# removed before the motion is projected into Alabaster's smaller hierarchy.
+		result = RestSpaceConverter.convert_scene(player, skeleton, clip_name, sample_fps, loop, translation_scale, settings)
+		if result.is_empty():
+			push_warning("Mixamo Rest-Space conversion failed. Refusing to fall back to raw local Euler transfer because that path is known to distort Mixamo motion.")
+	else:
+		# Generic/manual mappings and animation-only resources retain the old bridge.
+		# For a Mixamo AnimationLibrary this is explicitly a lower-fidelity fallback,
+		# because no Skeleton3D rest pose exists in the loaded resource.
+		result = LegacyImporter.convert_animation(animation, sample_fps, loop, translation_scale, custom_retarget, settings)
+		if profile == "mixamo" and skeleton == null:
+			push_warning("Mixamo source has no Skeleton3D; using track-only fallback. Import the FBX/GLB as a scene to enable Rest-Space retargeting.")
+
 	_free_opened_source(opened)
 	return result
 
+
 static func make_auto_retarget(source_bones: Array[String]) -> Dictionary:
 	return LegacyImporter.make_auto_retarget(source_bones)
+
+
+static func _mapping_matches_auto(source_bones: Array[String], mapping: Dictionary) -> bool:
+	if mapping.is_empty():
+		return true
+	var expected := make_auto_retarget(source_bones)
+	for source_bone in source_bones:
+		if str(mapping.get(source_bone, "")) != str(expected.get(source_bone, "")):
+			return false
+	return true
+
 
 static func _open_source(source_path: String) -> Dictionary:
 	if source_path.strip_edges().is_empty():
 		return {"ok": false, "error": "No source animation file selected."}
 	if not ResourceLoader.exists(source_path):
-		return {"ok": false, "error": "Godot has not imported this source yet: %s. Wait for import to finish or use Reimport in the FileSystem dock." % source_path}
+		return {
+			"ok": false,
+			"error": "Godot has not imported this source yet: %s. Wait for import to finish or use Reimport in the FileSystem dock." % source_path,
+		}
 	var resource: Resource = load(source_path)
 	if resource == null:
 		return {"ok": false, "error": "Could not load imported animation source: %s" % source_path}
+
 	if resource is PackedScene:
 		var root := (resource as PackedScene).instantiate()
 		if root == null:
@@ -81,16 +146,45 @@ static func _open_source(source_path: String) -> Dictionary:
 		var player := LegacyImporter.find_animation_player(root)
 		if player == null:
 			root.free()
-			return {"ok": false, "error": "Godot imported the file as a scene, but no AnimationPlayer was found. Check Advanced Import Settings and verify the animation is enabled.", "resource_kind": "packed_scene"}
-		return {"ok": true, "kind": "packed_scene", "root": root, "player": player}
+			return {
+				"ok": false,
+				"error": "Godot imported the file as a scene, but no AnimationPlayer was found. Check Advanced Import Settings and verify the animation is enabled.",
+				"resource_kind": "packed_scene",
+			}
+		var skeleton := _find_skeleton3d(root)
+		return {
+			"ok": true,
+			"kind": "packed_scene",
+			"root": root,
+			"player": player,
+			"skeleton": skeleton,
+		}
+
 	if resource is AnimationLibrary:
 		return {"ok": true, "kind": "animation_library", "library": resource as AnimationLibrary}
-	return {"ok": false, "error": "Unsupported imported resource type '%s'. Bone Studio accepts a Godot PackedScene or AnimationLibrary generated from FBX/GLB/GLTF/TSCN." % resource.get_class(), "resource_kind": resource.get_class()}
+
+	return {
+		"ok": false,
+		"error": "Unsupported imported resource type '%s'. Bone Studio accepts a Godot PackedScene or AnimationLibrary generated from FBX/GLB/GLTF/TSCN." % resource.get_class(),
+		"resource_kind": resource.get_class(),
+	}
+
+
+static func _find_skeleton3d(node: Node) -> Skeleton3D:
+	if node is Skeleton3D:
+		return node as Skeleton3D
+	for child in node.get_children():
+		var found := _find_skeleton3d(child)
+		if found != null:
+			return found
+	return null
+
 
 static func _append_unique_bones(target: Array[String], incoming: Array[String]) -> void:
 	for bone_name in incoming:
 		if not target.has(bone_name):
 			target.append(bone_name)
+
 
 static func _free_opened_source(opened: Dictionary) -> void:
 	var root := opened.get("root") as Node
