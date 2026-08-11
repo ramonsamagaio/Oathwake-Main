@@ -4,6 +4,7 @@ class_name AlabasterBoneStudioImportSourceFix
 const RobustImporter := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationSourceAdapter.gd")
 const FOLD_PREFIX := "@fold:"
 
+
 func _on_source_selected(path: String) -> void:
 	source_path = path
 	source_path_label.text = path
@@ -14,6 +15,7 @@ func _on_source_selected(path: String) -> void:
 		_rebuild_mapping_table()
 		_set_status(str(info.get("error", "Could not inspect source animation.")), true)
 		return
+
 	for clip in info.get("clips", []):
 		source_clip_option.add_item(str(clip))
 		source_clip_option.set_item_metadata(source_clip_option.item_count - 1, str(clip))
@@ -21,22 +23,36 @@ func _on_source_selected(path: String) -> void:
 		source_bones.append(str(bone))
 
 	var profile := str(info.get("retarget_profile", "generic"))
+	var retarget_mode := str(info.get("retarget_mode", "generic_track"))
 	if profile == "mixamo":
-		# Godot's imported skeleton animation is already expressed as bone pose
-		# motion. Subtracting frame zero turns the first punch pose into a fake rest
-		# pose and destroys the intended stance, so keep it off for Mixamo by default.
+		# The new Mixamo path uses the TRUE Skeleton3D Bone Rest every sample. The
+		# legacy checkbox referred to subtracting animation frame zero, not the FBX
+		# bind/rest pose, so it is deliberately disabled for Rest-Space conversion.
 		import_reference_pose.button_pressed = false
-		import_reference_pose.tooltip_text = "Mixamo Smart Chain: OFF is recommended. Turn this on only if you intentionally want frame 0 neutralized."
+		if retarget_mode == "mixamo_rest_space":
+			import_reference_pose.disabled = true
+			import_reference_pose.tooltip_text = "Mixamo Rest-Space uses the FBX Skeleton3D Bone Rest automatically. Frame-zero subtraction is neither needed nor used."
+		else:
+			import_reference_pose.disabled = false
+			import_reference_pose.tooltip_text = "No Skeleton3D was exposed by this import, so only the lower-fidelity track fallback is available."
+	else:
+		import_reference_pose.disabled = false
+		import_reference_pose.tooltip_text = "Subtract frame zero from the imported source motion."
+
 	_rebuild_mapping_table()
 
 	if source_clip_option.item_count > 0:
 		source_clip_option.select(0)
 		import_name_edit.text = "OW_%s" % _sanitize_name(str(source_clip_option.get_item_metadata(0)))
+
 	var kind := str(info.get("resource_kind", "godot_resource"))
-	if profile == "mixamo":
-		_set_status("Mixamo Smart Chain detected: %d clips, %d source bones. Spine, neck and clavicle chains will be collapsed instead of overwriting the same Alabaster bone." % [source_clip_option.item_count, source_bones.size()])
+	if retarget_mode == "mixamo_rest_space":
+		_set_status("Mixamo Rest-Space V2 detected: %d clips, %d bones. Hips drives Alabaster root; bottom follows root; spine/neck/clavicle chains are solved from Skeleton3D global pose vs true Bone Rest." % [source_clip_option.item_count, source_bones.size()])
+	elif profile == "mixamo":
+		_set_status("Mixamo detected, but this resource exposes no Skeleton3D. Track-only fallback is available; importing the FBX as a scene is recommended for correct rest-axis retargeting.")
 	else:
 		_set_status("Loaded %d clips and %d source bones from %s." % [source_clip_option.item_count, source_bones.size(), kind])
+
 
 func _rebuild_mapping_table() -> void:
 	mapping_controls.clear()
@@ -48,6 +64,7 @@ func _rebuild_mapping_table() -> void:
 		if runtime_names is Array:
 			targets = runtime_names.duplicate()
 	var auto := RobustImporter.make_auto_retarget(source_bones)
+
 	for source_bone in source_bones:
 		var option := OptionButton.new()
 		option.add_item("-- Ignore --")
@@ -58,7 +75,7 @@ func _rebuild_mapping_table() -> void:
 			var fold_target := auto_value.trim_prefix(FOLD_PREFIX)
 			option.add_item("AUTO FOLD -> %s" % fold_target)
 			option.set_item_metadata(option.item_count - 1, auto_value)
-			option.set_item_tooltip(option.item_count - 1, "This Mixamo bone is composed with its chain into %s; it does not write a second independent transform." % fold_target)
+			option.set_item_tooltip(option.item_count - 1, "This source bone participates in the rest-space chain ending at %s. It does not write a second independent Alabaster transform." % fold_target)
 			selected = option.item_count - 1
 		for target_value in targets:
 			var target := str(target_value)
@@ -70,6 +87,7 @@ func _rebuild_mapping_table() -> void:
 		_add_row(mapping_container, source_bone, option)
 		mapping_controls[source_bone] = option
 
+
 func _build_import_animation() -> Dictionary:
 	if source_path.is_empty() or source_clip_option.item_count <= 0 or source_clip_option.selected < 0:
 		_set_status("The source file is selected, but Godot exposed no animation clip. Reimport the FBX with Animation enabled and try again.", true)
@@ -78,7 +96,15 @@ func _build_import_animation() -> Dictionary:
 	if clip_name.is_empty():
 		_set_status("Select an animation clip first.", true)
 		return {}
-	var result := RobustImporter.import_scene_clip(source_path, clip_name, import_fps.value, import_loop.button_pressed, 0.0, _get_mapping(), _get_import_settings())
+	var result := RobustImporter.import_scene_clip(
+		source_path,
+		clip_name,
+		import_fps.value,
+		import_loop.button_pressed,
+		0.0,
+		_get_mapping(),
+		_get_import_settings()
+	)
 	if result.is_empty():
-		_set_status("The animation clip was found but could not be converted. Check the source bone mapping below.", true)
+		_set_status("The clip was found but could not be converted. For Mixamo, keep the automatic mapping unchanged so Rest-Space mode can use the imported Skeleton3D.", true)
 	return result
