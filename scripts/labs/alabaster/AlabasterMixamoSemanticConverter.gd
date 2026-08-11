@@ -1,33 +1,27 @@
 extends RefCounted
 class_name AlabasterMixamoSemanticConverter
 
-# Mixamo -> Alabaster V4.
+# Mixamo -> Alabaster V5.
 #
-# The important discovery is that Alabaster bone NAMES are not anatomical 1:1
-# equivalents of Mixamo bone names. In the Default/Dummy figure:
-#   shoulderL/R and hipL/R are attachment pivots,
-#   armL/R is the upper-arm segment,
-#   handL/R is the forearm segment,
-#   legL/R is the thigh segment,
-#   footL/R is the shin segment,
-#   toeL/R is the foot segment.
+# V4 revealed two separate facts:
+#   * the corrected Default bone semantics were right;
+#   * driving a transient, detached FBX AnimationPlayer and then reading the
+#     Skeleton3D did NOT reliably advance the source skeleton. The result was a
+#     perfectly static Mixamo T-pose being sampled over and over.
 #
-# V3 was shifted by one articulation on both arms and legs. It also reconstructed
-# FBX pose tracks manually. V4 fixes both problems:
-#   1. AnimationPlayer evaluates the real transient FBX scene at every sample,
-#      then Skeleton3D.get_bone_global_pose() is read directly. Godot therefore
-#      owns FBX rest/pre-rotation/track semantics instead of us reimplementing it.
-#   2. Limb endpoints from that evaluated pose are fitted to the actual Default
-#      target chain. Source absolute anatomical directions are aligned to the
-#      Default target coordinate frame, so Mixamo T-pose vs Default arms-down is
-#      handled as a retarget-pose difference rather than being applied twice.
+# V5 keeps the corrected semantic chain, but evaluates the imported Animation
+# tracks directly into Skeleton3D bone POSE properties. Skeleton3D therefore
+# still owns Bone Rest / hierarchy / global-pose math, while we no longer depend
+# on AnimationPlayer scene-tree processing for an offline tool.
 #
-# shoulder/hip attachment pivots intentionally inherit torso/pelvis motion. We
-# can add small clavicle/hip secondary motion later, after the main chains are
-# stable, without corrupting the primary limb solve.
+# The other important correction is retarget-pose handling: we transfer the
+# REST->POSE motion delta of each anatomical segment, never the absolute Mixamo
+# T-pose direction. Therefore a horizontal Mixamo rest arm does not force the
+# Default character into a T-pose. The delta is applied over Default's own rest
+# pose (arms down, compact legs).
 
 const TICK_RATE := 60.0
-const PROFILE_NAME := "MIXAMO_ANATOMICAL_CHAIN_V4"
+const PROFILE_NAME := "MIXAMO_REST_DELTA_CHAIN_V5"
 const EPS := 0.000001
 
 const TARGET_PARENT := {
@@ -61,29 +55,8 @@ const TARGET_ORDER := [
 	"hipR", "legR", "footR", "toeR",
 ]
 
-# Exact Default/Dummy node.position vectors. These vectors are what BonesSystem
-# actually rotates to place each child joint, so they are the correct target-rest
-# directions for retargeting.
-const TARGET_REST_VECTOR := {
-	"armL": Vector3(0.08333333333333334, 0.0, -0.375),
-	"handL": Vector3(0.08333333333333333, 0.0, -0.4375),
-	"fingerL": Vector3(0.0, 0.0, -0.125),
-	"armR": Vector3(-0.08333333333333333, 0.0, -0.375),
-	"handR": Vector3(-0.08333333084980646, 0.0, -0.4375),
-	"fingerR": Vector3(0.0, 0.0, -0.125),
-	"legL": Vector3(0.0, 0.0, -0.5625),
-	"footL": Vector3(0.0, 0.0, -0.5),
-	"toeL": Vector3(0.0, 0.125, 0.0),
-	"legR": Vector3(0.0, 0.0, -0.5625),
-	"footR": Vector3(0.0, 0.0, -0.5),
-	"toeR": Vector3(0.0, 0.125, 0.0),
-}
-
-# Target bone -> anatomical source segment whose ENDPOINT direction must match.
-# Notice the one-node shift compared with the old name-based mapping:
-#   Mixamo UpLeg -> Alabaster leg (thigh)
-#   Mixamo Leg   -> Alabaster foot (shin)
-# and the same principle for arm/forearm.
+# Default/Dummy attachment nodes shoulder*/hip* are pivots. The visible motion
+# starts one node lower than the equivalent Mixamo anatomical chain.
 const SOURCE_SEGMENT := {
 	"armL": ["leftarm", "leftforearm"],
 	"handL": ["leftforearm", "lefthand"],
@@ -99,10 +72,8 @@ const SOURCE_SEGMENT := {
 	"toeR": ["rightfoot", "righttoebase"],
 }
 
-# Default anatomical axes, rebuilt from the actual figure semantics:
-# anatomical right = target right hip/shoulder = -X
-# anatomical up    = +Z
-# anatomical forward = right x up = +Y
+# Default anatomical basis. Basis columns are target anatomical X/Y/Z:
+# right = -X, up = +Z, forward = +Y. This is right-handed.
 const TARGET_ANATOMICAL_RIGHT := Vector3(-1.0, 0.0, 0.0)
 const TARGET_ANATOMICAL_UP := Vector3(0.0, 0.0, 1.0)
 const TARGET_ANATOMICAL_FORWARD := Vector3(0.0, 1.0, 0.0)
@@ -118,12 +89,17 @@ static func convert_scene(player: AnimationPlayer, skeleton: Skeleton3D, clip_na
 	var indices := _build_bone_index(skeleton)
 	var missing := _required_missing(indices)
 	if not missing.is_empty():
-		push_warning("Mixamo Anatomical V4: source skeleton is missing %s" % str(missing))
+		push_warning("Mixamo Rest-Delta V5: source skeleton is missing %s" % str(missing))
 		return {}
 
-	# Rest transforms are authoritative only for constructing the source anatomical
-	# coordinate frame and root/torso/head motion deltas. Animated samples below
-	# come from the evaluated Skeleton3D, not manually reconstructed tracks.
+	var rotation_tracks := {}
+	var position_tracks := {}
+	var scale_tracks := {}
+	_build_track_maps(animation, rotation_tracks, position_tracks, scale_tracks)
+	if rotation_tracks.is_empty():
+		push_warning("Mixamo Rest-Delta V5: no Skeleton3D rotation tracks were found.")
+		return {}
+
 	var rest_global := {}
 	for semantic_value in indices.keys():
 		var semantic := str(semantic_value)
@@ -133,14 +109,11 @@ static func convert_scene(player: AnimationPlayer, skeleton: Skeleton3D, clip_na
 	var rest_pelvis_value: Variant = _body_frame(rest_global, "hips", "leftupleg", "rightupleg", "spine")
 	var rest_torso_value: Variant = _body_frame(rest_global, "spine2", "leftshoulder", "rightshoulder", "neck")
 	if rest_pelvis_value == null or rest_torso_value == null:
-		push_warning("Mixamo Anatomical V4: could not construct source rest anatomical frames.")
+		push_warning("Mixamo Rest-Delta V5: could not construct source rest anatomical frames.")
 		return {}
 	var rest_pelvis: Basis = rest_pelvis_value
 	var rest_torso: Basis = rest_torso_value
 
-	# Dynamic source-world -> Default-world conversion. This is superior to a
-	# hard-coded FBX axis swap because it derives right/up/forward directly from
-	# the imported humanoid's own rest anatomy.
 	var target_anatomical := Basis(TARGET_ANATOMICAL_RIGHT, TARGET_ANATOMICAL_UP, TARGET_ANATOMICAL_FORWARD).orthonormalized()
 	var source_to_target := (target_anatomical * rest_pelvis.inverse()).orthonormalized()
 
@@ -149,21 +122,26 @@ static func convert_scene(player: AnimationPlayer, skeleton: Skeleton3D, clip_na
 	var sample_count := frame_count if loop else frame_count + 1
 	var transforms: Array = []
 	var max_angles := {}
+	var motion_span := {}
+	var first_local_q := {}
+	var previous_angles := {}
 	var max_root_translation := 0.0
-
-	# Force AnimationPlayer to own FBX animation evaluation immediately. seek(...,
-	# true, true) applies transform tracks while suppressing method/audio side
-	# effects, which is exactly what an offline retarget tool needs.
-	player.play(clip_name)
-	player.advance(0.0)
 
 	for frame in range(sample_count):
 		var time := minf(float(frame) / fps, animation.length)
-		var pose_global := _evaluate_source_pose(player, skeleton, indices, time)
+		var pose_global := _evaluate_source_pose_from_tracks(
+			animation,
+			skeleton,
+			indices,
+			rotation_tracks,
+			position_tracks,
+			scale_tracks,
+			time
+		)
 		if pose_global.is_empty():
 			return {}
 
-		var target_global := _build_target_global_motion(rest_global, pose_global, rest_pelvis, rest_torso, source_to_target)
+		var target_global := _build_target_global_delta(rest_global, pose_global, rest_pelvis, rest_torso, source_to_target)
 		if target_global.is_empty():
 			return {}
 
@@ -179,11 +157,25 @@ static func convert_scene(player: AnimationPlayer, skeleton: Skeleton3D, clip_na
 				var parent_basis: Basis = target_global[parent]
 				local_basis = (parent_basis.inverse() * global_basis).orthonormalized()
 
-			var q := local_basis.get_rotation_quaternion().normalized()
+			var q := _canonical_quaternion(local_basis.get_rotation_quaternion())
 			var angle_deg := absf(rad_to_deg(q.get_angle()))
 			max_angles[target] = maxf(float(max_angles.get(target, 0.0)), angle_deg)
+			if not first_local_q.has(target):
+				first_local_q[target] = q
+				motion_span[target] = 0.0
+			else:
+				var first_q: Quaternion = first_local_q[target]
+				var dot_value := clampf(absf(first_q.dot(q)), 0.0, 1.0)
+				var span_deg := rad_to_deg(2.0 * acos(dot_value))
+				motion_span[target] = maxf(float(motion_span.get(target, 0.0)), span_deg)
+
+			var angles := _quaternion_to_alabaster_angles(q, settings)
+			if previous_angles.has(target):
+				angles = _unwrap_angles(angles, previous_angles[target])
+			previous_angles[target] = angles.duplicate()
+
 			var xfm := {
-				"rot": _quaternion_to_alabaster_angles(q, settings),
+				"rot": angles,
 				"trans": [0.0, 0.0, 0.0],
 				"scale": 1.0,
 			}
@@ -201,9 +193,11 @@ static func convert_scene(player: AnimationPlayer, skeleton: Skeleton3D, clip_na
 			"nodeXfm": node_xfm,
 		})
 
-	player.stop(true)
-	print("ALABASTER_MIXAMO_ANATOMICAL_OK clip=%s frames=%d bones=%d root_trans=%.4f max=%s" % [
-		clip_name, sample_count, indices.size(), max_root_translation, str(max_angles),
+	# Leave the transient skeleton clean for subsequent previews.
+	skeleton.reset_bone_poses()
+
+	print("ALABASTER_MIXAMO_REST_DELTA_OK clip=%s frames=%d bones=%d rot_tracks=%d root_trans=%.4f max=%s span=%s" % [
+		clip_name, sample_count, indices.size(), rotation_tracks.size(), max_root_translation, str(max_angles), str(motion_span),
 	])
 
 	return {
@@ -216,13 +210,13 @@ static func convert_scene(player: AnimationPlayer, skeleton: Skeleton3D, clip_na
 		"transforms": transforms,
 		"nodes": {},
 		"import_meta": {
-			"bridge": "mixamo_evaluated_pose_anatomical_chain_to_default",
+			"bridge": "mixamo_skeleton_pose_tracks_rest_delta_to_default",
 			"retarget_profile": PROFILE_NAME,
 			"sample_fps": fps,
-			"source_rest": "Skeleton3D global Bone Rest",
-			"source_pose": "AnimationPlayer evaluated Skeleton3D global pose",
-			"limb_transfer": "absolute source joint direction fitted to Default target-rest vectors",
-			"target_chain": "shoulder/hip anchors + arm/hand and leg/foot segment solve",
+			"source_rest": "Skeleton3D Bone Rest",
+			"source_pose": "Animation tracks written into Skeleton3D bone pose, then global pose read back",
+			"limb_transfer": "source rest-to-pose anatomical segment swing",
+			"target_chain": "Default shoulder/hip pivots + arm/hand and leg/foot segment deltas",
 			"axis_conversion": "derived from source rest pelvis anatomical frame",
 			"root_translation_scale": translation_scale,
 			"terminal_frame_excluded_for_loop": loop,
@@ -230,20 +224,45 @@ static func convert_scene(player: AnimationPlayer, skeleton: Skeleton3D, clip_na
 	}
 
 
-static func _evaluate_source_pose(player: AnimationPlayer, skeleton: Skeleton3D, indices: Dictionary, time: float) -> Dictionary:
-	# Reset first so bones omitted from a particular source track cannot retain a
-	# value from the previous sample.
+static func _evaluate_source_pose_from_tracks(animation: Animation, skeleton: Skeleton3D, indices: Dictionary, rotation_tracks: Dictionary, position_tracks: Dictionary, scale_tracks: Dictionary, time: float) -> Dictionary:
+	# The raw FBX scene is detached from the main SceneTree inside Bone Studio.
+	# AnimationPlayer.seek() can therefore leave the Skeleton in its imported rest
+	# pose. Apply exactly the same interpolated transform-track values directly to
+	# Skeleton3D's pose API; Skeleton3D then resolves Bone Rest and hierarchy.
 	skeleton.reset_bone_poses()
-	player.seek(time, true, true)
+
+	for semantic_value in rotation_tracks.keys():
+		var semantic := str(semantic_value)
+		if not indices.has(semantic):
+			continue
+		var q := animation.rotation_track_interpolate(int(rotation_tracks[semantic_value]), time)
+		if q is Quaternion:
+			skeleton.set_bone_pose_rotation(int(indices[semantic]), (q as Quaternion).normalized())
+
+	for semantic_value in position_tracks.keys():
+		var semantic := str(semantic_value)
+		if not indices.has(semantic):
+			continue
+		var p := animation.position_track_interpolate(int(position_tracks[semantic_value]), time)
+		if p is Vector3:
+			skeleton.set_bone_pose_position(int(indices[semantic]), p)
+
+	for semantic_value in scale_tracks.keys():
+		var semantic := str(semantic_value)
+		if not indices.has(semantic):
+			continue
+		var s := animation.scale_track_interpolate(int(scale_tracks[semantic_value]), time)
+		if s is Vector3:
+			skeleton.set_bone_pose_scale(int(indices[semantic]), s)
+
 	var result := {}
 	for semantic_value in indices.keys():
 		var semantic := str(semantic_value)
-		var bone_index := int(indices[semantic_value])
-		result[semantic] = skeleton.get_bone_global_pose(bone_index)
+		result[semantic] = skeleton.get_bone_global_pose(int(indices[semantic_value]))
 	return result
 
 
-static func _build_target_global_motion(rest_global: Dictionary, pose_global: Dictionary, rest_pelvis: Basis, rest_torso: Basis, source_to_target: Basis) -> Dictionary:
+static func _build_target_global_delta(rest_global: Dictionary, pose_global: Dictionary, rest_pelvis: Basis, rest_torso: Basis, source_to_target: Basis) -> Dictionary:
 	var result := {}
 
 	var pose_pelvis_value: Variant = _body_frame(pose_global, "hips", "leftupleg", "rightupleg", "spine")
@@ -253,18 +272,16 @@ static func _build_target_global_motion(rest_global: Dictionary, pose_global: Di
 	var pose_pelvis: Basis = pose_pelvis_value
 	var pose_torso: Basis = pose_torso_value
 
-	var source_root_motion := (pose_pelvis * rest_pelvis.inverse()).orthonormalized()
-	var source_top_motion := (pose_torso * rest_torso.inverse()).orthonormalized()
-	result["root"] = _map_motion_basis(source_root_motion, source_to_target)
+	var source_root_delta := (pose_pelvis * rest_pelvis.inverse()).orthonormalized()
+	var source_top_delta := (pose_torso * rest_torso.inverse()).orthonormalized()
+	result["root"] = _map_motion_basis(source_root_delta, source_to_target)
 	result["bottom"] = result["root"]
-	result["top"] = _map_motion_basis(source_top_motion, source_to_target)
+	result["top"] = _map_motion_basis(source_top_delta, source_to_target)
 
-	var head_motion_value: Variant = _global_basis_motion(rest_global, pose_global, "head")
-	result["head"] = _map_motion_basis(head_motion_value, source_to_target) if head_motion_value != null else result["top"]
+	var head_delta_value: Variant = _global_basis_motion(rest_global, pose_global, "head")
+	result["head"] = _map_motion_basis(head_delta_value, source_to_target) if head_delta_value != null else result["top"]
 
-	# Alabaster shoulder/hip nodes are attachment pivots, not the upper limb bones.
-	# Stabilize them to their parent. This is the crucial one-node semantic shift
-	# that V1-V3 were missing.
+	# Attachment pivots inherit their parent. Visible limb motion begins in arm*/leg*.
 	result["shoulderL"] = result["top"]
 	result["shoulderR"] = result["top"]
 	result["hipL"] = result["bottom"]
@@ -272,41 +289,36 @@ static func _build_target_global_motion(rest_global: Dictionary, pose_global: Di
 
 	for target in ["armL", "handL", "fingerL", "armR", "handR", "fingerR", "legL", "footL", "toeL", "legR", "footR", "toeR"]:
 		var pair: Array = SOURCE_SEGMENT[target]
-		var parent := str(TARGET_PARENT[target])
-		if not result.has(parent):
-			continue
-		var parent_global: Basis = result[parent]
-		var solved: Variant = _fit_source_segment_to_target_rest(
+		var swing: Variant = _segment_rest_delta(
+			rest_global,
 			pose_global,
 			str(pair[0]),
 			str(pair[1]),
-			source_to_target,
-			parent_global,
-			TARGET_REST_VECTOR[target]
+			source_to_target
 		)
-		if solved == null:
-			# Tiny fingers/toes can be missing from animation-only exports. Inherit the
-			# parent rather than injecting an arbitrary rotation.
-			result[target] = parent_global
+		if swing == null:
+			var parent := str(TARGET_PARENT[target])
+			result[target] = result[parent] if result.has(parent) else Basis.IDENTITY
 		else:
-			result[target] = solved
+			result[target] = swing
 
 	return result
 
 
-static func _fit_source_segment_to_target_rest(pose_global: Dictionary, source_start: String, source_end: String, source_to_target: Basis, parent_global: Basis, target_rest_vector: Vector3) -> Variant:
-	if not pose_global.has(source_start) or not pose_global.has(source_end):
+static func _segment_rest_delta(rest_global: Dictionary, pose_global: Dictionary, source_start: String, source_end: String, source_to_target: Basis) -> Variant:
+	if not rest_global.has(source_start) or not rest_global.has(source_end) or not pose_global.has(source_start) or not pose_global.has(source_end):
 		return null
-	var source_a: Transform3D = pose_global[source_start]
-	var source_b: Transform3D = pose_global[source_end]
-	var source_dir := source_b.origin - source_a.origin
-	if source_dir.length_squared() <= EPS or target_rest_vector.length_squared() <= EPS:
+	var rest_a: Transform3D = rest_global[source_start]
+	var rest_b: Transform3D = rest_global[source_end]
+	var pose_a: Transform3D = pose_global[source_start]
+	var pose_b: Transform3D = pose_global[source_end]
+	var rest_dir := source_to_target * (rest_b.origin - rest_a.origin)
+	var pose_dir := source_to_target * (pose_b.origin - pose_a.origin)
+	if rest_dir.length_squared() <= EPS or pose_dir.length_squared() <= EPS:
 		return null
-	var desired_global_dir := (source_to_target * source_dir.normalized()).normalized()
-	var desired_local_dir := (parent_global.inverse() * desired_global_dir).normalized()
-	var rest_dir := target_rest_vector.normalized()
-	var local_q := Quaternion(rest_dir, desired_local_dir).normalized()
-	return (parent_global * Basis(local_q)).orthonormalized()
+	rest_dir = rest_dir.normalized()
+	pose_dir = pose_dir.normalized()
+	return Basis(_canonical_quaternion(Quaternion(rest_dir, pose_dir))).orthonormalized()
 
 
 static func _body_frame(data: Dictionary, origin_name: String, left_name: String, right_name: String, up_name: String) -> Variant:
@@ -353,6 +365,23 @@ static func _hips_translation_delta(rest_global: Dictionary, pose_global: Dictio
 	return (pose_global["hips"] as Transform3D).origin - (rest_global["hips"] as Transform3D).origin
 
 
+static func _build_track_maps(animation: Animation, rotation_tracks: Dictionary, position_tracks: Dictionary, scale_tracks: Dictionary) -> void:
+	for track_index in range(animation.get_track_count()):
+		var track_type := animation.track_get_type(track_index)
+		if track_type != Animation.TYPE_ROTATION_3D and track_type != Animation.TYPE_POSITION_3D and track_type != Animation.TYPE_SCALE_3D:
+			continue
+		var semantic := normalize(_bone_name_from_track_path(animation.track_get_path(track_index)))
+		if semantic.is_empty():
+			continue
+		match track_type:
+			Animation.TYPE_ROTATION_3D:
+				rotation_tracks[semantic] = track_index
+			Animation.TYPE_POSITION_3D:
+				position_tracks[semantic] = track_index
+			Animation.TYPE_SCALE_3D:
+				scale_tracks[semantic] = track_index
+
+
 static func _build_bone_index(skeleton: Skeleton3D) -> Dictionary:
 	var result := {}
 	for bone_index in range(skeleton.get_bone_count()):
@@ -381,10 +410,36 @@ static func normalize(value: String) -> String:
 	return value.to_lower().replace("mixamorig:", "").replace("mixamorig_", "").replace("mixamorig", "").replace(" ", "").replace("-", "").replace("_", "")
 
 
+static func _bone_name_from_track_path(path: NodePath) -> String:
+	var text := str(path)
+	var separator := text.rfind(":")
+	return text.substr(separator + 1) if separator >= 0 else text.get_file()
+
+
+static func _canonical_quaternion(q: Quaternion) -> Quaternion:
+	var n := q.normalized()
+	if n.w < 0.0:
+		return Quaternion(-n.x, -n.y, -n.z, -n.w)
+	return n
+
+
+static func _unwrap_angles(current: Array, previous: Array) -> Array:
+	var result := current.duplicate()
+	for i in range(mini(result.size(), previous.size())):
+		var value := float(result[i])
+		var prev := float(previous[i])
+		while value - prev > 180.0:
+			value -= 360.0
+		while value - prev < -180.0:
+			value += 360.0
+		result[i] = value
+	return result
+
+
 static func _quaternion_to_alabaster_angles(q: Quaternion, settings: Dictionary) -> Array:
 	# Alabaster Quaternion.setAngles(yaw,pitch,roll) rebuilds from
 	# Euler(pitch, roll, yaw), so encode Godot Quaternion Euler X/Y/Z as [Z,X,Y].
-	var e := q.normalized().get_euler()
+	var e := _canonical_quaternion(q).get_euler()
 	var yaw := rad_to_deg(e.z)
 	var pitch := rad_to_deg(e.x)
 	var roll := rad_to_deg(e.y)
