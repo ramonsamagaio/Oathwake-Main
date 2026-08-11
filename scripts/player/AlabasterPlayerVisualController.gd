@@ -3,6 +3,7 @@ class_name AlabasterPlayerVisualController
 
 const JunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 const PlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
+const DefaultSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterDefaultPlayableSkinRig.gd")
 const SharedActions := preload("res://scripts/labs/alabaster/AlabasterSharedActions.gd")
 const BoneAnimationLibrary := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
 const REST_POSE := "__rest__"
@@ -21,7 +22,7 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 	dispose()
 	var declared_runtime := str(character_data.get("visual_runtime", "sprite_sheet")).strip_edges()
 	profile_id = _resolve_profile_id(character_data)
-	var inferred_alabaster := profile_id == "male_dummy" or profile_id == "male_temp"
+	var inferred_alabaster := profile_id in ["default", "male_dummy", "male_temp"]
 	if declared_runtime != "alabaster" and not inferred_alabaster:
 		return false
 
@@ -44,8 +45,14 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 		str(inferred_alabaster and declared_runtime != "alabaster"),
 	])
 
-	var uses_playable_skin := profile_id == "male_dummy" or profile_id == "male_temp"
-	if uses_playable_skin:
+	var uses_playable_skin := profile_id in ["default", "male_dummy", "male_temp"]
+	if profile_id == "default":
+		var default_rig = DefaultSkinRigScript.new()
+		if default_rig == null:
+			return false
+		default_rig.call("configure_skin_profile", "default")
+		rig = default_rig as Node2D
+	elif uses_playable_skin:
 		var skin_rig = PlayableSkinRigScript.new()
 		if skin_rig == null:
 			return false
@@ -111,6 +118,7 @@ func _resolve_profile_id(character_data: Dictionary) -> String:
 	if not declared_profile.is_empty():
 		return declared_profile
 	match str(character_data.get("animation_set_id", "")).strip_edges():
+		"alabaster_default": return "default"
 		"alabaster_male_dummy": return "male_dummy"
 		"alabaster_male_temp": return "male_temp"
 		_: return "juno" if str(character_data.get("visual_runtime", "")).strip_edges() == "alabaster" else ""
