@@ -1,24 +1,15 @@
 extends RefCounted
 class_name AlabasterBoneAnimationSourceAdapter
 
-# Bone Studio source adapter. A 3D file imported by Godot can resolve either to
-# a PackedScene (normal scene import) or directly to an AnimationLibrary
-# (animation-only import, which is especially useful for Mixamo clips). The old
-# importer only accepted PackedScene, so a perfectly valid FBX imported as an
-# AnimationLibrary produced an empty clip dropdown.
-
-const LegacyImporter := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationImporter.gd")
-
+const LegacyImporter := preload("res://scripts/labs/alabaster/AlabasterSmartBoneAnimationImporter.gd")
 
 static func inspect_scene(source_path: String) -> Dictionary:
 	var opened := _open_source(source_path)
 	if not bool(opened.get("ok", false)):
 		return opened
-
 	var clips: Array[String] = []
 	var bones: Array[String] = []
 	var kind := str(opened.get("kind", ""))
-
 	if kind == "packed_scene":
 		var player := opened.get("player") as AnimationPlayer
 		if player == null:
@@ -42,30 +33,18 @@ static func inspect_scene(source_path: String) -> Dictionary:
 				continue
 			clips.append(clip_name)
 			_append_unique_bones(bones, LegacyImporter.get_source_bones(animation))
-
 	clips.sort()
 	bones.sort()
 	_free_opened_source(opened)
 	if clips.is_empty():
-		return {
-			"ok": false,
-			"error": "Godot loaded %s, but it contains no animation clips. Check the FBX Import dock and Reimport with animations enabled." % kind,
-			"resource_kind": kind,
-		}
-	return {
-		"ok": true,
-		"clips": clips,
-		"bones": bones,
-		"resource_kind": kind,
-	}
-
+		return {"ok": false, "error": "Godot loaded %s, but it contains no animation clips. Check the FBX Import dock and Reimport with animations enabled." % kind, "resource_kind": kind}
+	return {"ok": true, "clips": clips, "bones": bones, "resource_kind": kind, "retarget_profile": LegacyImporter.detect_source_profile(bones)}
 
 static func import_scene_clip(source_path: String, clip_name: String, sample_fps := 60.0, loop := true, translation_scale := 0.0, custom_retarget: Dictionary = {}, settings: Dictionary = {}) -> Dictionary:
 	var opened := _open_source(source_path)
 	if not bool(opened.get("ok", false)):
 		push_warning(str(opened.get("error", "Could not open animation source.")))
 		return {}
-
 	var animation: Animation = null
 	var kind := str(opened.get("kind", ""))
 	if kind == "packed_scene":
@@ -76,41 +55,25 @@ static func import_scene_clip(source_path: String, clip_name: String, sample_fps
 		var library := opened.get("library") as AnimationLibrary
 		if library != null and library.has_animation(clip_name):
 			animation = library.get_animation(clip_name)
-
 	if animation == null:
 		_free_opened_source(opened)
 		push_warning("Animation '%s' not found in %s (%s)." % [clip_name, source_path, kind])
 		return {}
-
-	var result := LegacyImporter.convert_animation(
-		animation,
-		sample_fps,
-		loop,
-		translation_scale,
-		custom_retarget,
-		settings
-	)
+	var result := LegacyImporter.convert_animation(animation, sample_fps, loop, translation_scale, custom_retarget, settings)
 	_free_opened_source(opened)
 	return result
 
-
 static func make_auto_retarget(source_bones: Array[String]) -> Dictionary:
 	return LegacyImporter.make_auto_retarget(source_bones)
-
 
 static func _open_source(source_path: String) -> Dictionary:
 	if source_path.strip_edges().is_empty():
 		return {"ok": false, "error": "No source animation file selected."}
 	if not ResourceLoader.exists(source_path):
-		return {
-			"ok": false,
-			"error": "Godot has not imported this source yet: %s. Wait for import to finish or use Reimport in the FileSystem dock." % source_path,
-		}
-
+		return {"ok": false, "error": "Godot has not imported this source yet: %s. Wait for import to finish or use Reimport in the FileSystem dock." % source_path}
 	var resource: Resource = load(source_path)
 	if resource == null:
 		return {"ok": false, "error": "Could not load imported animation source: %s" % source_path}
-
 	if resource is PackedScene:
 		var root := (resource as PackedScene).instantiate()
 		if root == null:
@@ -118,28 +81,16 @@ static func _open_source(source_path: String) -> Dictionary:
 		var player := LegacyImporter.find_animation_player(root)
 		if player == null:
 			root.free()
-			return {
-				"ok": false,
-				"error": "Godot imported the file as a scene, but no AnimationPlayer was found. Check Advanced Import Settings and verify the animation is enabled.",
-				"resource_kind": "packed_scene",
-			}
+			return {"ok": false, "error": "Godot imported the file as a scene, but no AnimationPlayer was found. Check Advanced Import Settings and verify the animation is enabled.", "resource_kind": "packed_scene"}
 		return {"ok": true, "kind": "packed_scene", "root": root, "player": player}
-
 	if resource is AnimationLibrary:
 		return {"ok": true, "kind": "animation_library", "library": resource as AnimationLibrary}
-
-	return {
-		"ok": false,
-		"error": "Unsupported imported resource type '%s'. Bone Studio accepts a Godot PackedScene or AnimationLibrary generated from FBX/GLB/GLTF/TSCN." % resource.get_class(),
-		"resource_kind": resource.get_class(),
-	}
-
+	return {"ok": false, "error": "Unsupported imported resource type '%s'. Bone Studio accepts a Godot PackedScene or AnimationLibrary generated from FBX/GLB/GLTF/TSCN." % resource.get_class(), "resource_kind": resource.get_class()}
 
 static func _append_unique_bones(target: Array[String], incoming: Array[String]) -> void:
 	for bone_name in incoming:
 		if not target.has(bone_name):
 			target.append(bone_name)
-
 
 static func _free_opened_source(opened: Dictionary) -> void:
 	var root := opened.get("root") as Node
