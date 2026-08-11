@@ -45,7 +45,7 @@ static func inspect_scene(source_path: String) -> Dictionary:
 	var profile := LegacyImporter.detect_source_profile(bones)
 	var retarget_mode := "generic_track"
 	if profile == "mixamo":
-		retarget_mode = "mixamo_anatomical_v4" if has_skeleton else "mixamo_track_fallback"
+		retarget_mode = "mixamo_rest_delta_v5" if has_skeleton else "mixamo_track_fallback"
 	_free_opened_source(opened)
 
 	if clips.is_empty():
@@ -95,16 +95,17 @@ static func import_scene_clip(source_path: String, clip_name: String, sample_fps
 	var result := {}
 
 	if profile == "mixamo" and _is_scene_kind(kind) and skeleton != null and _mapping_matches_auto(source_bones, custom_retarget):
-		# Authoritative Mixamo path. V4 reads the AnimationPlayer-evaluated
-		# Skeleton3D pose and fits anatomical source segments to the actual Default
-		# target-rest chain. It never copies Mixamo local Euler axes 1:1.
+		# Authoritative Mixamo path. V5 samples the Animation tracks directly into
+		# Skeleton3D bone pose properties, then transfers REST->POSE anatomical
+		# motion deltas onto Default. It does not depend on detached AnimationPlayer
+		# processing and does not copy the source T-pose into the target rest pose.
 		result = SemanticConverter.convert_scene(player, skeleton, clip_name, sample_fps, loop, translation_scale, settings)
 		if result.is_empty():
-			push_warning("Mixamo Anatomical V4 conversion failed. Refusing to silently fall back to the known-distorting raw local-axis path.")
+			push_warning("Mixamo Rest-Delta V5 conversion failed. Refusing to silently fall back to the known-distorting raw local-axis path.")
 	else:
 		result = LegacyImporter.convert_animation(animation, sample_fps, loop, translation_scale, custom_retarget, settings)
 		if profile == "mixamo" and skeleton == null:
-			push_warning("Mixamo source has no Skeleton3D; using track-only fallback. A raw FBX/GLB scene is recommended for anatomical retargeting.")
+			push_warning("Mixamo source has no Skeleton3D; using track-only fallback. A raw FBX/GLB scene is recommended for rest-delta retargeting.")
 
 	_free_opened_source(opened)
 	return result
@@ -129,8 +130,8 @@ static func _open_source(source_path: String) -> Dictionary:
 		return {"ok": false, "error": "No source animation file selected."}
 
 	# Mixamo FBX files are often imported by Godot as an AnimationLibrary. That
-	# exposes curves but hides Skeleton3D Bone Rest, which V4 needs. Reconstruct a
-	# transient scene directly from the raw FBX first.
+	# exposes curves but hides Skeleton3D Bone Rest. Reconstruct a transient scene
+	# directly from the raw FBX so V5 can use the actual rest hierarchy.
 	if source_path.get_extension().to_lower() == "fbx":
 		var raw_fbx := _open_runtime_fbx_scene(source_path)
 		if bool(raw_fbx.get("ok", false)):
