@@ -2,6 +2,7 @@
   "version": 2,
   "format": "oathwake_alabaster_figure_library",
   "playable_profiles": {
+    "default": {"character_id":"default_alabaster","rig_family":"default","base_profile":"male_dummy","figure":"Default","base_figure":"Male-Dummy","json":"res://data/labs/alabaster/characters/dummy.json","atlas":"res://assets/sprites/characters/alabaster/dummy.png","preferred_future_atlas":"res://assets/sprites/characters/alabaster/default.png","selectable":true,"notes":"Oathwake-owned body fork. Starts as a deep runtime clone of Male-Dummy and receives the same shared Juno animation retarget; future body/equipment work targets this profile only."},
     "juno": {"character_id":"juno_alabaster","rig_family":"juno","selectable":true},
     "male_dummy": {"character_id":"male_dummy_alabaster","rig_family":"male_dummy","figure":"Male-Dummy","json":"res://data/labs/alabaster/characters/dummy.json","atlas":"res://assets/sprites/characters/alabaster/dummy.png","selectable":true},
     "male_temp": {"character_id":"male_temp_alabaster","rig_family":"male_temp","figure":"Male-Temp-01","json":"res://data/labs/alabaster/characters/male-temp-01.json","atlas":"res://assets/sprites/characters/alabaster/male-temp01.png","selectable":true,"notes":"Own authored figure, pivots, z-order and animation bank; not a Male-Dummy atlas swap."}
