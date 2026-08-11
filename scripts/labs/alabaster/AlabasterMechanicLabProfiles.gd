@@ -3,18 +3,21 @@ class_name AlabasterMechanicLabProfiles
 
 const JunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 const PlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
+const DefaultSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterDefaultPlayableSkinRig.gd")
 const ProfileLibrary := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
 
+const PROFILE_DEFAULT := "default"
 const PROFILE_JUNO := "juno"
 const PROFILE_DUMMY := "male_dummy"
 const PROFILE_MALE := "male_temp"
 const PROFILE_LABELS := {
+	PROFILE_DEFAULT: "DEFAULT",
 	PROFILE_JUNO: "JUNO",
 	PROFILE_DUMMY: "DUMMY",
 	PROFILE_MALE: "MALE",
 }
 
-var _active_profile := PROFILE_JUNO
+var _active_profile := PROFILE_DEFAULT
 var _profile_buttons: Dictionary = {}
 var _sprite_opacity := 1.0
 var _opacity_slider: HSlider
@@ -26,7 +29,7 @@ func _build_player() -> void:
 	player.name = "AlabasterPlayer"
 	player.position = SCREEN_SIZE * 0.5 + Vector2(0.0, 80.0)
 	add_child(player)
-	_replace_rig(PROFILE_JUNO, false)
+	_replace_rig(PROFILE_DEFAULT, false)
 
 
 func _build_ui() -> void:
@@ -37,8 +40,8 @@ func _build_ui() -> void:
 func _build_profile_switcher() -> void:
 	var panel := PanelContainer.new()
 	panel.name = "CharacterProfileSwitcher"
-	panel.position = Vector2(SCREEN_SIZE.x - 420.0, 22.0)
-	panel.custom_minimum_size = Vector2(390.0, 142.0)
+	panel.position = Vector2(SCREEN_SIZE.x - 540.0, 22.0)
+	panel.custom_minimum_size = Vector2(510.0, 142.0)
 	panel.z_index = 1000
 	add_child(panel)
 
@@ -55,13 +58,13 @@ func _build_profile_switcher() -> void:
 	box.add_child(row)
 	var group := ButtonGroup.new()
 	group.allow_unpress = false
-	for profile_id in [PROFILE_DUMMY, PROFILE_MALE, PROFILE_JUNO]:
+	for profile_id in [PROFILE_DEFAULT, PROFILE_DUMMY, PROFILE_MALE, PROFILE_JUNO]:
 		var button := Button.new()
 		button.text = str(PROFILE_LABELS[profile_id])
 		button.toggle_mode = true
 		button.button_group = group
 		button.focus_mode = Control.FOCUS_NONE
-		button.custom_minimum_size = Vector2(104.0, 34.0)
+		button.custom_minimum_size = Vector2(112.0, 34.0)
 		button.tooltip_text = "Switch the complete source figure. Mechanic Lab and gameplay share the same bone runtime."
 		button.pressed.connect(_on_profile_pressed.bind(profile_id))
 		row.add_child(button)
@@ -95,7 +98,7 @@ func _build_profile_switcher() -> void:
 	_update_opacity_label()
 
 	var note := Label.new()
-	note.text = "F1 skeleton • opacity lets you inspect bones through the body"
+	note.text = "DEFAULT is the Oathwake body fork • F1 skeleton • opacity inspects bones"
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	note.add_theme_font_size_override("font_size", 11)
 	note.modulate = Color(0.72, 0.78, 0.88)
@@ -124,7 +127,7 @@ func _update_opacity_label() -> void:
 
 
 func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
-	if profile_id not in [PROFILE_JUNO, PROFILE_DUMMY, PROFILE_MALE]:
+	if profile_id not in [PROFILE_DEFAULT, PROFILE_JUNO, PROFILE_DUMMY, PROFILE_MALE]:
 		return
 	_manual_active = false
 	_auto_showcase = false
@@ -143,6 +146,16 @@ func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
 		rig = JunoRigScript.new()
 		rig.name = "JunoRig"
 		player.add_child(rig)
+	elif profile_id == PROFILE_DEFAULT:
+		# DEFAULT is an independent deep-cloned runtime fork of Male-Dummy, with
+		# its own profile/custom-animation namespace and the same gameplay retarget.
+		var default_rig = DefaultSkinRigScript.new()
+		default_rig.call("configure_skin_profile", PROFILE_DEFAULT)
+		rig = default_rig
+		rig.name = "DefaultRig"
+		player.add_child(rig)
+		if rig.has_method("initialize_skin") and not bool(rig.call("initialize_skin")):
+			push_error("AlabasterMechanicLabProfiles: could not initialize DEFAULT")
 	else:
 		# Same playable skin rig instantiated by AlabasterPlayerVisualController.
 		var skin_rig = PlayableSkinRigScript.new()
