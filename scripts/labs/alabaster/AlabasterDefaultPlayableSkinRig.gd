@@ -17,6 +17,7 @@ const DEFAULT_FIGURE_LABEL := "Default"
 const DEFAULT_ATLAS_PATH := "res://assets/sprites/characters/alabaster/default.png"
 const EXPECTED_ATLAS_SIZE := Vector2i(672, 120)
 const DEFAULT_CHROMA_RGB := Vector3i(255, 0, 195)
+const DEFAULT_PELVIS_DEPTH_MOTIONS := ["", "idle", "walk", "run", "dash"]
 
 
 func _init() -> void:
@@ -117,6 +118,46 @@ func _load_authored_default_texture() -> Texture2D:
 	return texture
 
 
+func _apply_profile_front_arm_over_legs() -> void:
+	# Keep every shared Dummy-derived correction first, then apply DEFAULT's own
+	# clothing-friendly pelvis/thigh contract. This is intentionally DEFAULT-only:
+	# Dummy remains an untouched visual reference while our production body can
+	# evolve independently.
+	super._apply_profile_front_arm_over_legs()
+	_apply_default_pelvis_thigh_depth()
+
+
+func _apply_default_pelvis_thigh_depth() -> void:
+	var motion_name := _normalized_motion_name(current_animation)
+	if motion_name not in DEFAULT_PELVIS_DEPTH_MOTIONS:
+		return
+
+	# The source Dummy has two pelvis graphics on the same `bottom` bone: gfx0 is
+	# the visible/front copy while gfx1 is deliberately authored far behind. The
+	# previous generic leg correction only ordered L/R chains against each other,
+	# so in E/W locomotion a thigh could still rise above the front pelvis copy.
+	# Preserve the rear copy and constrain only bottom:gfx0 above both upper legs.
+	var thigh_bounds := _visible_z_bounds(["legL", "legR"])
+	if not bool(thigh_bounds.get("found", false)):
+		return
+	var layer_step := 1 if _embedded_world_mode else 16
+	var required_pelvis_z := int(thigh_bounds.get("max", 0)) + layer_step
+
+	for record_variant in _sprite_records:
+		if not record_variant is Dictionary:
+			continue
+		var record := record_variant as Dictionary
+		if str(record.get("node", "")) != "bottom" or int(record.get("gfx_index", -1)) != 0:
+			continue
+		var sprite := record.get("sprite") as Sprite2D
+		if sprite == null or not sprite.visible:
+			continue
+		if sprite.z_index < required_pelvis_z:
+			sprite.z_index = clampi(required_pelvis_z, -4096, 4096)
+			sprite.set_meta("alabaster_default_depth_reason", "pelvis_over_thighs")
+			sprite.set_meta("alabaster_default_pelvis_floor", required_pelvis_z)
+
+
 func get_runtime_summary() -> Dictionary:
 	var result := super.get_runtime_summary()
 	result["skin_profile_id"] = DEFAULT_PROFILE_ID
@@ -126,4 +167,5 @@ func get_runtime_summary() -> Dictionary:
 	result["default_base_atlas"] = DefaultRepoSkinSource.get_repo_atlas_path(BASE_PROFILE_ID)
 	result["default_authored_atlas"] = DEFAULT_ATLAS_PATH
 	result["default_has_independent_runtime_copy"] = true
+	result["default_pelvis_depth_policy"] = "bottom:gfx0 above legL/legR during locomotion"
 	return result
