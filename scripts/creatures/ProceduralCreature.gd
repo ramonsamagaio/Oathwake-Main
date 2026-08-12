@@ -22,8 +22,6 @@ signal simulation_state_changed(active: bool)
 @export_range(64.0, 4096.0, 16.0) var full_rate_distance := 640.0
 @export_range(64.0, 8192.0, 16.0) var reduced_rate_distance := 1200.0
 @export_range(1.0, 60.0, 1.0) var reduced_simulation_hz := 20.0
-@export var pause_when_offscreen := true
-@export_range(0.1, 5.0, 0.1) var offscreen_grace_seconds := 0.5
 
 @export_group("Palette")
 @export var primary_color := Color("6f9f57")
@@ -35,7 +33,6 @@ var velocity := Vector2.ZERO
 var external_force := Vector2.ZERO
 var _rng := RandomNumberGenerator.new()
 var _sim_accumulator := 0.0
-var _offscreen_time := 0.0
 var _manual_lod_anchor: Node2D
 
 
@@ -48,11 +45,9 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not simulation_enabled:
 		return
-
 	var effective_hz := _effective_hz()
 	if effective_hz <= 0.0:
 		return
-
 	var step := 1.0 / effective_hz
 	_sim_accumulator += minf(delta, 0.1)
 	var guard := 0
@@ -148,11 +143,13 @@ func _get_creature_parameter(_key: StringName) -> Variant:
 
 
 func get_editor_schema() -> Array[Dictionary]:
-	return [
+	var schema: Array[Dictionary] = [
 		{"key": &"global_scale_factor", "label": "Scale", "type": "float", "min": 0.35, "max": 2.5, "step": 0.05},
 		{"key": &"motion_intensity", "label": "Motion", "type": "float", "min": 0.0, "max": 3.0, "step": 0.05},
 		{"key": &"pixel_size", "label": "Pixel Size", "type": "int", "min": 1, "max": 6, "step": 1},
-	] + _get_creature_editor_schema()
+	]
+	schema.append_array(_get_creature_editor_schema())
+	return schema
 
 
 func _get_creature_editor_schema() -> Array[Dictionary]:
@@ -160,7 +157,7 @@ func _get_creature_editor_schema() -> Array[Dictionary]:
 
 
 func make_preset() -> Dictionary:
-	var params := {}
+	var params: Dictionary = {}
 	for descriptor in get_editor_schema():
 		var key: StringName = descriptor.get("key", &"")
 		if key != &"":
@@ -222,8 +219,7 @@ func _effective_hz() -> float:
 func _resolve_lod_anchor() -> Node2D:
 	if _manual_lod_anchor != null and is_instance_valid(_manual_lod_anchor):
 		return _manual_lod_anchor
-	var camera := get_viewport().get_camera_2d()
-	return camera
+	return get_viewport().get_camera_2d()
 
 
 func _snap(value: float) -> float:
@@ -237,7 +233,7 @@ func _snap_vec(value: Vector2) -> Vector2:
 
 func _px_rect(center: Vector2, size: Vector2, color: Color) -> void:
 	var snapped_center := _snap_vec(center)
-	var snapped_size := Vector2(maxf(pixel_size, _snap(size.x)), maxf(pixel_size, _snap(size.y)))
+	var snapped_size := Vector2(maxf(float(pixel_size), _snap(size.x)), maxf(float(pixel_size), _snap(size.y)))
 	draw_rect(Rect2(snapped_center - snapped_size * 0.5, snapped_size), color, true)
 
 
