@@ -56,9 +56,9 @@ func _configure_water_world() -> void:
     water.default_floor_y = PLATFORM_Y
     water.fluid_depth_m = 0.12
     water.cell_size_px = 4.0
-    water.linear_flow_damping = 0.36
-    water.quadratic_flow_damping = 0.105
-    water.momentum_neighbor_mix = 0.030
+    water.linear_flow_damping = 0.68
+    water.quadratic_flow_damping = 0.17
+    water.momentum_neighbor_mix = 0.018
 
     var floors: Array[Dictionary] = [
         {
@@ -238,7 +238,7 @@ func _spawn_object_from_preset(index: int, forced_position: Vector2 = Vector2(99
     var body: BuoyantPixelBody2D
     if String(preset["type"]) == "bucket":
         var bucket := WaterBucket2D.new()
-        bucket.capacity_liters = 16.0
+        bucket.capacity_liters = 9.0
         bucket.object_size_px = size
         body = bucket
     else:
@@ -313,7 +313,7 @@ func _build_ui() -> void:
     _instructions = Label.new()
     _instructions.text = (
         "LMB + DRAG: physically grab / throw   •   RMB + DRAG: navigate   •   "
-        + "dip the transparent bucket, lift it, tilt to pour into the small basin"
+        + "bucket stays balanced while held • wheel or Q/E tilts it to pour"
     )
     _instructions.modulate = Color(0.70, 0.78, 0.80)
     _instructions.add_theme_font_size_override("font_size", 11)

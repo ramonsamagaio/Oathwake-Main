@@ -27,11 +27,14 @@ extends Node2D
 
 @export_category("Shallow-water solver")
 @export_range(0.15, 0.49, 0.01) var cfl_number: float = 0.36
-@export_range(2, 24, 1) var max_substeps: int = 12
+@export_range(2, 48, 1) var max_substeps: int = 28
 @export_range(0.0001, 0.03, 0.0001) var dry_depth_m: float = 0.0015
-@export_range(0.0, 4.0, 0.01) var linear_flow_damping: float = 0.34
-@export_range(0.0, 2.0, 0.01) var quadratic_flow_damping: float = 0.10
-@export_range(0.0, 0.8, 0.01) var momentum_neighbor_mix: float = 0.035
+@export_range(0.0, 4.0, 0.01) var linear_flow_damping: float = 0.62
+@export_range(0.0, 2.0, 0.01) var quadratic_flow_damping: float = 0.16
+@export_range(0.0, 0.8, 0.01) var momentum_neighbor_mix: float = 0.020
+@export_range(0.0, 0.20, 0.005) var rest_velocity_m_s: float = 0.035
+@export_range(0.0, 3.0, 0.05) var rest_surface_delta_px: float = 0.45
+@export_range(4.0, 80.0, 1.0) var waterfall_drop_threshold_px: float = 12.0
 @export_range(0.5, 20.0, 0.5) var max_flow_speed_m_s: float = 8.0
 @export_range(0.0, 0.02, 0.0001) var displacement_smoothing: float = 0.0025
 
@@ -40,7 +43,7 @@ extends Node2D
 @export var max_splash_particles: int = 520
 @export var max_bubbles: int = 150
 @export var max_foam_particles: int = 240
-@export_range(0.0, 1.0, 0.01) var spray_volume_fraction: float = 0.12
+@export_range(0.0, 1.0, 0.01) var spray_volume_fraction: float = 0.025
 
 var _cell_count: int = 0
 var _floor_y: PackedFloat32Array
@@ -62,6 +65,7 @@ var _bubbles: Array[Dictionary] = []
 var _foam: Array[Dictionary] = []
 var _rng := RandomNumberGenerator.new()
 var _foam_accumulator := 0.0
+var _waterfall_pending: Dictionary = {}
 var _configured := false
 
 const WATER_TOP := Color("#17a9dc")
@@ -166,6 +170,7 @@ func reset_water() -> void:
     _droplets.clear()
     _bubbles.clear()
     _foam.clear()
+    _waterfall_pending.clear()
     queue_redraw()
 
 func _physics_process(delta: float) -> void:
@@ -195,10 +200,12 @@ func _physics_process(delta: float) -> void:
         max_substeps
     )
     var dt := delta / float(substeps)
+    _waterfall_pending.clear()
 
     for _step in range(substeps):
         _shallow_water_substep(dt)
 
+    _flush_waterfalls()
     _simulate_droplets(delta)
     _simulate_bubbles(delta)
     _simulate_foam(delta)
@@ -271,6 +278,17 @@ func _shallow_water_substep(dt: float) -> void:
             + 0.5 * g * (h_r_raw * h_r_raw - h_r * h_r)
         )
 
+    # Positivity-preserving draining limiter. A face may never remove more
+    # water from its donor cell than that cell actually owns during this step.
+    # Without this, clamping negative depth to zero can create water in the
+    # receiver and is the main source of runaway vertical columns.
+    _limit_outflow_fluxes(dt, dx)
+
+    # A shallow-water height field cannot show ballistic free-fall at a cliff.
+    # Route flux over a real downward terrain step into conservative droplets
+    # until the receiving basin rises high enough to submerge the lip.
+    _route_waterfall_fluxes(dt, dx)
+
     for i in range(_cell_count):
         var h := maxf(_depth_m[i], 0.0)
         var hu := _momentum_m2_s[i]
@@ -316,6 +334,10 @@ func _shallow_water_substep(dt: float) -> void:
             )
             u -= nonlinear_loss
             u = clampf(u, -max_flow_speed_m_s, max_flow_speed_m_s)
+
+            if absf(u) <= rest_velocity_m_s and _surface_is_locally_calm(i):
+                u = 0.0
+
             hu_new = u * h_new
 
         _next_depth_m[i] = h_new
@@ -336,6 +358,139 @@ func _shallow_water_substep(dt: float) -> void:
     for i in range(_cell_count):
         _depth_m[i] = maxf(0.0, _next_depth_m[i])
         _momentum_m2_s[i] = _next_momentum_m2_s[i]
+
+func _limit_outflow_fluxes(dt: float, dx: float) -> void:
+    if dt <= 0.0 or dx <= 0.0:
+        return
+
+    var donor_scale := PackedFloat32Array()
+    donor_scale.resize(_cell_count)
+    donor_scale.fill(1.0)
+
+    for i in range(_cell_count):
+        var outgoing := 0.0
+        if i > 0:
+            outgoing += maxf(-_mass_flux[i - 1], 0.0)
+        if i < _cell_count - 1:
+            outgoing += maxf(_mass_flux[i], 0.0)
+
+        if outgoing <= 0.0000001:
+            continue
+
+        var owned_depth := maxf(_depth_m[i], 0.0)
+        var max_outgoing_flux := owned_depth * dx / dt
+        donor_scale[i] = clampf(
+            max_outgoing_flux / outgoing,
+            0.0,
+            1.0
+        )
+
+    for face in range(_cell_count - 1):
+        var flux := _mass_flux[face]
+        if absf(flux) <= 0.0000001:
+            continue
+        var donor := face if flux > 0.0 else face + 1
+        var scale := donor_scale[donor]
+        if scale >= 0.99999:
+            continue
+        _mass_flux[face] *= scale
+        _momentum_flux_left[face] *= scale
+        _momentum_flux_right[face] *= scale
+
+func _route_waterfall_fluxes(dt: float, dx: float) -> void:
+    if dt <= 0.0 or dx <= 0.0:
+        return
+
+    for face in range(_cell_count - 1):
+        var flux := _mass_flux[face]
+        if absf(flux) <= 0.0000001:
+            continue
+
+        var donor := face if flux > 0.0 else face + 1
+        var receiver := face + 1 if flux > 0.0 else face
+        var donor_floor := _floor_y[donor]
+        var receiver_floor := _floor_y[receiver]
+        var drop_px := receiver_floor - donor_floor
+        if drop_px < waterfall_drop_threshold_px:
+            continue
+
+        var receiver_has_water := _depth_m[receiver] > dry_depth_m
+        if receiver_has_water:
+            var receiver_surface := _surface_y_index(receiver)
+            if receiver_surface <= donor_floor + cell_size_px * 0.5:
+                continue
+
+        var transfer_depth := absf(flux) * dt / dx
+        transfer_depth = minf(
+            transfer_depth,
+            maxf(_depth_m[donor] - dry_depth_m * 0.25, 0.0)
+        )
+        if transfer_depth <= 0.0:
+            _mass_flux[face] = 0.0
+            _momentum_flux_left[face] = 0.0
+            _momentum_flux_right[face] = 0.0
+            continue
+
+        var donor_u := _velocity_at_index(donor)
+        _depth_m[donor] = maxf(0.0, _depth_m[donor] - transfer_depth)
+        _momentum_m2_s[donor] = _depth_m[donor] * donor_u
+
+        var volume_m3 := transfer_depth * dx * fluid_depth_m
+        var face_x := world_left + float(face + 1) * cell_size_px
+        var key := face
+        var packet: Dictionary = _waterfall_pending.get(key, {})
+        if packet.is_empty():
+            packet = {
+                "volume_m3": 0.0,
+                "x": face_x,
+                "y": donor_floor - cell_size_px * 0.35,
+                "vx_px_s": donor_u * pixels_per_meter
+            }
+        packet["volume_m3"] = float(packet["volume_m3"]) + volume_m3
+        packet["vx_px_s"] = lerpf(
+            float(packet["vx_px_s"]),
+            donor_u * pixels_per_meter,
+            0.35
+        )
+        _waterfall_pending[key] = packet
+
+        _mass_flux[face] = 0.0
+        _momentum_flux_left[face] = 0.0
+        _momentum_flux_right[face] = 0.0
+
+func _flush_waterfalls() -> void:
+    for key in _waterfall_pending.keys():
+        var packet: Dictionary = _waterfall_pending[key]
+        var amount := maxf(float(packet.get("volume_m3", 0.0)), 0.0)
+        if amount <= 0.0:
+            continue
+
+        var liters := amount * 1000.0
+        var count := clampi(
+            int(ceil(2.0 + sqrt(maxf(liters, 0.0)) * 5.0)),
+            2,
+            24
+        )
+        emit_water_stream(
+            Vector2(
+                float(packet.get("x", 0.0)),
+                float(packet.get("y", 0.0))
+            ),
+            amount,
+            Vector2(float(packet.get("vx_px_s", 0.0)), 24.0),
+            count
+        )
+    _waterfall_pending.clear()
+
+func _surface_is_locally_calm(i: int) -> bool:
+    var sy := _surface_y_index(i)
+    if i > 0 and _depth_m[i - 1] > dry_depth_m:
+        if absf(_surface_y_index(i - 1) - sy) > rest_surface_delta_px:
+            return false
+    if i < _cell_count - 1 and _depth_m[i + 1] > dry_depth_m:
+        if absf(_surface_y_index(i + 1) - sy) > rest_surface_delta_px:
+            return false
+    return true
 
 func _rebuild_solid_displacement() -> void:
     var frame := Engine.get_physics_frames()
@@ -465,39 +620,46 @@ func extract_water_at(
     requested_volume_m3: float,
     radius_px: float = 18.0
 ) -> float:
-    var remaining := maxf(requested_volume_m3, 0.0)
-    if remaining <= 0.0:
+    var requested := maxf(requested_volume_m3, 0.0)
+    if requested <= 0.0:
         return 0.0
 
     var center := _index_at(world_x)
     var radius_cells := maxi(1, int(ceil(radius_px / cell_size_px)))
+    var first := maxi(0, center - radius_cells)
+    var last := mini(_cell_count - 1, center + radius_cells)
     var cell_width_m := cell_size_px / pixels_per_meter
-    var cell_area := cell_width_m * fluid_depth_m
+    var cell_area := maxf(cell_width_m * fluid_depth_m, 0.000001)
+
+    var capacities: Array[float] = []
+    var capacity_sum := 0.0
+    for i in range(first, last + 1):
+        var available := maxf(_depth_m[i], 0.0) * cell_area
+        var distance := absf(float(i - center)) / float(radius_cells + 1)
+        var kernel := 0.38 + 0.62 * maxf(0.0, 1.0 - distance)
+        var capacity := available * 0.30 * kernel
+        capacities.append(capacity)
+        capacity_sum += capacity
+
+    var target := minf(requested, capacity_sum)
+    if target <= 0.0:
+        return 0.0
+
     var extracted := 0.0
-
-    # Nearest cells first so a bucket actually lowers the water it is touching.
-    for offset in range(radius_cells + 1):
-        var candidates: Array[int] = []
-        if offset == 0:
-            candidates.append(center)
-        else:
-            candidates.append(center - offset)
-            candidates.append(center + offset)
-
-        for i in candidates:
-            if i < 0 or i >= _cell_count or remaining <= 0.0:
-                continue
-            var available := maxf(_depth_m[i], 0.0) * cell_area
-            if available <= 0.0:
-                continue
-            var take := minf(available * 0.72, remaining)
-            var old_h := maxf(_depth_m[i], 0.0)
-            var old_u := _velocity_at_index(i)
-            var dh := take / maxf(cell_area, 0.000001)
-            _depth_m[i] = maxf(0.0, old_h - dh)
-            _momentum_m2_s[i] = _depth_m[i] * old_u
-            remaining -= take
-            extracted += take
+    var cursor := 0
+    for i in range(first, last + 1):
+        var capacity := capacities[cursor]
+        cursor += 1
+        if capacity <= 0.0:
+            continue
+        var take := target * capacity / maxf(capacity_sum, 0.000001)
+        take = minf(take, capacity)
+        var old_h := maxf(_depth_m[i], 0.0)
+        var old_u := _velocity_at_index(i)
+        var dh := take / cell_area
+        _depth_m[i] = maxf(0.0, old_h - dh)
+        _momentum_m2_s[i] = _depth_m[i] * old_u
+        extracted += take
 
     return extracted
 
@@ -510,6 +672,12 @@ func deposit_water_at(
     var amount := maxf(volume_m3, 0.0)
     if amount <= 0.0:
         return
+
+    var liters := amount * 1000.0
+    radius_px = maxf(
+        radius_px,
+        cell_size_px * 1.5 + sqrt(maxf(liters, 0.0)) * 2.8
+    )
 
     var first := _index_at(world_x - radius_px)
     var last := _index_at(world_x + radius_px)
@@ -883,16 +1051,17 @@ func _draw() -> void:
             WATER_MID
         )
 
-        var deep_height := minf(72.0, height_px)
-        draw_rect(
-            Rect2(
-                x,
-                maxf(sy, floor_y - deep_height),
-                cell_size_px + 0.6,
-                deep_height
-            ),
-            WATER_DEEP
-        )
+        if height_px > 86.0:
+            var deep_height := minf(62.0, height_px - 38.0)
+            draw_rect(
+                Rect2(
+                    x,
+                    floor_y - deep_height,
+                    cell_size_px + 0.6,
+                    deep_height
+                ),
+                WATER_DEEP
+            )
 
         draw_rect(
             Rect2(x, sy, cell_size_px + 0.6, maxf(1.0, cell_size_px * 0.75)),
@@ -960,5 +1129,5 @@ func _draw() -> void:
                 s,
                 s
             ),
-            WATER_GLINT
+            WATER_MID
         )
