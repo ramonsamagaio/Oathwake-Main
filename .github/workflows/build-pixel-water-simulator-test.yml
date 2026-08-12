@@ -48,19 +48,9 @@ jobs:
           .\godot.exe --headless --path ".tmp\pixel-water" "res://examples/swimmer_player_example.tscn" --quit-after 3 2>&1 | Tee-Object -FilePath "swimmer.log"
           $swimmerCode = $LASTEXITCODE
 
-          $log = (
-            (Get-Content "editor.log" -Raw)
-            + "`n" + (Get-Content "runtime.log" -Raw)
-            + "`n" + (Get-Content "platform.log" -Raw)
-            + "`n" + (Get-Content "swimmer.log" -Raw)
-          )
-          if (
-            $editorCode -ne 0
-            -or $runtimeCode -ne 0
-            -or $platformCode -ne 0
-            -or $swimmerCode -ne 0
-            -or $log -match "Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access"
-          ) {
+          $log = (Get-Content "editor.log" -Raw) + "`n" + (Get-Content "runtime.log" -Raw) + "`n" + (Get-Content "platform.log" -Raw) + "`n" + (Get-Content "swimmer.log" -Raw)
+          $failed = ($editorCode -ne 0) -or ($runtimeCode -ne 0) -or ($platformCode -ne 0) -or ($swimmerCode -ne 0) -or ($log -match "Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access")
+          if ($failed) {
             Write-Host $log
             throw "Godot smoke test failed (editor=$editorCode runtime=$runtimeCode platform=$platformCode swimmer=$swimmerCode)"
           }
