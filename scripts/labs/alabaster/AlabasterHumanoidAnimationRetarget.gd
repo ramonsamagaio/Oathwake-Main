@@ -24,6 +24,19 @@ const EXPECTED_GAMEPLAY_CLIPS := [
 	"atkHammer1fast", "atkHammer2", "atkHammer3", "atkSpear1", "atkTonfa1-punch",
 ]
 
+# DEFAULT keeps Juno's foot timing and leg trajectories, but its walk gets an
+# independent body-center pass. The strongest reduction is on bottom (pelvis),
+# while root and top retain enough counter-motion to avoid a rigid march.
+# Coordinate convention: X is character lateral, Z is up. For local rotations,
+# Y is the forward-axis roll/hip hike and Z is yaw/twist around the vertical.
+const DEFAULT_WALK_ROOT_LATERAL_SCALE := 0.65
+const DEFAULT_WALK_PELVIS_LATERAL_SCALE := 0.35
+const DEFAULT_WALK_PELVIS_ROLL_SCALE := 0.40
+const DEFAULT_WALK_PELVIS_YAW_SCALE := 0.65
+const DEFAULT_WALK_TOP_LATERAL_SCALE := 0.75
+const DEFAULT_WALK_TOP_ROLL_SCALE := 0.75
+const DEFAULT_WALK_TOP_YAW_SCALE := 0.85
+
 static var _juno_bank_cache: Dictionary = {}
 
 
@@ -255,14 +268,104 @@ static func _retarget_animation_data(source: Dictionary, source_animation: Strin
 			if target_nodes.has(node_name):
 				filtered_nodes[node_name] = (nodes_value as Dictionary)[node_name_value]
 	result["nodes"] = filtered_nodes
+
+	if profile_id == "default" and source_animation == "walk":
+		_apply_default_walk_body_tuning(result)
+
 	result["retarget_meta"] = {
 		"source_profile": "juno",
 		"target_profile": profile_id,
 		"source_animation": source_animation,
 		"method": "shared_humanoid_node_filter",
 		"bank_source": JunoGameplayBank.get_source_name(),
+		"target_variant": "default_neutral_walk_v1" if profile_id == "default" and source_animation == "walk" else "source_motion",
 	}
 	return result
+
+
+static func _apply_default_walk_body_tuning(animation: Dictionary) -> void:
+	var transforms_value: Variant = animation.get("transforms", [])
+	if not transforms_value is Array:
+		return
+
+	var transforms := (transforms_value as Array).duplicate(true)
+	var root_keys := 0
+	var pelvis_keys := 0
+	var top_keys := 0
+
+	for key_index in range(transforms.size()):
+		var key_value: Variant = transforms[key_index]
+		if not key_value is Dictionary:
+			continue
+		var key := (key_value as Dictionary).duplicate(true)
+		var node_xfm_value: Variant = key.get("nodeXfm", {})
+		if not node_xfm_value is Dictionary:
+			continue
+		var node_xfm := (node_xfm_value as Dictionary).duplicate(true)
+
+		if _tune_default_walk_node(node_xfm, "root", DEFAULT_WALK_ROOT_LATERAL_SCALE, 1.0, 1.0):
+			root_keys += 1
+		if _tune_default_walk_node(node_xfm, "bottom", DEFAULT_WALK_PELVIS_LATERAL_SCALE, DEFAULT_WALK_PELVIS_ROLL_SCALE, DEFAULT_WALK_PELVIS_YAW_SCALE):
+			pelvis_keys += 1
+		if _tune_default_walk_node(node_xfm, "top", DEFAULT_WALK_TOP_LATERAL_SCALE, DEFAULT_WALK_TOP_ROLL_SCALE, DEFAULT_WALK_TOP_YAW_SCALE):
+			top_keys += 1
+
+		key["nodeXfm"] = node_xfm
+		transforms[key_index] = key
+
+	animation["transforms"] = transforms
+	animation["default_walk_tuning"] = {
+		"version": 1,
+		"policy": "reduce_lateral_pelvis_sway_preserve_feet",
+		"root_lateral": DEFAULT_WALK_ROOT_LATERAL_SCALE,
+		"pelvis_lateral": DEFAULT_WALK_PELVIS_LATERAL_SCALE,
+		"pelvis_roll": DEFAULT_WALK_PELVIS_ROLL_SCALE,
+		"pelvis_yaw": DEFAULT_WALK_PELVIS_YAW_SCALE,
+		"top_lateral": DEFAULT_WALK_TOP_LATERAL_SCALE,
+		"top_roll": DEFAULT_WALK_TOP_ROLL_SCALE,
+		"top_yaw": DEFAULT_WALK_TOP_YAW_SCALE,
+		"root_keys": root_keys,
+		"pelvis_keys": pelvis_keys,
+		"top_keys": top_keys,
+	}
+	print("ALABASTER_DEFAULT_WALK_TUNED root_keys=%d pelvis_keys=%d top_keys=%d pelvis_x=%.2f pelvis_roll=%.2f pelvis_yaw=%.2f" % [
+		root_keys,
+		pelvis_keys,
+		top_keys,
+		DEFAULT_WALK_PELVIS_LATERAL_SCALE,
+		DEFAULT_WALK_PELVIS_ROLL_SCALE,
+		DEFAULT_WALK_PELVIS_YAW_SCALE,
+	])
+
+
+static func _tune_default_walk_node(node_xfm: Dictionary, node_name: String, lateral_scale: float, roll_scale: float, yaw_scale: float) -> bool:
+	var xfm_value: Variant = node_xfm.get(node_name, null)
+	if not xfm_value is Dictionary:
+		return false
+	var xfm := (xfm_value as Dictionary).duplicate(true)
+
+	var trans_value: Variant = xfm.get("trans", null)
+	if trans_value is Array and (trans_value as Array).size() >= 3:
+		var trans := (trans_value as Array).duplicate(true)
+		trans[0] = float(trans[0]) * lateral_scale
+		xfm["trans"] = trans
+
+	var rot_value: Variant = xfm.get("rot", null)
+	if rot_value is Array and (rot_value as Array).size() >= 3:
+		var rot := (rot_value as Array).duplicate(true)
+		rot[1] = _scale_signed_degrees(float(rot[1]), roll_scale)
+		rot[2] = _scale_signed_degrees(float(rot[2]), yaw_scale)
+		xfm["rot"] = rot
+
+	node_xfm[node_name] = xfm
+	return true
+
+
+static func _scale_signed_degrees(value: float, scale: float) -> float:
+	# Source Euler keys may cross 0/360. Scale the equivalent signed angle so a
+	# 359-degree key becomes -1 degree before attenuation instead of 143.6 degrees.
+	var signed := fposmod(value + 180.0, 360.0) - 180.0
+	return signed * scale
 
 
 static func _target_node_set(profile_id: String, rig: Object = null) -> Dictionary:
