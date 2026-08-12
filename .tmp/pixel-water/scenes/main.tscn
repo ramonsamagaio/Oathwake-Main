@@ -8,8 +8,11 @@
 [node name="PixelWaterSimulatorDemo" type="Node2D"]
 script = ExtResource("1_main")
 
-[node name="Water" parent="." instance=ExtResource("2_water")]
-script = ExtResource("3_showcase_water")
-
+; Terrain/background must be drawn before Water. Previously this node came after
+; Water and its dark course background literally painted over the simulated water,
+; making conserved bucket water look as if it vanished when poured on the course.
 [node name="HydraulicTestCourse" type="Node2D" parent="."]
 script = ExtResource("4_course")
+
+[node name="Water" parent="." instance=ExtResource("2_water")]
+script = ExtResource("3_showcase_water")
