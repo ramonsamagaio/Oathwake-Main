@@ -1,0 +1,81 @@
+name: Fix Pixel Water Parser
+
+on:
+  push:
+    branches:
+      - tmp-pixel-water-build-20260811
+    paths:
+      - '.github/workflows/fix-pixel-water-parser.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp-pixel-water-build-20260811
+          fetch-depth: 0
+      - name: Apply Godot 4.3 parser fixes
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def patch(path, replacements):
+              p = Path(path)
+              s = p.read_text(encoding='utf-8')
+              for old, new in replacements:
+                  if old not in s:
+                      raise SystemExit(f'missing replacement target in {path}: {old!r}')
+                  s = s.replace(old, new)
+              p.write_text(s, encoding='utf-8')
+
+          patch('.tmp/pixel-water/addons/pixel_water/pixel_water_world.gd', [
+              ('var signal := maxf(wave_l, wave_r)', 'var max_wave_speed: float = maxf(wave_l, wave_r)'),
+              ('0.5 * signal * (h_r - h_l)', '0.5 * max_wave_speed * (h_r - h_l)'),
+              ('0.5 * signal * (q_r - q_l)', '0.5 * max_wave_speed * (q_r - q_l)'),
+          ])
+
+          patch('.tmp/pixel-water/addons/pixel_water/buoyant_body.gd', [
+              ('var best_distance := INF', 'var best_distance: float = INF'),
+              ('var candidate := node as PixelWaterWorld2D', 'var candidate: PixelWaterWorld2D = node as PixelWaterWorld2D'),
+              ('var dx := 0.0', 'var dx: float = 0.0'),
+              ('var displaced_mass_capacity := (', 'var displaced_mass_capacity: float = ('),
+              ('var displaced_volume := object_volume_m3 * submerged_fraction', 'var displaced_volume: float = object_volume_m3 * submerged_fraction'),
+              ('var volume_per_sample := object_volume_m3 / float(_sample_points.size())', 'var volume_per_sample: float = object_volume_m3 / float(_sample_points.size())'),
+              ('var force_per_sample := (', 'var force_per_sample: float = ('),
+              ('var velocity_m_s := linear_velocity / pixels_per_meter', 'var velocity_m_s: Vector2 = linear_velocity / pixels_per_meter'),
+              ('var speed_m_s := velocity_m_s.length()', 'var speed_m_s: float = velocity_m_s.length()'),
+              ('var direction := velocity_m_s.normalized()', 'var direction: Vector2 = velocity_m_s.normalized()'),
+              ('var projected_length_m := (', 'var projected_length_m: float = ('),
+              ('var projected_area_m2 := maxf(0.0001, projected_length_m * physical_depth_m)', 'var projected_area_m2: float = maxf(0.0001, projected_length_m * physical_depth_m)'),
+              ('var drag_newtons := (', 'var drag_newtons: float = ('),
+              ('var drag_force_px := (', 'var drag_force_px: Vector2 = ('),
+              ('var max_drag := (', 'var max_drag: float = ('),
+          ])
+
+          patch('.tmp/pixel-water/addons/pixel_water/water_bucket.gd', [
+              ('var outside_surface_y := _water.surface_y_at(opening.x)', 'var outside_surface_y: float = _water.surface_y_at(opening.x)'),
+              ('var outside_floor_y := _water.floor_y_at(opening.x)', 'var outside_floor_y: float = _water.floor_y_at(opening.x)'),
+              ('var opening_submerged := (', 'var opening_submerged: bool = ('),
+              ('var g := _water.gravity_px_s2 / _water.pixels_per_meter', 'var g: float = _water.gravity_px_s2 / _water.pixels_per_meter'),
+              ('var extracted := _water.extract_water_at(', 'var extracted: float = _water.extract_water_at('),
+              ('var water_mass := contained_volume_m3 * (_water.water_density_kg_m3 if _water != null else 997.0)', 'var water_mass: float = contained_volume_m3 * (_water.water_density_kg_m3 if _water != null else 997.0)'),
+          ])
+
+          patch('.tmp/pixel-water/demo/main.gd', [
+              ('var main_l := water.volume_liters_in_range(MAIN_LEFT, MAIN_RIGHT)', 'var main_l: float = water.volume_liters_in_range(MAIN_LEFT, MAIN_RIGHT)'),
+              ('var small_l := water.volume_liters_in_range(SMALL_LEFT, SMALL_RIGHT)', 'var small_l: float = water.volume_liters_in_range(SMALL_LEFT, SMALL_RIGHT)'),
+          ])
+      - name: Commit fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/fix-pixel-water-parser.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix: Godot 4.3 parser compatibility for unified water'
+          git push origin HEAD:tmp-pixel-water-build-20260811
