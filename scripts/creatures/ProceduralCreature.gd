@@ -6,6 +6,7 @@ signal preset_applied
 signal simulation_state_changed(active: bool)
 
 const PIXEL_UNIT := 1.0
+const DEFAULT_VISUAL_SHADER: Shader = preload("res://shaders/creatures/procedural_palette_pixel.gdshader")
 
 @export_group("Identity")
 @export var creature_id: StringName = &"procedural_creature"
@@ -17,6 +18,10 @@ const PIXEL_UNIT := 1.0
 @export var quantize_motion := true
 @export_range(0.1, 4.0, 0.05) var global_scale_factor := 1.0
 @export_range(0.0, 4.0, 0.05) var motion_intensity := 1.0
+
+@export_group("Pixel Material")
+@export_range(0.0, 1.0, 0.01) var palette_band_strength := 0.78
+@export_range(0.0, 1.0, 0.01) var material_detail_strength := 0.35
 
 @export_group("LOD / Budget")
 @export var lod_enabled := true
@@ -31,7 +36,7 @@ const PIXEL_UNIT := 1.0
 @export var shadow_color := Color("25352d")
 
 # Kept as a read-only compatibility value because older presets and creature
-# scripts may still ask for pixel_size. Rendering is now always one real pixel.
+# scripts may still ask for pixel_size. Rendering is always one real pixel.
 var pixel_size: int = 1
 var velocity := Vector2.ZERO
 var external_force := Vector2.ZERO
@@ -42,6 +47,8 @@ var _world_movement_bounds := Rect2()
 var _has_world_movement_bounds := false
 var _simulation_position := Vector2.ZERO
 var _presented_position := Vector2.ZERO
+var _visual_material: ShaderMaterial
+var _visual_material_signature := ""
 
 
 func _ready() -> void:
@@ -49,11 +56,14 @@ func _ready() -> void:
 	_rng.seed = random_seed
 	_simulation_position = position
 	_presented_position = position
+	_install_visual_shader(DEFAULT_VISUAL_SHADER)
 	set_process(true)
 	queue_redraw()
 
 
 func _process(delta: float) -> void:
+	# Palette controls remain live even while simulation is paused.
+	_sync_visual_material()
 	if not simulation_enabled:
 		return
 	var effective_hz := _effective_hz()
@@ -71,7 +81,7 @@ func _process(delta: float) -> void:
 
 func _simulate(delta: float) -> void:
 	# Physics accumulates subpixel motion, while presentation snaps to the fixed
-	# one-pixel grid. This preserves slow movement without ever changing pixel size.
+	# one-pixel grid. This preserves slow movement without changing pixel size.
 	if position.distance_squared_to(_presented_position) > 0.0001:
 		_simulation_position = position
 
@@ -153,14 +163,10 @@ func _pick_roam_target_far(
 	margin: float,
 	minimum_travel: float
 ) -> Vector2:
-	# Prefer destinations that produce a meaningful journey. The old random
-	# target picker could repeatedly choose nearby points, making roaming read as
-	# nervous shuffling rather than exploration.
 	var best := _clamp_point_to_movement_bounds(home, margin)
 	var best_distance := current.distance_to(best)
 	for _attempt in range(10):
 		var angle := _rng.randf_range(0.0, TAU)
-		# Bias away from the center of the roam disc so routes cover more ground.
 		var distance := lerpf(radius * 0.48, radius, sqrt(_rng.randf()))
 		var candidate := home + Vector2(cos(angle), sin(angle)) * distance
 		candidate = _clamp_point_to_movement_bounds(candidate, margin)
@@ -174,8 +180,6 @@ func _pick_roam_target_far(
 
 
 func _roam_watchdog_time(distance: float, speed: float, minimum_time: float, extra_time: float = 2.0) -> float:
-	# A roam target must live long enough to be reachable. The timer is a stuck
-	# watchdog only, never the normal reason to abandon a valid destination.
 	var travel_time := distance / maxf(1.0, speed)
 	return maxf(minimum_time, travel_time * 1.65 + extra_time)
 
@@ -185,6 +189,7 @@ func reseed(new_seed: int = -1) -> void:
 		new_seed = int(Time.get_ticks_usec() & 0x7fffffff)
 	random_seed = new_seed
 	_rng.seed = random_seed
+	_visual_material_signature = ""
 	_reset_simulation()
 	queue_redraw()
 
@@ -202,8 +207,6 @@ func set_lod_anchor(anchor: Node2D) -> void:
 
 func set_parameter(key: StringName, value: Variant) -> bool:
 	if key == &"pixel_size":
-		# Compatibility with old presets: accept the key but never allow the
-		# procedural renderer to leave the one-pixel grid.
 		pixel_size = 1
 	elif key == &"simulation_hz":
 		simulation_hz = clampf(float(value), 5.0, 120.0)
@@ -211,6 +214,12 @@ func set_parameter(key: StringName, value: Variant) -> bool:
 		global_scale_factor = clampf(float(value), 0.1, 4.0)
 	elif key == &"motion_intensity":
 		motion_intensity = clampf(float(value), 0.0, 4.0)
+	elif key == &"palette_band_strength":
+		palette_band_strength = clampf(float(value), 0.0, 1.0)
+		_visual_material_signature = ""
+	elif key == &"material_detail_strength":
+		material_detail_strength = clampf(float(value), 0.0, 1.0)
+		_visual_material_signature = ""
 	elif key == &"quantize_motion":
 		quantize_motion = bool(value)
 	elif key == &"lod_enabled":
@@ -235,6 +244,10 @@ func get_parameter(key: StringName) -> Variant:
 		return global_scale_factor
 	if key == &"motion_intensity":
 		return motion_intensity
+	if key == &"palette_band_strength":
+		return palette_band_strength
+	if key == &"material_detail_strength":
+		return material_detail_strength
 	if key == &"quantize_motion":
 		return quantize_motion
 	if key == &"lod_enabled":
@@ -250,6 +263,8 @@ func get_editor_schema() -> Array[Dictionary]:
 	var schema: Array[Dictionary] = [
 		{"key": &"global_scale_factor", "label": "Geometry Scale", "type": "float", "min": 0.35, "max": 2.5, "step": 0.05},
 		{"key": &"motion_intensity", "label": "Motion", "type": "float", "min": 0.0, "max": 3.0, "step": 0.05},
+		{"key": &"palette_band_strength", "label": "Palette Banding", "type": "float", "min": 0.0, "max": 1.0, "step": 0.01},
+		{"key": &"material_detail_strength", "label": "Pixel Material", "type": "float", "min": 0.0, "max": 1.0, "step": 0.01},
 	]
 	schema.append_array(_get_creature_editor_schema())
 	return schema
@@ -266,7 +281,7 @@ func make_preset() -> Dictionary:
 		if key != &"":
 			params[String(key)] = get_parameter(key)
 	return {
-		"version": 2,
+		"version": 3,
 		"creature_id": String(creature_id),
 		"seed": random_seed,
 		"params": params,
@@ -296,6 +311,8 @@ func apply_preset(data: Dictionary) -> void:
 	for key in params.keys():
 		set_parameter(StringName(key), params[key])
 	pixel_size = 1
+	_visual_material_signature = ""
+	_sync_visual_material(true)
 	_reset_simulation()
 	preset_applied.emit()
 	queue_redraw()
@@ -324,6 +341,56 @@ func _resolve_lod_anchor() -> Node2D:
 	if _manual_lod_anchor != null and is_instance_valid(_manual_lod_anchor):
 		return _manual_lod_anchor
 	return get_viewport().get_camera_2d()
+
+
+func _palette_deep() -> Color:
+	return shadow_color.lerp(secondary_color, 0.34)
+
+
+func _palette_mid() -> Color:
+	return secondary_color.lerp(primary_color, 0.56)
+
+
+func _palette_light() -> Color:
+	return primary_color.lerp(accent_color, 0.48)
+
+
+func _palette_glint() -> Color:
+	return accent_color.lerp(Color.WHITE, 0.10)
+
+
+func _install_visual_shader(shader_resource: Shader) -> void:
+	var shader_material := ShaderMaterial.new()
+	shader_material.shader = shader_resource
+	_visual_material = shader_material
+	material = shader_material
+	_visual_material_signature = ""
+	_sync_visual_material(true)
+
+
+func _sync_visual_material(force: bool = false) -> void:
+	if _visual_material == null:
+		return
+	var signature := "%s|%s|%s|%s|%.3f|%.3f|%d" % [
+		primary_color.to_html(),
+		secondary_color.to_html(),
+		accent_color.to_html(),
+		shadow_color.to_html(),
+		palette_band_strength,
+		material_detail_strength,
+		random_seed,
+	]
+	if not force and signature == _visual_material_signature:
+		return
+	_visual_material_signature = signature
+	_visual_material.set_shader_parameter(&"palette_shadow", shadow_color)
+	_visual_material.set_shader_parameter(&"palette_deep", _palette_deep())
+	_visual_material.set_shader_parameter(&"palette_mid", _palette_mid())
+	_visual_material.set_shader_parameter(&"palette_light", _palette_light())
+	_visual_material.set_shader_parameter(&"palette_accent", accent_color)
+	_visual_material.set_shader_parameter(&"band_strength", palette_band_strength)
+	_visual_material.set_shader_parameter(&"detail_strength", material_detail_strength)
+	_visual_material.set_shader_parameter(&"seed_phase", float(absi(random_seed % 997)) / 997.0)
 
 
 func _snap(value: float) -> float:
