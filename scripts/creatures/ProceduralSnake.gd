@@ -15,16 +15,19 @@ extends ProceduralCreature
 var _segments: PackedVector2Array = PackedVector2Array()
 var _phase := 0.0
 var _heading := Vector2.RIGHT
+var _home_x := 0.0
 
 
 func _ready() -> void:
 	creature_id = &"snake"
+	_home_x = position.x
 	super._ready()
 	_rebuild_chain()
 
 
 func _reset_simulation() -> void:
 	super._reset_simulation()
+	_home_x = position.x
 	_rebuild_chain()
 
 
@@ -41,7 +44,7 @@ func _simulate_creature(delta: float) -> void:
 
 	if auto_crawl:
 		velocity = _heading * crawl_speed
-		if absf(position.x) > 260.0:
+		if absf(position.x - _home_x) > 260.0:
 			_heading.x *= -1.0
 
 	_segments[0] = Vector2.ZERO
