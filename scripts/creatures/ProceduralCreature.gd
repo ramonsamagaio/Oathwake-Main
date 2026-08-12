@@ -336,10 +336,13 @@ func _snap_vec(value: Vector2) -> Vector2:
 
 func _px_rect(center: Vector2, size: Vector2, color: Color) -> void:
 	# Every primitive is made from the one-pixel grid. Larger visual masses are
-	# integer clusters, never enlarged source pixels.
+	# integer clusters, never enlarged source pixels. Top-left and extents stay
+	# integer too, so odd clusters cannot land on half-pixel coordinates.
 	var snapped_center := _snap_vec(center)
 	var snapped_size := Vector2(maxf(1.0, round(size.x)), maxf(1.0, round(size.y)))
-	draw_rect(Rect2(snapped_center - snapped_size * 0.5, snapped_size), color, true)
+	var half_extent := Vector2(floor(snapped_size.x * 0.5), floor(snapped_size.y * 0.5))
+	var top_left := snapped_center - half_extent
+	draw_rect(Rect2(top_left, snapped_size), color, true)
 
 
 func _draw_pixel_disc(center: Vector2, radius: float, color: Color) -> void:
