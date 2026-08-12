@@ -1,0 +1,2 @@
+Water V5 surface stability build marker.
+Splash effects are cosmetic-only; bucket water mass is physical.
