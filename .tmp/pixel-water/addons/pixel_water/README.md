@@ -1,131 +1,101 @@
 # Pixel Water Simulator
 
-Lightweight, physically-inspired 2D pixel water for Godot 4.x.
+Lightweight, physically-inspired pixel water for Godot 4.x side-view games.
 
-This package is designed for side-view games that want expressive water without a full fluid solver. The core is intentionally separated from the demo so it can be copied into another project.
+## What changed in the unified solver
 
-## Recommended integration
+The water is now one continuous simulation domain. Deep basins, shallow water on platforms, overflow, and secondary pits are all horizontal cells in the same shallow-water world. There is no separate puddle implementation and no special invisible barrier at basin edges.
+
+The core tracks water depth and horizontal momentum with a conservative finite-volume shallow-water approximation, hydrostatic reconstruction across terrain steps, CFL sub-stepping, wet/dry cells, bottom/turbulent friction, transported spray, object displacement, buoyancy, wakes, foam, and bubbles.
+
+Gravity is part of the pressure-wave dynamics. Wave energy is dissipated by bottom/turbulent friction rather than by forcing the surface back to an arbitrary rest line.
+
+## Install
 
 Copy:
 
 `addons/pixel_water/`
 
-Then instance:
+Instance:
 
-`pixel_water_container.tscn`
+`pixel_water_world.tscn`
 
-`PixelWaterContainer2D` represents one contiguous water basin. Use multiple instances for separate pools.
+The main runtime class is:
 
-Configure the container to match your level collision:
+`PixelWaterWorld2D`
 
-- `basin_left` / `basin_right`
-- `rest_surface_y`
-- `bottom_y`
-- `platform_y`
-- optional `left_rim_y` / `right_rim_y`
-- `fluid_depth_m`
-- outside spill bounds
+Older names `PixelWaterContainer2D`, `PixelWaterSimulator2D`, and `PixelWaterSimulatorV2` remain as compatibility aliases.
 
-The water node simulates liquid only. Your game should provide real `StaticBody2D` / tile collision for the basin walls, floor and surrounding terrain.
+## Terrain and initial water
 
-## Buoyant objects
+Configure a world with floor segments and initial water regions:
 
-Attach or extend `BuoyantPixelBody2D` for physics-driven objects.
+```gdscript
+water.configure_world(
+    [
+        {"left": 170.0, "right": 790.0, "floor_y": 500.0},
+        {"left": 970.0, "right": 1120.0, "floor_y": 430.0}
+    ],
+    [
+        {"left": 170.0, "right": 790.0, "surface_y": 275.0},
+        {"left": 970.0, "right": 1120.0, "surface_y": 405.0}
+    ]
+)
+```
 
-The body uses:
+Every x-position not covered by a floor segment uses `default_floor_y`.
 
-- Archimedes buoyancy from sampled submerged volume
-- quadratic hydrodynamic drag
-- local buoyancy forces, so partially submerged objects can rotate naturally
-- material density presets
-- displacement-driven waves
-- splash energy from impact mass and speed
-- underwater wakes, foam and bubbles
+A tall floor step behaves as a physical rim because of the terrain elevation itself. If the free surface rises above the rim, the same solver carries water over it. Once outside, that water continues obeying the same depth/momentum equations and can flow into another lower region.
 
-For the included mouse sandbox behavior, use `InteractiveBuoyantPixelBody2D`.
+Your game should still provide matching `StaticBody2D`, TileMap, or other collision geometry for solid terrain so rigid bodies cannot overlap walls/floors.
 
-The interactive version never teleports a held body. A spring-damper force pulls the clicked point toward the cursor while the object stays a normal `RigidBody2D`, so terrain and object collisions remain active during the grab.
+## Water conservation APIs
 
-Useful grab tuning:
+Useful runtime methods:
 
-- `grab_stiffness`
-- `grab_damping`
-- `max_grab_acceleration_px_s2`
-- `max_held_speed_px_s`
+- `water_volume_liters()`
+- `volume_liters_in_range(left_x, right_x)`
+- `surface_y_at(x)`
+- `floor_y_at(x)`
+- `depth_m_at(x)`
+- `contains_point(point)`
+- `extract_water_at(x, volume_m3, radius_px)`
+- `deposit_water_at(x, volume_m3, incoming_horizontal_velocity_m_s, radius_px)`
+- `emit_water_stream(point, volume_m3, velocity_px_s, particle_count)`
 
-## Water surface model
+`extract_water_at` and `deposit_water_at` are intended for pumps, buckets, pipes, spells, drains, faucets, rain systems, and similar gameplay systems while preserving tracked water volume.
 
-The free surface is a conservative 1D height field. Waves use a damped discrete wave equation with:
+## Buoyant bodies
 
-- solid-wall reflection
-- adaptive damping for extreme motion
-- nonlinear restoring pressure
-- explicit volume correction
-- a physical dry-floor limit only
+`BuoyantPixelBody2D` uses sampled Archimedes buoyancy, quadratic hydrodynamic drag, local torque, material density, object displacement, splash energy, wakes, foam, and bubbles.
 
-There is no symmetric hard amplitude clamp above and below the resting surface.
+Object displacement is reported to the water world as occupied volume. Multiple submerged objects therefore reduce available storage simultaneously and raise/redistribute the water naturally. RigidBody2D collision keeps the objects themselves from occupying the same physical space.
 
-## Overflow
+Use `InteractiveBuoyantPixelBody2D` for the included physical mouse grab. It remains a normal RigidBody2D while held and is pulled toward the cursor with a spring-damper force.
 
-Overflow is volume-based.
+## Transparent bucket
 
-When the water surface rises above a rim, outflow is based on a Torricelli-inspired relation:
+`WaterBucket2D` is an open-topped U-shaped RigidBody2D with visible contained water.
 
-`Q = Cd * A * sqrt(2 g h)`
+When its opening goes below the outside free surface, it equalizes toward the surrounding water level and removes that volume from the world. The water mass increases the bucket's total mass.
 
-where:
+When tilted past the lip angle, the bucket emits conservative transported water parcels. Those parcels fall under gravity and rejoin the same world solver wherever they land, including another basin or a shallow platform.
 
-- `Cd` is the discharge coefficient
-- `A` is the effective opening area
-- `g` is gravity
-- `h` is water head above the rim
+## Demo
 
-Small overfill produces a trickle. Large head produces substantially more flow.
+The demo contains:
 
-Overflow volume is removed from the basin and divided between:
+- a large main basin
+- a smaller secondary basin with less initial water
+- a transparent 16 L transfer bucket
+- the original material test objects
+- spawn controls for creating additional copies of every object/bucket
+- live volume readouts for the main basin, small basin, bucket contents, and world water
+- physical object grabbing
+- right-mouse camera panning
 
-- a shallow outside puddle sheet
-- sparse visual spray
+Repeated bucket transfers visibly lower one basin and raise the other. Spawning and submerging many rigid bodies also occupies volume and raises the water.
 
-Water that later falls back into the basin is returned to its tracked volume.
+## Why shallow water instead of full CFD
 
-## Outside puddles and wetness
-
-Spilled water is not only a decal. The simulator keeps a sparse 1D shallow-puddle volume map outside the basin.
-
-Puddles:
-
-- spread laterally
-- use conservative neighbor transfers
-- can drain back into an open basin edge
-- evaporate gradually
-- leave temporary wet pixels behind
-
-This keeps outside water cheap while making large spills visibly different from a few splash particles.
-
-## Pixel rendering
-
-The physics runs in floating point. Quantization happens when drawing, so the solver does not lose precision while the result still reads as small pixel art.
-
-Main effects:
-
-- pixel water surface
-- crest highlights
-- foam
-- bubbles
-- spray droplets
-- shallow puddles
-- wet ground
-
-## Demo controls
-
-- Left mouse + drag: physically grab an object
-- Release: throw with the real current rigid-body velocity
-- Right mouse + drag: pan the camera
-- Maximize/resize the window freely
-- Reset Objects: restores demo objects
-- Reset Water: restores basin volume and clears spill state
-
-## Scope
-
-This is a lightweight gameplay fluid, not CFD/Navier-Stokes. It prioritizes conservation, convincing response, integration simplicity and low cost for pixel-art games.
+This asset targets pixel-art gameplay and solo-dev budgets. It does not solve full 3D Navier-Stokes. The core uses a conservative 1D shallow-water approximation across a side-view terrain profile, which captures gravity-driven free-surface flow, wetting/drying, basin transfer, overflow, wave propagation, and momentum at a fraction of the cost of general fluid simulation.

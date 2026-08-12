@@ -1,17 +1,9 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://demo/main.gd" id="1_main"]
-[ext_resource type="PackedScene" path="res://addons/pixel_water/water_simulator.tscn" id="2_water"]
+[ext_resource type="PackedScene" path="res://addons/pixel_water/pixel_water_world.tscn" id="2_water"]
 
 [node name="PixelWaterSimulatorDemo" type="Node2D"]
 script = ExtResource("1_main")
 
 [node name="Water" parent="." instance=ExtResource("2_water")]
-basin_left = 170.0
-basin_right = 790.0
-rest_surface_y = 260.0
-bottom_y = 500.0
-platform_y = 240.0
-world_width = 960.0
-spill_world_left = -960.0
-spill_world_right = 1920.0

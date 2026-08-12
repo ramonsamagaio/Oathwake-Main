@@ -44,12 +44,11 @@ func _ready() -> void:
     root.add_child(_title)
 
     var hint := Label.new()
-    hint.text = "Drag objects live. Tune physics while it runs."
+    hint.text = "Physical grab. Every spawned body displaces the same water solver."
     hint.modulate = Color(0.78, 0.82, 0.86)
     hint.add_theme_font_size_override("font_size", 11)
     hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     root.add_child(hint)
-
     root.add_child(HSeparator.new())
 
     _material = OptionButton.new()
@@ -62,7 +61,7 @@ func _ready() -> void:
     _mass = SpinBox.new()
     _mass.custom_minimum_size.y = 26.0
     _mass.min_value = 0.05
-    _mass.max_value = 250.0
+    _mass.max_value = 350.0
     _mass.step = 0.05
     _mass.suffix = " kg"
     _mass.value_changed.connect(_on_mass_changed)
@@ -120,13 +119,11 @@ func _add_field(root: VBoxContainer, label_text: String, control: Control) -> vo
     var box := VBoxContainer.new()
     box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     box.add_theme_constant_override("separation", 1)
-
     var label := Label.new()
     label.text = label_text
     label.modulate = Color(0.78, 0.82, 0.86)
     label.add_theme_font_size_override("font_size", 11)
     box.add_child(label)
-
     control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     box.add_child(control)
     root.add_child(box)
@@ -147,12 +144,20 @@ func _sync_from_body() -> void:
     _mass.value = selected_body.mass
     _buoyancy.value = selected_body.buoyancy_multiplier
     _drag.value = selected_body.drag_coefficient
-    _status.text = "%s\nDensity: %.0f kg/m³  •  Volume: %.4f m³" % [
+    _status.text = _build_status_text()
+    _syncing = false
+
+func _build_status_text() -> String:
+    if selected_body == null or not is_instance_valid(selected_body):
+        return ""
+    var text := "%s\nDensity: %.0f kg/m³  •  Solid volume: %.4f m³" % [
         selected_body.float_state_text(),
         selected_body.effective_density_kg_m3,
         selected_body.object_volume_m3
     ]
-    _syncing = false
+    if selected_body.has_method("contained_water_liters"):
+        text += "\nBucket water: %.2f L" % float(selected_body.call("contained_water_liters"))
+    return text
 
 func _process(_delta: float) -> void:
     if selected_body == null or not is_instance_valid(selected_body):
@@ -162,11 +167,9 @@ func _process(_delta: float) -> void:
         int(selected_body.submerged_fraction * 100.0),
         selected_body.linear_velocity.length() / selected_body.pixels_per_meter
     ]
-    _status.text = "%s\nDensity: %.0f kg/m³  •  Volume: %.4f m³" % [
-        selected_body.float_state_text(),
-        selected_body.effective_density_kg_m3,
-        selected_body.object_volume_m3
-    ]
+    if selected_body.has_method("contained_water_liters"):
+        _live.text += "\nContained: %.2f L" % float(selected_body.call("contained_water_liters"))
+    _status.text = _build_status_text()
 
 func _on_material_selected(index: int) -> void:
     if _syncing or selected_body == null:
