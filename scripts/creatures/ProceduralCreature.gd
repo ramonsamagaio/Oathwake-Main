@@ -5,13 +5,14 @@ signal parameter_changed(key: StringName, value: Variant)
 signal preset_applied
 signal simulation_state_changed(active: bool)
 
+const PIXEL_UNIT := 1.0
+
 @export_group("Identity")
 @export var creature_id: StringName = &"procedural_creature"
 @export var random_seed: int = 1337
 
 @export_group("Simulation")
 @export_range(5.0, 120.0, 1.0) var simulation_hz: float = 60.0
-@export_range(1, 8, 1) var pixel_size: int = 2
 @export var simulation_enabled := true
 @export var quantize_motion := true
 @export_range(0.1, 4.0, 0.05) var global_scale_factor := 1.0
@@ -29,6 +30,9 @@ signal simulation_state_changed(active: bool)
 @export var accent_color := Color("c6d98b")
 @export var shadow_color := Color("25352d")
 
+# Kept as a read-only compatibility value because older presets and creature
+# scripts may still ask for pixel_size. Rendering is now always one real pixel.
+var pixel_size: int = 1
 var velocity := Vector2.ZERO
 var external_force := Vector2.ZERO
 var _rng := RandomNumberGenerator.new()
@@ -41,6 +45,7 @@ var _presented_position := Vector2.ZERO
 
 
 func _ready() -> void:
+	pixel_size = 1
 	_rng.seed = random_seed
 	_simulation_position = position
 	_presented_position = position
@@ -65,9 +70,8 @@ func _process(delta: float) -> void:
 
 
 func _simulate(delta: float) -> void:
-	# Keep an unsnapped authoritative position. Snapping the Node2D itself every
-	# simulation tick used to erase movements smaller than pixel_size, which made
-	# low-speed autonomous creatures appear completely frozen.
+	# Physics accumulates subpixel motion, while presentation snaps to the fixed
+	# one-pixel grid. This preserves slow movement without ever changing pixel size.
 	if position.distance_squared_to(_presented_position) > 0.0001:
 		_simulation_position = position
 
@@ -81,9 +85,8 @@ func _simulate(delta: float) -> void:
 
 	_simulate_creature(delta)
 
-	# Some specialized solvers (the slime hop, for example) author position
-	# directly. Fold that displacement back into the continuous accumulator so
-	# the next simulation tick never snaps it backwards.
+	# Specialized solvers may author position directly. Fold that displacement
+	# back into the continuous accumulator so the next tick cannot snap backwards.
 	if position.distance_squared_to(_presented_position) > 0.0001:
 		_simulation_position = _clamp_point_to_movement_bounds(position)
 		position = _snap_vec(_simulation_position) if quantize_motion else _simulation_position
@@ -143,6 +146,40 @@ func _pick_roam_target(home: Vector2, radius: float, margin: float = 0.0) -> Vec
 	return _clamp_point_to_movement_bounds(target, margin)
 
 
+func _pick_roam_target_far(
+	current: Vector2,
+	home: Vector2,
+	radius: float,
+	margin: float,
+	minimum_travel: float
+) -> Vector2:
+	# Prefer destinations that produce a meaningful journey. The old random
+	# target picker could repeatedly choose nearby points, making roaming read as
+	# nervous shuffling rather than exploration.
+	var best := _clamp_point_to_movement_bounds(home, margin)
+	var best_distance := current.distance_to(best)
+	for _attempt in range(10):
+		var angle := _rng.randf_range(0.0, TAU)
+		# Bias away from the center of the roam disc so routes cover more ground.
+		var distance := lerpf(radius * 0.48, radius, sqrt(_rng.randf()))
+		var candidate := home + Vector2(cos(angle), sin(angle)) * distance
+		candidate = _clamp_point_to_movement_bounds(candidate, margin)
+		var travel := current.distance_to(candidate)
+		if travel > best_distance:
+			best = candidate
+			best_distance = travel
+		if travel >= minimum_travel:
+			return candidate
+	return best
+
+
+func _roam_watchdog_time(distance: float, speed: float, minimum_time: float, extra_time: float = 2.0) -> float:
+	# A roam target must live long enough to be reachable. The timer is a stuck
+	# watchdog only, never the normal reason to abandon a valid destination.
+	var travel_time := distance / maxf(1.0, speed)
+	return maxf(minimum_time, travel_time * 1.65 + extra_time)
+
+
 func reseed(new_seed: int = -1) -> void:
 	if new_seed < 0:
 		new_seed = int(Time.get_ticks_usec() & 0x7fffffff)
@@ -165,7 +202,9 @@ func set_lod_anchor(anchor: Node2D) -> void:
 
 func set_parameter(key: StringName, value: Variant) -> bool:
 	if key == &"pixel_size":
-		pixel_size = clampi(int(value), 1, 8)
+		# Compatibility with old presets: accept the key but never allow the
+		# procedural renderer to leave the one-pixel grid.
+		pixel_size = 1
 	elif key == &"simulation_hz":
 		simulation_hz = clampf(float(value), 5.0, 120.0)
 	elif key == &"global_scale_factor":
@@ -178,7 +217,7 @@ func set_parameter(key: StringName, value: Variant) -> bool:
 		lod_enabled = bool(value)
 	else:
 		return _set_creature_parameter(key, value)
-	parameter_changed.emit(key, value)
+	parameter_changed.emit(key, get_parameter(key))
 	queue_redraw()
 	return true
 
@@ -189,7 +228,7 @@ func _set_creature_parameter(_key: StringName, _value: Variant) -> bool:
 
 func get_parameter(key: StringName) -> Variant:
 	if key == &"pixel_size":
-		return pixel_size
+		return 1
 	if key == &"simulation_hz":
 		return simulation_hz
 	if key == &"global_scale_factor":
@@ -209,9 +248,8 @@ func _get_creature_parameter(_key: StringName) -> Variant:
 
 func get_editor_schema() -> Array[Dictionary]:
 	var schema: Array[Dictionary] = [
-		{"key": &"global_scale_factor", "label": "Scale", "type": "float", "min": 0.35, "max": 2.5, "step": 0.05},
+		{"key": &"global_scale_factor", "label": "Geometry Scale", "type": "float", "min": 0.35, "max": 2.5, "step": 0.05},
 		{"key": &"motion_intensity", "label": "Motion", "type": "float", "min": 0.0, "max": 3.0, "step": 0.05},
-		{"key": &"pixel_size", "label": "Pixel Size", "type": "int", "min": 1, "max": 6, "step": 1},
 	]
 	schema.append_array(_get_creature_editor_schema())
 	return schema
@@ -228,7 +266,7 @@ func make_preset() -> Dictionary:
 		if key != &"":
 			params[String(key)] = get_parameter(key)
 	return {
-		"version": 1,
+		"version": 2,
 		"creature_id": String(creature_id),
 		"seed": random_seed,
 		"params": params,
@@ -257,6 +295,7 @@ func apply_preset(data: Dictionary) -> void:
 	var params: Dictionary = data.get("params", {})
 	for key in params.keys():
 		set_parameter(StringName(key), params[key])
+	pixel_size = 1
 	_reset_simulation()
 	preset_applied.emit()
 	queue_redraw()
@@ -288,28 +327,29 @@ func _resolve_lod_anchor() -> Node2D:
 
 
 func _snap(value: float) -> float:
-	var step := maxf(1.0, float(pixel_size))
-	return round(value / step) * step
+	return round(value)
 
 
 func _snap_vec(value: Vector2) -> Vector2:
-	return Vector2(_snap(value.x), _snap(value.y))
+	return Vector2(round(value.x), round(value.y))
 
 
 func _px_rect(center: Vector2, size: Vector2, color: Color) -> void:
+	# Every primitive is made from the one-pixel grid. Larger visual masses are
+	# integer clusters, never enlarged source pixels.
 	var snapped_center := _snap_vec(center)
-	var snapped_size := Vector2(maxf(float(pixel_size), _snap(size.x)), maxf(float(pixel_size), _snap(size.y)))
+	var snapped_size := Vector2(maxf(1.0, round(size.x)), maxf(1.0, round(size.y)))
 	draw_rect(Rect2(snapped_center - snapped_size * 0.5, snapped_size), color, true)
 
 
 func _draw_pixel_disc(center: Vector2, radius: float, color: Color) -> void:
-	var r := maxf(float(pixel_size), radius)
-	var step := maxf(1.0, float(pixel_size))
+	var r := maxf(1.0, round(radius))
+	var snapped_center := _snap_vec(center)
 	var y := -r
 	while y <= r:
-		var half_width := sqrt(maxf(0.0, r * r - y * y))
+		var half_width := floor(sqrt(maxf(0.0, r * r - y * y)))
 		var x := -half_width
 		while x <= half_width:
-			_px_rect(center + Vector2(x, y), Vector2(step, step), color)
-			x += step
-		y += step
+			_px_rect(snapped_center + Vector2(x, y), Vector2.ONE, color)
+			x += 1.0
+		y += 1.0
