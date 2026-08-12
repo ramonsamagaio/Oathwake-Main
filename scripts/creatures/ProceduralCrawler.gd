@@ -15,18 +15,25 @@ extends ProceduralCreature
 
 var _phase := 0.0
 var _heading := Vector2.RIGHT
+var _home_x := 0.0
 
 
 func _ready() -> void:
 	creature_id = &"crawler"
+	_home_x = position.x
 	super._ready()
+
+
+func _reset_simulation() -> void:
+	super._reset_simulation()
+	_home_x = position.x
 
 
 func _simulate_creature(delta: float) -> void:
 	_phase += delta * step_speed * motion_intensity
 	if auto_crawl:
 		velocity = _heading * crawl_speed
-		if absf(position.x) > 250.0:
+		if absf(position.x - _home_x) > 250.0:
 			_heading.x *= -1.0
 
 
