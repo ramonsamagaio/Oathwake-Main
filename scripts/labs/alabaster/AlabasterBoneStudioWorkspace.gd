@@ -411,7 +411,7 @@ func _undo_workspace_edit() -> void:
 	if _undo_stack.is_empty():
 		return
 	_redo_stack.append(working_tuning.duplicate(true))
-	var previous := _undo_stack.pop_back()
+	var previous: Dictionary = _undo_stack.pop_back() as Dictionary
 	_restore_workspace_tuning(previous)
 	_set_status("Undo bone tuning · Ctrl+Shift+Z or Ctrl+Y to redo.")
 
@@ -420,7 +420,7 @@ func _redo_workspace_edit() -> void:
 	if _redo_stack.is_empty():
 		return
 	_undo_stack.append(working_tuning.duplicate(true))
-	var next_state := _redo_stack.pop_back()
+	var next_state: Dictionary = _redo_stack.pop_back() as Dictionary
 	_restore_workspace_tuning(next_state)
 	_set_status("Redo bone tuning.")
 
