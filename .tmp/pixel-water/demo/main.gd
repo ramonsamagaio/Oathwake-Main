@@ -14,6 +14,7 @@ var _reset_water_button: Button
 var _spawn_select: OptionButton
 var _spawn_button: Button
 var _water_stats: Label
+var _stats_accumulator := 0.0
 
 const PANEL_WIDTH := 238.0
 const PANEL_HEIGHT := 382.0
@@ -55,10 +56,19 @@ func _configure_water_world() -> void:
     water.world_right = WORLD_RIGHT
     water.default_floor_y = PLATFORM_Y
     water.fluid_depth_m = 0.12
-    water.cell_size_px = 4.0
-    water.linear_flow_damping = 0.68
-    water.quadratic_flow_damping = 0.17
-    water.momentum_neighbor_mix = 0.018
+    water.cell_size_px = 6.0
+    water.cfl_number = 0.42
+    water.max_substeps = 14
+    water.linear_flow_damping = 0.82
+    water.quadratic_flow_damping = 0.18
+    water.momentum_neighbor_mix = 0.008
+    water.rest_velocity_m_s = 0.045
+    water.rest_surface_delta_px = 0.55
+    water.max_flow_speed_m_s = 4.5
+    water.max_splash_particles = 140
+    water.max_bubbles = 64
+    water.max_foam_particles = 100
+    water.spray_volume_fraction = 0.008
 
     var floors: Array[Dictionary] = [
         {
@@ -387,9 +397,13 @@ func _relayout_ui() -> void:
     _instructions.position = Vector2(18.0, maxf(154.0, viewport_size.y - 44.0))
     _instructions.size = Vector2(maxf(300.0, viewport_size.x - 36.0), 36.0)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
     if _water_stats == null or water == null:
         return
+    _stats_accumulator += delta
+    if _stats_accumulator < 0.25:
+        return
+    _stats_accumulator = 0.0
 
     var main_l: float = water.volume_liters_in_range(MAIN_LEFT, MAIN_RIGHT)
     var small_l: float = water.volume_liters_in_range(SMALL_LEFT, SMALL_RIGHT)
@@ -400,12 +414,13 @@ func _process(_delta: float) -> void:
 
     _water_stats.text = (
         "Main basin: %.1f L   •   Small basin: %.1f L   •   In buckets: %.1f L   •   "
-        + "world + spray: %.1f L"
+        + "world + spray: %.1f L   •   FPS: %d"
     ) % [
         main_l,
         small_l,
         mobile_l,
-        water.water_volume_liters()
+        water.water_volume_liters(),
+        int(Engine.get_frames_per_second())
     ]
 
 func _unhandled_input(event: InputEvent) -> void:

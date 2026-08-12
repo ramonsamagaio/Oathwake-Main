@@ -14,8 +14,8 @@ signal selected(body: BuoyantPixelBody2D)
 @export_category("Hydrodynamics")
 @export_range(0.1, 3.0, 0.01) var buoyancy_multiplier: float = 1.0
 @export_range(0.1, 3.0, 0.01) var drag_coefficient: float = 1.0
-@export_range(3, 11, 1) var sample_columns: int = 7
-@export_range(3, 11, 1) var sample_rows: int = 6
+@export_range(3, 11, 1) var sample_columns: int = 5
+@export_range(3, 11, 1) var sample_rows: int = 4
 @export var pixels_per_meter: float = 100.0
 
 var submerged_fraction: float = 0.0
@@ -33,8 +33,8 @@ var _spawn_transform: Transform2D
 func _ready() -> void:
     collision_layer = 2
     collision_mask = 1 | 2
-    contact_monitor = true
-    max_contacts_reported = 16
+    contact_monitor = false
+    max_contacts_reported = 0
     continuous_cd = RigidBody2D.CCD_MODE_CAST_SHAPE
     input_pickable = false
     linear_damp = 0.12
@@ -246,19 +246,20 @@ func _physics_process(delta: float) -> void:
     _report_displacement_change()
 
     var sink_ratio := maxf(0.0, predicted_submerged_fraction - 1.0)
-    _water.register_underwater_motion(
-        global_position,
-        linear_velocity,
-        maxf(object_size_px.x, object_size_px.y),
-        sink_ratio,
-        delta
-    )
+    if linear_velocity.length_squared() > 225.0 or sink_ratio > 0.08:
+        _water.register_underwater_motion(
+            global_position,
+            linear_velocity,
+            maxf(object_size_px.x, object_size_px.y),
+            sink_ratio,
+            delta
+        )
 
 func _report_displacement_change() -> void:
     if _water == null:
         return
     var fraction_delta := submerged_fraction - _previous_submerged_fraction
-    if absf(fraction_delta) < 0.003:
+    if absf(fraction_delta) < 0.012:
         return
     _water.register_displacement_surge(
         global_position.x,
