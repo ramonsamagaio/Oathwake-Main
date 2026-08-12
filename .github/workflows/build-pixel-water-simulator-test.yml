@@ -87,7 +87,11 @@ jobs:
               }
           }
           '@
-          Add-Type -TypeDefinition $source -OutputAssembly "dist\Pixel Water Simulator.exe" -OutputType WindowsApplication -ReferencedAssemblies @("System.dll", "System.Windows.Forms.dll")
+          $source | Set-Content -Path "launcher.cs" -Encoding UTF8
+          $csc = Get-ChildItem "$env:WINDIR\Microsoft.NET\Framework64" -Filter "csc.exe" -Recurse | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $csc) { throw "csc.exe not found" }
+          & $csc.FullName /nologo /target:winexe /out:"dist\Pixel Water Simulator.exe" /reference:System.dll /reference:System.Windows.Forms.dll launcher.cs
+          if ($LASTEXITCODE -ne 0) { throw "csc launcher compilation failed" }
 
       - name: Verify double-click build
         shell: pwsh
