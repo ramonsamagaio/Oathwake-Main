@@ -1,6 +1,7 @@
 ; Engine configuration file.
 ; Pixel Water Simulator - Godot 4.x
 ; Unified shallow-water world build
+; Parser-compatible validation pass
 config_version=5
 
 [application]
