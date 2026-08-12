@@ -13,3 +13,5 @@ rest_surface_y = 260.0
 bottom_y = 500.0
 platform_y = 240.0
 world_width = 960.0
+spill_world_left = -960.0
+spill_world_right = 1920.0
