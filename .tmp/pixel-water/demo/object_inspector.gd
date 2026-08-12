@@ -12,37 +12,55 @@ var _live: Label
 var _syncing := false
 
 func _ready() -> void:
-    custom_minimum_size = Vector2(290.0, 0.0)
+    custom_minimum_size = Vector2(232.0, 0.0)
+    clip_contents = true
+
     var margin := MarginContainer.new()
-    margin.add_theme_constant_override("margin_left", 14)
-    margin.add_theme_constant_override("margin_right", 14)
-    margin.add_theme_constant_override("margin_top", 12)
-    margin.add_theme_constant_override("margin_bottom", 12)
+    margin.add_theme_constant_override("margin_left", 9)
+    margin.add_theme_constant_override("margin_right", 9)
+    margin.add_theme_constant_override("margin_top", 8)
+    margin.add_theme_constant_override("margin_bottom", 8)
+    margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
     add_child(margin)
 
+    var scroll := ScrollContainer.new()
+    scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+    scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    scroll.follow_focus = true
+    margin.add_child(scroll)
+
     var root := VBoxContainer.new()
-    root.add_theme_constant_override("separation", 7)
-    margin.add_child(root)
+    root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    root.add_theme_constant_override("separation", 4)
+    scroll.add_child(root)
 
     _title = Label.new()
     _title.text = "OBJECT LAB"
-    _title.add_theme_font_size_override("font_size", 19)
+    _title.add_theme_font_size_override("font_size", 16)
+    _title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
     root.add_child(_title)
 
     var hint := Label.new()
-    hint.text = "Click, drag and throw any object.\nTune it while the simulation keeps running."
+    hint.text = "Drag objects live. Tune physics while it runs."
     hint.modulate = Color(0.78, 0.82, 0.86)
+    hint.add_theme_font_size_override("font_size", 11)
+    hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     root.add_child(hint)
 
     root.add_child(HSeparator.new())
 
     _material = OptionButton.new()
+    _material.custom_minimum_size.y = 26.0
     for material_name in WaterMaterialPresets.names():
         _material.add_item(material_name)
     _material.item_selected.connect(_on_material_selected)
     _add_field(root, "Material", _material)
 
     _mass = SpinBox.new()
+    _mass.custom_minimum_size.y = 26.0
     _mass.min_value = 0.05
     _mass.max_value = 250.0
     _mass.step = 0.05
@@ -51,13 +69,15 @@ func _ready() -> void:
     _add_field(root, "Mass / weight", _mass)
 
     _buoyancy = SpinBox.new()
+    _buoyancy.custom_minimum_size.y = 26.0
     _buoyancy.min_value = 0.10
     _buoyancy.max_value = 3.0
     _buoyancy.step = 0.05
     _buoyancy.value_changed.connect(_on_buoyancy_changed)
-    _add_field(root, "Buoyancy multiplier", _buoyancy)
+    _add_field(root, "Buoyancy", _buoyancy)
 
     _drag = SpinBox.new()
+    _drag.custom_minimum_size.y = 26.0
     _drag.min_value = 0.10
     _drag.max_value = 3.0
     _drag.step = 0.05
@@ -66,21 +86,31 @@ func _ready() -> void:
 
     _status = Label.new()
     _status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    _status.add_theme_font_size_override("font_size", 11)
     _status.text = "Select an object to inspect its physics."
     root.add_child(_status)
 
     _live = Label.new()
     _live.modulate = Color(0.66, 0.84, 0.92)
+    _live.add_theme_font_size_override("font_size", 11)
+    _live.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     root.add_child(_live)
 
     var button_row := HBoxContainer.new()
+    button_row.add_theme_constant_override("separation", 5)
     root.add_child(button_row)
+
     var auto_mass := Button.new()
-    auto_mass.text = "Mass from material"
+    auto_mass.text = "Material mass"
+    auto_mass.custom_minimum_size.y = 27.0
+    auto_mass.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     auto_mass.pressed.connect(_on_auto_mass)
     button_row.add_child(auto_mass)
+
     var reset := Button.new()
-    reset.text = "Reset object"
+    reset.text = "Reset"
+    reset.custom_minimum_size.y = 27.0
+    reset.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     reset.pressed.connect(_on_reset)
     button_row.add_child(reset)
 
@@ -88,10 +118,16 @@ func _ready() -> void:
 
 func _add_field(root: VBoxContainer, label_text: String, control: Control) -> void:
     var box := VBoxContainer.new()
+    box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    box.add_theme_constant_override("separation", 1)
+
     var label := Label.new()
     label.text = label_text
     label.modulate = Color(0.78, 0.82, 0.86)
+    label.add_theme_font_size_override("font_size", 11)
     box.add_child(label)
+
+    control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     box.add_child(control)
     root.add_child(box)
 
@@ -111,7 +147,7 @@ func _sync_from_body() -> void:
     _mass.value = selected_body.mass
     _buoyancy.value = selected_body.buoyancy_multiplier
     _drag.value = selected_body.drag_coefficient
-    _status.text = "%s\nBulk density: %.0f kg/m³\nVolume: %.4f m³" % [
+    _status.text = "%s\nDensity: %.0f kg/m³  •  Volume: %.4f m³" % [
         selected_body.float_state_text(),
         selected_body.effective_density_kg_m3,
         selected_body.object_volume_m3
@@ -122,11 +158,11 @@ func _process(_delta: float) -> void:
     if selected_body == null or not is_instance_valid(selected_body):
         _live.text = ""
         return
-    _live.text = "Now submerged: %d%%\nSpeed: %.2f m/s" % [
+    _live.text = "Submerged: %d%%  •  Speed: %.2f m/s" % [
         int(selected_body.submerged_fraction * 100.0),
         selected_body.linear_velocity.length() / selected_body.pixels_per_meter
     ]
-    _status.text = "%s\nBulk density: %.0f kg/m³\nVolume: %.4f m³" % [
+    _status.text = "%s\nDensity: %.0f kg/m³  •  Volume: %.4f m³" % [
         selected_body.float_state_text(),
         selected_body.effective_density_kg_m3,
         selected_body.object_volume_m3
