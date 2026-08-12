@@ -52,7 +52,6 @@ jobs:
           $ErrorActionPreference = "Stop"
           New-Item -ItemType Directory -Force -Path "dist\project" | Out-Null
           Copy-Item ".tmp\pixel-water\*" "dist\project" -Recurse -Force
-          Remove-Item "dist\project\.godot" -Recurse -Force -ErrorAction SilentlyContinue
           Copy-Item ".\godot.exe" "dist\pixel_water_runtime.exe" -Force
 
       - name: Build double-click launcher
@@ -117,10 +116,10 @@ jobs:
       - name: Verify double-click build
         shell: pwsh
         run: |
-          $ErrorActionPreference = "Continue"
+          $ErrorActionPreference = "Stop"
           Push-Location "dist"
-          & ".\Pixel Water Simulator.exe" --headless --quit-after 5
-          $code = $LASTEXITCODE
+          $p = Start-Process -FilePath ".\Pixel Water Simulator.exe" -ArgumentList "--headless", "--quit-after", "5" -PassThru -Wait
+          $code = $p.ExitCode
           Pop-Location
           if ($code -ne 0) { throw "Portable launcher smoke test failed ($code)" }
 
@@ -132,7 +131,7 @@ jobs:
           PIXEL WATER SIMULATOR - WINDOWS TEST BUILD
 
           1. Extraia o ZIP inteiro para uma pasta.
-          2. Dê dois cliques em: Pixel Water Simulator.exe
+          2. De dois cliques em: Pixel Water Simulator.exe
           3. Este pacote de teste ja inclui o runtime necessario.
 
           A pasta project contem o projeto Godot editavel.
