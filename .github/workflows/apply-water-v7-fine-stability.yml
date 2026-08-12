@@ -1,0 +1,404 @@
+name: Apply Water V7 Fine Stability
+
+on:
+  push:
+    branches: [tmp-pixel-water-build-20260811]
+    paths:
+      - '.github/workflows/apply-water-v7-fine-stability.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp-pixel-water-build-20260811
+
+      - name: Apply fine stability patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path('.tmp/pixel-water/addons/pixel_water')
+          body_path = root / 'buoyant_body.gd'
+          water_path = root / 'pixel_water_world.gd'
+          body = body_path.read_text(encoding='utf-8')
+          water = water_path.read_text(encoding='utf-8')
+
+          def rep(text, old, new, label):
+              if old not in text:
+                  raise SystemExit(f'missing patch anchor: {label}')
+              return text.replace(old, new, 1)
+
+          body = rep(body,
+          '''@export_range(3, 11, 1) var sample_columns: int = 5
+          @export_range(3, 11, 1) var sample_rows: int = 4
+          @export var pixels_per_meter: float = 100.0
+          @export_range(0.5, 2.0, 0.05) var immersion_cell_softness: float = 1.0
+          @export_range(0.0, 8.0, 0.1) var vertical_heave_damping: float = 2.2
+          @export_range(2.0, 30.0, 0.5) var displacement_follow_hz: float = 13.0
+          ''',
+          '''@export_range(3, 11, 1) var sample_columns: int = 5
+          @export_range(3, 11, 1) var sample_rows: int = 4
+          @export var auto_sample_wide_bodies: bool = true
+          @export_range(6.0, 18.0, 0.5) var target_sample_cell_px: float = 10.0
+          @export var pixels_per_meter: float = 100.0
+          @export_range(0.5, 2.0, 0.05) var immersion_cell_softness: float = 1.15
+          @export_range(0.0, 8.0, 0.1) var vertical_heave_damping: float = 2.8
+          @export_range(2.0, 30.0, 0.5) var displacement_follow_hz: float = 11.0
+          @export_range(2.0, 30.0, 0.5) var displacement_position_follow_hz: float = 16.0
+          @export_range(0.0, 20.0, 0.5) var equilibrium_capture_hz: float = 7.0
+          ''', 'body exports')
+
+          body = rep(body,
+          '''var _surface_impact_cooldown := 0.0
+          var _reported_displaced_volume_m3 := 0.0
+          ''',
+          '''var _surface_impact_cooldown := 0.0
+          var _reported_displaced_volume_m3 := 0.0
+          var _reported_displacement_x := INF
+          ''', 'body state')
+
+          body = rep(body,
+          '''    var cols := maxi(sample_columns, 2)
+              var rows := maxi(sample_rows, 2)
+          ''',
+          '''    var cols := maxi(sample_columns, 2)
+              var rows := maxi(sample_rows, 2)
+              if auto_sample_wide_bodies:
+                  cols = maxi(
+                      cols,
+                      clampi(int(ceil(object_size_px.x / target_sample_cell_px)), 3, 10)
+                  )
+                  rows = maxi(
+                      rows,
+                      clampi(int(ceil(object_size_px.y / target_sample_cell_px)), 3, 6)
+                  )
+          ''', 'auto samples')
+
+          body = rep(body,
+          '''    var surface_y := _water.surface_y_at(world_point.x)
+              var signed_depth_px := world_point.y - surface_y
+          ''',
+          '''    # Buoyancy must read the ambient free surface, not the local rise
+              # caused by this body's own displaced-volume report. Otherwise a
+              # light floater forms a positive feedback loop with itself.
+              var surface_y := _water.surface_y_for_body_at(
+                  world_point.x,
+                  get_instance_id()
+              )
+              var signed_depth_px := world_point.y - surface_y
+          ''', 'ambient surface')
+
+          body = rep(body,
+          '''    var follow := 1.0 - exp(-maxf(displacement_follow_hz, 0.01) * delta)
+              _reported_displaced_volume_m3 = lerpf(
+                  _reported_displaced_volume_m3,
+                  displaced_volume,
+                  clampf(follow, 0.0, 1.0)
+              )
+              if _reported_displaced_volume_m3 < 0.0000001:
+                  _reported_displaced_volume_m3 = 0.0
+
+              _water.report_displacement(
+                  get_instance_id(),
+                  global_position.x,
+                  object_size_px.x,
+                  _reported_displaced_volume_m3
+              )
+          ''',
+          '''    var follow := 1.0 - exp(-maxf(displacement_follow_hz, 0.01) * delta)
+              _reported_displaced_volume_m3 = lerpf(
+                  _reported_displaced_volume_m3,
+                  displaced_volume,
+                  clampf(follow, 0.0, 1.0)
+              )
+              if _reported_displaced_volume_m3 < 0.0000001:
+                  _reported_displaced_volume_m3 = 0.0
+
+              if is_inf(_reported_displacement_x):
+                  _reported_displacement_x = global_position.x
+              var position_follow := 1.0 - exp(
+                  -maxf(displacement_position_follow_hz, 0.01) * delta
+              )
+              _reported_displacement_x = lerpf(
+                  _reported_displacement_x,
+                  global_position.x,
+                  clampf(position_follow, 0.0, 1.0)
+              )
+
+              _water.report_displacement(
+                  get_instance_id(),
+                  _reported_displacement_x,
+                  object_size_px.x,
+                  _reported_displaced_volume_m3
+              )
+          ''', 'smooth displacement x')
+
+          body = rep(body,
+          '''    # Heave/radiation damping is a real energy-loss mechanism for a floating body.
+              # It damps vertical bobbing without suppressing horizontal water flow or waves.
+              if vertical_heave_damping > 0.0 and absf(linear_velocity.y) > 0.05:
+                  var heave_factor := sqrt(clampf(submerged_fraction, 0.0, 1.0))
+                  apply_central_force(Vector2(
+                      0.0,
+                      -linear_velocity.y * mass * vertical_heave_damping * heave_factor
+                  ))
+
+              apply_torque(-angular_velocity * mass * 115.0 * submerged_fraction)
+          ''',
+          '''    # Heave/radiation damping grows with waterplane area. Wide, light
+              # floaters such as planks naturally dissipate vertical bobbing more
+              # strongly than compact bodies without freezing their horizontal motion.
+              var floatiness := 1.0 - clampf(predicted_submerged_fraction, 0.0, 1.0)
+              var aspect_ratio := maxf(
+                  object_size_px.x / maxf(object_size_px.y, 1.0),
+                  1.0
+              )
+              var waterplane_factor := 1.0 + minf(0.65, (sqrt(aspect_ratio) - 1.0) * 0.32)
+              var adaptive_heave := (
+                  vertical_heave_damping
+                  * (1.0 + floatiness * 0.75)
+                  * waterplane_factor
+              )
+              if adaptive_heave > 0.0 and absf(linear_velocity.y) > 0.02:
+                  var heave_factor := sqrt(clampf(submerged_fraction, 0.0, 1.0))
+                  apply_central_force(Vector2(
+                      0.0,
+                      -linear_velocity.y * mass * adaptive_heave * heave_factor
+                  ))
+
+              # Capture only the last tiny residual oscillation around hydrostatic
+              # equilibrium. This is a deadband, not a global damping increase.
+              var equilibrium_fraction := clampf(predicted_submerged_fraction, 0.0, 1.0)
+              var equilibrium_error := absf(submerged_fraction - equilibrium_fraction)
+              if (
+                  predicted_submerged_fraction < 0.98
+                  and equilibrium_error < 0.035
+                  and absf(linear_velocity.y) < 10.0
+                  and equilibrium_capture_hz > 0.0
+              ):
+                  var settle := 1.0 - exp(-equilibrium_capture_hz * delta)
+                  linear_velocity.y = lerpf(linear_velocity.y, 0.0, settle)
+                  if absf(linear_velocity.y) < 0.30:
+                      linear_velocity.y = 0.0
+                  angular_velocity *= exp(-2.4 * floatiness * delta)
+
+              apply_torque(-angular_velocity * mass * 125.0 * submerged_fraction)
+          ''', 'adaptive heave')
+
+          body = rep(body,
+          '''    _previous_submerged_fraction = 0.0
+              _reported_displaced_volume_m3 = 0.0
+              await get_tree().physics_frame
+          ''',
+          '''    _previous_submerged_fraction = 0.0
+              _reported_displaced_volume_m3 = 0.0
+              _reported_displacement_x = INF
+              await get_tree().physics_frame
+          ''', 'reset displacement x')
+
+          water = rep(water,
+          '''        var width_px := maxf(float(report.get("width_px", cell_size_px)), cell_size_px)
+                  var radius_px := maxf(width_px * 0.55, cell_size_px)
+                  var first := _index_at(center_x - radius_px)
+                  var last := _index_at(center_x + radius_px)
+
+                  var weight_sum := 0.0
+                  for i in range(first, last + 1):
+                      var x := _cell_center_x(i)
+                      var normalized := absf(x - center_x) / maxf(radius_px, 0.001)
+                      var w := maxf(0.0, 1.0 - normalized)
+                      weight_sum += w * w
+
+                  if weight_sum <= 0.0:
+                      continue
+
+                  for i in range(first, last + 1):
+                      var x := _cell_center_x(i)
+                      var normalized := absf(x - center_x) / maxf(radius_px, 0.001)
+                      var w := maxf(0.0, 1.0 - normalized)
+                      w *= w
+                      _solid_fill_m[i] += volume_m3 * (w / weight_sum) / cell_plan_area_m2
+          ''',
+          '''        var width_px := maxf(float(report.get("width_px", cell_size_px)), cell_size_px)
+                  # A broad linear footprint is closer to the horizontal projection
+                  # of an immersed body than the old sharp squared kernel, and it
+                  # cannot excavate a one-cell trough as the body moves.
+                  var radius_px := maxf(width_px * 0.72, cell_size_px * 1.75)
+                  var first := _index_at(center_x - radius_px)
+                  var last := _index_at(center_x + radius_px)
+
+                  var weight_sum := 0.0
+                  for i in range(first, last + 1):
+                      var x := _cell_center_x(i)
+                      var normalized := absf(x - center_x) / maxf(radius_px, 0.001)
+                      var w := maxf(0.0, 1.0 - normalized)
+                      weight_sum += w
+
+                  if weight_sum <= 0.0:
+                      continue
+
+                  for i in range(first, last + 1):
+                      var x := _cell_center_x(i)
+                      var normalized := absf(x - center_x) / maxf(radius_px, 0.001)
+                      var w := maxf(0.0, 1.0 - normalized)
+                      _solid_fill_m[i] += volume_m3 * (w / weight_sum) / cell_plan_area_m2
+          ''', 'broad displacement kernel')
+
+          water = rep(water,
+          '''func surface_y_at(world_x: float) -> float:
+              var i := _index_at(world_x)
+              return _surface_y_index(i)
+          ''',
+          '''func _body_displacement_contribution_at_index(body_id: int, i: int) -> float:
+              if not _displacement_reports.has(body_id):
+                  return 0.0
+              var report: Dictionary = _displacement_reports[body_id]
+              var volume_m3 := maxf(0.0, float(report.get("volume_m3", 0.0)))
+              if volume_m3 <= 0.0:
+                  return 0.0
+              var center_x := float(report.get("x", 0.0))
+              var width_px := maxf(float(report.get("width_px", cell_size_px)), cell_size_px)
+              var radius_px := maxf(width_px * 0.72, cell_size_px * 1.75)
+              var first := _index_at(center_x - radius_px)
+              var last := _index_at(center_x + radius_px)
+              if i < first or i > last:
+                  return 0.0
+
+              var weight_sum := 0.0
+              for j in range(first, last + 1):
+                  var xj := _cell_center_x(j)
+                  var normalized_j := absf(xj - center_x) / maxf(radius_px, 0.001)
+                  weight_sum += maxf(0.0, 1.0 - normalized_j)
+              if weight_sum <= 0.0:
+                  return 0.0
+
+              var x := _cell_center_x(i)
+              var normalized := absf(x - center_x) / maxf(radius_px, 0.001)
+              var w := maxf(0.0, 1.0 - normalized)
+              var cell_width_m := cell_size_px / pixels_per_meter
+              var cell_plan_area_m2 := maxf(cell_width_m * fluid_depth_m, 0.000001)
+              return volume_m3 * (w / weight_sum) / cell_plan_area_m2
+
+          func surface_y_for_body_at(world_x: float, body_id: int) -> float:
+              var center := _index_at(world_x)
+              var weighted_surface := 0.0
+              var weight_total := 0.0
+              # A tiny three-cell ambient filter removes grid-scale chatter while
+              # respecting terrain discontinuities such as basin walls.
+              for offset in range(-1, 2):
+                  var i := center + offset
+                  if i < 0 or i >= _cell_count:
+                      continue
+                  if absf(_floor_y[i] - _floor_y[center]) > cell_size_px * 0.75:
+                      continue
+                  var own_fill := _body_displacement_contribution_at_index(body_id, i)
+                  var ambient_solid := maxf(_solid_fill_m[i] - own_fill, 0.0)
+                  var sy := _floor_y[i] - (
+                      maxf(_depth_m[i], 0.0) + ambient_solid
+                  ) * pixels_per_meter
+                  var w := 2.0 if offset == 0 else 1.0
+                  weighted_surface += sy * w
+                  weight_total += w
+              if weight_total <= 0.0:
+                  return _surface_y_index(center)
+              return weighted_surface / weight_total
+
+          func surface_y_at(world_x: float) -> float:
+              var i := _index_at(world_x)
+              return _surface_y_index(i)
+          ''', 'body ambient surface query')
+
+          start = water.index('func _draw_water_run(first: int, last: int) -> void:')
+          old_tail = water[start:]
+          marker = '\nfunc '
+          next_func = old_tail.find(marker, len('func _draw_water_run(first: int, last: int) -> void:'))
+          if next_func < 0:
+              # _draw_water_run is currently the last function in the file.
+              prefix = water[:start]
+              suffix = ''
+          else:
+              prefix = water[:start]
+              suffix = old_tail[next_func:]
+
+          new_draw = '''func _safe_render_surface_y(i: int) -> float:
+              var floor_y := _floor_y[i]
+              var sy := _surface_y_index(i)
+              # NaN is the only float that is not equal to itself.
+              if sy != sy or absf(sy) > 1000000.0:
+                  return floor_y
+              return clampf(sy, floor_y - 2000.0, floor_y)
+
+          func _draw_water_run(first: int, last: int) -> void:
+              if first < 0 or last < first:
+                  return
+
+              # Never triangulate the entire water body. Pixel water is naturally
+              # a run of vertical columns, so merge adjacent columns that share the
+              # same snapped top/floor and render only axis-aligned rectangles.
+              # This removes the rare polygon-degeneration black flash completely.
+              var surface_line := PackedVector2Array()
+              var group_first := first
+              var group_sy := snappedf(_safe_render_surface_y(first), cell_size_px * 0.5)
+              var group_floor := _floor_y[first]
+
+              for i in range(first, last + 1):
+                  var x0 := world_left + float(i) * cell_size_px
+                  var x1 := x0 + cell_size_px
+                  var sy := snappedf(_safe_render_surface_y(i), cell_size_px * 0.5)
+                  var floor_y := _floor_y[i]
+                  surface_line.append(Vector2(x0, sy))
+                  surface_line.append(Vector2(x1, sy))
+
+                  var same_group := (
+                      absf(sy - group_sy) < 0.01
+                      and absf(floor_y - group_floor) < 0.01
+                  )
+                  if not same_group:
+                      var gx0 := world_left + float(group_first) * cell_size_px
+                      var gx1 := world_left + float(i) * cell_size_px
+                      if group_floor > group_sy:
+                          draw_rect(
+                              Rect2(gx0, group_sy, gx1 - gx0, group_floor - group_sy),
+                              WATER_MID
+                          )
+                      group_first = i
+                      group_sy = sy
+                      group_floor = floor_y
+
+              var gx0 := world_left + float(group_first) * cell_size_px
+              var gx1 := world_left + float(last + 1) * cell_size_px
+              if group_floor > group_sy:
+                  draw_rect(
+                      Rect2(gx0, group_sy, gx1 - gx0, group_floor - group_sy),
+                      WATER_MID
+                  )
+
+              if surface_line.size() >= 2:
+                  draw_polyline(
+                      surface_line,
+                      WATER_TOP,
+                      maxf(1.0, cell_size_px * 0.35)
+                  )
+          '''
+          water = prefix + new_draw + suffix
+
+          body_path.write_text(body, encoding='utf-8')
+          water_path.write_text(water, encoding='utf-8')
+          PY
+
+      - name: Commit V7 stability pass and remove patch workflow
+        shell: bash
+        run: |
+          git config user.name "Oathwake Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add .tmp/pixel-water/addons/pixel_water/buoyant_body.gd
+          git add .tmp/pixel-water/addons/pixel_water/pixel_water_world.gd
+          git rm .github/workflows/apply-water-v7-fine-stability.yml
+          git commit -m "fix: stabilize floating bodies and harden water rendering"
+          git push origin HEAD:tmp-pixel-water-build-20260811
