@@ -30,8 +30,8 @@ const EXPECTED_GAMEPLAY_CLIPS := [
 # Coordinate convention: X is character lateral, Z is up. For local rotations,
 # Y is the forward-axis roll/hip hike and Z is yaw/twist around the vertical.
 const DEFAULT_WALK_ROOT_LATERAL_SCALE := 0.65
-const DEFAULT_WALK_PELVIS_LATERAL_SCALE := 0.35
-const DEFAULT_WALK_PELVIS_ROLL_SCALE := 0.40
+const DEFAULT_WALK_PELVIS_LATERAL_SCALE := 0.30
+const DEFAULT_WALK_PELVIS_ROLL_SCALE := 0.35
 const DEFAULT_WALK_PELVIS_YAW_SCALE := 0.65
 const DEFAULT_WALK_TOP_LATERAL_SCALE := 0.75
 const DEFAULT_WALK_TOP_ROLL_SCALE := 0.75
@@ -278,7 +278,7 @@ static func _retarget_animation_data(source: Dictionary, source_animation: Strin
 		"source_animation": source_animation,
 		"method": "shared_humanoid_node_filter",
 		"bank_source": JunoGameplayBank.get_source_name(),
-		"target_variant": "default_neutral_walk_v1" if profile_id == "default" and source_animation == "walk" else "source_motion",
+		"target_variant": "default_neutral_walk_v2" if profile_id == "default" and source_animation == "walk" else "source_motion",
 	}
 	return result
 
@@ -315,7 +315,7 @@ static func _apply_default_walk_body_tuning(animation: Dictionary) -> void:
 
 	animation["transforms"] = transforms
 	animation["default_walk_tuning"] = {
-		"version": 1,
+		"version": 2,
 		"policy": "reduce_lateral_pelvis_sway_preserve_feet",
 		"root_lateral": DEFAULT_WALK_ROOT_LATERAL_SCALE,
 		"pelvis_lateral": DEFAULT_WALK_PELVIS_LATERAL_SCALE,
