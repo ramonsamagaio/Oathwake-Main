@@ -34,8 +34,8 @@ var external_force := Vector2.ZERO
 var _rng := RandomNumberGenerator.new()
 var _sim_accumulator := 0.0
 var _manual_lod_anchor: Node2D
-var _movement_bounds := Rect2()
-var _has_movement_bounds := false
+var _world_movement_bounds := Rect2()
+var _has_world_movement_bounds := false
 var _simulation_position := Vector2.ZERO
 var _presented_position := Vector2.ZERO
 
@@ -103,33 +103,33 @@ func add_force(force: Vector2) -> void:
 
 
 func set_movement_bounds(bounds: Rect2) -> void:
-	_movement_bounds = bounds
-	_has_movement_bounds = bounds.size.x > 0.0 and bounds.size.y > 0.0
-	if _has_movement_bounds:
+	_world_movement_bounds = bounds
+	_has_world_movement_bounds = bounds.size.x > 0.0 and bounds.size.y > 0.0
+	if _has_world_movement_bounds:
 		_simulation_position = _clamp_point_to_movement_bounds(_simulation_position)
 		position = _snap_vec(_simulation_position) if quantize_motion else _simulation_position
 		_presented_position = position
 
 
 func clear_movement_bounds() -> void:
-	_has_movement_bounds = false
-	_movement_bounds = Rect2()
+	_has_world_movement_bounds = false
+	_world_movement_bounds = Rect2()
 
 
 func has_movement_bounds() -> bool:
-	return _has_movement_bounds
+	return _has_world_movement_bounds
 
 
 func get_movement_bounds() -> Rect2:
-	return _movement_bounds
+	return _world_movement_bounds
 
 
 func _clamp_point_to_movement_bounds(point: Vector2, margin: float = 0.0) -> Vector2:
-	if not _has_movement_bounds:
+	if not _has_world_movement_bounds:
 		return point
-	var inner := _movement_bounds.grow(-maxf(0.0, margin))
+	var inner := _world_movement_bounds.grow(-maxf(0.0, margin))
 	if inner.size.x <= 0.0 or inner.size.y <= 0.0:
-		return _movement_bounds.get_center()
+		return _world_movement_bounds.get_center()
 	return Vector2(
 		clampf(point.x, inner.position.x, inner.end.x),
 		clampf(point.y, inner.position.y, inner.end.y)
