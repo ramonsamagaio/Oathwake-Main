@@ -16,10 +16,14 @@ signal selected(body: BuoyantPixelBody2D)
 @export_range(0.1, 3.0, 0.01) var drag_coefficient: float = 1.0
 @export_range(3, 11, 1) var sample_columns: int = 5
 @export_range(3, 11, 1) var sample_rows: int = 4
+@export var auto_sample_wide_bodies: bool = true
+@export_range(6.0, 18.0, 0.5) var target_sample_cell_px: float = 10.0
 @export var pixels_per_meter: float = 100.0
-@export_range(0.5, 2.0, 0.05) var immersion_cell_softness: float = 1.0
-@export_range(0.0, 8.0, 0.1) var vertical_heave_damping: float = 2.2
-@export_range(2.0, 30.0, 0.5) var displacement_follow_hz: float = 13.0
+@export_range(0.5, 2.0, 0.05) var immersion_cell_softness: float = 1.15
+@export_range(0.0, 8.0, 0.1) var vertical_heave_damping: float = 2.8
+@export_range(2.0, 30.0, 0.5) var displacement_follow_hz: float = 11.0
+@export_range(2.0, 30.0, 0.5) var displacement_position_follow_hz: float = 16.0
+@export_range(0.0, 20.0, 0.5) var equilibrium_capture_hz: float = 7.0
 
 var submerged_fraction: float = 0.0
 var predicted_submerged_fraction: float = 0.0
@@ -34,6 +38,7 @@ var _material_color := Color("#b97943")
 var _spawn_transform: Transform2D
 var _surface_impact_cooldown := 0.0
 var _reported_displaced_volume_m3 := 0.0
+var _reported_displacement_x := INF
 
 func _ready() -> void:
     collision_layer = 2
@@ -102,6 +107,15 @@ func _build_samples() -> void:
     _sample_points.clear()
     var cols := maxi(sample_columns, 2)
     var rows := maxi(sample_rows, 2)
+    if auto_sample_wide_bodies:
+        cols = maxi(
+            cols,
+            clampi(int(ceil(object_size_px.x / target_sample_cell_px)), 3, 10)
+        )
+        rows = maxi(
+            rows,
+            clampi(int(ceil(object_size_px.y / target_sample_cell_px)), 3, 6)
+        )
 
     for y_index in range(rows):
         var y_t := (float(y_index) + 0.5) / float(rows)
@@ -165,7 +179,13 @@ func _immersion_weight(world_point: Vector2, half_extent_px: float) -> float:
     if _water.depth_m_at(world_point.x) <= _water.dry_depth_m:
         return 0.0
 
-    var surface_y := _water.surface_y_at(world_point.x)
+    # Buoyancy must read the ambient free surface, not the local rise
+    # caused by this body's own displaced-volume report. Otherwise a
+    # light floater forms a positive feedback loop with itself.
+    var surface_y := _water.surface_y_for_body_at(
+        world_point.x,
+        get_instance_id()
+    )
     var signed_depth_px := world_point.y - surface_y
     return smoothstep(-half_extent_px, half_extent_px, signed_depth_px)
 
@@ -209,9 +229,20 @@ func _physics_process(delta: float) -> void:
     if _reported_displaced_volume_m3 < 0.0000001:
         _reported_displaced_volume_m3 = 0.0
 
+    if is_inf(_reported_displacement_x):
+        _reported_displacement_x = global_position.x
+    var position_follow := 1.0 - exp(
+        -maxf(displacement_position_follow_hz, 0.01) * delta
+    )
+    _reported_displacement_x = lerpf(
+        _reported_displacement_x,
+        global_position.x,
+        clampf(position_follow, 0.0, 1.0)
+    )
+
     _water.report_displacement(
         get_instance_id(),
-        global_position.x,
+        _reported_displacement_x,
         object_size_px.x,
         _reported_displaced_volume_m3
     )
@@ -279,16 +310,44 @@ func _physics_process(delta: float) -> void:
             drag_force_px = drag_force_px.normalized() * max_drag
         apply_central_force(drag_force_px)
 
-    # Heave/radiation damping is a real energy-loss mechanism for a floating body.
-    # It damps vertical bobbing without suppressing horizontal water flow or waves.
-    if vertical_heave_damping > 0.0 and absf(linear_velocity.y) > 0.05:
+    # Heave/radiation damping grows with waterplane area. Wide, light
+    # floaters such as planks naturally dissipate vertical bobbing more
+    # strongly than compact bodies without freezing their horizontal motion.
+    var floatiness := 1.0 - clampf(predicted_submerged_fraction, 0.0, 1.0)
+    var aspect_ratio := maxf(
+        object_size_px.x / maxf(object_size_px.y, 1.0),
+        1.0
+    )
+    var waterplane_factor := 1.0 + minf(0.65, (sqrt(aspect_ratio) - 1.0) * 0.32)
+    var adaptive_heave := (
+        vertical_heave_damping
+        * (1.0 + floatiness * 0.75)
+        * waterplane_factor
+    )
+    if adaptive_heave > 0.0 and absf(linear_velocity.y) > 0.02:
         var heave_factor := sqrt(clampf(submerged_fraction, 0.0, 1.0))
         apply_central_force(Vector2(
             0.0,
-            -linear_velocity.y * mass * vertical_heave_damping * heave_factor
+            -linear_velocity.y * mass * adaptive_heave * heave_factor
         ))
 
-    apply_torque(-angular_velocity * mass * 115.0 * submerged_fraction)
+    # Capture only the last tiny residual oscillation around hydrostatic
+    # equilibrium. This is a deadband, not a global damping increase.
+    var equilibrium_fraction := clampf(predicted_submerged_fraction, 0.0, 1.0)
+    var equilibrium_error := absf(submerged_fraction - equilibrium_fraction)
+    if (
+        predicted_submerged_fraction < 0.98
+        and equilibrium_error < 0.035
+        and absf(linear_velocity.y) < 10.0
+        and equilibrium_capture_hz > 0.0
+    ):
+        var settle := 1.0 - exp(-equilibrium_capture_hz * delta)
+        linear_velocity.y = lerpf(linear_velocity.y, 0.0, settle)
+        if absf(linear_velocity.y) < 0.30:
+            linear_velocity.y = 0.0
+        angular_velocity *= exp(-2.4 * floatiness * delta)
+
+    apply_torque(-angular_velocity * mass * 125.0 * submerged_fraction)
 
     var density_ratio := clampf(
         mass / maxf(_water.water_density_kg_m3 * object_volume_m3, 0.0001),
@@ -391,6 +450,7 @@ func reset_to_spawn() -> void:
     submerged_fraction = 0.0
     _previous_submerged_fraction = 0.0
     _reported_displaced_volume_m3 = 0.0
+    _reported_displacement_x = INF
     await get_tree().physics_frame
     freeze = false
     sleeping = false

@@ -582,7 +582,10 @@ func _rebuild_solid_displacement() -> void:
 
         var center_x := float(report.get("x", 0.0))
         var width_px := maxf(float(report.get("width_px", cell_size_px)), cell_size_px)
-        var radius_px := maxf(width_px * 0.55, cell_size_px)
+        # A broad linear footprint is closer to the horizontal projection
+        # of an immersed body than the old sharp squared kernel, and it
+        # cannot excavate a one-cell trough as the body moves.
+        var radius_px := maxf(width_px * 0.72, cell_size_px * 1.75)
         var first := _index_at(center_x - radius_px)
         var last := _index_at(center_x + radius_px)
 
@@ -591,7 +594,7 @@ func _rebuild_solid_displacement() -> void:
             var x := _cell_center_x(i)
             var normalized := absf(x - center_x) / maxf(radius_px, 0.001)
             var w := maxf(0.0, 1.0 - normalized)
-            weight_sum += w * w
+            weight_sum += w
 
         if weight_sum <= 0.0:
             continue
@@ -600,7 +603,6 @@ func _rebuild_solid_displacement() -> void:
             var x := _cell_center_x(i)
             var normalized := absf(x - center_x) / maxf(radius_px, 0.001)
             var w := maxf(0.0, 1.0 - normalized)
-            w *= w
             _solid_fill_m[i] += volume_m3 * (w / weight_sum) / cell_plan_area_m2
 
     for key in stale:
@@ -632,6 +634,60 @@ func report_displacement(
 
 func clear_displacement(body_id: int) -> void:
     _displacement_reports.erase(body_id)
+
+func _body_displacement_contribution_at_index(body_id: int, i: int) -> float:
+    if not _displacement_reports.has(body_id):
+        return 0.0
+    var report: Dictionary = _displacement_reports[body_id]
+    var volume_m3 := maxf(0.0, float(report.get("volume_m3", 0.0)))
+    if volume_m3 <= 0.0:
+        return 0.0
+    var center_x := float(report.get("x", 0.0))
+    var width_px := maxf(float(report.get("width_px", cell_size_px)), cell_size_px)
+    var radius_px := maxf(width_px * 0.72, cell_size_px * 1.75)
+    var first := _index_at(center_x - radius_px)
+    var last := _index_at(center_x + radius_px)
+    if i < first or i > last:
+        return 0.0
+
+    var weight_sum := 0.0
+    for j in range(first, last + 1):
+        var xj := _cell_center_x(j)
+        var normalized_j := absf(xj - center_x) / maxf(radius_px, 0.001)
+        weight_sum += maxf(0.0, 1.0 - normalized_j)
+    if weight_sum <= 0.0:
+        return 0.0
+
+    var x := _cell_center_x(i)
+    var normalized := absf(x - center_x) / maxf(radius_px, 0.001)
+    var w := maxf(0.0, 1.0 - normalized)
+    var cell_width_m := cell_size_px / pixels_per_meter
+    var cell_plan_area_m2 := maxf(cell_width_m * fluid_depth_m, 0.000001)
+    return volume_m3 * (w / weight_sum) / cell_plan_area_m2
+
+func surface_y_for_body_at(world_x: float, body_id: int) -> float:
+    var center := _index_at(world_x)
+    var weighted_surface := 0.0
+    var weight_total := 0.0
+    # A tiny three-cell ambient filter removes grid-scale chatter while
+    # respecting terrain discontinuities such as basin walls.
+    for offset in range(-1, 2):
+        var i := center + offset
+        if i < 0 or i >= _cell_count:
+            continue
+        if absf(_floor_y[i] - _floor_y[center]) > cell_size_px * 0.75:
+            continue
+        var own_fill := _body_displacement_contribution_at_index(body_id, i)
+        var ambient_solid := maxf(_solid_fill_m[i] - own_fill, 0.0)
+        var sy := _floor_y[i] - (
+            maxf(_depth_m[i], 0.0) + ambient_solid
+        ) * pixels_per_meter
+        var w := 2.0 if offset == 0 else 1.0
+        weighted_surface += sy * w
+        weight_total += w
+    if weight_total <= 0.0:
+        return _surface_y_index(center)
+    return weighted_surface / weight_total
 
 func surface_y_at(world_x: float) -> float:
     var i := _index_at(world_x)
@@ -1155,30 +1211,62 @@ func _draw() -> void:
         var s := float(d.size)
         draw_rect(Rect2(snappedf(p.x, cell_size_px * 0.5), snappedf(p.y, cell_size_px * 0.5), s, s), WATER_MID)
 
+func _safe_render_surface_y(i: int) -> float:
+    var floor_y := _floor_y[i]
+    var sy := _surface_y_index(i)
+    # NaN is the only float that is not equal to itself.
+    if sy != sy or absf(sy) > 1000000.0:
+        return floor_y
+    return clampf(sy, floor_y - 2000.0, floor_y)
+
 func _draw_water_run(first: int, last: int) -> void:
     if first < 0 or last < first:
         return
 
-    var polygon := PackedVector2Array()
+    # Never triangulate the entire water body. Pixel water is naturally
+    # a run of vertical columns, so merge adjacent columns that share the
+    # same snapped top/floor and render only axis-aligned rectangles.
+    # This removes the rare polygon-degeneration black flash completely.
     var surface_line := PackedVector2Array()
+    var group_first := first
+    var group_sy := snappedf(_safe_render_surface_y(first), cell_size_px * 0.5)
+    var group_floor := _floor_y[first]
 
     for i in range(first, last + 1):
         var x0 := world_left + float(i) * cell_size_px
         var x1 := x0 + cell_size_px
-        var sy := snappedf(_surface_y_index(i), cell_size_px * 0.5)
-        polygon.append(Vector2(x0, sy))
-        polygon.append(Vector2(x1, sy))
+        var sy := snappedf(_safe_render_surface_y(i), cell_size_px * 0.5)
+        var floor_y := _floor_y[i]
         surface_line.append(Vector2(x0, sy))
         surface_line.append(Vector2(x1, sy))
 
-    for i in range(last, first - 1, -1):
-        var x0 := world_left + float(i) * cell_size_px
-        var x1 := x0 + cell_size_px
-        var floor_y := _floor_y[i]
-        polygon.append(Vector2(x1, floor_y))
-        polygon.append(Vector2(x0, floor_y))
+        var same_group := (
+            absf(sy - group_sy) < 0.01
+            and absf(floor_y - group_floor) < 0.01
+        )
+        if not same_group:
+            var gx0 := world_left + float(group_first) * cell_size_px
+            var gx1 := world_left + float(i) * cell_size_px
+            if group_floor > group_sy:
+                draw_rect(
+                    Rect2(gx0, group_sy, gx1 - gx0, group_floor - group_sy),
+                    WATER_MID
+                )
+            group_first = i
+            group_sy = sy
+            group_floor = floor_y
 
-    if polygon.size() >= 3:
-        draw_colored_polygon(polygon, WATER_MID)
+    var gx0 := world_left + float(group_first) * cell_size_px
+    var gx1 := world_left + float(last + 1) * cell_size_px
+    if group_floor > group_sy:
+        draw_rect(
+            Rect2(gx0, group_sy, gx1 - gx0, group_floor - group_sy),
+            WATER_MID
+        )
+
     if surface_line.size() >= 2:
-        draw_polyline(surface_line, WATER_TOP, maxf(1.0, cell_size_px * 0.35))
+        draw_polyline(
+            surface_line,
+            WATER_TOP,
+            maxf(1.0, cell_size_px * 0.35)
+        )
