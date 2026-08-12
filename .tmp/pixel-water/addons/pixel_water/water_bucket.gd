@@ -144,9 +144,9 @@ func _equalize_with_surrounding_water(delta: float) -> void:
     if opening.x < _water.world_left or opening.x >= _water.world_right:
         return
 
-    var outside_surface_y := _water.surface_y_at(opening.x)
-    var outside_floor_y := _water.floor_y_at(opening.x)
-    var opening_submerged := (
+    var outside_surface_y: float = _water.surface_y_at(opening.x)
+    var outside_floor_y: float = _water.floor_y_at(opening.x)
+    var opening_submerged: bool = (
         _water.depth_m_at(opening.x) > _water.dry_depth_m
         and opening.y >= outside_surface_y
         and opening.y <= outside_floor_y + 1.0
@@ -177,7 +177,7 @@ func _equalize_with_surrounding_water(delta: float) -> void:
 
     var head_m := absf(opening.y - outside_surface_y) / pixels_per_meter
     head_m = maxf(head_m, 0.008)
-    var g := _water.gravity_px_s2 / _water.pixels_per_meter
+    var g: float = _water.gravity_px_s2 / _water.pixels_per_meter
     var opening_width_m := interior.x / pixels_per_meter
     var opening_area_m2 := opening_width_m * physical_depth_m
     var q_m3_s := (
@@ -189,7 +189,7 @@ func _equalize_with_surrounding_water(delta: float) -> void:
 
     if difference > 0.0:
         var requested := minf(difference, max_transfer)
-        var extracted := _water.extract_water_at(
+        var extracted: float = _water.extract_water_at(
             opening.x,
             requested,
             object_size_px.x * 0.45
@@ -231,7 +231,7 @@ func _pour_if_tilted(delta: float) -> void:
     var fill_fraction := contained_volume_m3 / maxf(_capacity_m3(), 0.000001)
     var interior_height_m := _interior_size_px().y / pixels_per_meter
     var head_m := maxf(0.01, interior_height_m * fill_fraction * maxf(normalized_tilt, 0.15))
-    var g := _water.gravity_px_s2 / _water.pixels_per_meter
+    var g: float = _water.gravity_px_s2 / _water.pixels_per_meter
     var opening_area_m2 := (
         _interior_size_px().x / pixels_per_meter
         * physical_depth_m
@@ -268,12 +268,12 @@ func _pour_if_tilted(delta: float) -> void:
     )
 
 func _update_total_mass() -> void:
-    var water_mass := contained_volume_m3 * (_water.water_density_kg_m3 if _water != null else 997.0)
+    var water_mass: float = contained_volume_m3 * (_water.water_density_kg_m3 if _water != null else 997.0)
     mass = maxf(0.05, _dry_mass_kg + water_mass)
     _update_prediction()
 
 func set_mass_kg(value: float) -> void:
-    var water_mass := contained_volume_m3 * (_water.water_density_kg_m3 if _water != null else 997.0)
+    var water_mass: float = contained_volume_m3 * (_water.water_density_kg_m3 if _water != null else 997.0)
     _dry_mass_kg = maxf(0.05, value - water_mass)
     auto_mass_from_material = false
     _update_total_mass()

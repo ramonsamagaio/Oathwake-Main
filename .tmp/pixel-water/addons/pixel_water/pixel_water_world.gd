@@ -249,15 +249,15 @@ func _shallow_water_substep(dt: float) -> void:
 
         var wave_l := absf(u_l) + sqrt(maxf(g * h_l, 0.0))
         var wave_r := absf(u_r) + sqrt(maxf(g * h_r, 0.0))
-        var signal := maxf(wave_l, wave_r)
+        var max_wave_speed: float = maxf(wave_l, wave_r)
 
         var mass_flux := (
             0.5 * (f_l_mass + f_r_mass)
-            - 0.5 * signal * (h_r - h_l)
+            - 0.5 * max_wave_speed * (h_r - h_l)
         )
         var momentum_flux := (
             0.5 * (f_l_momentum + f_r_momentum)
-            - 0.5 * signal * (q_r - q_l)
+            - 0.5 * max_wave_speed * (q_r - q_l)
         )
 
         # Hydrostatic source corrections keep a still lake still across floor steps.

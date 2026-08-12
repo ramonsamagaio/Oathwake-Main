@@ -391,8 +391,8 @@ func _process(_delta: float) -> void:
     if _water_stats == null or water == null:
         return
 
-    var main_l := water.volume_liters_in_range(MAIN_LEFT, MAIN_RIGHT)
-    var small_l := water.volume_liters_in_range(SMALL_LEFT, SMALL_RIGHT)
+    var main_l: float = water.volume_liters_in_range(MAIN_LEFT, MAIN_RIGHT)
+    var small_l: float = water.volume_liters_in_range(SMALL_LEFT, SMALL_RIGHT)
     var mobile_l := 0.0
     for body in objects:
         if body != null and is_instance_valid(body) and body.has_method("contained_water_liters"):

@@ -62,12 +62,12 @@ func _find_water() -> void:
         return
 
     var best: PixelWaterWorld2D = null
-    var best_distance := INF
+    var best_distance: float = INF
     for node in nodes:
-        var candidate := node as PixelWaterWorld2D
+        var candidate: PixelWaterWorld2D = node as PixelWaterWorld2D
         if candidate == null:
             continue
-        var dx := 0.0
+        var dx: float = 0.0
         if global_position.x < candidate.world_left:
             dx = candidate.world_left - global_position.x
         elif global_position.x > candidate.world_right:
@@ -131,7 +131,7 @@ func _update_prediction() -> void:
         effective_density_kg_m3 = mass / maxf(object_volume_m3, 0.00001)
         return
 
-    var displaced_mass_capacity := (
+    var displaced_mass_capacity: float = (
         _water.water_density_kg_m3
         * object_volume_m3
         * buoyancy_multiplier
@@ -161,7 +161,7 @@ func _physics_process(delta: float) -> void:
     submerged_fraction = float(submerged_points.size()) / float(_sample_points.size())
     _update_prediction()
 
-    var displaced_volume := object_volume_m3 * submerged_fraction
+    var displaced_volume: float = object_volume_m3 * submerged_fraction
     _water.report_displacement(
         get_instance_id(),
         global_position.x,
@@ -176,8 +176,8 @@ func _physics_process(delta: float) -> void:
 
     # Archimedes: Fb = rho * g * displaced volume. Forces are applied at sampled
     # points so an unevenly submerged body receives a real stabilizing torque.
-    var volume_per_sample := object_volume_m3 / float(_sample_points.size())
-    var force_per_sample := (
+    var volume_per_sample: float = object_volume_m3 / float(_sample_points.size())
+    var force_per_sample: float = (
         _water.water_density_kg_m3
         * _water.gravity_px_s2
         * volume_per_sample
@@ -192,18 +192,18 @@ func _physics_process(delta: float) -> void:
         )
 
     # Quadratic hydrodynamic drag: Fd = 1/2 rho Cd A v^2.
-    var velocity_m_s := linear_velocity / pixels_per_meter
-    var speed_m_s := velocity_m_s.length()
+    var velocity_m_s: Vector2 = linear_velocity / pixels_per_meter
+    var speed_m_s: float = velocity_m_s.length()
     if speed_m_s > 0.01:
         var width_m := object_size_px.x / pixels_per_meter
         var height_m := object_size_px.y / pixels_per_meter
-        var direction := velocity_m_s.normalized()
-        var projected_length_m := (
+        var direction: Vector2 = velocity_m_s.normalized()
+        var projected_length_m: float = (
             absf(direction.y) * width_m
             + absf(direction.x) * height_m
         )
-        var projected_area_m2 := maxf(0.0001, projected_length_m * physical_depth_m)
-        var drag_newtons := (
+        var projected_area_m2: float = maxf(0.0001, projected_length_m * physical_depth_m)
+        var drag_newtons: float = (
             0.5
             * _water.water_density_kg_m3
             * drag_coefficient
@@ -211,14 +211,14 @@ func _physics_process(delta: float) -> void:
             * speed_m_s
             * speed_m_s
         )
-        var drag_force_px := (
+        var drag_force_px: Vector2 = (
             -linear_velocity.normalized()
             * drag_newtons
             * pixels_per_meter
             * submerged_fraction
         )
 
-        var max_drag := (
+        var max_drag: float = (
             mass
             * maxf(linear_velocity.length(), 1.0)
             / maxf(delta, 0.001)
