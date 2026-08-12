@@ -6,7 +6,9 @@ const WispScript: Script = preload("res://scripts/creatures/ProceduralWisp.gd")
 const CrawlerScript: Script = preload("res://scripts/creatures/ProceduralCrawler.gd")
 
 const PRESET_PATH := "user://procedural_creature_presets.json"
-const STAGE_CENTER := Vector2(760.0, 430.0)
+const SCREEN_SIZE := Vector2(1600.0, 900.0)
+const STAGE_BOUNDS := Rect2(Vector2(340.0, 130.0), Vector2(1195.0, 640.0))
+const STAGE_CENTER := Vector2(937.5, 450.0)
 
 var _creatures: Array[ProceduralCreature] = []
 var _active: ProceduralCreature
@@ -44,12 +46,19 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, Vector2(1600, 900)), Color("101619"), true)
-	draw_rect(Rect2(Vector2(320, 105), Vector2(1240, 690)), Color("182126"), true)
-	draw_rect(Rect2(Vector2(345, 130), Vector2(1190, 640)), Color("202c30"), true)
-	draw_line(Vector2(360, 610), Vector2(1520, 610), Color("50615b"), 2.0, false)
-	for x: int in range(380, 1520, 64):
-		draw_line(Vector2(x, 600), Vector2(x, 620), Color(0.3, 0.38, 0.36, 0.28), 1.0, false)
+	# Exact visual language used by AlabasterMechanicLab: same floor tone,
+	# 64 px grid and stronger center axes. The creature lab no longer has a
+	# separate boxed stage painted over it.
+	draw_rect(Rect2(Vector2.ZERO, SCREEN_SIZE), Color("11141b"), true)
+	for x in range(0, int(SCREEN_SIZE.x) + 1, 64):
+		draw_line(Vector2(x, 0), Vector2(x, SCREEN_SIZE.y), Color(0.18, 0.21, 0.28, 0.55), 1.0, false)
+	for y in range(0, int(SCREEN_SIZE.y) + 1, 64):
+		draw_line(Vector2(0, y), Vector2(SCREEN_SIZE.x, y), Color(0.18, 0.21, 0.28, 0.55), 1.0, false)
+	draw_line(Vector2(0, SCREEN_SIZE.y * 0.5), Vector2(SCREEN_SIZE.x, SCREEN_SIZE.y * 0.5), Color(0.28, 0.33, 0.42, 0.65), 1.0, false)
+	draw_line(Vector2(SCREEN_SIZE.x * 0.5, 0), Vector2(SCREEN_SIZE.x * 0.5, SCREEN_SIZE.y), Color(0.28, 0.33, 0.42, 0.65), 1.0, false)
+
+	# A subtle authoring boundary is only a guide. It does not change the floor.
+	draw_rect(STAGE_BOUNDS, Color(0.50, 0.62, 0.58, 0.18), false, 1.0)
 	draw_string(ThemeDB.fallback_font, Vector2(355, 92), "PROCEDURAL CREATURE SYSTEM LAB", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color("c7d4c7"))
 
 
@@ -60,6 +69,11 @@ func _build_stage() -> void:
 	add_child(marker)
 
 
+func _configure_lab_creature(creature: ProceduralCreature) -> void:
+	creature.set_lod_anchor(get_node("LODAnchor") as Node2D)
+	creature.set_movement_bounds(STAGE_BOUNDS)
+
+
 func _spawn_reference_creatures() -> void:
 	var scripts: Array[Script] = [SlimeScript, SnakeScript, WispScript, CrawlerScript]
 	for script: Script in scripts:
@@ -68,8 +82,8 @@ func _spawn_reference_creatures() -> void:
 			continue
 		creature.position = STAGE_CENTER
 		creature.visible = false
-		creature.set_lod_anchor(get_node("LODAnchor") as Node2D)
 		add_child(creature)
+		_configure_lab_creature(creature)
 		_creatures.append(creature)
 
 
@@ -98,22 +112,22 @@ func _build_ui() -> void:
 	root.add_child(title)
 
 	var subtitle := Label.new()
-	subtitle.text = "Pixel-native procedural monster authoring"
+	subtitle.text = "1 px native procedural monster authoring"
 	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	root.add_child(subtitle)
 	root.add_child(HSeparator.new())
 
 	_creature_selector = OptionButton.new()
-	_creature_selector.add_item("Slime · Blob Spring")
-	_creature_selector.add_item("Snake · Segment Chain")
-	_creature_selector.add_item("Wisp · Field + Trail")
+	_creature_selector.add_item("Slime · Liquid Blob")
+	_creature_selector.add_item("Snake · Path Chain")
+	_creature_selector.add_item("Wisp · Spectral Trail")
 	_creature_selector.add_item("Crawler · Radial IK")
 	_creature_selector.item_selected.connect(_select_creature)
 	root.add_child(_creature_selector)
 
 	var help := Label.new()
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	help.text = "LMB: push · RMB: pull · wheel: scale. Tune, stress-test, save presets, then reuse the solver in production monsters."
+	help.text = "LMB push · RMB pull · wheel geometry scale. Pixel unit is permanently 1 px; larger forms are integer clusters."
 	root.add_child(help)
 	root.add_child(HSeparator.new())
 
@@ -244,6 +258,8 @@ func _select_creature(index: int) -> void:
 		creature.set_simulation_active(false)
 	_active = _creatures[index]
 	_active.position = STAGE_CENTER
+	_active.set_movement_bounds(STAGE_BOUNDS)
+	_active.reseed(_active.random_seed)
 	_active.visible = true
 	_active.set_simulation_active(true)
 	_seed_box.value = _active.random_seed
@@ -338,6 +354,7 @@ func _reset_active() -> void:
 	if _active == null:
 		return
 	_active.position = STAGE_CENTER
+	_active.set_movement_bounds(STAGE_BOUNDS)
 	_active.reseed(_active.random_seed)
 	_active.set_simulation_active(true)
 	_pause_button.text = "Pause"
@@ -408,6 +425,7 @@ func _load_current_preset() -> void:
 		return
 	var preset: Dictionary = _saved_presets[key] as Dictionary
 	_active.apply_preset(preset)
+	_active.set_movement_bounds(STAGE_BOUNDS)
 	_seed_box.value = _active.random_seed
 	_sync_palette()
 	_rebuild_parameter_controls()
@@ -455,15 +473,19 @@ func _spawn_stress_test() -> void:
 	if script == null:
 		return
 	var preset: Dictionary = _active.make_preset()
+	var spawn_area := STAGE_BOUNDS.grow(-56.0)
 	for _i: int in range(_stress_count):
 		var clone: ProceduralCreature = script.new() as ProceduralCreature
 		if clone == null:
 			continue
+		clone.position = Vector2(
+			randf_range(spawn_area.position.x, spawn_area.end.x),
+			randf_range(spawn_area.position.y, spawn_area.end.y)
+		)
+		add_child(clone)
 		clone.apply_preset(preset)
 		clone.global_scale_factor *= randf_range(0.75, 1.15)
-		clone.position = Vector2(randf_range(390.0, 1500.0), randf_range(180.0, 730.0))
-		clone.set_lod_anchor(get_node("LODAnchor") as Node2D)
-		add_child(clone)
+		_configure_lab_creature(clone)
 		_stress_instances.append(clone)
 	_active.visible = false
 	_refresh_status("Stress test spawned")
@@ -485,11 +507,13 @@ func _refresh_status(message: String = "") -> void:
 	var prefix: String = (message + "\n") if not message.is_empty() else ""
 	var active_name: String = String(_active.creature_id) if _active != null else "none"
 	var sim_state: String = "ON" if _active != null and _active.simulation_enabled else "OFF"
-	_status_label.text = prefix + "FPS: %d  |  procedural: %d\nActive: %s  |  sim: %s\nPreset file: %s" % [
+	_status_label.text = prefix + "FPS: %d | procedural: %d\nActive: %s | sim: %s | pixel: 1px fixed\nBounds: %.0fx%.0f | preset: %s" % [
 		Engine.get_frames_per_second(),
 		_stress_instances.size() + (1 if _active != null else 0),
 		active_name,
 		sim_state,
+		STAGE_BOUNDS.size.x,
+		STAGE_BOUNDS.size.y,
 		PRESET_PATH,
 	]
 
