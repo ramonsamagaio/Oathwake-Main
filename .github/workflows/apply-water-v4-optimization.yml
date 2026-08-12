@@ -32,3 +32,5 @@ jobs:
                   .tmp/pixel-water/demo/main.gd
           git commit -m "perf: stabilize and lighten unified water solver"
           git push origin HEAD:tmp-pixel-water-build-20260811
+
+# rerun: v4.1
