@@ -121,11 +121,11 @@ jobs:
           - Reset water: restaura a distribuicao inicial de agua
 
           Teste principal desta versao:
-          - transborde o tanque grande para o piso
-          - observe a agua cair visualmente no tanque pequeno
-          - mergulhe o balde e veja os micro-pacotes ocuparem o interior
+          - provoque ondas fortes junto das paredes e veja se elas escoam sem criar colunas verticais
+          - jogue objetos pesados e compare a turbulencia com as builds anteriores
+          - mergulhe o balde: ele agora funciona como um reservatorio movel continuo, sem micro-pixels simulados
           - transporte agua e despeje no segundo tanque
-          - spawne varios objetos e observe o deslocamento sem colunas explosivas
+          - acompanhe o contador de FPS no topo
           '@ | Set-Content -Path "dist\LEIA-ME.txt" -Encoding UTF8
           Compress-Archive -Path "dist\*" -DestinationPath "Pixel-Water-Simulator-Windows-Test.zip" -Force
 
@@ -141,3 +141,5 @@ jobs:
             gh release create $tag --repo "${{ github.repository }}" --target "${{ github.sha }}" --title "Pixel Water Simulator Windows Test" --notes "Temporary private Windows test build. Includes the Godot 4.3 runtime and a double-click launcher. CI smoke-tested." --prerelease
           }
           gh release upload $tag "Pixel-Water-Simulator-Windows-Test.zip" --repo "${{ github.repository }}" --clobber
+
+# water-v4 optimized validation
