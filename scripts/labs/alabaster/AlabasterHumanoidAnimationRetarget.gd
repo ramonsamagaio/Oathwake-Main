@@ -25,17 +25,20 @@ const EXPECTED_GAMEPLAY_CLIPS := [
 ]
 
 # DEFAULT keeps Juno's foot timing and leg trajectories, but its walk gets an
-# independent body-center pass. The strongest reduction is on bottom (pelvis),
-# while root and top retain enough counter-motion to avoid a rigid march.
-# Coordinate convention: X is character lateral, Z is up. For local rotations,
-# Y is the forward-axis roll/hip hike and Z is yaw/twist around the vertical.
+# independent body-center pass. The source stores rotations as [yaw, pitch, roll].
+# AlabasterRigRuntimeSource._source_quat() remaps those values to internal Z/X/Y,
+# so every source axis must be attenuated explicitly. The previous pass left
+# source yaw (rot[0]) untouched, which is why the pelvis still visibly swung in
+# Mechanic Lab even after lateral translation and the other two axes were reduced.
 const DEFAULT_WALK_ROOT_LATERAL_SCALE := 0.65
-const DEFAULT_WALK_PELVIS_LATERAL_SCALE := 0.30
-const DEFAULT_WALK_PELVIS_ROLL_SCALE := 0.35
-const DEFAULT_WALK_PELVIS_YAW_SCALE := 0.65
+const DEFAULT_WALK_PELVIS_LATERAL_SCALE := 0.15
+const DEFAULT_WALK_PELVIS_SOURCE_YAW_SCALE := 0.35
+const DEFAULT_WALK_PELVIS_SOURCE_PITCH_SCALE := 0.40
+const DEFAULT_WALK_PELVIS_SOURCE_ROLL_SCALE := 0.25
 const DEFAULT_WALK_TOP_LATERAL_SCALE := 0.75
-const DEFAULT_WALK_TOP_ROLL_SCALE := 0.75
-const DEFAULT_WALK_TOP_YAW_SCALE := 0.85
+const DEFAULT_WALK_TOP_SOURCE_YAW_SCALE := 1.0
+const DEFAULT_WALK_TOP_SOURCE_PITCH_SCALE := 0.75
+const DEFAULT_WALK_TOP_SOURCE_ROLL_SCALE := 0.85
 
 static var _juno_bank_cache: Dictionary = {}
 
@@ -278,7 +281,7 @@ static func _retarget_animation_data(source: Dictionary, source_animation: Strin
 		"source_animation": source_animation,
 		"method": "shared_humanoid_node_filter",
 		"bank_source": JunoGameplayBank.get_source_name(),
-		"target_variant": "default_neutral_walk_v2" if profile_id == "default" and source_animation == "walk" else "source_motion",
+		"target_variant": "default_neutral_walk_v3" if profile_id == "default" and source_animation == "walk" else "source_motion",
 	}
 	return result
 
@@ -303,11 +306,25 @@ static func _apply_default_walk_body_tuning(animation: Dictionary) -> void:
 			continue
 		var node_xfm := (node_xfm_value as Dictionary).duplicate(true)
 
-		if _tune_default_walk_node(node_xfm, "root", DEFAULT_WALK_ROOT_LATERAL_SCALE, 1.0, 1.0):
+		if _tune_default_walk_node(node_xfm, "root", DEFAULT_WALK_ROOT_LATERAL_SCALE, 1.0, 1.0, 1.0):
 			root_keys += 1
-		if _tune_default_walk_node(node_xfm, "bottom", DEFAULT_WALK_PELVIS_LATERAL_SCALE, DEFAULT_WALK_PELVIS_ROLL_SCALE, DEFAULT_WALK_PELVIS_YAW_SCALE):
+		if _tune_default_walk_node(
+			node_xfm,
+			"bottom",
+			DEFAULT_WALK_PELVIS_LATERAL_SCALE,
+			DEFAULT_WALK_PELVIS_SOURCE_YAW_SCALE,
+			DEFAULT_WALK_PELVIS_SOURCE_PITCH_SCALE,
+			DEFAULT_WALK_PELVIS_SOURCE_ROLL_SCALE
+		):
 			pelvis_keys += 1
-		if _tune_default_walk_node(node_xfm, "top", DEFAULT_WALK_TOP_LATERAL_SCALE, DEFAULT_WALK_TOP_ROLL_SCALE, DEFAULT_WALK_TOP_YAW_SCALE):
+		if _tune_default_walk_node(
+			node_xfm,
+			"top",
+			DEFAULT_WALK_TOP_LATERAL_SCALE,
+			DEFAULT_WALK_TOP_SOURCE_YAW_SCALE,
+			DEFAULT_WALK_TOP_SOURCE_PITCH_SCALE,
+			DEFAULT_WALK_TOP_SOURCE_ROLL_SCALE
+		):
 			top_keys += 1
 
 		key["nodeXfm"] = node_xfm
@@ -315,30 +332,40 @@ static func _apply_default_walk_body_tuning(animation: Dictionary) -> void:
 
 	animation["transforms"] = transforms
 	animation["default_walk_tuning"] = {
-		"version": 2,
-		"policy": "reduce_lateral_pelvis_sway_preserve_feet",
+		"version": 3,
+		"policy": "stabilize_pelvis_all_source_axes_preserve_feet",
 		"root_lateral": DEFAULT_WALK_ROOT_LATERAL_SCALE,
 		"pelvis_lateral": DEFAULT_WALK_PELVIS_LATERAL_SCALE,
-		"pelvis_roll": DEFAULT_WALK_PELVIS_ROLL_SCALE,
-		"pelvis_yaw": DEFAULT_WALK_PELVIS_YAW_SCALE,
+		"pelvis_source_yaw": DEFAULT_WALK_PELVIS_SOURCE_YAW_SCALE,
+		"pelvis_source_pitch": DEFAULT_WALK_PELVIS_SOURCE_PITCH_SCALE,
+		"pelvis_source_roll": DEFAULT_WALK_PELVIS_SOURCE_ROLL_SCALE,
 		"top_lateral": DEFAULT_WALK_TOP_LATERAL_SCALE,
-		"top_roll": DEFAULT_WALK_TOP_ROLL_SCALE,
-		"top_yaw": DEFAULT_WALK_TOP_YAW_SCALE,
+		"top_source_yaw": DEFAULT_WALK_TOP_SOURCE_YAW_SCALE,
+		"top_source_pitch": DEFAULT_WALK_TOP_SOURCE_PITCH_SCALE,
+		"top_source_roll": DEFAULT_WALK_TOP_SOURCE_ROLL_SCALE,
 		"root_keys": root_keys,
 		"pelvis_keys": pelvis_keys,
 		"top_keys": top_keys,
 	}
-	print("ALABASTER_DEFAULT_WALK_TUNED root_keys=%d pelvis_keys=%d top_keys=%d pelvis_x=%.2f pelvis_roll=%.2f pelvis_yaw=%.2f" % [
+	print("ALABASTER_DEFAULT_WALK_TUNED_V3 root_keys=%d pelvis_keys=%d top_keys=%d pelvis_x=%.2f yaw=%.2f pitch=%.2f roll=%.2f" % [
 		root_keys,
 		pelvis_keys,
 		top_keys,
 		DEFAULT_WALK_PELVIS_LATERAL_SCALE,
-		DEFAULT_WALK_PELVIS_ROLL_SCALE,
-		DEFAULT_WALK_PELVIS_YAW_SCALE,
+		DEFAULT_WALK_PELVIS_SOURCE_YAW_SCALE,
+		DEFAULT_WALK_PELVIS_SOURCE_PITCH_SCALE,
+		DEFAULT_WALK_PELVIS_SOURCE_ROLL_SCALE,
 	])
 
 
-static func _tune_default_walk_node(node_xfm: Dictionary, node_name: String, lateral_scale: float, roll_scale: float, yaw_scale: float) -> bool:
+static func _tune_default_walk_node(
+	node_xfm: Dictionary,
+	node_name: String,
+	lateral_scale: float,
+	source_yaw_scale: float,
+	source_pitch_scale: float,
+	source_roll_scale: float
+) -> bool:
 	var xfm_value: Variant = node_xfm.get(node_name, null)
 	if not xfm_value is Dictionary:
 		return false
@@ -353,8 +380,10 @@ static func _tune_default_walk_node(node_xfm: Dictionary, node_name: String, lat
 	var rot_value: Variant = xfm.get("rot", null)
 	if rot_value is Array and (rot_value as Array).size() >= 3:
 		var rot := (rot_value as Array).duplicate(true)
-		rot[1] = _scale_signed_degrees(float(rot[1]), roll_scale)
-		rot[2] = _scale_signed_degrees(float(rot[2]), yaw_scale)
+		# Source order is [yaw, pitch, roll]. Do not treat this as Godot XYZ.
+		rot[0] = _scale_signed_degrees(float(rot[0]), source_yaw_scale)
+		rot[1] = _scale_signed_degrees(float(rot[1]), source_pitch_scale)
+		rot[2] = _scale_signed_degrees(float(rot[2]), source_roll_scale)
 		xfm["rot"] = rot
 
 	node_xfm[node_name] = xfm
@@ -363,7 +392,7 @@ static func _tune_default_walk_node(node_xfm: Dictionary, node_name: String, lat
 
 static func _scale_signed_degrees(value: float, scale: float) -> float:
 	# Source Euler keys may cross 0/360. Scale the equivalent signed angle so a
-	# 359-degree key becomes -1 degree before attenuation instead of 143.6 degrees.
+	# 359-degree key becomes -1 degree before attenuation instead of a huge turn.
 	var signed := fposmod(value + 180.0, 360.0) - 180.0
 	return signed * scale
 
