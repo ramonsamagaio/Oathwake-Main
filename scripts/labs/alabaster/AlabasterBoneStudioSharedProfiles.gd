@@ -5,7 +5,7 @@ extends "res://scripts/labs/alabaster/AlabasterBoneStudioPro.gd"
 # The workspace composition adds editor ergonomics without moving them into the
 # gameplay runtime.
 
-const LIVE_TUNING_PANEL_PATH = "res://scripts/labs/alabaster/AlabasterBoneStudioWorkspace.gd"
+const LIVE_TUNING_PANEL_PATH = "res://scripts/labs/alabaster/AlabasterBoneStudioWorkspaceNavigation.gd"
 const SharedJunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 
 var _live_tuning_panel: Node = null
