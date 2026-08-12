@@ -11,7 +11,6 @@ class_name AlabasterDefaultPlayableSkinRig
 # deliberately falls back to dummy.png, keeping DEFAULT functional at all times.
 
 const DefaultRepoSkinSource := preload("res://scripts/labs/alabaster/AlabasterExternalSkinSource.gd")
-const DefaultJunoGameplayBank := preload("res://scripts/labs/alabaster/AlabasterJunoGameplayBank.gd")
 const DEFAULT_PROFILE_ID := "default"
 const BASE_PROFILE_ID := "male_dummy"
 const DEFAULT_FIGURE_LABEL := "Default"
@@ -19,13 +18,16 @@ const DEFAULT_ATLAS_PATH := "res://assets/sprites/characters/alabaster/default.p
 const EXPECTED_ATLAS_SIZE := Vector2i(672, 120)
 const DEFAULT_CHROMA_RGB := Vector3i(255, 0, 195)
 const DEFAULT_PELVIS_DEPTH_MOTIONS := ["", "idle", "walk", "run", "dash"]
-const DEFAULT_JUNO_ARM_CHAIN_NODES := [
-	"shoulderL", "armL", "handL", "fingerL",
-	"shoulderR", "armR", "handR", "fingerR",
-]
-const DEFAULT_JUNO_ARM_GFX_NODES := ["armL", "handL", "fingerL", "armR", "handR", "fingerR"]
 
-var _default_juno_arm_overlay_applied := false
+# Juno's arm works because every image has a distinct geometric job: gfx0 is the
+# shoulder cap, gfx1 spans shoulder -> elbow, hand:gfx0 spans elbow -> wrist and
+# finger:gfx0 is the hand. DEFAULT owns taller/longer art and longer Dummy bones,
+# so we keep those bone lengths and copy only the attachment semantics that make
+# Juno's pieces meet cleanly. Seven source pixels is Juno's connector pivot;
+# DEFAULT's connector is 12 px tall, therefore 7 / 12 is the equivalent pivot.
+const DEFAULT_ARM_CONNECTOR_PIVOT_Y := 0.5833333333333334
+
+var _default_arm_fit_applied := false
 
 
 func _init() -> void:
@@ -65,7 +67,7 @@ func _load_skin_data() -> void:
 
 	_install_weapon_sockets()
 	_install_auxiliary_layer_nodes()
-	_install_juno_arm_chain_overlay()
+	_install_default_arm_fit()
 	_figure["nodes"] = _nodes
 	_figure["anims"] = _anims
 	_animation_bank_loaded = true
@@ -74,147 +76,127 @@ func _load_skin_data() -> void:
 	_root_dirs.clear()
 
 
-func _install_juno_arm_chain_overlay() -> void:
-	# DEFAULT and Dummy share the same artwork layout, but Dummy's arm attachment
-	# mechanics visibly open a gap during rotation. Juno closes the same humanoid
-	# chain using different local transforms/pivots. Reuse those proven mechanics
-	# while preserving DEFAULT's own atlas regions and wider shoulder anchors.
-	_default_juno_arm_overlay_applied = false
-	var juno_figure := DefaultJunoGameplayBank.load_runtime_figure()
-	var juno_nodes_value: Variant = juno_figure.get("nodes", {})
-	if not juno_nodes_value is Dictionary:
-		push_warning("AlabasterDefaultPlayableSkinRig: Juno arm overlay unavailable; keeping Dummy arm mechanics.")
-		return
-	var juno_nodes := juno_nodes_value as Dictionary
-	var copied_nodes := 0
-
-	for node_name in DEFAULT_JUNO_ARM_CHAIN_NODES:
-		if not _nodes.has(node_name) or not juno_nodes.has(node_name):
-			continue
-		var target_value: Variant = _nodes[node_name]
-		var source_value: Variant = juno_nodes[node_name]
-		if not target_value is Dictionary or not source_value is Dictionary:
-			continue
-		var target_node := (target_value as Dictionary).duplicate(true)
-		var source_node := source_value as Dictionary
-
-		# Keep DEFAULT/Dummy shoulder X/Z anchors so the arms still meet the wider
-		# torso. Everything below each shoulder uses Juno's proven local chain.
-		if node_name.begins_with("shoulder"):
-			_copy_node_transform_field(target_node, source_node, "dir")
-		else:
-			for field_name in ["pos", "dir", "pOff"]:
-				_copy_node_transform_field(target_node, source_node, field_name)
-
-		if node_name in DEFAULT_JUNO_ARM_GFX_NODES:
-			_copy_juno_gfx_mechanics(target_node, source_node, node_name)
-
-		_nodes[node_name] = target_node
-		copied_nodes += 1
-
-	_default_juno_arm_overlay_applied = copied_nodes >= 6
-	print("ALABASTER_DEFAULT_JUNO_ARM_OVERLAY copied_nodes=%d applied=%s" % [
-		copied_nodes,
-		str(_default_juno_arm_overlay_applied),
+func _install_default_arm_fit() -> void:
+	# Do not shorten DEFAULT to Juno's skeleton. The previous pass copied Juno's
+	# arm/hand node positions and removed 0.1875 world units from the chain. At
+	# source scale that is roughly three vertical screen pixels, exactly the short
+	# arm visible in Mechanic Lab. Start from Dummy's longer authored bones and
+	# modify only the four visual attachment roles below.
+	var fitted_sides := 0
+	for suffix_value in ["L", "R"]:
+		if _fit_default_arm_side(str(suffix_value)):
+			fitted_sides += 1
+	_default_arm_fit_applied = fitted_sides == 2
+	print("ALABASTER_DEFAULT_ARM_FIT sides=%d applied=%s policy=dummy_lengths_juno_attachments" % [
+		fitted_sides,
+		str(_default_arm_fit_applied),
 	])
 
 
-func _copy_node_transform_field(target_node: Dictionary, source_node: Dictionary, field_name: String) -> void:
-	if not source_node.has(field_name):
+func _fit_default_arm_side(suffix: String) -> bool:
+	var arm_name := "arm" + suffix
+	var hand_name := "hand" + suffix
+	var finger_name := "finger" + suffix
+	if not _nodes.has(arm_name) or not _nodes.has(hand_name) or not _nodes.has(finger_name):
+		return false
+
+	var arm_value: Variant = _nodes[arm_name]
+	var hand_value: Variant = _nodes[hand_name]
+	var finger_value: Variant = _nodes[finger_name]
+	if not arm_value is Dictionary or not hand_value is Dictionary or not finger_value is Dictionary:
+		return false
+
+	# arm:gfx0 = shoulder cap. Keep its exact DEFAULT/Dummy position, pivot,
+	# facing and refAngles. Only establish Juno's internal depth: the cap is one
+	# authored layer above the biceps connector, so the connector may tuck behind
+	# it without occupying the same physical screen position.
+	var arm_node := (arm_value as Dictionary).duplicate(true)
+	var arm_gfx_value: Variant = arm_node.get("gfx", [])
+	if not arm_gfx_value is Array:
+		return false
+	var arm_gfx := (arm_gfx_value as Array).duplicate(true)
+	if arm_gfx.size() < 2:
+		return false
+
+	var shoulder_value: Variant = arm_gfx[0]
+	if shoulder_value is Dictionary:
+		var shoulder := (shoulder_value as Dictionary).duplicate(true)
+		_set_gfx_billboard_value(shoulder, "zOrder", 1)
+		arm_gfx[0] = shoulder
+
+	# arm:gfx1 = the 8x12 biceps/upper-arm strip in DEFAULT. Anchor it at the arm
+	# node itself, i.e. at the elbow end of the shoulder->arm bone, exactly like
+	# Juno's connector. With Dummy's 0.375-long bone this puts the connector one
+	# source pixel lower than the previous Juno-length overlay. Its pivot stays at
+	# the same physical seven-pixel point Juno uses, converted to a 12-pixel tile.
+	var biceps_value: Variant = arm_gfx[1]
+	if biceps_value is Dictionary:
+		var biceps := (biceps_value as Dictionary).duplicate(true)
+		biceps["pos"] = [0.0, 0.0, 0.0]
+		_set_gfx_billboard_value(biceps, "pivotX", 0.375)
+		_set_gfx_billboard_value(biceps, "pivotY", DEFAULT_ARM_CONNECTOR_PIVOT_Y)
+		_set_gfx_billboard_value(biceps, "zOrder", 0)
+		_set_gfx_tex_rotate(biceps, "PARENT_ROTATE_CUT")
+		arm_gfx[1] = biceps
+
+	arm_node["gfx"] = arm_gfx
+	_nodes[arm_name] = arm_node
+
+	# hand:gfx0 is visually the forearm in this atlas. Keep Dummy's longer
+	# arm->hand bone (0.4375 instead of Juno's 0.3125) and put the graphic exactly
+	# on that wrist node. Relative to the previous overlay the wrist therefore
+	# descends by 0.125 world units, roughly two source-screen pixels. Juno's
+	# bottom pivot and PARENT_ROTATE_SCALE keep the forearm reaching back toward
+	# the elbow rather than piling up at the shoulder.
+	var hand_node := (hand_value as Dictionary).duplicate(true)
+	var hand_gfx_value: Variant = hand_node.get("gfx", [])
+	if hand_gfx_value is Array:
+		var hand_gfx := (hand_gfx_value as Array).duplicate(true)
+		if not hand_gfx.is_empty() and hand_gfx[0] is Dictionary:
+			var forearm := (hand_gfx[0] as Dictionary).duplicate(true)
+			forearm["pos"] = [0.0, 0.0, 0.0]
+			_set_gfx_billboard_value(forearm, "pivotX", 0.375)
+			_set_gfx_billboard_value(forearm, "pivotY", 1.0)
+			_set_gfx_billboard_value(forearm, "zOrder", 2)
+			_set_gfx_tex_rotate(forearm, "PARENT_ROTATE_SCALE")
+			hand_gfx[0] = forearm
+		hand_node["gfx"] = hand_gfx
+	_nodes[hand_name] = hand_node
+
+	# finger:gfx0 is the visible hand/fist. DEFAULT's finger bone remains intact,
+	# so sockets and animation data do not move. Removing the old +0.125 visual
+	# counter-offset lets the hand occupy the distal end of that bone instead of
+	# collapsing back onto the forearm. Its Juno-equivalent centered pivot gives a
+	# stable hand/forearm seam while keeping the authored directional cells.
+	var finger_node := (finger_value as Dictionary).duplicate(true)
+	var finger_gfx_value: Variant = finger_node.get("gfx", [])
+	if finger_gfx_value is Array:
+		var finger_gfx := (finger_gfx_value as Array).duplicate(true)
+		if not finger_gfx.is_empty() and finger_gfx[0] is Dictionary:
+			var hand_sprite := (finger_gfx[0] as Dictionary).duplicate(true)
+			hand_sprite["pos"] = [0.0, 0.0, 0.0]
+			_set_gfx_billboard_value(hand_sprite, "pivotX", 0.375)
+			_set_gfx_billboard_value(hand_sprite, "pivotY", 0.5)
+			_set_gfx_billboard_value(hand_sprite, "zOrder", 2)
+			_set_gfx_tex_rotate(hand_sprite, "PARENT_ROTATE")
+			finger_gfx[0] = hand_sprite
+		finger_node["gfx"] = finger_gfx
+	_nodes[finger_name] = finger_node
+	return true
+
+
+func _set_gfx_billboard_value(gfx: Dictionary, key: String, value: Variant) -> void:
+	var shape_value: Variant = gfx.get("shape", {})
+	if not shape_value is Dictionary:
 		return
-	var value: Variant = source_node[field_name]
-	if value is Array:
-		target_node[field_name] = (value as Array).duplicate(true)
-	elif value is Dictionary:
-		target_node[field_name] = (value as Dictionary).duplicate(true)
-	else:
-		target_node[field_name] = value
-
-
-func _copy_juno_gfx_mechanics(target_node: Dictionary, source_node: Dictionary, node_name: String) -> void:
-	var target_gfx_value: Variant = target_node.get("gfx", [])
-	var source_gfx_value: Variant = source_node.get("gfx", [])
-	if not target_gfx_value is Array or not source_gfx_value is Array:
-		return
-	var target_gfx := (target_gfx_value as Array).duplicate(true)
-	var source_gfx := source_gfx_value as Array
-	var copy_count := mini(target_gfx.size(), source_gfx.size())
-
-	# Juno has additional authored arm variants/layers that do not exist in the
-	# 672x120 DEFAULT atlas. Copy only mechanics for artwork DEFAULT already owns;
-	# never import Juno atlas coordinates into DEFAULT.
-	for gfx_index in range(copy_count):
-		var target_record_value: Variant = target_gfx[gfx_index]
-		var source_record_value: Variant = source_gfx[gfx_index]
-		if not target_record_value is Dictionary or not source_record_value is Dictionary:
-			continue
-		var target_record := (target_record_value as Dictionary).duplicate(true)
-		var source_record := source_record_value as Dictionary
-		var target_tile_size := _gfx_default_tile_size(target_record)
-		var source_tile_size := _gfx_default_tile_size(source_record)
-
-		if source_record.has("pos"):
-			var source_pos: Variant = source_record["pos"]
-			target_record["pos"] = (source_pos as Array).duplicate(true) if source_pos is Array else source_pos
-
-		# Shape owns the billboard pivot/cut/parenting behavior. Copy Juno's shape,
-		# then convert normalized pivots through pixel space because DEFAULT's
-		# forearm is 8x12 while Juno's joint segment is 8x8.
-		if source_record.get("shape", null) is Dictionary:
-			var source_shape := (source_record["shape"] as Dictionary).duplicate(true)
-			_adapt_shape_pivot_to_target_tile(source_shape, source_tile_size, target_tile_size)
-			target_record["shape"] = source_shape
-
-		target_gfx[gfx_index] = target_record
-
-	# The second arm graphic is the existing DEFAULT/Dummy forearm/joint artwork.
-	# Juno parents this segment's cut rotation to the arm, which keeps the pieces
-	# overlapped during motion instead of letting a shoulder/elbow gap open.
-	if (node_name == "armL" or node_name == "armR") and target_gfx.size() > 1:
-		var joint_value: Variant = target_gfx[1]
-		if joint_value is Dictionary:
-			var joint := (joint_value as Dictionary).duplicate(true)
-			_set_gfx_tex_rotate(joint, "PARENT_ROTATE_CUT")
-			target_gfx[1] = joint
-
-	target_node["gfx"] = target_gfx
-
-
-func _gfx_default_tile_size(gfx: Dictionary) -> Vector2:
-	var tex_value: Variant = gfx.get("tex", {})
-	if not tex_value is Dictionary:
-		return Vector2.ZERO
-	var multi_value: Variant = (tex_value as Dictionary).get("multi", {})
-	if not multi_value is Dictionary:
-		return Vector2.ZERO
-	var entries_value: Variant = (multi_value as Dictionary).get("entries", {})
-	if not entries_value is Dictionary:
-		return Vector2.ZERO
-	var entries := entries_value as Dictionary
-	var entry_value: Variant = entries.get("default", {})
-	if not entry_value is Dictionary:
-		return Vector2.ZERO
-	var range_value: Variant = (entry_value as Dictionary).get("range", [])
-	if not range_value is Array or (range_value as Array).size() < 4:
-		return Vector2.ZERO
-	var range_data := range_value as Array
-	return Vector2(float(range_data[2]), float(range_data[3]))
-
-
-func _adapt_shape_pivot_to_target_tile(shape: Dictionary, source_size: Vector2, target_size: Vector2) -> void:
-	if source_size.x <= 0.0 or source_size.y <= 0.0 or target_size.x <= 0.0 or target_size.y <= 0.0:
-		return
+	var shape := (shape_value as Dictionary).duplicate(true)
 	var billboard_value: Variant = shape.get("billboard", {})
 	if not billboard_value is Dictionary:
 		return
 	var billboard := (billboard_value as Dictionary).duplicate(true)
-	if billboard.has("pivotX"):
-		var pivot_px_x := float(billboard.get("pivotX", 0.5)) * source_size.x
-		billboard["pivotX"] = pivot_px_x / target_size.x
-	if billboard.has("pivotY"):
-		var pivot_px_y := float(billboard.get("pivotY", 0.5)) * source_size.y
-		billboard["pivotY"] = pivot_px_y / target_size.y
+	billboard[key] = value
 	shape["billboard"] = billboard
+	gfx["shape"] = shape
 
 
 func _set_gfx_tex_rotate(gfx: Dictionary, rotate_mode: String) -> void:
@@ -356,7 +338,7 @@ func get_runtime_summary() -> Dictionary:
 	result["default_base_atlas"] = DefaultRepoSkinSource.get_repo_atlas_path(BASE_PROFILE_ID)
 	result["default_authored_atlas"] = DEFAULT_ATLAS_PATH
 	result["default_has_independent_runtime_copy"] = true
-	result["default_juno_arm_overlay"] = _default_juno_arm_overlay_applied
-	result["default_arm_joint_policy"] = "Juno local arm-chain mechanics over DEFAULT atlas"
+	result["default_arm_fit_applied"] = _default_arm_fit_applied
+	result["default_arm_fit_policy"] = "Dummy bone lengths + Juno connector semantics"
 	result["default_pelvis_depth_policy"] = "bottom:gfx0 above legL/legR during locomotion"
 	return result
