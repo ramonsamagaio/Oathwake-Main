@@ -8,6 +8,7 @@ uniform vec4 palette_light : source_color;
 uniform vec4 palette_accent : source_color;
 uniform float band_strength : hint_range(0.0, 1.0) = 0.88;
 uniform float detail_strength : hint_range(0.0, 1.0) = 0.42;
+uniform float seed_phase = 0.0;
 uniform float scale_phase = 0.0;
 
 varying vec2 local_pixel;
@@ -42,7 +43,7 @@ void fragment() {
 		return;
 	}
 
-	vec2 p = floor(local_pixel);
+	vec2 p = floor(local_pixel + vec2(seed_phase * 11.0, seed_phase * 5.0));
 	float row = mod(p.y + floor(scale_phase * 2.0), 4.0);
 	float stagger = mod(p.x + floor(row * 0.5), 5.0);
 	float scale_glint = step(3.8, stagger) * step(1.0, row) * step(row, 2.9);
