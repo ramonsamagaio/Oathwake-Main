@@ -34,10 +34,16 @@ var external_force := Vector2.ZERO
 var _rng := RandomNumberGenerator.new()
 var _sim_accumulator := 0.0
 var _manual_lod_anchor: Node2D
+var _movement_bounds := Rect2()
+var _has_movement_bounds := false
+var _simulation_position := Vector2.ZERO
+var _presented_position := Vector2.ZERO
 
 
 func _ready() -> void:
 	_rng.seed = random_seed
+	_simulation_position = position
+	_presented_position = position
 	set_process(true)
 	queue_redraw()
 
@@ -59,13 +65,29 @@ func _process(delta: float) -> void:
 
 
 func _simulate(delta: float) -> void:
+	# Keep an unsnapped authoritative position. Snapping the Node2D itself every
+	# simulation tick used to erase movements smaller than pixel_size, which made
+	# low-speed autonomous creatures appear completely frozen.
+	if position.distance_squared_to(_presented_position) > 0.0001:
+		_simulation_position = position
+
 	velocity += external_force * delta
 	external_force = Vector2.ZERO
-	position += velocity * delta
+	_simulation_position += velocity * delta
+	_simulation_position = _clamp_point_to_movement_bounds(_simulation_position)
+	position = _snap_vec(_simulation_position) if quantize_motion else _simulation_position
+	_presented_position = position
 	velocity *= pow(0.88, delta * 60.0)
-	if quantize_motion:
-		position = _snap_vec(position)
+
 	_simulate_creature(delta)
+
+	# Some specialized solvers (the slime hop, for example) author position
+	# directly. Fold that displacement back into the continuous accumulator so
+	# the next simulation tick never snaps it backwards.
+	if position.distance_squared_to(_presented_position) > 0.0001:
+		_simulation_position = _clamp_point_to_movement_bounds(position)
+		position = _snap_vec(_simulation_position) if quantize_motion else _simulation_position
+		_presented_position = position
 
 
 func _simulate_creature(_delta: float) -> void:
@@ -80,6 +102,47 @@ func add_force(force: Vector2) -> void:
 	external_force += force * motion_intensity
 
 
+func set_movement_bounds(bounds: Rect2) -> void:
+	_movement_bounds = bounds
+	_has_movement_bounds = bounds.size.x > 0.0 and bounds.size.y > 0.0
+	if _has_movement_bounds:
+		_simulation_position = _clamp_point_to_movement_bounds(_simulation_position)
+		position = _snap_vec(_simulation_position) if quantize_motion else _simulation_position
+		_presented_position = position
+
+
+func clear_movement_bounds() -> void:
+	_has_movement_bounds = false
+	_movement_bounds = Rect2()
+
+
+func has_movement_bounds() -> bool:
+	return _has_movement_bounds
+
+
+func get_movement_bounds() -> Rect2:
+	return _movement_bounds
+
+
+func _clamp_point_to_movement_bounds(point: Vector2, margin: float = 0.0) -> Vector2:
+	if not _has_movement_bounds:
+		return point
+	var inner := _movement_bounds.grow(-maxf(0.0, margin))
+	if inner.size.x <= 0.0 or inner.size.y <= 0.0:
+		return _movement_bounds.get_center()
+	return Vector2(
+		clampf(point.x, inner.position.x, inner.end.x),
+		clampf(point.y, inner.position.y, inner.end.y)
+	)
+
+
+func _pick_roam_target(home: Vector2, radius: float, margin: float = 0.0) -> Vector2:
+	var angle := _rng.randf_range(0.0, TAU)
+	var distance := sqrt(_rng.randf()) * maxf(0.0, radius)
+	var target := home + Vector2(cos(angle), sin(angle)) * distance
+	return _clamp_point_to_movement_bounds(target, margin)
+
+
 func reseed(new_seed: int = -1) -> void:
 	if new_seed < 0:
 		new_seed = int(Time.get_ticks_usec() & 0x7fffffff)
@@ -92,6 +155,8 @@ func reseed(new_seed: int = -1) -> void:
 func _reset_simulation() -> void:
 	velocity = Vector2.ZERO
 	external_force = Vector2.ZERO
+	_simulation_position = position
+	_presented_position = position
 
 
 func set_lod_anchor(anchor: Node2D) -> void:
