@@ -48,7 +48,7 @@ func _validate_creature(path: String) -> void:
 	if script == null:
 		return
 
-	var creature := script.new()
+	var creature: Variant = script.new()
 	_check(creature != null, "%s failed to instantiate" % path)
 	if creature == null:
 		return
