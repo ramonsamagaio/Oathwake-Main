@@ -25,6 +25,13 @@ signal selected(body: BuoyantPixelBody2D)
 @export_range(2.0, 30.0, 0.5) var displacement_position_follow_hz: float = 16.0
 @export_range(0.0, 20.0, 0.5) var equilibrium_capture_hz: float = 7.0
 
+@export_category("Ground water pushing")
+@export var enable_ground_piston: bool = true
+@export_range(4.0, 30.0, 1.0) var ground_seal_tolerance_px: float = 12.0
+@export_range(0.0, 1.0, 0.05) var ground_piston_efficiency: float = 0.72
+@export_range(1.0, 80.0, 1.0) var ground_piston_min_speed_px_s: float = 14.0
+@export_range(0.5, 6.0, 0.1) var ground_piston_max_speed_m_s: float = 3.6
+
 var submerged_fraction: float = 0.0
 var predicted_submerged_fraction: float = 0.0
 var effective_density_kg_m3: float = 0.0
@@ -159,8 +166,6 @@ func _update_prediction() -> void:
     effective_density_kg_m3 = mass / maxf(object_volume_m3, 0.00001)
 
 func _sample_vertical_half_extent_px() -> float:
-    # Every sample represents a small patch of object area, not a binary point.
-    # Project that patch onto world Y so rotation remains smooth as well.
     var cols := maxf(float(maxi(sample_columns, 2)), 1.0)
     var rows := maxf(float(maxi(sample_rows, 2)), 1.0)
     var half_w := object_size_px.x / cols * 0.5
@@ -179,9 +184,6 @@ func _immersion_weight(world_point: Vector2, half_extent_px: float) -> float:
     if _water.depth_m_at(world_point.x) <= _water.dry_depth_m:
         return 0.0
 
-    # Buoyancy must read the ambient free surface, not the local rise
-    # caused by this body's own displaced-volume report. Otherwise a
-    # light floater forms a positive feedback loop with itself.
     var surface_y := _water.surface_y_for_body_at(
         world_point.x,
         get_instance_id()
@@ -203,10 +205,6 @@ func _physics_process(delta: float) -> void:
 
     _previous_submerged_fraction = submerged_fraction
 
-    # Continuous hydrostatic occupancy. The old binary test made one sample worth
-    # ~5% of the object, so a light floater at the waterline repeatedly jumped
-    # between discrete buoyancy states. Each sample now contributes continuously
-    # according to how much of its represented patch lies below the free surface.
     var half_extent_px := _sample_vertical_half_extent_px()
     var immersion_sum := 0.0
     for local_point in _sample_points:
@@ -247,11 +245,12 @@ func _physics_process(delta: float) -> void:
         _reported_displaced_volume_m3
     )
 
+    _apply_ground_piston_coupling(delta)
+
     if submerged_fraction <= 0.0005:
         last_buoyant_force = 0.0
         return
 
-    # Archimedes, integrated over the continuously submerged sample patches.
     var volume_per_sample := object_volume_m3 / float(_sample_points.size())
     var base_force_per_sample := (
         _water.water_density_kg_m3
@@ -273,7 +272,6 @@ func _physics_process(delta: float) -> void:
             world_point - global_position
         )
 
-    # Quadratic hydrodynamic drag: Fd = 1/2 rho Cd A v^2.
     var velocity_m_s: Vector2 = linear_velocity / pixels_per_meter
     var speed_m_s: float = velocity_m_s.length()
     if speed_m_s > 0.01:
@@ -310,9 +308,6 @@ func _physics_process(delta: float) -> void:
             drag_force_px = drag_force_px.normalized() * max_drag
         apply_central_force(drag_force_px)
 
-    # Heave/radiation damping grows with waterplane area. Wide, light
-    # floaters such as planks naturally dissipate vertical bobbing more
-    # strongly than compact bodies without freezing their horizontal motion.
     var floatiness := 1.0 - clampf(predicted_submerged_fraction, 0.0, 1.0)
     var aspect_ratio := maxf(
         object_size_px.x / maxf(object_size_px.y, 1.0),
@@ -331,8 +326,6 @@ func _physics_process(delta: float) -> void:
             -linear_velocity.y * mass * adaptive_heave * heave_factor
         ))
 
-    # Capture only the last tiny residual oscillation around hydrostatic
-    # equilibrium. This is a deadband, not a global damping increase.
     var equilibrium_fraction := clampf(predicted_submerged_fraction, 0.0, 1.0)
     var equilibrium_error := absf(submerged_fraction - equilibrium_fraction)
     if (
@@ -372,8 +365,6 @@ func _physics_process(delta: float) -> void:
             object_size_px.x
         )
 
-    # Floating bodies already disturb the conservative water field through their
-    # smoothly changing occupied volume. Do not layer another surge on every bob.
     if predicted_submerged_fraction >= 0.90:
         _report_displacement_change(density_ratio)
 
@@ -392,6 +383,88 @@ func _physics_process(delta: float) -> void:
             sink_ratio,
             delta
         )
+
+func _apply_ground_piston_coupling(delta: float) -> void:
+    if (
+        not enable_ground_piston
+        or _water == null
+        or delta <= 0.0
+        or absf(linear_velocity.x) < ground_piston_min_speed_px_s
+    ):
+        return
+
+    var vertical_half_extent := (
+        absf(cos(global_rotation)) * object_size_px.y * 0.5
+        + absf(sin(global_rotation)) * object_size_px.x * 0.5
+    )
+    var bottom_y := global_position.y + vertical_half_extent
+    var floor_y := _water.floor_y_at(global_position.x)
+    var floor_gap := absf(floor_y - bottom_y)
+    var seal := 1.0 - clampf(
+        floor_gap / maxf(ground_seal_tolerance_px, 1.0),
+        0.0,
+        1.0
+    )
+    if seal <= 0.02:
+        return
+
+    var direction := -1.0 if linear_velocity.x < 0.0 else 1.0
+    var horizontal_half_extent := (
+        absf(cos(global_rotation)) * object_size_px.x * 0.5
+        + absf(sin(global_rotation)) * object_size_px.y * 0.5
+    )
+    var front_x := global_position.x + direction * horizontal_half_extent
+    if front_x < _water.world_left or front_x >= _water.world_right:
+        return
+
+    var front_depth_m := _water.depth_m_at(front_x)
+    if front_depth_m <= _water.dry_depth_m:
+        return
+
+    # Swept-volume coupling for a floor-sealed moving solid.  The same water is
+    # extracted at the moving face and deposited just ahead, so this behaves like
+    # a piston/squeegee without creating mass or relying on a cosmetic wave.
+    var body_u := clampf(
+        linear_velocity.x / pixels_per_meter,
+        -ground_piston_max_speed_m_s,
+        ground_piston_max_speed_m_s
+    )
+    var body_height_m := object_size_px.y / pixels_per_meter
+    var wetted_height_m := minf(body_height_m, front_depth_m)
+    var swept_cross_section_m2 := maxf(
+        0.0,
+        wetted_height_m * physical_depth_m
+    )
+    var requested_m3 := (
+        swept_cross_section_m2
+        * absf(body_u)
+        * delta
+        * ground_piston_efficiency
+        * seal
+    )
+    requested_m3 = minf(requested_m3, object_volume_m3 * 0.085)
+    if requested_m3 <= 0.0000001:
+        return
+
+    var source_radius := maxf(object_size_px.x * 0.38, _water.cell_size_px * 2.0)
+    var moved := _water.extract_water_at(
+        front_x,
+        requested_m3,
+        source_radius
+    )
+    if moved <= 0.0:
+        return
+
+    var target_x := (
+        front_x
+        + direction * maxf(object_size_px.x * 0.30, _water.cell_size_px * 2.0)
+    )
+    _water.deposit_water_at(
+        target_x,
+        moved,
+        body_u * 0.92,
+        maxf(object_size_px.x * 0.42, _water.cell_size_px * 2.0)
+    )
 
 func _report_displacement_change(density_ratio: float = 1.0) -> void:
     if _water == null:
