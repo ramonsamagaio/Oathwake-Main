@@ -41,15 +41,13 @@ func _reset_simulation() -> void:
 
 
 func _choose_roam_target() -> void:
-	var angle := _rng.randf_range(0.0, TAU)
-	var radius := sqrt(_rng.randf()) * roam_radius
-	_roam_target = _home_position + Vector2(cos(angle), sin(angle)) * radius
+	_roam_target = _pick_roam_target(_home_position, roam_radius, body_radius * global_scale_factor + 10.0)
 	_retarget_clock = _rng.randf_range(retarget_min_time, maxf(retarget_min_time, retarget_max_time))
 
 
 func _update_roaming(delta: float) -> void:
 	if not auto_crawl or crawl_speed <= 0.0:
-		velocity = velocity.move_toward(Vector2.ZERO, crawl_speed * delta * 4.0)
+		velocity = velocity.move_toward(Vector2.ZERO, maxf(1.0, crawl_speed) * delta * 6.0)
 		return
 
 	_retarget_clock -= delta
@@ -59,12 +57,14 @@ func _update_roaming(delta: float) -> void:
 		to_target = _roam_target - position
 
 	if position.distance_to(_home_position) > roam_radius * 1.08:
-		_roam_target = _home_position
-		to_target = _home_position - position
+		_roam_target = _clamp_point_to_movement_bounds(_home_position, body_radius * global_scale_factor + 10.0)
+		to_target = _roam_target - position
 
 	if to_target.length_squared() > 0.001:
 		var desired := to_target.normalized()
-		_heading = _heading.lerp(desired, clampf(delta * turn_speed, 0.0, 1.0)).normalized()
+		_heading = _heading.lerp(desired, clampf(delta * turn_speed, 0.0, 1.0))
+		if _heading.length_squared() > 0.001:
+			_heading = _heading.normalized()
 	velocity = _heading * crawl_speed
 
 
@@ -77,7 +77,10 @@ func apply_impulse(impulse: Vector2) -> void:
 	super.apply_impulse(impulse)
 	if impulse.length_squared() > 4.0:
 		_heading = impulse.normalized()
-		_roam_target = position + _heading * minf(roam_radius, impulse.length() * 0.8)
+		_roam_target = _clamp_point_to_movement_bounds(
+			position + _heading * minf(roam_radius, impulse.length() * 0.8),
+			body_radius * global_scale_factor + 10.0
+		)
 		_retarget_clock = 0.8
 
 
