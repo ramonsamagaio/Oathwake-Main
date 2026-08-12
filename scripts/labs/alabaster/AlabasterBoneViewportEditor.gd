@@ -2,9 +2,12 @@ extends Control
 class_name AlabasterBoneViewportEditor
 
 signal bone_selected(bone_name: String)
+signal bone_transform_started(bone_name: String)
 signal bone_transform_delta(bone_name: String, transform_mode: String, delta_value: Vector3)
+signal bone_transform_finished(bone_name: String)
 signal orbit_delta(yaw_delta: float, pitch_delta: float)
 signal zoom_requested(factor: float)
+signal pan_requested(delta: Vector2)
 
 const MODE_MOVE := "move"
 const MODE_ROTATE := "rotate"
@@ -23,6 +26,7 @@ var camera_locked := true
 var selected_bone := ""
 var _dragging_bone := false
 var _orbiting := false
+var _panning := false
 var _last_mouse := Vector2.ZERO
 
 
@@ -119,12 +123,22 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var button := event as InputEventMouseButton
 		if button.button_index == MOUSE_BUTTON_WHEEL_UP and button.pressed:
-			zoom_requested.emit(1.10)
+			zoom_requested.emit(1.15)
 			accept_event()
 			return
 		if button.button_index == MOUSE_BUTTON_WHEEL_DOWN and button.pressed:
-			zoom_requested.emit(1.0 / 1.10)
+			zoom_requested.emit(1.0 / 1.15)
 			accept_event()
+			return
+		if button.button_index == MOUSE_BUTTON_MIDDLE:
+			if button.pressed:
+				_panning = true
+				_last_mouse = button.position
+				grab_focus()
+				accept_event()
+			else:
+				_panning = false
+				accept_event()
 			return
 		if button.button_index == MOUSE_BUTTON_LEFT:
 			if button.pressed:
@@ -134,10 +148,13 @@ func _gui_input(event: InputEvent) -> void:
 					bone_selected.emit(picked)
 					_dragging_bone = true
 					_last_mouse = button.position
+					bone_transform_started.emit(picked)
 					grab_focus()
 					queue_redraw()
 					accept_event()
 			else:
+				if _dragging_bone and not selected_bone.is_empty():
+					bone_transform_finished.emit(selected_bone)
 				_dragging_bone = false
 			return
 		if button.button_index == MOUSE_BUTTON_RIGHT:
@@ -152,6 +169,12 @@ func _gui_input(event: InputEvent) -> void:
 
 	if event is InputEventMouseMotion:
 		var motion := event as InputEventMouseMotion
+		if _panning:
+			var pan_delta := motion.position - _last_mouse
+			_last_mouse = motion.position
+			pan_requested.emit(pan_delta)
+			accept_event()
+			return
 		if _dragging_bone and not selected_bone.is_empty():
 			var pixel_delta := motion.position - _last_mouse
 			_last_mouse = motion.position
@@ -170,9 +193,9 @@ func _gui_input(event: InputEvent) -> void:
 			accept_event()
 			return
 		if _orbiting and not camera_locked:
-			var pixel_delta := motion.position - _last_mouse
+			var orbit_motion := motion.position - _last_mouse
 			_last_mouse = motion.position
-			orbit_delta.emit(pixel_delta.x * 0.35, pixel_delta.y * 0.25)
+			orbit_delta.emit(orbit_motion.x * 0.35, orbit_motion.y * 0.25)
 			accept_event()
 
 
