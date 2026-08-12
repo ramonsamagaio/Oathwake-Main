@@ -17,6 +17,9 @@ signal selected(body: BuoyantPixelBody2D)
 @export_range(3, 11, 1) var sample_columns: int = 5
 @export_range(3, 11, 1) var sample_rows: int = 4
 @export var pixels_per_meter: float = 100.0
+@export_range(0.5, 2.0, 0.05) var immersion_cell_softness: float = 1.0
+@export_range(0.0, 8.0, 0.1) var vertical_heave_damping: float = 2.2
+@export_range(2.0, 30.0, 0.5) var displacement_follow_hz: float = 13.0
 
 var submerged_fraction: float = 0.0
 var predicted_submerged_fraction: float = 0.0
@@ -30,6 +33,7 @@ var _previous_submerged_fraction := 0.0
 var _material_color := Color("#b97943")
 var _spawn_transform: Transform2D
 var _surface_impact_cooldown := 0.0
+var _reported_displaced_volume_m3 := 0.0
 
 func _ready() -> void:
     collision_layer = 2
@@ -140,6 +144,31 @@ func _update_prediction() -> void:
     predicted_submerged_fraction = mass / maxf(displaced_mass_capacity, 0.0001)
     effective_density_kg_m3 = mass / maxf(object_volume_m3, 0.00001)
 
+func _sample_vertical_half_extent_px() -> float:
+    # Every sample represents a small patch of object area, not a binary point.
+    # Project that patch onto world Y so rotation remains smooth as well.
+    var cols := maxf(float(maxi(sample_columns, 2)), 1.0)
+    var rows := maxf(float(maxi(sample_rows, 2)), 1.0)
+    var half_w := object_size_px.x / cols * 0.5
+    var half_h := object_size_px.y / rows * 0.5
+    var projected := (
+        absf(sin(global_rotation)) * half_w
+        + absf(cos(global_rotation)) * half_h
+    )
+    return maxf(1.5, projected * immersion_cell_softness)
+
+func _immersion_weight(world_point: Vector2, half_extent_px: float) -> float:
+    if _water == null:
+        return 0.0
+    if world_point.x < _water.world_left or world_point.x >= _water.world_right:
+        return 0.0
+    if _water.depth_m_at(world_point.x) <= _water.dry_depth_m:
+        return 0.0
+
+    var surface_y := _water.surface_y_at(world_point.x)
+    var signed_depth_px := world_point.y - surface_y
+    return smoothstep(-half_extent_px, half_extent_px, signed_depth_px)
+
 func _physics_process(delta: float) -> void:
     _surface_impact_cooldown = maxf(0.0, _surface_impact_cooldown - delta)
     if (
@@ -153,43 +182,63 @@ func _physics_process(delta: float) -> void:
         return
 
     _previous_submerged_fraction = submerged_fraction
-    var submerged_points: Array[Vector2] = []
 
+    # Continuous hydrostatic occupancy. The old binary test made one sample worth
+    # ~5% of the object, so a light floater at the waterline repeatedly jumped
+    # between discrete buoyancy states. Each sample now contributes continuously
+    # according to how much of its represented patch lies below the free surface.
+    var half_extent_px := _sample_vertical_half_extent_px()
+    var immersion_sum := 0.0
     for local_point in _sample_points:
-        var world_point := to_global(local_point)
-        if _water.contains_point(world_point):
-            submerged_points.append(world_point)
+        immersion_sum += _immersion_weight(to_global(local_point), half_extent_px)
 
-    submerged_fraction = float(submerged_points.size()) / float(_sample_points.size())
+    submerged_fraction = clampf(
+        immersion_sum / float(maxi(_sample_points.size(), 1)),
+        0.0,
+        1.0
+    )
     _update_prediction()
 
-    var displaced_volume: float = object_volume_m3 * submerged_fraction
+    var displaced_volume := object_volume_m3 * submerged_fraction
+    var follow := 1.0 - exp(-maxf(displacement_follow_hz, 0.01) * delta)
+    _reported_displaced_volume_m3 = lerpf(
+        _reported_displaced_volume_m3,
+        displaced_volume,
+        clampf(follow, 0.0, 1.0)
+    )
+    if _reported_displaced_volume_m3 < 0.0000001:
+        _reported_displaced_volume_m3 = 0.0
+
     _water.report_displacement(
         get_instance_id(),
         global_position.x,
         object_size_px.x,
-        displaced_volume
+        _reported_displaced_volume_m3
     )
 
-    if submerged_points.is_empty():
+    if submerged_fraction <= 0.0005:
         last_buoyant_force = 0.0
-        _report_displacement_change()
         return
 
-    # Archimedes: Fb = rho * g * displaced volume. Forces are applied at sampled
-    # points so an unevenly submerged body receives a real stabilizing torque.
-    var volume_per_sample: float = object_volume_m3 / float(_sample_points.size())
-    var force_per_sample: float = (
+    # Archimedes, integrated over the continuously submerged sample patches.
+    var volume_per_sample := object_volume_m3 / float(_sample_points.size())
+    var base_force_per_sample := (
         _water.water_density_kg_m3
         * _water.gravity_px_s2
         * volume_per_sample
         * buoyancy_multiplier
     )
-    last_buoyant_force = force_per_sample * float(submerged_points.size())
+    last_buoyant_force = 0.0
 
-    for world_point in submerged_points:
+    for local_point in _sample_points:
+        var world_point := to_global(local_point)
+        var weight := _immersion_weight(world_point, half_extent_px)
+        if weight <= 0.0005:
+            continue
+        var sample_force := base_force_per_sample * weight
+        last_buoyant_force += sample_force
         apply_force(
-            Vector2(0.0, -force_per_sample),
+            Vector2(0.0, -sample_force),
             world_point - global_position
         )
 
@@ -230,6 +279,15 @@ func _physics_process(delta: float) -> void:
             drag_force_px = drag_force_px.normalized() * max_drag
         apply_central_force(drag_force_px)
 
+    # Heave/radiation damping is a real energy-loss mechanism for a floating body.
+    # It damps vertical bobbing without suppressing horizontal water flow or waves.
+    if vertical_heave_damping > 0.0 and absf(linear_velocity.y) > 0.05:
+        var heave_factor := sqrt(clampf(submerged_fraction, 0.0, 1.0))
+        apply_central_force(Vector2(
+            0.0,
+            -linear_velocity.y * mass * vertical_heave_damping * heave_factor
+        ))
+
     apply_torque(-angular_velocity * mass * 115.0 * submerged_fraction)
 
     var density_ratio := clampf(
@@ -238,15 +296,15 @@ func _physics_process(delta: float) -> void:
         1.0
     )
     var just_entered := (
-        _previous_submerged_fraction < 0.015
-        and submerged_fraction >= 0.08
+        _previous_submerged_fraction < 0.02
+        and submerged_fraction >= 0.10
     )
     if (
         just_entered
-        and linear_velocity.y > 65.0
+        and linear_velocity.y > 75.0
         and _surface_impact_cooldown <= 0.0
     ):
-        _surface_impact_cooldown = 0.42
+        _surface_impact_cooldown = 0.48
         _water.register_object_impact(
             global_position.x,
             mass,
@@ -255,10 +313,19 @@ func _physics_process(delta: float) -> void:
             object_size_px.x
         )
 
-    _report_displacement_change(density_ratio)
+    # Floating bodies already disturb the conservative water field through their
+    # smoothly changing occupied volume. Do not layer another surge on every bob.
+    if predicted_submerged_fraction >= 0.90:
+        _report_displacement_change(density_ratio)
 
     var sink_ratio := maxf(0.0, predicted_submerged_fraction - 1.0)
-    if linear_velocity.length_squared() > 3600.0 or sink_ratio > 0.10:
+    if (
+        sink_ratio > 0.10
+        or (
+            submerged_fraction > 0.68
+            and linear_velocity.length_squared() > 6400.0
+        )
+    ):
         _water.register_underwater_motion(
             global_position,
             linear_velocity * density_ratio,
@@ -271,7 +338,7 @@ func _report_displacement_change(density_ratio: float = 1.0) -> void:
     if _water == null:
         return
     var fraction_delta := submerged_fraction - _previous_submerged_fraction
-    if absf(fraction_delta) < 0.05 or absf(linear_velocity.y) < 85.0:
+    if absf(fraction_delta) < 0.075 or absf(linear_velocity.y) < 110.0:
         return
     _water.register_displacement_surge(
         global_position.x,
@@ -323,6 +390,7 @@ func reset_to_spawn() -> void:
     angular_velocity = 0.0
     submerged_fraction = 0.0
     _previous_submerged_fraction = 0.0
+    _reported_displaced_volume_m3 = 0.0
     await get_tree().physics_frame
     freeze = false
     sleeping = false
