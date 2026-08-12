@@ -26,7 +26,9 @@ jobs:
         run: |
           set -euo pipefail
           cat .tmp/pixel-water-patch/part00 \
-              .tmp/pixel-water-patch/part01 \
+              .tmp/pixel-water-patch/part01a1 \
+              .tmp/pixel-water-patch/part01a2 \
+              .tmp/pixel-water-patch/part01b \
               .tmp/pixel-water-patch/part02 \
               .tmp/pixel-water-patch/part03 \
               .tmp/pixel-water-patch/part04 > /tmp/pixel-water-refactor.b64
