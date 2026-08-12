@@ -1,0 +1,153 @@
+name: Build Pixel Water Simulator Windows Test
+
+on:
+  push:
+    branches:
+      - tmp-pixel-water-build-20260811
+    paths:
+      - ".tmp/pixel-water/**"
+      - ".github/workflows/build-pixel-water-simulator-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout temporary build branch
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.3 Windows
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          Invoke-WebRequest -Uri "https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_win64.exe.zip" -OutFile "godot.zip"
+          Expand-Archive -LiteralPath "godot.zip" -DestinationPath "godot-bin" -Force
+          $godot = Get-ChildItem -Path "godot-bin" -Filter "Godot_v4.3-stable_win64.exe" -Recurse | Select-Object -First 1
+          if (-not $godot) { throw "Godot executable not found" }
+          Copy-Item $godot.FullName "godot.exe" -Force
+          .\godot.exe --version
+
+      - name: Parse and smoke-test simulator
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Continue"
+          .\godot.exe --headless --path ".tmp\pixel-water" --editor --quit-after 8 2>&1 | Tee-Object -FilePath "editor.log"
+          $editorCode = $LASTEXITCODE
+          .\godot.exe --headless --path ".tmp\pixel-water" --quit-after 8 2>&1 | Tee-Object -FilePath "runtime.log"
+          $runtimeCode = $LASTEXITCODE
+          $log = (Get-Content "editor.log" -Raw) + "`n" + (Get-Content "runtime.log" -Raw)
+          if ($editorCode -ne 0 -or $runtimeCode -ne 0 -or $log -match "Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access") {
+            Write-Host $log
+            throw "Godot smoke test failed (editor=$editorCode runtime=$runtimeCode)"
+          }
+
+      - name: Assemble portable Windows folder
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path "dist\project" | Out-Null
+          Copy-Item ".tmp\pixel-water\*" "dist\project" -Recurse -Force
+          Remove-Item "dist\project\.godot" -Recurse -Force -ErrorAction SilentlyContinue
+          Copy-Item ".\godot.exe" "dist\pixel_water_runtime.exe" -Force
+
+      - name: Build double-click launcher
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $source = @'
+          using System;
+          using System.Diagnostics;
+          using System.IO;
+          using System.Windows.Forms;
+
+          internal static class PixelWaterLauncher
+          {
+              [STAThread]
+              private static int Main(string[] args)
+              {
+                  string dir = AppDomain.CurrentDomain.BaseDirectory;
+                  string runtime = Path.Combine(dir, "pixel_water_runtime.exe");
+                  string project = Path.Combine(dir, "project");
+                  if (!File.Exists(runtime) || !File.Exists(Path.Combine(project, "project.godot")))
+                  {
+                      MessageBox.Show("Arquivos do simulador nao encontrados. Extraia o ZIP inteiro antes de executar.", "Pixel Water Simulator", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                      return 2;
+                  }
+                  var psi = new ProcessStartInfo();
+                  psi.FileName = runtime;
+                  psi.WorkingDirectory = dir;
+                  psi.UseShellExecute = false;
+                  psi.Arguments = "--path \"" + project + "\"";
+                  if (args != null && args.Length > 0)
+                      psi.Arguments += " " + String.Join(" ", Array.ConvertAll(args, Quote));
+                  try
+                  {
+                      using (var p = Process.Start(psi))
+                      {
+                          if (p == null) return 3;
+                          p.WaitForExit();
+                          return p.ExitCode;
+                      }
+                  }
+                  catch (Exception ex)
+                  {
+                      MessageBox.Show(ex.Message, "Pixel Water Simulator");
+                      return 4;
+                  }
+              }
+
+              private static string Quote(string value)
+              {
+                  if (value == null) return "\"\"";
+                  return "\"" + value.Replace("\"", "\\\"") + "\"";
+              }
+          }
+          '@
+          Set-Content -Path "PixelWaterLauncher.cs" -Value $source -Encoding utf8
+          $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          if (-not (Test-Path $csc)) { throw "C# compiler not found" }
+          & $csc /nologo /target:winexe /optimize+ /reference:System.Windows.Forms.dll /out:"dist\Pixel Water Simulator.exe" "PixelWaterLauncher.cs"
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path "dist\Pixel Water Simulator.exe")) { throw "Launcher compile failed" }
+
+      - name: Verify double-click build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Continue"
+          Push-Location "dist"
+          & ".\Pixel Water Simulator.exe" --headless --quit-after 5
+          $code = $LASTEXITCODE
+          Pop-Location
+          if ($code -ne 0) { throw "Portable launcher smoke test failed ($code)" }
+
+      - name: Add instructions and package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          @"
+          PIXEL WATER SIMULATOR - WINDOWS TEST BUILD
+
+          1. Extraia o ZIP inteiro para uma pasta.
+          2. Dê dois cliques em: Pixel Water Simulator.exe
+          3. Este pacote de teste ja inclui o runtime necessario.
+
+          A pasta project contem o projeto Godot editavel.
+          "@ | Set-Content -Path "dist\LEIA-ME.txt" -Encoding utf8
+          @"
+          Pixel Water Simulator Windows Test
+          Godot 4.3-stable / Windows x86_64
+          CI smoke-tested before packaging.
+          "@ | Set-Content -Path "dist\BUILD_INFO.txt" -Encoding utf8
+          Compress-Archive -Path "dist\*" -DestinationPath "Pixel-Water-Simulator-Windows-Test.zip" -CompressionLevel Optimal -Force
+
+      - name: Upload Windows test build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pixel-Water-Simulator-Windows-Test
+          path: Pixel-Water-Simulator-Windows-Test.zip
+          retention-days: 3
+          if-no-files-found: error
