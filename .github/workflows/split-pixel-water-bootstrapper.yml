@@ -1,0 +1,41 @@
+name: Split Pixel Water Bootstrapper
+
+on:
+  push:
+    branches:
+      - tmp-pixel-water-build-20260811
+    paths:
+      - ".github/workflows/split-pixel-water-bootstrapper.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  split:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Split base64 into retrievable chunks
+        shell: python
+        run: |
+          from pathlib import Path
+          src = Path('.tmp-build-output/pixel-water-bootstrapper.b64').read_text().strip()
+          out = Path('.tmp-build-output/bootstrapper-parts')
+          out.mkdir(parents=True, exist_ok=True)
+          for old in out.glob('part-*.txt'):
+              old.unlink()
+          chunk_size = 1800
+          parts = [src[i:i+chunk_size] for i in range(0, len(src), chunk_size)]
+          for i, part in enumerate(parts):
+              (out / f'part-{i:03d}.txt').write_text(part)
+          (out / 'manifest.txt').write_text(f'chars={len(src)}\nparts={len(parts)}\nchunk_size={chunk_size}\n')
+      - name: Commit chunks
+        shell: bash
+        run: |
+          git config user.name "Pixel Water Bootstrapper Builder"
+          git config user.email "actions@users.noreply.github.com"
+          git add .tmp-build-output/bootstrapper-parts
+          git commit -m "chore: split bootstrapper for retrieval [skip ci]"
+          git push
