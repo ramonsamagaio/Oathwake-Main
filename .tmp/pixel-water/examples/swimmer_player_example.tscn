@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://examples/swimmer_player_example.gd" id="1_player"]
+[ext_resource type="PackedScene" path="res://addons/pixel_water/water_swimmer_2d.tscn" id="2_swimmer"]
+
+[sub_resource type="CapsuleShape2D" id="Capsule_player"]
+radius = 10.0
+height = 36.0
+
+[node name="SwimmerPlayerExample" type="CharacterBody2D"]
+script = ExtResource("1_player")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("Capsule_player")
+
+[node name="Visual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-10, -18, 10, -18, 10, 18, -10, 18)
+color = Color(0.94, 0.75, 0.35, 1)
+
+[node name="WaterSwimmer2D" parent="." instance=ExtResource("2_swimmer")]

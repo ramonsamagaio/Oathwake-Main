@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://addons/pixel_water/water_buoyancy_2d.tscn" id="1_buoyancy"]
+
+[sub_resource type="RectangleShape2D" id="Rectangle_platform"]
+size = Vector2(120, 18)
+
+[node name="FloatingPlatformExample" type="RigidBody2D"]
+mass = 5.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("Rectangle_platform")
+
+[node name="Visual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-60, -9, 60, -9, 60, 9, -60, 9)
+color = Color(0.45, 0.67, 0.38, 1)
+
+[node name="WaterBuoyancy2D" parent="." instance=ExtResource("1_buoyancy")]

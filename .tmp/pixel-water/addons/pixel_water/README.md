@@ -1,101 +1,170 @@
-# Pixel Water Simulator
+# Pixel Water Simulator for Godot 4.x
 
-Lightweight, physically-inspired pixel water for Godot 4.x side-view games.
+Lightweight side-view pixel water with buoyancy, displacement, overflow, waterfalls, buckets, foam and shallow-water flow.
 
-## What changed in the unified solver
+## QUICK INSTALL INTO AN EXISTING GAME
 
-The water is now one continuous simulation domain. Deep basins, shallow water on platforms, overflow, and secondary pits are all horizontal cells in the same shallow-water world. There is no separate puddle implementation and no special invisible barrier at basin edges.
+### 1. Copy the addon
 
-The core tracks water depth and horizontal momentum with a conservative finite-volume shallow-water approximation, hydrostatic reconstruction across terrain steps, CFL sub-stepping, wet/dry cells, bottom/turbulent friction, transported spray, object displacement, buoyancy, wakes, foam, and bubbles.
-
-Gravity is part of the pressure-wave dynamics. Wave energy is dissipated by bottom/turbulent friction rather than by forcing the surface back to an arbitrary rest line.
-
-## Install
-
-Copy:
+Copy this whole folder into your project:
 
 `addons/pixel_water/`
 
-Instance:
+Do not separate the files inside it.
 
-`pixel_water_world.tscn`
+### 2. Add the water world to your level
 
-The main runtime class is:
+Drag this scene into your gameplay level:
 
-`PixelWaterWorld2D`
+`addons/pixel_water/pixel_water_world.tscn`
 
-Older names `PixelWaterContainer2D`, `PixelWaterSimulator2D`, and `PixelWaterSimulatorV2` remain as compatibility aliases.
+The reusable runtime node is `PixelWaterWorld2D`.
 
-## Terrain and initial water
+For the fastest setup, copy `_configure_water_world()` from `demo/main.gd` into your level script and change the floor / water coordinates to match your level. The demo is only a reference; it is not required in your final game.
 
-Configure a world with floor segments and initial water regions:
+---
+
+# MAKE AN EXISTING OBJECT / PLATFORM FLOAT
+
+Your object can keep its own `RigidBody2D`, script, sprites and collision.
+
+Just drag this scene as a CHILD of the existing `RigidBody2D`:
+
+`addons/pixel_water/water_buoyancy_2d.tscn`
+
+Example:
+
+```text
+FloatingPlatform (RigidBody2D)   <- your existing object/script
+├── Sprite2D
+├── CollisionShape2D
+└── WaterBuoyancy2D              <- add this
+```
+
+That's it.
+
+`WaterBuoyancy2D` automatically reads the parent's collision shape and mass, then adds buoyancy, drag, water displacement, surface stability and shallow-water pushing without replacing the object's script.
+
+- Lower mass / larger volume = floats higher
+- Higher mass / smaller volume = sinks lower
+- The component works with the object's existing collisions and gameplay code
+- If the collision changes at runtime, call `WaterBuoyancy2D.refresh_geometry()`
+
+Example scene:
+
+`examples/floating_platform_example.tscn`
+
+Do NOT add `WaterBuoyancy2D` to an object that already inherits `BuoyantPixelBody2D`; the original demo bodies already contain their own buoyancy implementation.
+
+---
+
+# MAKE AN EXISTING CHARACTER SWIM
+
+Your player can keep its existing `CharacterBody2D` controller.
+
+Drag this scene as a CHILD of the player:
+
+`addons/pixel_water/water_swimmer_2d.tscn`
+
+Example:
+
+```text
+Player (CharacterBody2D)         <- your existing player/script
+├── Sprite2D
+├── CollisionShape2D
+└── WaterSwimmer2D               <- add this
+```
+
+Then add ONE line to the player's existing `_physics_process()` after normal movement / gravity code and immediately before `move_and_slide()`:
 
 ```gdscript
-water.configure_world(
-    [
-        {"left": 170.0, "right": 790.0, "floor_y": 500.0},
-        {"left": 970.0, "right": 1120.0, "floor_y": 430.0}
-    ],
-    [
-        {"left": 170.0, "right": 790.0, "surface_y": 275.0},
-        {"left": 970.0, "right": 1120.0, "surface_y": 405.0}
-    ]
+velocity = $WaterSwimmer2D.apply_water_motion(velocity, delta)
+move_and_slide()
+```
+
+That's the complete swimming integration.
+
+The component automatically detects the water surface and character collision, slows movement underwater, adds buoyancy, supports swim-up / swim-down input, displaces water and exposes water state signals.
+
+Default swim controls use:
+
+- `ui_accept` = swim up
+- `ui_down` = swim down
+
+You can change both actions in the Inspector.
+
+If your controller already handles its own swimming input, use:
+
+```gdscript
+velocity = $WaterSwimmer2D.apply_water_motion_with_axis(
+    velocity,
+    delta,
+    vertical_swim_axis
 )
 ```
 
-Every x-position not covered by a floor segment uses `default_floor_y`.
+Where `-1` is up and `+1` is down.
 
-A tall floor step behaves as a physical rim because of the terrain elevation itself. If the free surface rises above the rim, the same solver carries water over it. Once outside, that water continues obeying the same depth/momentum equations and can flow into another lower region.
+Example player:
 
-Your game should still provide matching `StaticBody2D`, TileMap, or other collision geometry for solid terrain so rigid bodies cannot overlap walls/floors.
+`examples/swimmer_player_example.tscn`
 
-## Water conservation APIs
+---
 
-Useful runtime methods:
+# USE WATER STATE IN GAMEPLAY
 
-- `water_volume_liters()`
-- `volume_liters_in_range(left_x, right_x)`
+`WaterSwimmer2D` exposes:
+
+```gdscript
+$WaterSwimmer2D.is_in_water()
+$WaterSwimmer2D.get_submersion()
+$WaterSwimmer2D.get_surface_y()
+$WaterSwimmer2D.is_head_underwater()
+```
+
+Signals:
+
+- `entered_water`
+- `exited_water`
+- `head_submerged`
+- `head_emerged`
+- `submersion_changed`
+
+Useful for swimming animations, breath meters, sound, underwater VFX, damage zones, etc.
+
+---
+
+# OPTIONAL WATER APIs
+
+The water world also exposes:
+
 - `surface_y_at(x)`
 - `floor_y_at(x)`
 - `depth_m_at(x)`
 - `contains_point(point)`
-- `extract_water_at(x, volume_m3, radius_px)`
-- `deposit_water_at(x, volume_m3, incoming_horizontal_velocity_m_s, radius_px)`
-- `emit_water_stream(point, volume_m3, velocity_px_s, particle_count)`
+- `water_volume_liters()`
+- `extract_water_at(...)`
+- `deposit_water_at(...)`
+- `emit_water_stream(...)`
 
-`extract_water_at` and `deposit_water_at` are intended for pumps, buckets, pipes, spells, drains, faucets, rain systems, and similar gameplay systems while preserving tracked water volume.
+These are useful for pumps, pipes, rain, spells, drains and custom containers.
 
-## Buoyant bodies
+---
 
-`BuoyantPixelBody2D` uses sampled Archimedes buoyancy, quadratic hydrodynamic drag, local torque, material density, object displacement, splash energy, wakes, foam, and bubbles.
+# FILES YOU ACTUALLY NEED
 
-Object displacement is reported to the water world as occupied volume. Multiple submerged objects therefore reduce available storage simultaneously and raise/redistribute the water naturally. RigidBody2D collision keeps the objects themselves from occupying the same physical space.
+For your game, copy only:
 
-Use `InteractiveBuoyantPixelBody2D` for the included physical mouse grab. It remains a normal RigidBody2D while held and is pulled toward the cursor with a spring-damper force.
+`addons/pixel_water/`
 
-## Transparent bucket
+The `demo/` and `examples/` folders are references and can be deleted from your final project.
 
-`WaterBucket2D` is an open-topped U-shaped RigidBody2D with visible contained water.
+## Fastest possible workflow
 
-When its opening goes below the outside free surface, it equalizes toward the surrounding water level and removes that volume from the world. The water mass increases the bucket's total mass.
+1. Copy `addons/pixel_water/`
+2. Add `pixel_water_world.tscn` to your level
+3. Copy the demo water configuration and change the coordinates
+4. Add `WaterBuoyancy2D` under any `RigidBody2D` that should float
+5. Add `WaterSwimmer2D` under the player + one line before `move_and_slide()`
 
-When tilted past the lip angle, the bucket emits conservative transported water parcels. Those parcels fall under gravity and rejoin the same world solver wherever they land, including another basin or a shallow platform.
-
-## Demo
-
-The demo contains:
-
-- a large main basin
-- a smaller secondary basin with less initial water
-- a transparent 16 L transfer bucket
-- the original material test objects
-- spawn controls for creating additional copies of every object/bucket
-- live volume readouts for the main basin, small basin, bucket contents, and world water
-- physical object grabbing
-- right-mouse camera panning
-
-Repeated bucket transfers visibly lower one basin and raise the other. Spawning and submerging many rigid bodies also occupies volume and raises the water.
-
-## Why shallow water instead of full CFD
-
-This asset targets pixel-art gameplay and solo-dev budgets. It does not solve full 3D Navier-Stokes. The core uses a conservative 1D shallow-water approximation across a side-view terrain profile, which captures gravity-driven free-surface flow, wetting/drying, basin transfer, overflow, wave propagation, and momentum at a fraction of the cost of general fluid simulation.
+No solver code needs to be edited.

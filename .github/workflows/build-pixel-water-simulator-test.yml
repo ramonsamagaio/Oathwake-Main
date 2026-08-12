@@ -32,18 +32,37 @@ jobs:
           Copy-Item $godot.FullName "godot.exe" -Force
           .\godot.exe --version
 
-      - name: Parse and smoke-test simulator
+      - name: Parse and smoke-test simulator + integration components
         shell: pwsh
         run: |
           $ErrorActionPreference = "Continue"
           .\godot.exe --headless --path ".tmp\pixel-water" --editor --quit-after 8 2>&1 | Tee-Object -FilePath "editor.log"
           $editorCode = $LASTEXITCODE
+
           .\godot.exe --headless --path ".tmp\pixel-water" --quit-after 8 2>&1 | Tee-Object -FilePath "runtime.log"
           $runtimeCode = $LASTEXITCODE
-          $log = (Get-Content "editor.log" -Raw) + "`n" + (Get-Content "runtime.log" -Raw)
-          if ($editorCode -ne 0 -or $runtimeCode -ne 0 -or $log -match "Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access") {
+
+          .\godot.exe --headless --path ".tmp\pixel-water" "res://examples/floating_platform_example.tscn" --quit-after 3 2>&1 | Tee-Object -FilePath "platform.log"
+          $platformCode = $LASTEXITCODE
+
+          .\godot.exe --headless --path ".tmp\pixel-water" "res://examples/swimmer_player_example.tscn" --quit-after 3 2>&1 | Tee-Object -FilePath "swimmer.log"
+          $swimmerCode = $LASTEXITCODE
+
+          $log = (
+            (Get-Content "editor.log" -Raw)
+            + "`n" + (Get-Content "runtime.log" -Raw)
+            + "`n" + (Get-Content "platform.log" -Raw)
+            + "`n" + (Get-Content "swimmer.log" -Raw)
+          )
+          if (
+            $editorCode -ne 0
+            -or $runtimeCode -ne 0
+            -or $platformCode -ne 0
+            -or $swimmerCode -ne 0
+            -or $log -match "Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access"
+          ) {
             Write-Host $log
-            throw "Godot smoke test failed (editor=$editorCode runtime=$runtimeCode)"
+            throw "Godot smoke test failed (editor=$editorCode runtime=$runtimeCode platform=$platformCode swimmer=$swimmerCode)"
           }
 
       - name: Assemble portable Windows folder
@@ -74,7 +93,7 @@ jobs:
                   string project = Path.Combine(dir, "project");
                   if (!File.Exists(runtime) || !File.Exists(Path.Combine(project, "project.godot")))
                   {
-                      MessageBox.Show("Arquivos do simulador nao encontrados. Extraia o ZIP inteiro antes de executar.", "Pixel Water Simulator", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                      MessageBox.Show("Simulator files were not found. Extract the entire ZIP before running it.", "Pixel Water Simulator", MessageBoxButtons.OK, MessageBoxIcon.Error);
                       return 2;
                   }
                   var psi = new ProcessStartInfo();
@@ -108,25 +127,30 @@ jobs:
           @'
           PIXEL WATER SIMULATOR - WINDOWS TEST
 
-          1. Extraia o ZIP inteiro para uma pasta.
-          2. De dois cliques em: Pixel Water Simulator.exe
-          3. Nao mova o EXE para fora desta pasta. Ele usa a subpasta project e o runtime incluidos aqui.
+          1. Extract the entire ZIP into a folder.
+          2. Double-click: Pixel Water Simulator.exe
+          3. Keep the EXE inside this folder. It uses the included project folder and Godot runtime.
 
-          Controles:
-          - LMB + arrastar: pegar / mover / arremessar objetos fisicamente
-          - RMB + arrastar: navegar pela cena
-          - Balde: fica equilibrado ao pegar; roda do mouse ou Q/E inclina para despejar
-          - Seletor + Spawn: cria mais objetos fisicos
-          - Reset objects: volta todos os objetos ao spawn
-          - Reset water: restaura a distribuicao inicial de agua
+          Controls:
+          - LMB + drag: physically grab / move / throw objects
+          - RMB + drag: navigate the scene
+          - Bucket: stays balanced while held; Mouse Wheel or Q/E tilts it to pour
+          - Selector + Spawn: creates more physics objects
+          - Reset objects: returns objects to their spawn positions
+          - Reset water: restores the initial water distribution
 
-          Teste principal desta versao:
-          - provoque ondas fortes junto das paredes e veja se elas escoam sem criar colunas verticais
-          - jogue objetos pesados e compare a turbulencia com as builds anteriores
-          - mergulhe o balde: ele agora funciona como um reservatorio movel continuo, sem micro-pixels simulados
-          - transporte agua e despeje no segundo tanque
-          - acompanhe o contador de FPS no topo
-          '@ | Set-Content -Path "dist\LEIA-ME.txt" -Encoding UTF8
+          GODOT INTEGRATION:
+          - Copy project/addons/pixel_water/ into your own Godot project.
+          - Add pixel_water_world.tscn to your level.
+          - Floating RigidBody2D/platform: add water_buoyancy_2d.tscn as a child. No script replacement required.
+          - Swimming CharacterBody2D/player: add water_swimmer_2d.tscn as a child, then add this line immediately before move_and_slide():
+
+            velocity = $WaterSwimmer2D.apply_water_motion(velocity, delta)
+
+          Full quick integration instructions are included in INTEGRATION.md.
+          '@ | Set-Content -Path "dist\README.txt" -Encoding UTF8
+
+          Copy-Item ".tmp\pixel-water\addons\pixel_water\README.md" "dist\INTEGRATION.md" -Force
           Compress-Archive -Path "dist\*" -DestinationPath "Pixel-Water-Simulator-Windows-Test.zip" -Force
 
       - name: Publish private temporary release asset
@@ -138,7 +162,7 @@ jobs:
           $tag = "pixel-water-windows-test-20260811"
           gh release view $tag --repo "${{ github.repository }}" *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $tag --repo "${{ github.repository }}" --target "${{ github.sha }}" --title "Pixel Water Simulator Windows Test" --notes "Temporary private Windows test build. Includes the Godot 4.3 runtime and a double-click launcher. CI smoke-tested." --prerelease
+            gh release create $tag --repo "${{ github.repository }}" --target "${{ github.sha }}" --title "Pixel Water Simulator Windows Test" --notes "Temporary private Windows test build. Includes the Godot 4.3 runtime, integration components and a double-click launcher. CI smoke-tested." --prerelease
           }
           gh release upload $tag "Pixel-Water-Simulator-Windows-Test.zip" --repo "${{ github.repository }}" --clobber
 
