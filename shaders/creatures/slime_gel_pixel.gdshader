@@ -8,6 +8,7 @@ uniform vec4 palette_light : source_color;
 uniform vec4 palette_accent : source_color;
 uniform float band_strength : hint_range(0.0, 1.0) = 0.92;
 uniform float detail_strength : hint_range(0.0, 1.0) = 0.55;
+uniform float seed_phase = 0.0;
 uniform float gel_phase = 0.0;
 uniform float translucency = 0.74;
 uniform float refraction_strength : hint_range(0.0, 1.0) = 0.35;
@@ -43,7 +44,7 @@ float checker(vec2 p) {
 }
 
 float gel_cell(vec2 p, float phase) {
-	vec2 q = floor(p);
+	vec2 q = floor(p + vec2(seed_phase * 13.0, seed_phase * 7.0));
 	float a = sin((q.x * 0.37 + q.y * 0.61) + floor(phase * 3.0) * 0.75);
 	float b = sin((q.x * -0.19 + q.y * 0.43) - floor(phase * 2.0) * 0.55);
 	return (a + b) * 0.25 + 0.5;
@@ -56,7 +57,6 @@ void fragment() {
 		return;
 	}
 
-	// Contact shadow and faint residue should not sparkle like gel.
 	if (source.a < 0.34) {
 		COLOR = source;
 		return;
@@ -64,7 +64,7 @@ void fragment() {
 
 	vec3 snapped = nearest_palette(source.rgb);
 	float internal = gel_cell(local_pixel, gel_phase);
-	float c = checker(local_pixel + vec2(floor(gel_phase * 2.0), 0.0));
+	float c = checker(local_pixel + vec2(floor(gel_phase * 2.0) + floor(seed_phase * 5.0), 0.0));
 	float light_gate = step(0.67, internal) * detail_strength;
 	float deep_gate = step(internal, 0.30) * detail_strength;
 
@@ -74,8 +74,6 @@ void fragment() {
 	material_color = mix(material_color, palette_accent.rgb, c * light_gate * refraction_strength * 0.13);
 	vec3 final_rgb = mix(source.rgb, nearest_palette(material_color), band_strength);
 
-	// Alpha remains genuinely translucent. A tiny ordered modulation creates
-	// pixel-art thickness variation without screen-door holes or soft blur.
 	float body_alpha = min(source.a, translucency + (source.a - translucency) * 0.45);
 	float alpha_variation = (c - 0.5) * 0.045 * refraction_strength;
 	float final_alpha = clamp(body_alpha + alpha_variation, 0.0, 1.0);
