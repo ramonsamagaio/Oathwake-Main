@@ -1,24 +1,21 @@
 class_name WaterBucket2D
 extends InteractiveBuoyantPixelBody2D
 
-## Open mobile container backed by a tiny adaptive water grid.
+## Lightweight mobile water container.
 ##
-## The world water remains the source of truth. When the opening is submerged,
-## conservative volumes are removed from PixelWaterWorld2D and become discrete
-## micro parcels inside this bucket. Those parcels settle under world gravity,
-## respond to container acceleration, occupy the bucket interior and spill back
-## into the world as real transported water. There is no painted/preset fill
-## polygon and no independent bucket-water amount that can appear from nowhere.
+## The bucket is treated as a moving open basin rather than a pile of tiny
+## RigidBody2D particles. Water mass is conserved with PixelWaterWorld2D, while
+## the free surface is solved geometrically against world gravity. This gives a
+## horizontal world-space waterline at any bucket rotation, continuous filling,
+## physically motivated spilling, and a tiny CPU cost.
 
 @export_category("Bucket")
 @export_range(1.0, 30.0, 0.5) var capacity_liters: float = 9.0
 @export_range(3.0, 12.0, 1.0) var wall_thickness_px: float = 5.0
-@export_range(2.0, 6.0, 1.0) var micro_cell_px: float = 3.0
-@export_range(1, 6, 1) var micro_relax_iterations: int = 3
-@export_range(0.2, 1.0, 0.01) var fill_discharge_coefficient: float = 0.72
-@export_range(4, 64, 1) var max_fill_parcels_per_frame: int = 36
-@export_range(4, 64, 1) var max_pour_parcels_per_frame: int = 30
-@export_range(0.0, 1.0, 0.01) var container_inertia_influence: float = 0.28
+@export_range(0.2, 1.0, 0.01) var fill_discharge_coefficient: float = 0.66
+@export_range(0.2, 1.0, 0.01) var pour_discharge_coefficient: float = 0.70
+@export_range(0.1, 8.0, 0.1) var max_transfer_liters_s: float = 4.0
+@export_range(2, 12, 1) var opening_samples: int = 5
 
 @export_category("Stable bucket grab")
 @export_range(2.0, 30.0, 0.5) var held_angle_response: float = 16.0
@@ -29,13 +26,9 @@ extends InteractiveBuoyantPixelBody2D
 var contained_volume_m3: float = 0.0
 
 var _dry_mass_kg: float = 0.8
-var _micro_cols: int = 0
-var _micro_rows: int = 0
-var _micro_cells: PackedByteArray = PackedByteArray()
-var _parcel_volume_m3: float = 0.00005
-var _fill_budget_m3: float = 0.0
-var _previous_linear_velocity := Vector2.ZERO
 var _held_target_angle: float = 0.0
+var _last_draw_rotation: float = INF
+var _last_draw_volume: float = -1.0
 
 const INTERNAL_WATER := Color("#0b8fc9")
 const INTERNAL_WATER_TOP := Color("#17a9dc")
@@ -56,9 +49,7 @@ func _ready() -> void:
 
     var preset := WaterMaterialPresets.get_preset(material_name)
     _dry_mass_kg = maxf(0.20, float(preset["density"]) * object_volume_m3)
-    _rebuild_micro_grid()
     mass = _dry_mass_kg
-    _previous_linear_velocity = linear_velocity
     _update_total_mass()
     queue_redraw()
 
@@ -104,14 +95,15 @@ func _build_samples() -> void:
         minf(object_size_px.x, object_size_px.y) * 0.22
     )
 
-    var side_rows := 8
+    # The shell alone displaces outside water. The empty interior is not a solid.
+    var side_rows := 5
     for row in range(side_rows):
         var y_t := (float(row) + 0.5) / float(side_rows)
         var y := lerpf(-half.y + t * 0.5, half.y - t * 0.5, y_t)
         _sample_points.append(Vector2(-half.x + t * 0.5, y))
         _sample_points.append(Vector2(half.x - t * 0.5, y))
 
-    var bottom_cols := 9
+    var bottom_cols := 6
     for col in range(bottom_cols):
         var x_t := (float(col) + 0.5) / float(bottom_cols)
         var x := lerpf(-half.x + t, half.x - t, x_t)
@@ -131,23 +123,25 @@ func _build_samples() -> void:
 
 func _physics_process(delta: float) -> void:
     super._physics_process(delta)
-
     if _water == null:
         return
 
     _stabilize_held_bucket(delta)
-    _fill_micro_water_from_world(delta)
-    _simulate_micro_water(delta)
-    _spill_micro_water(delta)
-    _sync_contained_volume()
+    _equalize_with_world(delta)
+    _spill_if_needed(delta)
     _update_total_mass()
 
-    _previous_linear_velocity = linear_velocity
-    queue_redraw()
+    if (
+        absf(global_rotation - _last_draw_rotation) > 0.002
+        or absf(contained_volume_m3 - _last_draw_volume) > 0.000002
+    ):
+        _last_draw_rotation = global_rotation
+        _last_draw_volume = contained_volume_m3
+        queue_redraw()
 
 func _begin_drag() -> void:
-    # Buckets are utility tools, not awkward physics toys. Grab through the
-    # centre of mass so the mouse spring cannot generate accidental torque.
+    # Tool-like grab: the cursor pulls the center of mass, so merely picking up
+    # the bucket never injects accidental angular momentum.
     _dragging = true
     sleeping = false
     _grab_local_point = Vector2.ZERO
@@ -195,7 +189,6 @@ func _clamp_held_target() -> void:
 func _stabilize_held_bucket(delta: float) -> void:
     if not is_being_dragged():
         return
-
     var error := wrapf(_held_target_angle - global_rotation, -PI, PI)
     var desired_angular_velocity := error * held_angle_response
     var blend := 1.0 - exp(-held_angle_damping * delta)
@@ -216,244 +209,109 @@ func _interior_rect_local() -> Rect2:
         minf(object_size_px.x, object_size_px.y) * 0.22
     )
     return Rect2(
-        Vector2(-half.x + t, -half.y + t * 0.80),
+        Vector2(-half.x + t, -half.y + t * 0.75),
         Vector2(
             maxf(4.0, object_size_px.x - t * 2.0),
-            maxf(4.0, object_size_px.y - t * 1.80)
+            maxf(4.0, object_size_px.y - t * 1.75)
         )
     )
 
-func _rebuild_micro_grid() -> void:
-    var interior := _interior_rect_local()
-    _micro_cols = maxi(2, int(floor(interior.size.x / maxf(micro_cell_px, 1.0))))
-    _micro_rows = maxi(2, int(floor(interior.size.y / maxf(micro_cell_px, 1.0))))
-    _micro_cells.resize(_micro_cols * _micro_rows)
-    _micro_cells.fill(0)
-    _parcel_volume_m3 = _capacity_m3() / float(maxi(1, _micro_cols * _micro_rows))
-    contained_volume_m3 = 0.0
-    _fill_budget_m3 = 0.0
+func _interior_world_polygon() -> PackedVector2Array:
+    var r := _interior_rect_local()
+    return PackedVector2Array([
+        to_global(r.position),
+        to_global(Vector2(r.end.x, r.position.y)),
+        to_global(r.end),
+        to_global(Vector2(r.position.x, r.end.y))
+    ])
 
-func _micro_index(x: int, y: int) -> int:
-    return y * _micro_cols + x
+func _polygon_area(poly: PackedVector2Array) -> float:
+    if poly.size() < 3:
+        return 0.0
+    var area := 0.0
+    for i in range(poly.size()):
+        var a := poly[i]
+        var b := poly[(i + 1) % poly.size()]
+        area += a.x * b.y - b.x * a.y
+    return absf(area) * 0.5
 
-func _micro_occupied(x: int, y: int) -> bool:
-    if x < 0 or x >= _micro_cols or y < 0 or y >= _micro_rows:
-        return false
-    return _micro_cells[_micro_index(x, y)] != 0
+func _clip_polygon_below_y(poly: PackedVector2Array, line_y: float) -> PackedVector2Array:
+    var output := PackedVector2Array()
+    if poly.is_empty():
+        return output
 
-func _set_micro_occupied(x: int, y: int, occupied: bool) -> void:
-    if x < 0 or x >= _micro_cols or y < 0 or y >= _micro_rows:
-        return
-    _micro_cells[_micro_index(x, y)] = 1 if occupied else 0
+    var previous := poly[poly.size() - 1]
+    var previous_inside := previous.y >= line_y
 
-func _micro_center_local(x: int, y: int) -> Vector2:
-    var interior := _interior_rect_local()
-    return Vector2(
-        interior.position.x
-        + (float(x) + 0.5) * interior.size.x / float(_micro_cols),
-        interior.position.y
-        + (float(y) + 0.5) * interior.size.y / float(_micro_rows)
+    for current in poly:
+        var current_inside := current.y >= line_y
+        if current_inside != previous_inside:
+            var dy := current.y - previous.y
+            if absf(dy) > 0.00001:
+                var t := (line_y - previous.y) / dy
+                output.append(previous.lerp(current, clampf(t, 0.0, 1.0)))
+        if current_inside:
+            output.append(current)
+        previous = current
+        previous_inside = current_inside
+
+    return output
+
+func _fraction_below_world_y(line_y: float) -> float:
+    var poly := _interior_world_polygon()
+    var total_area := _polygon_area(poly)
+    if total_area <= 0.0001:
+        return 0.0
+    return clampf(
+        _polygon_area(_clip_polygon_below_y(poly, line_y)) / total_area,
+        0.0,
+        1.0
     )
 
-func _occupied_parcel_count() -> int:
-    var count := 0
-    for value in _micro_cells:
-        if value != 0:
-            count += 1
-    return count
+func _waterline_world_y_for_fraction(fraction: float) -> float:
+    var poly := _interior_world_polygon()
+    if poly.is_empty():
+        return global_position.y
 
-func _sync_contained_volume() -> void:
-    contained_volume_m3 = float(_occupied_parcel_count()) * _parcel_volume_m3
+    var min_y := INF
+    var max_y := -INF
+    for p in poly:
+        min_y = minf(min_y, p.y)
+        max_y = maxf(max_y, p.y)
 
-func contained_water_liters() -> float:
-    return contained_volume_m3 * 1000.0
+    var target := clampf(fraction, 0.0, 1.0)
+    if target <= 0.000001:
+        return max_y + 0.01
+    if target >= 0.999999:
+        return min_y - 0.01
 
-func clear_contained_water_without_return() -> void:
-    _micro_cells.fill(0)
-    _fill_budget_m3 = 0.0
-    _sync_contained_volume()
-    _update_total_mass()
-    queue_redraw()
+    var low := min_y
+    var high := max_y
+    for _i in range(12):
+        var mid := (low + high) * 0.5
+        var current_fraction := _fraction_below_world_y(mid)
+        if current_fraction > target:
+            low = mid
+        else:
+            high = mid
+    return (low + high) * 0.5
 
-func _opening_sample_points() -> Array[Vector2]:
+func _opening_world_points() -> Array[Vector2]:
     var half := object_size_px * 0.5
     var t := wall_thickness_px
     var left := -half.x + t * 1.20
     var right := half.x - t * 1.20
-    var local_y := -half.y + t * 0.45
+    var local_y := -half.y + t * 0.42
+    var count := maxi(opening_samples, 2)
     var points: Array[Vector2] = []
-    for i in range(7):
-        var x := lerpf(left, right, float(i) / 6.0)
-        points.append(to_global(Vector2(x, local_y)))
+    for i in range(count):
+        points.append(
+            to_global(Vector2(
+                lerpf(left, right, float(i) / float(count - 1)),
+                local_y
+            ))
+        )
     return points
-
-func _fill_micro_water_from_world(delta: float) -> void:
-    var samples := _opening_sample_points()
-    var submerged := 0
-    var deepest_head_m := 0.0
-    var average_x := 0.0
-
-    for p in samples:
-        if _water.contains_point(p):
-            submerged += 1
-            average_x += p.x
-            deepest_head_m = maxf(
-                deepest_head_m,
-                (p.y - _water.surface_y_at(p.x)) / pixels_per_meter
-            )
-
-    if submerged == 0:
-        _fill_budget_m3 = minf(_fill_budget_m3, _parcel_volume_m3 * 0.5)
-        return
-
-    var empty_count := _micro_cols * _micro_rows - _occupied_parcel_count()
-    if empty_count <= 0:
-        return
-
-    average_x /= float(submerged)
-    var submerged_fraction := float(submerged) / float(samples.size())
-    var interior := _interior_rect_local()
-    var opening_width_m := interior.size.x / pixels_per_meter
-    var opening_area_m2 := opening_width_m * physical_depth_m * submerged_fraction
-    var g := _water.gravity_px_s2 / _water.pixels_per_meter
-    var head_m := maxf(deepest_head_m, 0.012)
-    var flow_m3_s := (
-        fill_discharge_coefficient
-        * opening_area_m2
-        * sqrt(2.0 * g * head_m)
-    )
-
-    _fill_budget_m3 += flow_m3_s * delta
-    var wanted := mini(
-        empty_count,
-        mini(
-            max_fill_parcels_per_frame,
-            int(floor(_fill_budget_m3 / maxf(_parcel_volume_m3, 0.0000001)))
-        )
-    )
-    if wanted <= 0:
-        return
-
-    var requested := float(wanted) * _parcel_volume_m3
-    var extracted := _water.extract_water_at(
-        average_x,
-        requested,
-        object_size_px.x * 0.72
-    )
-    var parcels_from_world := mini(
-        wanted,
-        int(floor(extracted / maxf(_parcel_volume_m3, 0.0000001) + 0.0001))
-    )
-
-    var inserted := _insert_parcels_from_opening(parcels_from_world)
-    var used_volume := float(inserted) * _parcel_volume_m3
-    var unused_volume := maxf(0.0, extracted - used_volume)
-    if unused_volume > 0.0:
-        _water.deposit_water_at(
-            average_x,
-            unused_volume,
-            linear_velocity.x / pixels_per_meter,
-            object_size_px.x * 0.45
-        )
-
-    _fill_budget_m3 = maxf(0.0, _fill_budget_m3 - used_volume)
-
-func _insert_parcels_from_opening(requested: int) -> int:
-    var inserted := 0
-    if requested <= 0:
-        return 0
-
-    var center := float(_micro_cols - 1) * 0.5
-    for _n in range(requested):
-        var best_x := -1
-        var best_y := -1
-        var best_score := INF
-
-        # Enter through the open side, then let gravity move the parcel through
-        # the interior. Searching only the first few rows keeps the motion legible.
-        var search_rows := mini(_micro_rows, 5)
-        for y in range(search_rows):
-            for x in range(_micro_cols):
-                if _micro_occupied(x, y):
-                    continue
-                var score := float(y) * 3.0 + absf(float(x) - center)
-                if score < best_score:
-                    best_score = score
-                    best_x = x
-                    best_y = y
-
-        if best_x < 0:
-            break
-        _set_micro_occupied(best_x, best_y, true)
-        inserted += 1
-
-        # Make room for the next packet instead of visually teleporting a whole
-        # fill level at once.
-        _relax_micro_water_once(_effective_gravity_local())
-
-    return inserted
-
-func _effective_gravity_local() -> Vector2:
-    var world_gravity := Vector2(0.0, _water.gravity_px_s2)
-    var body_accel := Vector2.ZERO
-    var physics_delta := maxf(get_physics_process_delta_time(), 0.0001)
-    body_accel = (linear_velocity - _previous_linear_velocity) / physics_delta
-    body_accel = body_accel.limit_length(_water.gravity_px_s2 * 1.75)
-
-    var effective_world := (
-        world_gravity
-        - body_accel * clampf(container_inertia_influence, 0.0, 1.0)
-    )
-    if effective_world.length_squared() < 0.001:
-        effective_world = world_gravity
-    return effective_world.rotated(-global_rotation).normalized()
-
-func _simulate_micro_water(_delta: float) -> void:
-    if _occupied_parcel_count() == 0:
-        return
-
-    var gravity_local := _effective_gravity_local()
-    for _iteration in range(micro_relax_iterations):
-        _relax_micro_water_once(gravity_local)
-
-func _relax_micro_water_once(gravity_local: Vector2) -> void:
-    var y_start := _micro_rows - 1 if gravity_local.y >= 0.0 else 0
-    var y_end := -1 if gravity_local.y >= 0.0 else _micro_rows
-    var y_step := -1 if gravity_local.y >= 0.0 else 1
-    var x_start := _micro_cols - 1 if gravity_local.x >= 0.0 else 0
-    var x_end := -1 if gravity_local.x >= 0.0 else _micro_cols
-    var x_step := -1 if gravity_local.x >= 0.0 else 1
-
-    for y in range(y_start, y_end, y_step):
-        for x in range(x_start, x_end, x_step):
-            if not _micro_occupied(x, y):
-                continue
-
-            var best_x := x
-            var best_y := y
-            var best_score := 0.12
-
-            for dy in range(-1, 2):
-                for dx in range(-1, 2):
-                    if dx == 0 and dy == 0:
-                        continue
-                    var nx := x + dx
-                    var ny := y + dy
-                    if nx < 0 or nx >= _micro_cols or ny < 0 or ny >= _micro_rows:
-                        continue
-                    if _micro_occupied(nx, ny):
-                        continue
-
-                    var direction := Vector2(float(dx), float(dy)).normalized()
-                    var score := direction.dot(gravity_local)
-                    if score > best_score:
-                        best_score = score
-                        best_x = nx
-                        best_y = ny
-
-            if best_x != x or best_y != y:
-                _set_micro_occupied(x, y, false)
-                _set_micro_occupied(best_x, best_y, true)
 
 func _left_lip_world() -> Vector2:
     var half := object_size_px * 0.5
@@ -469,99 +327,144 @@ func _right_lip_world() -> Vector2:
         -half.y + wall_thickness_px * 0.30
     ))
 
-func _spill_micro_water(delta: float) -> void:
-    var count := _occupied_parcel_count()
-    if count <= 0:
+func _equalize_with_world(delta: float) -> void:
+    var points := _opening_world_points()
+    var submerged_count := 0
+    var outside_surface_sum := 0.0
+    var sample_x_sum := 0.0
+    var deepest_head_m := 0.0
+
+    for p in points:
+        if not _water.contains_point(p):
+            continue
+        submerged_count += 1
+        var outside_y := _water.surface_y_at(p.x)
+        outside_surface_sum += outside_y
+        sample_x_sum += p.x
+        deepest_head_m = maxf(
+            deepest_head_m,
+            maxf(0.0, p.y - outside_y) / pixels_per_meter
+        )
+
+    if submerged_count == 0:
+        return
+
+    var outside_surface_y := outside_surface_sum / float(submerged_count)
+    var average_x := sample_x_sum / float(submerged_count)
+
+    # An open moving container seeks the same hydrostatic free surface as the
+    # surrounding water whenever its opening is submerged.
+    var target_fraction := _fraction_below_world_y(outside_surface_y)
+    var target_volume := _capacity_m3() * target_fraction
+    var difference := target_volume - contained_volume_m3
+    if absf(difference) < 0.000002:
+        return
+
+    var fill_fraction := contained_volume_m3 / maxf(_capacity_m3(), 0.000001)
+    var internal_surface_y := _waterline_world_y_for_fraction(fill_fraction)
+    var head_m := maxf(
+        deepest_head_m,
+        absf(internal_surface_y - outside_surface_y) / pixels_per_meter
+    )
+    head_m = maxf(head_m, 0.006)
+
+    var g := _water.gravity_px_s2 / _water.pixels_per_meter
+    var opening_width_m := _interior_rect_local().size.x / pixels_per_meter
+    var submerged_fraction := float(submerged_count) / float(points.size())
+    var opening_area_m2 := opening_width_m * physical_depth_m * submerged_fraction
+    var q_m3_s := (
+        fill_discharge_coefficient
+        * opening_area_m2
+        * sqrt(2.0 * g * head_m)
+    )
+    q_m3_s = minf(q_m3_s, max_transfer_liters_s / 1000.0)
+    var transfer := minf(absf(difference), q_m3_s * delta)
+    if transfer <= 0.0:
+        return
+
+    if difference > 0.0:
+        var extracted := _water.extract_water_at(
+            average_x,
+            transfer,
+            object_size_px.x * 0.70
+        )
+        contained_volume_m3 = minf(
+            _capacity_m3(),
+            contained_volume_m3 + extracted
+        )
+    else:
+        transfer = minf(transfer, contained_volume_m3)
+        contained_volume_m3 -= transfer
+        _water.deposit_water_at(
+            average_x,
+            transfer,
+            linear_velocity.x / pixels_per_meter,
+            object_size_px.x * 0.55
+        )
+
+func _spill_if_needed(delta: float) -> void:
+    if contained_volume_m3 <= 0.000001:
         return
 
     var left_lip := _left_lip_world()
     var right_lip := _right_lip_world()
-    var spill_lip := left_lip if left_lip.y > right_lip.y else right_lip
-    var spill_line_y := spill_lip.y - micro_cell_px * 0.10
-
-    var candidates: Array[Vector2i] = []
-    var highest_candidate_y := INF
-    for y in range(_micro_rows):
-        for x in range(_micro_cols):
-            if not _micro_occupied(x, y):
-                continue
-            var world_p := to_global(_micro_center_local(x, y))
-            if world_p.y < spill_line_y:
-                candidates.append(Vector2i(x, y))
-                highest_candidate_y = minf(highest_candidate_y, world_p.y)
-
-    if candidates.is_empty():
+    var lower_lip := left_lip if left_lip.y > right_lip.y else right_lip
+    var retained_fraction := _fraction_below_world_y(lower_lip.y)
+    var retained_volume := _capacity_m3() * retained_fraction
+    var excess := contained_volume_m3 - retained_volume
+    if excess <= 0.000002:
         return
 
-    var head_m := maxf(
-        0.008,
-        (spill_line_y - highest_candidate_y) / pixels_per_meter
-    )
+    var fill_fraction := contained_volume_m3 / maxf(_capacity_m3(), 0.000001)
+    var surface_y := _waterline_world_y_for_fraction(fill_fraction)
+    var head_m := maxf(0.004, (lower_lip.y - surface_y) / pixels_per_meter)
     var g := _water.gravity_px_s2 / _water.pixels_per_meter
     var opening_width_m := _interior_rect_local().size.x / pixels_per_meter
-    var flow_m3_s := (
-        0.68
+    var q_m3_s := (
+        pour_discharge_coefficient
         * opening_width_m
         * physical_depth_m
         * sqrt(2.0 * g * head_m)
     )
-    var allowed_by_flow := maxi(
-        1,
-        int(ceil(flow_m3_s * delta / maxf(_parcel_volume_m3, 0.0000001)))
-    )
-    var remove_count := mini(
-        candidates.size(),
-        mini(max_pour_parcels_per_frame, allowed_by_flow)
-    )
-
-    # Highest world-space parcels leave first. That makes the free surface seek
-    # the lower lip naturally as the bucket tilts.
-    for _n in range(remove_count):
-        var best_idx := 0
-        var best_world_y := INF
-        for i in range(candidates.size()):
-            var cell := candidates[i]
-            var wy := to_global(_micro_center_local(cell.x, cell.y)).y
-            if wy < best_world_y:
-                best_world_y = wy
-                best_idx = i
-        var chosen := candidates[best_idx]
-        _set_micro_occupied(chosen.x, chosen.y, false)
-        candidates.remove_at(best_idx)
-
-    var poured_volume := float(remove_count) * _parcel_volume_m3
-    if poured_volume <= 0.0:
+    q_m3_s = minf(q_m3_s, max_transfer_liters_s / 1000.0)
+    var poured := minf(excess, q_m3_s * delta)
+    if poured <= 0.0:
         return
 
-    var side := -1.0 if spill_lip == left_lip else 1.0
-    var local_out := Vector2(side, 0.55).normalized()
-    var world_out := local_out.rotated(global_rotation)
-    var out_velocity := (
-        linear_velocity
-        + world_out * (80.0 + sqrt(2.0 * g * head_m) * pixels_per_meter)
-    )
+    contained_volume_m3 -= poured
+
+    var side := -1.0 if lower_lip == left_lip else 1.0
+    var tangent := Vector2(side, 0.45).normalized().rotated(global_rotation)
+    var out_speed := sqrt(2.0 * g * head_m) * pixels_per_meter
+    var out_velocity := linear_velocity + tangent * maxf(45.0, out_speed)
 
     _water.emit_water_stream(
-        spill_lip + world_out * 3.0,
-        poured_volume,
+        lower_lip + tangent * 2.0,
+        poured,
         out_velocity,
-        clampi(remove_count, 2, 18)
+        3
     )
+
+func contained_water_liters() -> float:
+    return contained_volume_m3 * 1000.0
+
+func clear_contained_water_without_return() -> void:
+    contained_volume_m3 = 0.0
+    _update_total_mass()
+    queue_redraw()
 
 func _update_total_mass() -> void:
     var density := 997.0
     if _water != null:
         density = _water.water_density_kg_m3
-    var water_mass := contained_volume_m3 * density
-    mass = maxf(0.05, _dry_mass_kg + water_mass)
+    mass = maxf(0.05, _dry_mass_kg + contained_volume_m3 * density)
     _update_prediction()
 
 func set_mass_kg(value: float) -> void:
     var density := 997.0
     if _water != null:
         density = _water.water_density_kg_m3
-    var water_mass := contained_volume_m3 * density
-    _dry_mass_kg = maxf(0.05, value - water_mass)
+    _dry_mass_kg = maxf(0.05, value - contained_volume_m3 * density)
     auto_mass_from_material = false
     _update_total_mass()
 
@@ -569,7 +472,8 @@ func set_material_preset(
     new_material: String,
     recalculate_mass: bool = true
 ) -> void:
-    var parcels := _occupied_parcel_count()
+    var water_before := contained_volume_m3
+    contained_volume_m3 = 0.0
     super.set_material_preset(new_material, false)
     _build_samples()
     var preset := WaterMaterialPresets.get_preset(new_material)
@@ -578,31 +482,45 @@ func set_material_preset(
             0.05,
             float(preset["density"]) * object_volume_m3
         )
-
-    # Preserve the actual micro-water occupancy when changing shell material.
-    if _micro_cells.size() == 0:
-        _rebuild_micro_grid()
-    contained_volume_m3 = float(parcels) * _parcel_volume_m3
+    contained_volume_m3 = water_before
     _update_total_mass()
 
 func reset_to_spawn() -> void:
-    _sync_contained_volume()
     if contained_volume_m3 > 0.0 and _water != null:
         _water.deposit_water_at(
             global_position.x,
             contained_volume_m3,
             linear_velocity.x / pixels_per_meter,
-            object_size_px.x * 0.65
+            object_size_px.x * 0.70
         )
-
-    _micro_cells.fill(0)
-    _fill_budget_m3 = 0.0
     contained_volume_m3 = 0.0
     _held_target_angle = 0.0
     _update_total_mass()
     await super.reset_to_spawn()
-    _previous_linear_velocity = linear_velocity
     queue_redraw()
+
+func _waterline_intersections_world(line_y: float) -> PackedVector2Array:
+    var poly := _interior_world_polygon()
+    var points := PackedVector2Array()
+    for i in range(poly.size()):
+        var a := poly[i]
+        var b := poly[(i + 1) % poly.size()]
+        if (a.y - line_y) * (b.y - line_y) > 0.0:
+            continue
+        var dy := b.y - a.y
+        if absf(dy) <= 0.00001:
+            continue
+        var t := (line_y - a.y) / dy
+        if t >= 0.0 and t <= 1.0:
+            var p := a.lerp(b, t)
+            var duplicate := false
+            for existing in points:
+                if existing.distance_squared_to(p) < 0.01:
+                    duplicate = true
+                    break
+            if not duplicate:
+                points.append(p)
+    return points
 
 func _draw() -> void:
     var half := object_size_px * 0.5
@@ -613,37 +531,29 @@ func _draw() -> void:
     )
     var interior := _interior_rect_local()
 
-    draw_rect(interior, Color(0.78, 0.88, 0.92, 0.08))
+    draw_rect(interior, Color(0.78, 0.88, 0.92, 0.07))
 
-    # Each occupied micro cell is drawn independently. Counter-rotating each tiny
-    # quad keeps the water pixels approximately world-aligned while the bucket
-    # itself rotates, so it reads as fluid parcels instead of a texture glued to it.
-    var parcel_size := maxf(1.5, micro_cell_px * 0.92)
-    var half_parcel := parcel_size * 0.5
-    for y in range(_micro_rows):
-        for x in range(_micro_cols):
-            if not _micro_occupied(x, y):
-                continue
-            var center := _micro_center_local(x, y)
-            var corners := PackedVector2Array([
-                center + Vector2(-half_parcel, -half_parcel).rotated(-global_rotation),
-                center + Vector2(half_parcel, -half_parcel).rotated(-global_rotation),
-                center + Vector2(half_parcel, half_parcel).rotated(-global_rotation),
-                center + Vector2(-half_parcel, half_parcel).rotated(-global_rotation)
-            ])
-            draw_colored_polygon(corners, INTERNAL_WATER)
+    var fill_fraction := contained_volume_m3 / maxf(_capacity_m3(), 0.000001)
+    if fill_fraction > 0.0001:
+        var waterline_y := _waterline_world_y_for_fraction(fill_fraction)
+        var clipped_world := _clip_polygon_below_y(
+            _interior_world_polygon(),
+            waterline_y
+        )
+        if clipped_world.size() >= 3:
+            var local_poly := PackedVector2Array()
+            for p in clipped_world:
+                local_poly.append(to_local(p))
+            draw_colored_polygon(local_poly, INTERNAL_WATER)
 
-    # A few exposed parcel tops get the same cyan surface accent used by world water.
-    for x in range(_micro_cols):
-        for y in range(_micro_rows):
-            if not _micro_occupied(x, y):
-                continue
-            if y == 0 or not _micro_occupied(x, y - 1):
-                var center := _micro_center_local(x, y)
-                var a := center + Vector2(-half_parcel, -half_parcel).rotated(-global_rotation)
-                var b := center + Vector2(half_parcel, -half_parcel).rotated(-global_rotation)
-                draw_line(a, b, INTERNAL_WATER_TOP, 1.0)
-                break
+        var intersections := _waterline_intersections_world(waterline_y)
+        if intersections.size() >= 2:
+            draw_line(
+                to_local(intersections[0]),
+                to_local(intersections[1]),
+                INTERNAL_WATER_TOP,
+                2.0
+            )
 
     draw_rect(
         Rect2(Vector2(-half.x, -half.y), Vector2(t, object_size_px.y)),
