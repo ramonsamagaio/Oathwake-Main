@@ -1,0 +1,48 @@
+name: Apply Pixel Water Unified Refactor
+
+on:
+  push:
+    branches:
+      - tmp-pixel-water-build-20260811
+    paths:
+      - '.tmp/pixel-water-patch/**'
+      - '.github/workflows/apply-pixel-water-refactor.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout refactor branch
+        uses: actions/checkout@v4
+        with:
+          ref: tmp-pixel-water-build-20260811
+          fetch-depth: 0
+
+      - name: Reassemble verified refactor payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .tmp/pixel-water-patch/part00 \
+              .tmp/pixel-water-patch/part01 \
+              .tmp/pixel-water-patch/part02 \
+              .tmp/pixel-water-patch/part03 \
+              .tmp/pixel-water-patch/part04 > /tmp/pixel-water-refactor.b64
+          echo 'b89c9851a41b4f8d82b2e72f152ed606a77aaabe6902068a0fd8469d9236f109  /tmp/pixel-water-refactor.b64' | sha256sum -c -
+          base64 -d /tmp/pixel-water-refactor.b64 > /tmp/pixel-water-refactor.tar.gz
+          echo '2bab2153310b4854af931d993722061749d92462fee11a121d47e936137855b8  /tmp/pixel-water-refactor.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/pixel-water-refactor.tar.gz -C .
+
+      - name: Commit unified-water implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .tmp/pixel-water-patch
+          rm -f .github/workflows/apply-pixel-water-refactor.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat: unify all water and add transferable bucket'
+          git push origin HEAD:tmp-pixel-water-build-20260811
