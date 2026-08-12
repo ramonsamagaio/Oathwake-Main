@@ -16,6 +16,8 @@ extends InteractiveBuoyantPixelBody2D
 @export_range(0.2, 1.0, 0.01) var pour_discharge_coefficient: float = 0.70
 @export_range(0.1, 8.0, 0.1) var max_transfer_liters_s: float = 4.0
 @export_range(2, 12, 1) var opening_samples: int = 5
+@export_range(0.1, 4.0, 0.05) var empty_bucket_mass_kg: float = 0.85
+@export_range(1.0, 20.0, 0.1) var hull_displacement_liters: float = 9.6
 
 @export_category("Stable bucket grab")
 @export_range(2.0, 30.0, 0.5) var held_angle_response: float = 16.0
@@ -47,8 +49,7 @@ func _ready() -> void:
     auto_mass_from_material = true
     super._ready()
 
-    var preset := WaterMaterialPresets.get_preset(material_name)
-    _dry_mass_kg = maxf(0.20, float(preset["density"]) * object_volume_m3)
+    _dry_mass_kg = maxf(0.10, empty_bucket_mass_kg)
     mass = _dry_mass_kg
     _update_total_mass()
     queue_redraw()
@@ -88,37 +89,22 @@ func _add_bucket_rect(size: Vector2, local_pos: Vector2) -> void:
 
 func _build_samples() -> void:
     _sample_points.clear()
-    var half := object_size_px * 0.5
-    var t := clampf(
-        wall_thickness_px,
-        3.0,
-        minf(object_size_px.x, object_size_px.y) * 0.22
-    )
 
-    # The shell alone displaces outside water. The empty interior is not a solid.
-    var side_rows := 5
-    for row in range(side_rows):
-        var y_t := (float(row) + 0.5) / float(side_rows)
-        var y := lerpf(-half.y + t * 0.5, half.y - t * 0.5, y_t)
-        _sample_points.append(Vector2(-half.x + t * 0.5, y))
-        _sample_points.append(Vector2(half.x - t * 0.5, y))
+    # An upright open bucket behaves like a tiny boat while its rim stays above
+    # the water: the cavity excludes outside water. As it fills, the contained
+    # water adds the same density back as weight. At full capacity only the shell
+    # surplus remains, so this test bucket becomes slightly denser than water.
+    var cols := 5
+    var rows := 4
+    for y_index in range(rows):
+        var y_t := (float(y_index) + 0.5) / float(rows)
+        var local_y := lerpf(-object_size_px.y * 0.5, object_size_px.y * 0.5, y_t)
+        for x_index in range(cols):
+            var x_t := (float(x_index) + 0.5) / float(cols)
+            var local_x := lerpf(-object_size_px.x * 0.5, object_size_px.x * 0.5, x_t)
+            _sample_points.append(Vector2(local_x, local_y))
 
-    var bottom_cols := 6
-    for col in range(bottom_cols):
-        var x_t := (float(col) + 0.5) / float(bottom_cols)
-        var x := lerpf(-half.x + t, half.x - t, x_t)
-        _sample_points.append(Vector2(x, half.y - t * 0.5))
-
-    var shell_area_px2 := (
-        2.0 * t * object_size_px.y
-        + maxf(object_size_px.x - t * 2.0, 0.0) * t
-    )
-    object_volume_m3 = maxf(
-        0.00001,
-        shell_area_px2
-        / (pixels_per_meter * pixels_per_meter)
-        * physical_depth_m
-    )
+    object_volume_m3 = maxf(0.0001, hull_displacement_liters / 1000.0)
     _update_prediction()
 
 func _physics_process(delta: float) -> void:
@@ -476,12 +462,8 @@ func set_material_preset(
     contained_volume_m3 = 0.0
     super.set_material_preset(new_material, false)
     _build_samples()
-    var preset := WaterMaterialPresets.get_preset(new_material)
     if recalculate_mass:
-        _dry_mass_kg = maxf(
-            0.05,
-            float(preset["density"]) * object_volume_m3
-        )
+        _dry_mass_kg = maxf(0.10, empty_bucket_mass_kg)
     contained_volume_m3 = water_before
     _update_total_mass()
 

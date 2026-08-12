@@ -805,6 +805,30 @@ func emit_water_stream(
             "amount_m3": per_particle
         })
 
+func emit_visual_splash(
+    world_point: Vector2,
+    velocity_px_s: Vector2,
+    particle_count: int = 6
+) -> void:
+    var available := max_splash_particles - _droplets.size()
+    if available <= 0:
+        return
+    var count := clampi(particle_count, 1, available)
+    for _n in range(count):
+        _droplets.append({
+            "pos": world_point + Vector2(
+                _rng.randf_range(-cell_size_px * 0.8, cell_size_px * 0.8),
+                _rng.randf_range(-1.5, 1.5)
+            ),
+            "vel": velocity_px_s + Vector2(
+                _rng.randf_range(-15.0, 15.0),
+                _rng.randf_range(-9.0, 9.0)
+            ),
+            "life": _rng.randf_range(0.45, 1.05),
+            "size": cell_size_px * (0.55 if _rng.randf() < 0.65 else 0.85),
+            "amount_m3": 0.0
+        })
+
 func register_object_impact(
     world_x: float,
     mass_kg: float,
@@ -812,54 +836,46 @@ func register_object_impact(
     displaced_volume_m3: float,
     object_width_px: float
 ) -> void:
-    if vertical_speed_px_s <= 12.0:
+    # A body entering the surface already affects the conservative solver through
+    # its occupied volume. Secondary coupling must stay subtle, otherwise a
+    # floating object double-counts the same interaction every time it bobs.
+    if vertical_speed_px_s <= 55.0:
         return
 
     var speed_m_s := vertical_speed_px_s / pixels_per_meter
     var impact_energy_j := 0.5 * mass_kg * speed_m_s * speed_m_s
     var displaced_liters := maxf(displaced_volume_m3 * 1000.0, 0.0)
     var radius_px := clampf(
-        object_width_px * 0.85 + sqrt(displaced_liters) * 2.6,
-        18.0,
-        150.0
+        object_width_px * 0.62 + sqrt(displaced_liters) * 1.25,
+        14.0,
+        92.0
     )
 
-    # Vertical entry creates an outward radial current rather than directly
-    # teleporting the surface up/down. Gravity then turns that momentum into waves.
     var strength_m_s := clampf(
-        sqrt(maxf(impact_energy_j, 0.0)) * 0.018
-        + sqrt(displaced_liters) * 0.035,
-        0.04,
-        0.90
+        sqrt(maxf(impact_energy_j, 0.0)) * 0.010
+        + sqrt(displaced_liters) * 0.012,
+        0.015,
+        0.42
     )
     _add_radial_momentum(world_x, radius_px, strength_m_s)
 
-    var splash_volume := minf(
-        maxf(displaced_volume_m3, 0.0) * spray_volume_fraction
-        + impact_energy_j / 1200000.0,
-        0.003
+    # Splash particles are deliberately massless visuals. Conservative droplets
+    # are used only by real water transfer such as waterfalls and bucket pouring.
+    var count := clampi(
+        int(1.0 + sqrt(maxf(impact_energy_j, 0.0)) * 0.08 + object_width_px * 0.018),
+        1,
+        8
     )
-    var extracted := extract_water_at(world_x, splash_volume, radius_px * 0.55)
-    if extracted > 0.0:
-        var count := clampi(
-            int(2.0 + sqrt(maxf(impact_energy_j, 0.0)) * 0.12 + object_width_px * 0.025),
-            2,
-            16
-        )
-        var sy := surface_y_at(world_x)
-        var launch := 70.0 + minf(180.0, sqrt(maxf(impact_energy_j, 0.0)) * 3.5)
-        emit_water_stream(
-            Vector2(world_x, sy - cell_size_px),
-            extracted,
-            Vector2(0.0, -launch),
-            count
-        )
+    var sy := surface_y_at(world_x)
+    var launch := 55.0 + minf(120.0, sqrt(maxf(impact_energy_j, 0.0)) * 2.2)
+    emit_visual_splash(
+        Vector2(world_x, sy - cell_size_px * 0.5),
+        Vector2(0.0, -launch),
+        count
+    )
 
-    for _n in range(clampi(int(1.0 + displaced_liters * 0.035), 1, 8)):
-        _spawn_foam(
-            world_x + _rng.randf_range(-object_width_px * 0.55, object_width_px * 0.55),
-            1.0
-        )
+    if impact_energy_j > 18.0:
+        _spawn_foam(world_x, clampf(impact_energy_j / 120.0, 0.35, 0.85))
 
 func register_displacement_surge(
     world_x: float,
@@ -867,18 +883,23 @@ func register_displacement_surge(
     object_width_px: float,
     vertical_speed_px_s: float
 ) -> void:
+    # Displacement itself is already conservative. This small impulse only helps
+    # very fast entries/exits read visually and is intentionally suppressed for
+    # normal bobbing at the surface.
+    if absf(vertical_speed_px_s) < 85.0:
+        return
     var liters := absf(displaced_volume_delta_m3) * 1000.0
-    if liters < 0.080:
+    if liters < 0.18:
         return
 
-    var radius := clampf(object_width_px * 0.78 + sqrt(liters) * 2.0, 14.0, 120.0)
+    var radius := clampf(object_width_px * 0.55 + sqrt(liters), 12.0, 72.0)
     var strength := clampf(
-        liters * 0.008 + absf(vertical_speed_px_s) / pixels_per_meter * 0.050,
-        0.015,
-        0.45
+        liters * 0.0025 + absf(vertical_speed_px_s) / pixels_per_meter * 0.018,
+        0.008,
+        0.14
     )
     if displaced_volume_delta_m3 < 0.0:
-        strength *= -0.32
+        strength *= -0.20
     _add_radial_momentum(world_x, radius, strength)
 
 func register_underwater_motion(
@@ -901,7 +922,7 @@ func register_underwater_motion(
     var center := _index_at(world_point.x)
     var radius_cells := maxi(1, int(ceil(size_px * 0.55 / cell_size_px)))
     var target_u := velocity_px_s.x / pixels_per_meter
-    var blend := clampf(delta * 0.45, 0.0, 0.045)
+    var blend := clampf(delta * 0.16, 0.0, 0.016)
 
     for offset in range(-radius_cells, radius_cells + 1):
         var i := center + offset
@@ -980,7 +1001,7 @@ func _simulate_droplets(delta: float) -> void:
                     d.vel.x / pixels_per_meter,
                     cell_size_px * 1.5
                 )
-                if has_water:
+                if has_water and amount > 0.0000001:
                     _add_radial_momentum(
                         d.pos.x,
                         10.0,
@@ -1097,11 +1118,21 @@ func _draw() -> void:
     if _cell_count == 0:
         return
 
+    # Split fill geometry whenever terrain height changes. A single giant polygon
+    # spanning basin walls and shallow platforms can become numerically awkward
+    # after violent interactions and Godot may fail to triangulate it, leaving only
+    # the cyan outline. Terrain-continuous runs are cheap and triangulate reliably.
     var run_start := -1
     for i in range(_cell_count + 1):
         var wet := i < _cell_count and _depth_m[i] > dry_depth_m
         if wet and run_start < 0:
             run_start = i
+        elif wet and run_start >= 0 and i > run_start:
+            var floor_jump := absf(_floor_y[i] - _floor_y[i - 1])
+            var surface_jump := absf(_surface_y_index(i) - _surface_y_index(i - 1))
+            if floor_jump > 0.5 or surface_jump > maxf(90.0, cell_size_px * 14.0):
+                _draw_water_run(run_start, i - 1)
+                run_start = i
         elif not wet and run_start >= 0:
             _draw_water_run(run_start, i - 1)
             run_start = -1

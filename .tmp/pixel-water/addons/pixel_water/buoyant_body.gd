@@ -29,6 +29,7 @@ var _sample_points: Array[Vector2] = []
 var _previous_submerged_fraction := 0.0
 var _material_color := Color("#b97943")
 var _spawn_transform: Transform2D
+var _surface_impact_cooldown := 0.0
 
 func _ready() -> void:
     collision_layer = 2
@@ -140,6 +141,7 @@ func _update_prediction() -> void:
     effective_density_kg_m3 = mass / maxf(object_volume_m3, 0.00001)
 
 func _physics_process(delta: float) -> void:
+    _surface_impact_cooldown = maxf(0.0, _surface_impact_cooldown - delta)
     if (
         _water == null
         or global_position.x < _water.world_left - object_size_px.x
@@ -230,40 +232,50 @@ func _physics_process(delta: float) -> void:
 
     apply_torque(-angular_velocity * mass * 115.0 * submerged_fraction)
 
-    var just_entered := (
-        _previous_submerged_fraction < 0.03
-        and submerged_fraction >= 0.03
+    var density_ratio := clampf(
+        mass / maxf(_water.water_density_kg_m3 * object_volume_m3, 0.0001),
+        0.12,
+        1.0
     )
-    if just_entered and linear_velocity.y > 28.0:
+    var just_entered := (
+        _previous_submerged_fraction < 0.015
+        and submerged_fraction >= 0.08
+    )
+    if (
+        just_entered
+        and linear_velocity.y > 65.0
+        and _surface_impact_cooldown <= 0.0
+    ):
+        _surface_impact_cooldown = 0.42
         _water.register_object_impact(
             global_position.x,
             mass,
             linear_velocity.y,
-            maxf(displaced_volume, object_volume_m3 * 0.08),
+            maxf(displaced_volume, object_volume_m3 * 0.05) * density_ratio,
             object_size_px.x
         )
 
-    _report_displacement_change()
+    _report_displacement_change(density_ratio)
 
     var sink_ratio := maxf(0.0, predicted_submerged_fraction - 1.0)
-    if linear_velocity.length_squared() > 225.0 or sink_ratio > 0.08:
+    if linear_velocity.length_squared() > 3600.0 or sink_ratio > 0.10:
         _water.register_underwater_motion(
             global_position,
-            linear_velocity,
+            linear_velocity * density_ratio,
             maxf(object_size_px.x, object_size_px.y),
             sink_ratio,
             delta
         )
 
-func _report_displacement_change() -> void:
+func _report_displacement_change(density_ratio: float = 1.0) -> void:
     if _water == null:
         return
     var fraction_delta := submerged_fraction - _previous_submerged_fraction
-    if absf(fraction_delta) < 0.012:
+    if absf(fraction_delta) < 0.05 or absf(linear_velocity.y) < 85.0:
         return
     _water.register_displacement_surge(
         global_position.x,
-        object_volume_m3 * fraction_delta,
+        object_volume_m3 * fraction_delta * clampf(density_ratio, 0.12, 1.0),
         object_size_px.x,
         linear_velocity.y
     )
