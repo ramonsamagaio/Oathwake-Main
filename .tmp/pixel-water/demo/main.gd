@@ -44,7 +44,7 @@ func _spawn_demo_objects() -> void:
     _spawn_object("Oak plank", "box", Vector2(112, 18), Vector2(690, 108), "Oak wood", 0.18)
 
 func _spawn_object(name_text: String, kind: String, size: Vector2, pos: Vector2, material: String, depth_m: float) -> void:
-    var body := BuoyantPixelBody2D.new()
+    var body := InteractiveBuoyantPixelBody2D.new()
     body.display_name = name_text
     body.name = name_text.replace(" ", "")
     body.shape_kind = kind
@@ -76,13 +76,13 @@ func _build_ui() -> void:
 
     var subtitle := Label.new()
     subtitle.position = Vector2(22, 48)
-    subtitle.text = "Archimedes buoyancy • quadratic drag • waves • splashes • foam • bubbles • wetness"
+    subtitle.text = "Live drag collisions • real-time displacement • stronger wakes • volume-scaled splashes"
     subtitle.modulate = Color(0.72, 0.86, 0.89)
     canvas.add_child(subtitle)
 
     var instructions := Label.new()
     instructions.position = Vector2(20, 506)
-    instructions.text = "LEFT CLICK + DRAG → pick up   •   RELEASE → throw   •   click an object → tune mass/material/buoyancy"
+    instructions.text = "LEFT CLICK + DRAG → interact live   •   RELEASE → throw from current position   •   objects push water + each other while held"
     instructions.modulate = Color(0.70, 0.78, 0.80)
     canvas.add_child(instructions)
 
