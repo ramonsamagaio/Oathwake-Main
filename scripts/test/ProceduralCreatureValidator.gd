@@ -57,9 +57,26 @@ func _validate_creature(path: String) -> void:
 
 	var schema: Array = creature.get_editor_schema()
 	_check(not schema.is_empty(), "%s exposes no editor parameters" % path)
+	var exposes_pixel_size := false
+	for descriptor_value: Variant in schema:
+		if descriptor_value is Dictionary:
+			var descriptor: Dictionary = descriptor_value as Dictionary
+			if StringName(descriptor.get("key", &"")) == &"pixel_size":
+				exposes_pixel_size = true
+	_check(not exposes_pixel_size, "%s exposes forbidden pixel_size authoring control" % path)
+
+	# Pixel-perfect rendering is a hard engine contract: one source pixel is
+	# always one rendered pixel. Older presets may still contain pixel_size, but
+	# attempting to change it must be harmless and must never alter the unit.
+	_check(int(creature.get_parameter(&"pixel_size")) == 1, "%s pixel unit is not fixed at 1" % path)
+	_check(creature.set_parameter(&"pixel_size", 6), "%s rejected legacy pixel_size compatibility key" % path)
+	_check(int(creature.get_parameter(&"pixel_size")) == 1, "%s allowed pixel_size to change" % path)
+
 	var preset: Dictionary = creature.make_preset()
 	_check(String(preset.get("creature_id", "")).length() > 0, "%s preset has no creature_id" % path)
 	_check(preset.has("params"), "%s preset has no params" % path)
+	var preset_params: Dictionary = preset.get("params", {}) as Dictionary
+	_check(not preset_params.has("pixel_size"), "%s persists forbidden pixel_size parameter" % path)
 
 	var old_scale := float(creature.get_parameter(&"global_scale_factor"))
 	_check(creature.set_parameter(&"global_scale_factor", old_scale + 0.1), "%s rejected common parameter" % path)
@@ -68,6 +85,7 @@ func _validate_creature(path: String) -> void:
 	creature.apply_impulse(Vector2(25.0, -12.0))
 	creature.apply_preset(preset)
 	_check(creature.random_seed == int(preset.get("seed", creature.random_seed)), "%s preset seed did not restore" % path)
+	_check(int(creature.get_parameter(&"pixel_size")) == 1, "%s preset application changed pixel unit" % path)
 
 	creature.queue_free()
 
