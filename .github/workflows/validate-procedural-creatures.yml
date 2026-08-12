@@ -4,12 +4,14 @@ on:
   push:
     paths:
       - "scripts/creatures/**"
+      - "scripts/labs/alabaster/**"
       - "scenes/labs/ProceduralCreatureLab.tscn"
       - "scripts/test/ProceduralCreatureValidator.gd"
       - ".github/workflows/validate-procedural-creatures.yml"
   pull_request:
     paths:
       - "scripts/creatures/**"
+      - "scripts/labs/alabaster/**"
       - "scenes/labs/ProceduralCreatureLab.tscn"
       - "scripts/test/ProceduralCreatureValidator.gd"
       - ".github/workflows/validate-procedural-creatures.yml"
@@ -40,7 +42,7 @@ jobs:
           set -o pipefail
           ./godot --headless --editor --path . --quit-after 30 --verbose 2>&1 | tee procedural-creature-import.log
           if grep -E "Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Error parsing|Invalid call|Invalid access" procedural-creature-import.log; then
-            echo "Godot import reported a procedural creature parser/runtime failure."
+            echo "Godot import reported a parser/runtime failure."
             exit 1
           fi
 
