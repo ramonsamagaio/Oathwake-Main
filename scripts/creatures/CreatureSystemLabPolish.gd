@@ -18,28 +18,30 @@ func _select_creature(index: int) -> void:
 	super._select_creature(index)
 	if _active != null:
 		_configure_lab_creature(_active)
+		# Bounds in this polish layer are slightly tighter than the base lab.
+		# Reseed only after those final bounds exist so the first route is valid.
+		_active.reseed(_active.random_seed)
 
 
 func _spawn_stress_test() -> void:
 	super._spawn_stress_test()
 	for creature: ProceduralCreature in _stress_instances:
 		_configure_lab_creature(creature)
+		# Stress clones used to keep a route chosen before their final bounds were
+		# installed, which made some of them walk into an edge for an entire route.
+		creature.reseed(creature.random_seed)
 
 
 func _configure_lab_creature(creature: ProceduralCreature) -> void:
 	if creature == null:
 		return
+	# Preserve common lab wiring such as the LOD anchor, then tighten the roaming
+	# contract for the visible test area.
+	super._configure_lab_creature(creature)
 	creature.set_movement_bounds(CREATURE_BOUNDS)
 
-	# The slime's production solver already supports directional wandering, but
-	# the original lab default (0.22) was so conservative that Auto Hop looked
-	# like a one-way conveyor belt. In the lab we intentionally exercise the
-	# full roaming behavior so every hop can visibly change heading.
-	if creature is ProceduralSlime:
-		var slime := creature as ProceduralSlime
-		slime.wander_strength = maxf(slime.wander_strength, 0.95)
-		if slime.movement_direction.length_squared() <= 0.001:
-			slime.set_move_direction(Vector2.RIGHT.rotated(randf_range(0.0, TAU)))
+	# No creature-specific forced wander here. Each solver owns its own motion
+	# character now, so authoring values match what production will actually use.
 
 
 func _draw() -> void:
