@@ -45,7 +45,7 @@ func _configure_workspace_layout() -> void:
 	if split != null:
 		var desired_left := clampi(roundi(host.size.x * 0.36), 430, 720)
 		split.split_offset = desired_left
-	var tabs := _find_tab_container(host)
+	var tabs := _find_tabs(host)
 	if tabs != null:
 		tabs.custom_minimum_size = Vector2(420.0, 520.0)
 	if _workspace_holder != null:
@@ -61,6 +61,19 @@ func _find_hsplit(node: Node) -> HSplitContainer:
 		if child == null:
 			continue
 		var found := _find_hsplit(child)
+		if found != null:
+			return found
+	return null
+
+
+func _find_tabs(node: Node) -> TabContainer:
+	if node is TabContainer:
+		return node as TabContainer
+	for child_value in node.get_children():
+		var child := child_value as Node
+		if child == null:
+			continue
+		var found := _find_tabs(child)
 		if found != null:
 			return found
 	return null
@@ -97,7 +110,6 @@ func _install_workspace_toolbar() -> void:
 	label.custom_minimum_size = Vector2(145.0, 0.0)
 	tool_row.add_child(label)
 	var group := ButtonGroup.new()
-	group.allow_unpress = false
 	_workspace_rotate_button = Button.new()
 	_workspace_rotate_button.text = "ROTATE"
 	_workspace_rotate_button.toggle_mode = true
@@ -158,7 +170,6 @@ func _install_workspace_viewport_editor() -> void:
 	_workspace_editor = editor_value as Control
 	_workspace_editor.name = "InteractiveBoneViewportOverlay"
 	_workspace_editor.mouse_filter = Control.MOUSE_FILTER_STOP
-	_workspace_editor.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_workspace_editor.z_index = 100
 	_workspace_holder.add_child(_workspace_editor)
 	_workspace_editor.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
