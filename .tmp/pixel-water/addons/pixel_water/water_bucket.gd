@@ -211,14 +211,11 @@ func _update_vertical_slosh(delta: float) -> void:
         gravity_px * max_slosh_acceleration_g
     )
 
-    # In the accelerating bucket frame: g_effective = g - a_bucket.
-    # One damped vertical free-surface mode is enough to capture the inertial
-    # lag that throws water out during an up/down shake, at essentially no cost.
     var omega := TAU * maxf(vertical_slosh_frequency_hz, 0.1)
     var oscillator_acceleration := (
         -omega * omega * _vertical_slosh_offset_px
-        -2.0 * vertical_slosh_damping_ratio * omega * _vertical_slosh_velocity_px_s
-        -acceleration_y * vertical_slosh_coupling
+        + (-2.0 * vertical_slosh_damping_ratio * omega * _vertical_slosh_velocity_px_s)
+        + (-acceleration_y * vertical_slosh_coupling)
     )
     _vertical_slosh_velocity_px_s += oscillator_acceleration * delta
     _vertical_slosh_offset_px += _vertical_slosh_velocity_px_s * delta
@@ -259,8 +256,6 @@ func _spill_from_vertical_slosh(delta: float) -> void:
     if _water != null:
         gravity_px = _water.gravity_px_s2
 
-    # Kinetic head converts relative vertical water speed into the height that
-    # inertia can lift the free surface: h = v^2/(2g).
     var kinetic_head_px := (
         upward_relative_speed * upward_relative_speed
         / maxf(2.0 * gravity_px, 1.0)
