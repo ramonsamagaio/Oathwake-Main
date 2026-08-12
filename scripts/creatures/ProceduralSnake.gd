@@ -2,21 +2,22 @@ class_name ProceduralSnake
 extends ProceduralCreature
 
 @export_group("Chain")
-@export_range(5, 40, 1) var segment_count := 18
-@export_range(3.0, 16.0, 0.5) var segment_spacing := 7.0
+@export_range(5, 40, 1) var segment_count := 20
+@export_range(3.0, 16.0, 0.5) var segment_spacing := 6.0
 @export_range(2.0, 16.0, 0.5) var head_radius := 8.0
-@export_range(0.0, 20.0, 0.25) var wave_amplitude := 7.0
-@export_range(0.1, 8.0, 0.05) var wave_frequency := 2.2
-@export_range(0.0, 8.0, 0.05) var wave_speed := 3.0
-@export_range(0.0, 1.0, 0.01) var follow_tightness := 0.78
+@export_range(0.0, 20.0, 0.25) var wave_amplitude := 8.0
+@export_range(0.1, 8.0, 0.05) var wave_frequency := 2.0
+@export_range(0.0, 8.0, 0.05) var wave_speed := 3.4
+@export_range(0.0, 1.0, 0.01) var follow_tightness := 0.82
 
 @export_group("Top-down Roaming")
-@export_range(0.0, 120.0, 1.0) var crawl_speed := 34.0
+@export_range(0.0, 140.0, 1.0) var crawl_speed := 58.0
 @export var auto_crawl := true
-@export_range(48.0, 520.0, 8.0) var roam_radius := 250.0
-@export_range(4.0, 80.0, 1.0) var target_reach_distance := 20.0
-@export_range(0.2, 12.0, 0.1) var turn_speed := 4.0
-@export_range(0.5, 8.0, 0.1) var retarget_min_time := 2.0
+@export_range(64.0, 620.0, 8.0) var roam_radius := 390.0
+@export_range(8.0, 320.0, 4.0) var minimum_route_distance := 220.0
+@export_range(4.0, 80.0, 1.0) var target_reach_distance := 14.0
+@export_range(0.2, 12.0, 0.1) var turn_speed := 3.2
+@export_range(0.5, 12.0, 0.1) var retarget_min_time := 4.0
 @export_range(0.5, 12.0, 0.1) var retarget_max_time := 5.0
 
 var _segments: PackedVector2Array = PackedVector2Array()
@@ -31,6 +32,10 @@ var _last_head_world := Vector2.ZERO
 
 func _ready() -> void:
 	creature_id = &"snake"
+	primary_color = Color("6f7f46")
+	secondary_color = Color("3f5338")
+	accent_color = Color("c7b96b")
+	shadow_color = Color("27342b")
 	_home_position = position
 	super._ready()
 	_rebuild_chain()
@@ -53,23 +58,41 @@ func _rebuild_chain() -> void:
 
 
 func _choose_roam_target() -> void:
-	_roam_target = _pick_roam_target(_home_position, roam_radius, head_radius * global_scale_factor + 8.0)
-	_retarget_clock = _rng.randf_range(retarget_min_time, maxf(retarget_min_time, retarget_max_time))
+	var margin := head_radius * global_scale_factor + 12.0
+	_roam_target = _pick_roam_target_far(
+		position,
+		_home_position,
+		roam_radius,
+		margin,
+		minimum_route_distance
+	)
+	var distance := position.distance_to(_roam_target)
+	_retarget_clock = _roam_watchdog_time(
+		distance,
+		crawl_speed,
+		retarget_min_time,
+		_rng.randf_range(1.5, maxf(1.5, retarget_max_time))
+	)
 
 
 func _update_roaming(delta: float) -> void:
 	if not auto_crawl or crawl_speed <= 0.0:
-		velocity = velocity.move_toward(Vector2.ZERO, maxf(1.0, crawl_speed) * delta * 6.0)
+		velocity = velocity.move_toward(Vector2.ZERO, maxf(1.0, crawl_speed) * delta * 8.0)
 		return
 
 	_retarget_clock -= delta
 	var to_target := _roam_target - position
-	if to_target.length() <= target_reach_distance or _retarget_clock <= 0.0:
+	if to_target.length() <= target_reach_distance:
+		_choose_roam_target()
+		to_target = _roam_target - position
+	elif _retarget_clock <= 0.0:
+		# Watchdog only. If a route took implausibly long, recover with a new far
+		# destination instead of changing targets every few seconds.
 		_choose_roam_target()
 		to_target = _roam_target - position
 
-	if position.distance_to(_home_position) > roam_radius * 1.08:
-		_roam_target = _clamp_point_to_movement_bounds(_home_position, head_radius * global_scale_factor + 8.0)
+	if position.distance_to(_home_position) > roam_radius * 1.12:
+		_roam_target = _clamp_point_to_movement_bounds(_home_position, head_radius * global_scale_factor + 12.0)
 		to_target = _roam_target - position
 
 	if to_target.length_squared() > 0.001:
@@ -79,10 +102,8 @@ func _update_roaming(delta: float) -> void:
 		if _heading.length_squared() > 0.001:
 			_heading = _heading.normalized()
 
-	# The head itself follows a sinusoid around the steering direction. The body
-	# then follows the real path left by that head instead of being procedurally
-	# re-solved around it, which produces an actual serpentine trajectory.
-	var max_turn := deg_to_rad(clampf(wave_amplitude * 2.4, 0.0, 42.0))
+	# The head travels in a real serpentine path. The body follows that history.
+	var max_turn := deg_to_rad(clampf(wave_amplitude * 2.5, 0.0, 46.0))
 	var serpentine := sin(_phase * wave_frequency) * max_turn
 	_move_heading = _heading.rotated(serpentine).normalized()
 	velocity = _move_heading * crawl_speed
@@ -95,10 +116,8 @@ func _update_chain_from_motion() -> void:
 	if displacement.length_squared() <= 0.0001:
 		return
 
-	# Segment coordinates are local to the moving head node. Counter-translate
-	# them first so their WORLD positions remain where they were. Only segments
-	# whose leash is stretched are advanced. Therefore when the snake stops,
-	# nothing collapses or gets reeled into the head.
+	# Counter-translate local segments so their world positions stay where they
+	# were. Only an overstretched leash advances a segment. Idle never retracts.
 	for i in range(1, _segments.size()):
 		_segments[i] -= displacement
 	_segments[0] = Vector2.ZERO
@@ -129,27 +148,72 @@ func apply_impulse(impulse: Vector2) -> void:
 		_move_heading = _heading
 		_roam_target = _clamp_point_to_movement_bounds(
 			position + _heading * minf(roam_radius, impulse.length() * 0.8),
-			head_radius * global_scale_factor + 8.0
+			head_radius * global_scale_factor + 12.0
 		)
-		_retarget_clock = 0.8
+		_retarget_clock = _roam_watchdog_time(position.distance_to(_roam_target), crawl_speed, 2.0, 1.0)
+
+
+func _segment_radius(index: int) -> float:
+	var t := float(index) / float(maxi(1, segment_count - 1))
+	var body := lerpf(head_radius * 0.82, maxf(1.0, head_radius * 0.28), t)
+	# A slightly fuller neck makes the silhouette feel anatomical instead of a
+	# necklace of equal circles.
+	if index >= 1 and index <= 3:
+		body *= 1.08
+	return maxf(1.0, round(body * global_scale_factor))
 
 
 func _draw() -> void:
 	if _segments.is_empty():
 		return
-	for i in range(segment_count - 1, -1, -1):
+
+	# Ground-contact depth pass.
+	var shadow := shadow_color
+	shadow.a = 0.34
+	for i in range(segment_count - 1, 0, -1):
+		var shadow_pos := _segments[i] * global_scale_factor + Vector2(1.0, 2.0)
+		_draw_pixel_disc(shadow_pos, maxf(1.0, _segment_radius(i) - 1.0), shadow)
+
+	# Body mass, tail first for natural overlap.
+	for i in range(segment_count - 1, 0, -1):
 		var t := float(i) / float(maxi(1, segment_count - 1))
-		var radius := lerpf(head_radius, maxf(2.0, head_radius * 0.3), t) * global_scale_factor
-		var color := primary_color.lerp(secondary_color, t * 0.75)
+		var radius := _segment_radius(i)
+		var color := primary_color.lerp(secondary_color, t * 0.62)
 		_draw_pixel_disc(_segments[i] * global_scale_factor, radius, color)
 
-	var head := _segments[0] * global_scale_factor
+		# Dorsal scales are tiny clusters on alternating segments. They add visual
+		# rhythm without inventing larger pixels.
+		if i < segment_count - 2 and i % 2 == 0:
+			var mark := secondary_color.lerp(accent_color, 0.24)
+			var mark_pos := _segments[i] * global_scale_factor + Vector2(0.0, -maxf(1.0, radius * 0.28))
+			_px_rect(mark_pos, Vector2(2.0, 1.0), mark)
+
 	var facing := _move_heading.normalized() if _move_heading.length_squared() > 0.001 else _heading.normalized()
 	var side := Vector2(-facing.y, facing.x)
-	var eye_base := head + facing * head_radius * 0.35 * global_scale_factor
-	_draw_pixel_disc(eye_base + side * head_radius * 0.45 * global_scale_factor, 2.0 * global_scale_factor, shadow_color)
-	_draw_pixel_disc(eye_base - side * head_radius * 0.45 * global_scale_factor, 2.0 * global_scale_factor, shadow_color)
-	_px_rect(head + facing * head_radius * 0.9 * global_scale_factor, Vector2(pixel_size * 2, pixel_size) * global_scale_factor, accent_color)
+	var head_radius_px := maxf(2.0, round(head_radius * global_scale_factor))
+	var head := Vector2.ZERO
+
+	# Head silhouette: rear mass + short broad snout.
+	_draw_pixel_disc(head + Vector2(1.0, 2.0), head_radius_px, shadow)
+	_draw_pixel_disc(head, head_radius_px, primary_color)
+	var snout := head + facing * head_radius_px * 0.62
+	_draw_pixel_disc(snout, maxf(2.0, head_radius_px * 0.66), primary_color)
+	_px_rect(head - facing * head_radius_px * 0.28, Vector2(3.0, 2.0), secondary_color)
+
+	var eye_base := head + facing * head_radius_px * 0.32
+	var eye_spacing := maxf(2.0, head_radius_px * 0.48)
+	var eye_a := _snap_vec(eye_base + side * eye_spacing)
+	var eye_b := _snap_vec(eye_base - side * eye_spacing)
+	_px_rect(eye_a, Vector2(2.0, 2.0), accent_color)
+	_px_rect(eye_b, Vector2(2.0, 2.0), accent_color)
+	_px_rect(eye_a + facing, Vector2.ONE, shadow_color)
+	_px_rect(eye_b + facing, Vector2.ONE, shadow_color)
+
+	# One-pixel tongue/fang cluster gives the head identity at small scale.
+	var mouth := _snap_vec(snout + facing * maxf(1.0, head_radius_px * 0.52))
+	_px_rect(mouth, Vector2(2.0, 1.0), accent_color)
+	_px_rect(mouth + facing * 2.0 + side, Vector2.ONE, accent_color)
+	_px_rect(mouth + facing * 2.0 - side, Vector2.ONE, accent_color)
 
 
 func _set_creature_parameter(key: StringName, value: Variant) -> bool:
@@ -160,11 +224,12 @@ func _set_creature_parameter(key: StringName, value: Variant) -> bool:
 		&"wave_frequency": wave_frequency = clampf(float(value), 0.1, 8.0)
 		&"wave_speed": wave_speed = clampf(float(value), 0.0, 8.0)
 		&"follow_tightness": follow_tightness = clampf(float(value), 0.0, 1.0)
-		&"crawl_speed": crawl_speed = clampf(float(value), 0.0, 120.0)
+		&"crawl_speed": crawl_speed = clampf(float(value), 0.0, 140.0)
 		&"auto_crawl": auto_crawl = bool(value)
-		&"roam_radius": roam_radius = clampf(float(value), 48.0, 520.0)
+		&"roam_radius": roam_radius = clampf(float(value), 64.0, 620.0)
+		&"minimum_route_distance": minimum_route_distance = clampf(float(value), 8.0, 320.0)
 		&"turn_speed": turn_speed = clampf(float(value), 0.2, 12.0)
-		&"retarget_min_time": retarget_min_time = clampf(float(value), 0.5, 8.0)
+		&"retarget_min_time": retarget_min_time = clampf(float(value), 0.5, 12.0)
 		&"retarget_max_time": retarget_max_time = clampf(float(value), 0.5, 12.0)
 		_:
 			return false
@@ -182,6 +247,7 @@ func _get_creature_parameter(key: StringName) -> Variant:
 		&"crawl_speed": return crawl_speed
 		&"auto_crawl": return auto_crawl
 		&"roam_radius": return roam_radius
+		&"minimum_route_distance": return minimum_route_distance
 		&"turn_speed": return turn_speed
 		&"retarget_min_time": return retarget_min_time
 		&"retarget_max_time": return retarget_max_time
@@ -196,10 +262,11 @@ func _get_creature_editor_schema() -> Array[Dictionary]:
 		{"key": &"wave_frequency", "label": "Serpentine Frequency", "type": "float", "min": 0.2, "max": 6.0, "step": 0.05},
 		{"key": &"wave_speed", "label": "Serpentine Speed", "type": "float", "min": 0.0, "max": 7.0, "step": 0.05},
 		{"key": &"follow_tightness", "label": "Body Tightness", "type": "float", "min": 0.15, "max": 1.0, "step": 0.01},
-		{"key": &"crawl_speed", "label": "Move Speed", "type": "float", "min": 0.0, "max": 100.0, "step": 1.0},
+		{"key": &"crawl_speed", "label": "Move Speed", "type": "float", "min": 0.0, "max": 130.0, "step": 1.0},
 		{"key": &"auto_crawl", "label": "Auto Roam", "type": "bool"},
-		{"key": &"roam_radius", "label": "Roam Radius", "type": "float", "min": 64.0, "max": 420.0, "step": 8.0},
+		{"key": &"roam_radius", "label": "Roam Radius", "type": "float", "min": 96.0, "max": 560.0, "step": 8.0},
+		{"key": &"minimum_route_distance", "label": "Min Route", "type": "float", "min": 32.0, "max": 300.0, "step": 4.0},
 		{"key": &"turn_speed", "label": "Turn Speed", "type": "float", "min": 0.2, "max": 10.0, "step": 0.1},
-		{"key": &"retarget_min_time", "label": "Min Target Time", "type": "float", "min": 0.5, "max": 6.0, "step": 0.1},
-		{"key": &"retarget_max_time", "label": "Max Target Time", "type": "float", "min": 1.0, "max": 10.0, "step": 0.1},
+		{"key": &"retarget_min_time", "label": "Watchdog Min", "type": "float", "min": 1.0, "max": 10.0, "step": 0.1},
+		{"key": &"retarget_max_time", "label": "Watchdog Slack", "type": "float", "min": 1.0, "max": 10.0, "step": 0.1},
 	]
