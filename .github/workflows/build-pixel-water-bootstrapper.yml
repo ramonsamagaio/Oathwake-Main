@@ -1,0 +1,143 @@
+name: Build Pixel Water Bootstrapper
+
+on:
+  push:
+    branches:
+      - tmp-pixel-water-build-20260811
+    paths:
+      - ".github/workflows/build-pixel-water-bootstrapper.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-bootstrapper:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile Windows bootstrapper
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $source = @'
+          using System;
+          using System.Diagnostics;
+          using System.IO;
+          using System.IO.Compression;
+          using System.Linq;
+          using System.Net;
+          using System.Windows.Forms;
+
+          internal static class PixelWaterBootstrapper
+          {
+              private const string GodotUrl = "https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_win64.exe.zip";
+              private const string GodotExeName = "Godot_v4.3-stable_win64.exe";
+
+              [STAThread]
+              private static int Main()
+              {
+                  try
+                  {
+                      string dir = AppDomain.CurrentDomain.BaseDirectory;
+                      string project = Path.Combine(dir, "project");
+                      if (!File.Exists(Path.Combine(project, "project.godot")))
+                      {
+                          MessageBox.Show("A pasta 'project' nao foi encontrada. Extraia o ZIP inteiro antes de abrir o simulador.", "Pixel Water Simulator", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                          return 2;
+                      }
+
+                      string runtime = Path.Combine(dir, "runtime");
+                      Directory.CreateDirectory(runtime);
+                      string godot = Path.Combine(runtime, GodotExeName);
+
+                      if (!File.Exists(godot))
+                      {
+                          var answer = MessageBox.Show(
+                              "Primeira execucao: o Pixel Water Simulator precisa baixar automaticamente o runtime Godot 4.3 (aprox. 50 MB).\n\nNao sera instalado nada no Windows; o runtime fica somente nesta pasta. Continuar?",
+                              "Pixel Water Simulator",
+                              MessageBoxButtons.OKCancel,
+                              MessageBoxIcon.Information);
+                          if (answer != DialogResult.OK) return 0;
+
+                          string zip = Path.Combine(runtime, "godot-runtime.zip");
+                          using (var wc = new WebClient())
+                          {
+                              wc.Headers.Add("User-Agent", "Pixel-Water-Simulator-Test");
+                              wc.DownloadFile(GodotUrl, zip);
+                          }
+                          ZipFile.ExtractToDirectory(zip, runtime);
+                          File.Delete(zip);
+                          if (!File.Exists(godot))
+                          {
+                              var candidate = Directory.GetFiles(runtime, "Godot*_win64.exe", SearchOption.AllDirectories).FirstOrDefault();
+                              if (candidate != null) godot = candidate;
+                          }
+                      }
+
+                      if (!File.Exists(godot))
+                          throw new FileNotFoundException("O runtime Godot nao foi encontrado depois do download.");
+
+                      // Generate Godot's script-class/import cache before the first visible run.
+                      string classCache = Path.Combine(project, ".godot", "global_script_class_cache.cfg");
+                      if (!File.Exists(classCache))
+                      {
+                          var init = new ProcessStartInfo();
+                          init.FileName = godot;
+                          init.WorkingDirectory = dir;
+                          init.UseShellExecute = false;
+                          init.CreateNoWindow = true;
+                          init.Arguments = "--headless --editor --path \"" + project + "\" --quit-after 5";
+                          using (var p = Process.Start(init))
+                          {
+                              if (p == null) throw new Exception("Nao foi possivel inicializar o runtime.");
+                              p.WaitForExit(20000);
+                              if (!p.HasExited) p.Kill();
+                              else if (p.ExitCode != 0) throw new Exception("O Godot encontrou um erro ao preparar o projeto (codigo " + p.ExitCode + ").");
+                          }
+                      }
+
+                      var play = new ProcessStartInfo();
+                      play.FileName = godot;
+                      play.WorkingDirectory = dir;
+                      play.UseShellExecute = false;
+                      play.Arguments = "--path \"" + project + "\"";
+                      Process.Start(play);
+                      return 0;
+                  }
+                  catch (Exception ex)
+                  {
+                      MessageBox.Show(
+                          "Nao consegui abrir o Pixel Water Simulator.\n\n" + ex.Message + "\n\nVerifique sua conexao com a internet e tente novamente.",
+                          "Pixel Water Simulator",
+                          MessageBoxButtons.OK,
+                          MessageBoxIcon.Error);
+                      return 1;
+                  }
+              }
+          }
+          '@
+
+          Set-Content -Path "PixelWaterBootstrapper.cs" -Value $source -Encoding utf8
+          $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          if (-not (Test-Path $csc)) { throw "C# compiler not found" }
+          & $csc /nologo /target:winexe /optimize+ /reference:System.dll /reference:System.Windows.Forms.dll /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll /out:"Pixel Water Simulator.exe" "PixelWaterBootstrapper.cs"
+          if ($LASTEXITCODE -ne 0) { throw "Bootstrapper compile failed" }
+
+      - name: Persist bootstrapper as base64 text
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path ".tmp-build-output" | Out-Null
+          $bytes = [System.IO.File]::ReadAllBytes("Pixel Water Simulator.exe")
+          [System.IO.File]::WriteAllText(".tmp-build-output/pixel-water-bootstrapper.b64", [Convert]::ToBase64String($bytes))
+          $sha = (Get-FileHash "Pixel Water Simulator.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content -Path ".tmp-build-output/pixel-water-bootstrapper.sha256" -Value $sha -Encoding ascii
+
+          git config user.name "Pixel Water Bootstrapper Builder"
+          git config user.email "actions@users.noreply.github.com"
+          git add .tmp-build-output/pixel-water-bootstrapper.b64 .tmp-build-output/pixel-water-bootstrapper.sha256
+          git commit -m "chore: stage Pixel Water bootstrapper binary [skip ci]"
+          git push
