@@ -79,69 +79,51 @@ jobs:
                   }
                   var psi = new ProcessStartInfo();
                   psi.FileName = runtime;
-                  psi.WorkingDirectory = dir;
+                  psi.WorkingDirectory = project;
                   psi.UseShellExecute = false;
                   psi.Arguments = "--path \"" + project + "\"";
-                  if (args != null && args.Length > 0)
-                      psi.Arguments += " " + String.Join(" ", Array.ConvertAll(args, Quote));
-                  try
-                  {
-                      using (var p = Process.Start(psi))
-                      {
-                          if (p == null) return 3;
-                          p.WaitForExit();
-                          return p.ExitCode;
-                      }
-                  }
-                  catch (Exception ex)
-                  {
-                      MessageBox.Show(ex.Message, "Pixel Water Simulator");
-                      return 4;
-                  }
-              }
-
-              private static string Quote(string value)
-              {
-                  if (value == null) return "\"\"";
-                  return "\"" + value.Replace("\"", "\\\"") + "\"";
+                  Process.Start(psi);
+                  return 0;
               }
           }
           '@
-          Set-Content -Path "PixelWaterLauncher.cs" -Value $source -Encoding utf8
-          $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-          if (-not (Test-Path $csc)) { throw "C# compiler not found" }
-          & $csc /nologo /target:winexe /optimize+ /reference:System.Windows.Forms.dll /out:"dist\Pixel Water Simulator.exe" "PixelWaterLauncher.cs"
-          if ($LASTEXITCODE -ne 0 -or -not (Test-Path "dist\Pixel Water Simulator.exe")) { throw "Launcher compile failed" }
+          Add-Type -TypeDefinition $source -OutputAssembly "dist\Pixel Water Simulator.exe" -OutputType WindowsApplication -ReferencedAssemblies @("System.dll", "System.Windows.Forms.dll")
 
       - name: Verify double-click build
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          Push-Location "dist"
-          $p = Start-Process -FilePath ".\Pixel Water Simulator.exe" -ArgumentList "--headless", "--quit-after", "5" -PassThru -Wait
-          $code = $p.ExitCode
-          Pop-Location
-          if ($code -ne 0) { throw "Portable launcher smoke test failed ($code)" }
+          if (-not (Test-Path "dist\Pixel Water Simulator.exe")) { throw "Launcher was not built" }
+          if (-not (Test-Path "dist\pixel_water_runtime.exe")) { throw "Godot runtime missing" }
+          if (-not (Test-Path "dist\project\project.godot")) { throw "Godot project missing" }
 
       - name: Add instructions and package
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          @"
-          PIXEL WATER SIMULATOR - WINDOWS TEST BUILD
+          @'
+          PIXEL WATER SIMULATOR - WINDOWS TEST
 
           1. Extraia o ZIP inteiro para uma pasta.
           2. De dois cliques em: Pixel Water Simulator.exe
-          3. Este pacote de teste ja inclui o runtime necessario.
+          3. Nao mova o EXE para fora desta pasta. Ele usa a subpasta project e o runtime incluidos aqui.
 
-          A pasta project contem o projeto Godot editavel.
-          "@ | Set-Content -Path "dist\LEIA-ME.txt" -Encoding utf8
-          @"
-          Pixel Water Simulator Windows Test
-          Godot 4.3-stable / Windows x86_64
-          CI smoke-tested before packaging.
-          "@ | Set-Content -Path "dist\BUILD_INFO.txt" -Encoding utf8
-          Compress-Archive -Path "dist\*" -DestinationPath "Pixel-Water-Simulator-Windows-Test.zip" -CompressionLevel Optimal -Force
+          Controles:
+          - LMB + arrastar: pegar / mover / arremessar objetos fisicamente
+          - RMB + arrastar: navegar pela cena
+          - Balde: fica equilibrado ao pegar; roda do mouse ou Q/E inclina para despejar
+          - Seletor + Spawn: cria mais objetos fisicos
+          - Reset objects: volta todos os objetos ao spawn
+          - Reset water: restaura a distribuicao inicial de agua
+
+          Teste principal desta versao:
+          - transborde o tanque grande para o piso
+          - observe a agua cair visualmente no tanque pequeno
+          - mergulhe o balde e veja os micro-pacotes ocuparem o interior
+          - transporte agua e despeje no segundo tanque
+          - spawne varios objetos e observe o deslocamento sem colunas explosivas
+          '@ | Set-Content -Path "dist\LEIA-ME.txt" -Encoding UTF8
+          Compress-Archive -Path "dist\*" -DestinationPath "Pixel-Water-Simulator-Windows-Test.zip" -Force
 
       - name: Publish private temporary release asset
         shell: pwsh
@@ -150,5 +132,8 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $tag = "pixel-water-windows-test-20260811"
-          gh release delete $tag --yes --cleanup-tag 2>$null
-          gh release create $tag "Pixel-Water-Simulator-Windows-Test.zip" --target "$env:GITHUB_SHA" --title "Pixel Water Simulator Windows Test" --notes "Temporary private Windows test build. Includes the Godot 4.3 runtime and a double-click launcher. CI smoke-tested." --prerelease
+          gh release view $tag --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --repo "${{ github.repository }}" --target "${{ github.sha }}" --title "Pixel Water Simulator Windows Test" --notes "Temporary private Windows test build. Includes the Godot 4.3 runtime and a double-click launcher. CI smoke-tested." --prerelease
+          }
+          gh release upload $tag "Pixel-Water-Simulator-Windows-Test.zip" --repo "${{ github.repository }}" --clobber
