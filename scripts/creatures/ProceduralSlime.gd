@@ -158,8 +158,6 @@ func _update_locomotion(delta: float) -> void:
 		_gather_deformation = 0.0
 		_landing_deformation = 0.0
 
-		# Slime accelerates out of the compressed launch, coasts near the apex and
-		# softens before impact.
 		var travel_curve := lerpf(0.78, 1.08, sin(clamped_phase * PI))
 		_move_on_ground(movement_direction * move_speed * travel_curve * delta)
 		if _hop_phase >= 1.0:
@@ -224,26 +222,26 @@ func _move_on_ground(displacement: Vector2) -> void:
 
 
 func _update_blob_springs(delta: float) -> void:
-	var mean_radial := 0.0
+	var mean_radial: float = 0.0
 	for i in range(point_count):
-		var angle := TAU * float(i) / float(point_count)
-		var normal := Vector2(cos(angle), sin(angle))
-		var wave_a := sin(_phase * 1.75 + angle * 3.0)
-		var wave_b := sin(_phase * 2.35 - angle * 2.0) * 0.45
-		var wave := (wave_a + wave_b) * wobble * 1.85
-		var target_offset := normal * wave
+		var angle: float = TAU * float(i) / float(point_count)
+		var normal: Vector2 = Vector2(cos(angle), sin(angle))
+		var wave_a: float = sin(_phase * 1.75 + angle * 3.0)
+		var wave_b: float = sin(_phase * 2.35 - angle * 2.0) * 0.45
+		var wave: float = (wave_a + wave_b) * wobble * 1.85
+		var target_offset: Vector2 = normal * wave
 
 		# Landing pushes lower/lateral membrane points outward. Gathering pulls the
 		# membrane inward before the next leap, creating a real liquid mass cycle.
-		var lateral_weight := abs(cos(angle))
-		var lower_weight := maxf(0.0, sin(angle))
-		target_offset.x += sign(cos(angle)) * lateral_weight * _landing_deformation * liquid_spread * 2.8
+		var lateral_weight: float = absf(cos(angle))
+		var lower_weight: float = maxf(0.0, sin(angle))
+		target_offset.x += signf(cos(angle)) * lateral_weight * _landing_deformation * liquid_spread * 2.8
 		target_offset.y += lower_weight * _landing_deformation * liquid_spread * 1.6
 		target_offset -= normal * _gather_deformation * 1.6
 
-		var offset := _offsets[i]
-		var point_velocity := _point_velocities[i]
-		var spring := (target_offset - offset) * stiffness
+		var offset: Vector2 = _offsets[i]
+		var point_velocity: Vector2 = _point_velocities[i]
+		var spring: Vector2 = (target_offset - offset) * stiffness
 		point_velocity += spring * delta
 		point_velocity *= exp(-damping * delta)
 		offset += point_velocity * delta
@@ -252,9 +250,9 @@ func _update_blob_springs(delta: float) -> void:
 		mean_radial += offset.length()
 
 	if point_count > 0 and volume_preservation > 0.0:
-		var correction := mean_radial / float(point_count) * volume_preservation
+		var correction: float = mean_radial / float(point_count) * volume_preservation
 		for i in range(point_count):
-			var angle := TAU * float(i) / float(point_count)
+			var angle: float = TAU * float(i) / float(point_count)
 			_offsets[i] -= Vector2(cos(angle), sin(angle)) * correction * 0.028
 
 
@@ -446,15 +444,12 @@ func _draw_body() -> void:
 		shell.a = body_opacity
 		draw_colored_polygon(points, shell)
 
-	# Lower liquid density layer. It remains translucent so the floor is still
-	# faintly visible through the creature.
 	var lower := secondary_color
 	lower.a = body_opacity * 0.46
 	var rim_center := visual_origin + Vector2(0.0, radius_y * 0.50 * height_scale) * global_scale_factor
 	var rim_size := Vector2(radius_x * 1.44 * width_scale, maxf(2.0, radius_y * 0.30 * height_scale)) * global_scale_factor
 	_px_rect(rim_center, rim_size, lower)
 
-	# Suspended dense core moves slightly against momentum, selling internal fluid.
 	var lateral := Vector2(-movement_direction.y, movement_direction.x)
 	var nucleus_offset := -movement_direction * (3.0 + jump_ratio * 2.0) + lateral * sin(_phase * 1.35) * 2.0
 	var nucleus_center := visual_origin + nucleus_offset * global_scale_factor
@@ -465,7 +460,6 @@ func _draw_body() -> void:
 	nucleus_light.a = 0.38
 	_draw_pixel_disc(_snap_vec(nucleus_center + Vector2(-2.0, -2.0)), maxf(2.0, radius_x * 0.08 * global_scale_factor), nucleus_light)
 
-	# Uneven membrane highlights avoid the generic glossy-ball look.
 	var highlight := accent_color
 	highlight.a = 0.66
 	var h1 := visual_origin + Vector2(-radius_x * 0.34 * width_scale, -radius_y * 0.42 * height_scale) * global_scale_factor
@@ -477,7 +471,6 @@ func _draw_body() -> void:
 	_px_rect(_snap_vec(h2), Vector2(4.0, 1.0), h2_color)
 	_px_rect(_snap_vec(h2 + Vector2(1.0, -1.0)), Vector2(2.0, 1.0), h2_color)
 
-	# A few internal one-pixel bubbles drift independently.
 	for i in range(3):
 		var bubble := visual_origin + Vector2(
 			sin(_phase * (0.8 + i * 0.17) + i * 2.1) * radius_x * 0.24,
