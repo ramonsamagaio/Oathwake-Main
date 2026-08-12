@@ -140,16 +140,17 @@ func _leg_geometry(index: int, facing_angle: float) -> PackedVector2Array:
 func _draw() -> void:
 	var scale_factor := global_scale_factor
 	var facing_angle := _heading.angle()
+	var leg_shadow: Color = shadow_color
+	leg_shadow.a = 0.42
 
 	# Legs first. Widths are fixed integer pixel clusters, never scaled pixels.
 	for i in range(leg_count):
 		var leg := _leg_geometry(i, facing_angle)
 		for j in range(leg.size() - 1):
-			draw_line(leg[j] + Vector2(1.0, 2.0), leg[j + 1] + Vector2(1.0, 2.0), Color(shadow_color, 0.42), 3.0, false)
+			draw_line(leg[j] + Vector2(1.0, 2.0), leg[j + 1] + Vector2(1.0, 2.0), leg_shadow, 3.0, false)
 			draw_line(leg[j], leg[j + 1], secondary_color, 2.0, false)
 			_draw_pixel_disc(leg[j + 1], 2.0, secondary_color)
 
-		# Knee cap and claw tip give every leg readable articulation.
 		if leg.size() >= 3:
 			_draw_pixel_disc(leg[1], 2.0, primary_color)
 			var foot := leg[2]
@@ -163,31 +164,31 @@ func _draw() -> void:
 	var abdomen := -forward * body_r * 0.42
 	var thorax := forward * body_r * 0.32
 
-	# Contact shadow underneath the armored body.
 	var body_shadow := shadow_color
 	body_shadow.a = 0.40
 	_draw_pixel_disc(abdomen + Vector2(1.0, 3.0), body_r * 0.92, body_shadow)
 	_draw_pixel_disc(thorax + Vector2(1.0, 3.0), body_r * 0.72, body_shadow)
 
-	# Two-part carapace produces a less generic spider-dot silhouette.
 	_draw_pixel_disc(abdomen, body_r * 0.92, primary_color)
 	_draw_pixel_disc(thorax, body_r * 0.72, primary_color)
 	_draw_pixel_disc(abdomen - side_dir * 1.0 - forward * 2.0, body_r * 0.58, secondary_color)
 	_draw_pixel_disc(thorax - forward * 1.0, body_r * 0.42, primary_color.lerp(accent_color, 0.13))
 
-	# Dorsal plate and segmented stripe.
 	var plate_center := abdomen - forward * body_r * 0.10
 	_px_rect(plate_center, Vector2(maxf(3.0, body_r * 0.72), 3.0), secondary_color)
 	for stripe in range(3):
 		var stripe_pos := abdomen - forward * (body_r * 0.36 - float(stripe) * body_r * 0.34)
 		_px_rect(_snap_vec(stripe_pos), Vector2(maxf(2.0, body_r * (0.55 - stripe * 0.07)), 1.0), accent_color.lerp(primary_color, 0.48))
 
-	# Small mandible block and four-eye cluster.
 	var face := thorax + forward * body_r * 0.54
 	_px_rect(face, Vector2(4.0, 3.0), secondary_color)
-	for eye_side in [-1.0, 1.0]:
-		for eye_row in [0.0, 3.0]:
-			var eye := face + side_dir * eye_side * (2.0 + eye_row * 0.20) - forward * eye_row
+	var eye_sides: Array[float] = [-1.0, 1.0]
+	var eye_rows: Array[float] = [0.0, 3.0]
+	for eye_side_value in eye_sides:
+		var eye_side: float = eye_side_value
+		for eye_row_value in eye_rows:
+			var eye_row: float = eye_row_value
+			var eye: Vector2 = face + side_dir * eye_side * (2.0 + eye_row * 0.20) - forward * eye_row
 			_px_rect(_snap_vec(eye), Vector2.ONE, accent_color)
 
 	var mandible_a := face + forward * 3.0 + side_dir * 2.0
