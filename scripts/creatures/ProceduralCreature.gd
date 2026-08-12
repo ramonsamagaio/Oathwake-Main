@@ -338,20 +338,20 @@ func _px_rect(center: Vector2, size: Vector2, color: Color) -> void:
 	# Every primitive is made from the one-pixel grid. Larger visual masses are
 	# integer clusters, never enlarged source pixels. Top-left and extents stay
 	# integer too, so odd clusters cannot land on half-pixel coordinates.
-	var snapped_center := _snap_vec(center)
+	var snapped_center: Vector2 = _snap_vec(center)
 	var snapped_size := Vector2(maxf(1.0, round(size.x)), maxf(1.0, round(size.y)))
 	var half_extent := Vector2(floor(snapped_size.x * 0.5), floor(snapped_size.y * 0.5))
-	var top_left := snapped_center - half_extent
+	var top_left: Vector2 = snapped_center - half_extent
 	draw_rect(Rect2(top_left, snapped_size), color, true)
 
 
 func _draw_pixel_disc(center: Vector2, radius: float, color: Color) -> void:
-	var r := maxf(1.0, round(radius))
-	var snapped_center := _snap_vec(center)
-	var y := -r
+	var r: float = maxf(1.0, round(radius))
+	var snapped_center: Vector2 = _snap_vec(center)
+	var y: float = -r
 	while y <= r:
-		var half_width := floor(sqrt(maxf(0.0, r * r - y * y)))
-		var x := -half_width
+		var half_width: float = floor(sqrt(maxf(0.0, r * r - y * y)))
+		var x: float = -half_width
 		while x <= half_width:
 			_px_rect(snapped_center + Vector2(x, y), Vector2.ONE, color)
 			x += 1.0
