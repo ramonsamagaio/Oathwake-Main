@@ -2,9 +2,10 @@ extends "res://scripts/labs/alabaster/AlabasterBoneStudioPro.gd"
 
 # Stable Bone Studio entry point. Live Tuning is loaded dynamically at runtime,
 # while the preview itself starts with the exact BonesSystem used by gameplay.
-# This avoids an editor-only Juno runtime silently diverging from the player.
+# The workspace composition adds editor ergonomics without moving them into the
+# gameplay runtime.
 
-const LIVE_TUNING_PANEL_PATH = "res://scripts/labs/alabaster/AlabasterBoneStudioLiveTuningDefault.gd"
+const LIVE_TUNING_PANEL_PATH = "res://scripts/labs/alabaster/AlabasterBoneStudioWorkspace.gd"
 const SharedJunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 
 var _live_tuning_panel: Node = null
@@ -28,14 +29,14 @@ func _ready() -> void:
 	super._ready()
 	var panel_script_value: Variant = load(LIVE_TUNING_PANEL_PATH)
 	if panel_script_value == null:
-		push_error("Bone Studio: Live Tuning panel could not be loaded. Base editor remains available.")
+		push_error("Bone Studio: Live Tuning workspace could not be loaded. Base editor remains available.")
 		return
 	if not panel_script_value is Script:
-		push_error("Bone Studio: Live Tuning resource is not a Script. Base editor remains available.")
+		push_error("Bone Studio: Live Tuning workspace resource is not a Script. Base editor remains available.")
 		return
 	var panel_value: Variant = (panel_script_value as Script).new()
 	if not panel_value is Node:
-		push_error("Bone Studio: Live Tuning script did not create a Node. Base editor remains available.")
+		push_error("Bone Studio: Live Tuning workspace did not create a Node. Base editor remains available.")
 		return
 	_live_tuning_panel = panel_value as Node
 	_live_tuning_panel.call("setup", self)
