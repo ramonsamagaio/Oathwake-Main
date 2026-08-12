@@ -10,37 +10,75 @@ extends ProceduralCreature
 @export_range(0.1, 10.0, 0.05) var step_speed := 3.6
 @export_range(0.0, 16.0, 0.25) var step_height := 6.0
 @export_range(0.0, 1.0, 0.01) var gait_overlap := 0.36
-@export_range(0.0, 80.0, 1.0) var crawl_speed := 18.0
+
+@export_group("Top-down Roaming")
+@export_range(0.0, 120.0, 1.0) var crawl_speed := 28.0
 @export var auto_crawl := true
+@export_range(48.0, 520.0, 8.0) var roam_radius := 230.0
+@export_range(4.0, 80.0, 1.0) var target_reach_distance := 18.0
+@export_range(0.2, 12.0, 0.1) var turn_speed := 5.0
+@export_range(0.5, 8.0, 0.1) var retarget_min_time := 2.0
+@export_range(0.5, 12.0, 0.1) var retarget_max_time := 4.5
 
 var _phase := 0.0
 var _heading := Vector2.RIGHT
-var _home_x := 0.0
+var _home_position := Vector2.ZERO
+var _roam_target := Vector2.ZERO
+var _retarget_clock := 0.0
 
 
 func _ready() -> void:
 	creature_id = &"crawler"
-	_home_x = position.x
+	_home_position = position
 	super._ready()
+	_choose_roam_target()
 
 
 func _reset_simulation() -> void:
 	super._reset_simulation()
-	_home_x = position.x
+	_home_position = position
+	_choose_roam_target()
+
+
+func _choose_roam_target() -> void:
+	var angle := _rng.randf_range(0.0, TAU)
+	var radius := sqrt(_rng.randf()) * roam_radius
+	_roam_target = _home_position + Vector2(cos(angle), sin(angle)) * radius
+	_retarget_clock = _rng.randf_range(retarget_min_time, maxf(retarget_min_time, retarget_max_time))
+
+
+func _update_roaming(delta: float) -> void:
+	if not auto_crawl or crawl_speed <= 0.0:
+		velocity = velocity.move_toward(Vector2.ZERO, crawl_speed * delta * 4.0)
+		return
+
+	_retarget_clock -= delta
+	var to_target := _roam_target - position
+	if to_target.length() <= target_reach_distance or _retarget_clock <= 0.0:
+		_choose_roam_target()
+		to_target = _roam_target - position
+
+	if position.distance_to(_home_position) > roam_radius * 1.08:
+		_roam_target = _home_position
+		to_target = _home_position - position
+
+	if to_target.length_squared() > 0.001:
+		var desired := to_target.normalized()
+		_heading = _heading.lerp(desired, clampf(delta * turn_speed, 0.0, 1.0)).normalized()
+	velocity = _heading * crawl_speed
 
 
 func _simulate_creature(delta: float) -> void:
 	_phase += delta * step_speed * motion_intensity
-	if auto_crawl:
-		velocity = _heading * crawl_speed
-		if absf(position.x - _home_x) > 250.0:
-			_heading.x *= -1.0
+	_update_roaming(delta)
 
 
 func apply_impulse(impulse: Vector2) -> void:
 	super.apply_impulse(impulse)
 	if impulse.length_squared() > 4.0:
 		_heading = impulse.normalized()
+		_roam_target = position + _heading * minf(roam_radius, impulse.length() * 0.8)
+		_retarget_clock = 0.8
 
 
 func _solve_leg(root: Vector2, foot: Vector2, bend_sign: float) -> PackedVector2Array:
@@ -98,8 +136,12 @@ func _set_creature_parameter(key: StringName, value: Variant) -> bool:
 		&"step_speed": step_speed = clampf(float(value), 0.1, 10.0)
 		&"step_height": step_height = clampf(float(value), 0.0, 16.0)
 		&"gait_overlap": gait_overlap = clampf(float(value), 0.0, 1.0)
-		&"crawl_speed": crawl_speed = clampf(float(value), 0.0, 80.0)
+		&"crawl_speed": crawl_speed = clampf(float(value), 0.0, 120.0)
 		&"auto_crawl": auto_crawl = bool(value)
+		&"roam_radius": roam_radius = clampf(float(value), 48.0, 520.0)
+		&"turn_speed": turn_speed = clampf(float(value), 0.2, 12.0)
+		&"retarget_min_time": retarget_min_time = clampf(float(value), 0.5, 8.0)
+		&"retarget_max_time": retarget_max_time = clampf(float(value), 0.5, 12.0)
 		_:
 			return false
 	return true
@@ -116,6 +158,10 @@ func _get_creature_parameter(key: StringName) -> Variant:
 		&"gait_overlap": return gait_overlap
 		&"crawl_speed": return crawl_speed
 		&"auto_crawl": return auto_crawl
+		&"roam_radius": return roam_radius
+		&"turn_speed": return turn_speed
+		&"retarget_min_time": return retarget_min_time
+		&"retarget_max_time": return retarget_max_time
 	return null
 
 
@@ -128,6 +174,10 @@ func _get_creature_editor_schema() -> Array[Dictionary]:
 		{"key": &"step_speed", "label": "Step Speed", "type": "float", "min": 0.2, "max": 8.0, "step": 0.05},
 		{"key": &"step_height", "label": "Step Height", "type": "float", "min": 0.0, "max": 14.0, "step": 0.25},
 		{"key": &"gait_overlap", "label": "Gait Offset", "type": "float", "min": 0.0, "max": 1.0, "step": 0.01},
-		{"key": &"crawl_speed", "label": "Crawl Speed", "type": "float", "min": 0.0, "max": 70.0, "step": 1.0},
-		{"key": &"auto_crawl", "label": "Auto Crawl", "type": "bool"},
+		{"key": &"crawl_speed", "label": "Move Speed", "type": "float", "min": 0.0, "max": 100.0, "step": 1.0},
+		{"key": &"auto_crawl", "label": "Auto Roam", "type": "bool"},
+		{"key": &"roam_radius", "label": "Roam Radius", "type": "float", "min": 64.0, "max": 420.0, "step": 8.0},
+		{"key": &"turn_speed", "label": "Turn Speed", "type": "float", "min": 0.2, "max": 10.0, "step": 0.1},
+		{"key": &"retarget_min_time", "label": "Min Target Time", "type": "float", "min": 0.5, "max": 6.0, "step": 0.1},
+		{"key": &"retarget_max_time", "label": "Max Target Time", "type": "float", "min": 1.0, "max": 10.0, "step": 0.1},
 	]
