@@ -16,7 +16,6 @@ def once(text: str, old: str, new: str, label: str) -> str:
     return text.replace(old, new, 1)
 
 
-# WORLD: stability/performance defaults.
 world = once(world, '@export_range(2, 48, 1) var max_substeps: int = 28', '@export_range(2, 32, 1) var max_substeps: int = 14', 'max_substeps')
 world = once(world, '@export_range(0.0, 4.0, 0.01) var linear_flow_damping: float = 0.62', '@export_range(0.0, 4.0, 0.01) var linear_flow_damping: float = 0.82', 'linear damping')
 world = once(world, '@export_range(0.0, 2.0, 0.01) var quadratic_flow_damping: float = 0.16', '@export_range(0.0, 2.0, 0.01) var quadratic_flow_damping: float = 0.18', 'quadratic damping')
@@ -33,7 +32,6 @@ world = once(world, '@export var max_bubbles: int = 150', '@export var max_bubbl
 world = once(world, '@export var max_foam_particles: int = 240', '@export var max_foam_particles: int = 100', 'foam cap')
 world = once(world, '@export_range(0.0, 1.0, 0.01) var spray_volume_fraction: float = 0.025', '@export_range(0.0, 1.0, 0.001) var spray_volume_fraction: float = 0.008', 'spray fraction')
 
-# Persistent scratch buffers, rather than allocating every solver substep.
 world = once(
     world,
     'var _momentum_flux_right: PackedFloat32Array\n',
@@ -55,7 +53,6 @@ world = once(
 world = world.replace('donor_scale[i] = clampf(', '_donor_scale[i] = clampf(')
 world = world.replace('var scale := donor_scale[donor]', 'var scale := _donor_scale[donor]')
 
-# Avoid duplicating a packed array every physics frame.
 world = once(
     world,
     '    _previous_solid_fill_m = _solid_fill_m.duplicate()\n    for i in range(_cell_count):\n        _solid_fill_m[i] = 0.0',
@@ -104,16 +101,15 @@ new_weights = '''        var weight_sum := 0.0
 '''
 world = once(world, old_weights, new_weights, 'displacement temporary weights')
 
-# Kill only pathological one-cell towers. This is conservative: every meter of
-# depth removed from one cell is added to its reachable neighbor.
 world = once(
     world,
-    '    for _step in range(substeps):\n        _shallow_water_substep(dt)\n\n    _flush_waterfalls()',
+    '    for _step in range(substeps):\n        _shallow_water_substep(dt)\n\n    _relax_extreme_surface_columns()\n    _flush_waterfalls()' if '_relax_extreme_surface_columns()' in world else '    for _step in range(substeps):\n        _shallow_water_substep(dt)\n\n    _flush_waterfalls()',
     '    for _step in range(substeps):\n        _shallow_water_substep(dt)\n\n    _relax_extreme_surface_columns()\n    _flush_waterfalls()',
     'extreme limiter call',
 )
 
-surface_helper = '''func _relax_extreme_surface_columns() -> void:
+if 'func _relax_extreme_surface_columns() -> void:' not in world:
+    surface_helper = '''func _relax_extreme_surface_columns() -> void:
     if _cell_count < 2 or extreme_relax_passes <= 0:
         return
 
@@ -143,7 +139,6 @@ surface_helper = '''func _relax_extreme_surface_columns() -> void:
             var receiver_eta := eta_r if receiver == right else eta_l
             var crest_z := maxf(donor_z, receiver_z)
 
-            # A terrain step remains a wall until the donor reaches its lip.
             if donor_eta <= crest_z + dry_depth_m:
                 continue
 
@@ -177,13 +172,11 @@ surface_helper = '''func _relax_extreme_surface_columns() -> void:
             _momentum_m2_s[i] = _depth_m[i] * old_u * 0.55
 
 '''
-marker = 'func _limit_outflow_fluxes(dt: float, dx: float) -> void:\n'
-if marker not in world:
-    raise RuntimeError('missing surface helper insertion marker')
-world = world.replace(marker, surface_helper + marker, 1)
+    marker = 'func _limit_outflow_fluxes(dt: float, dx: float) -> void:\n'
+    if marker not in world:
+        raise RuntimeError('missing surface helper insertion marker')
+    world = world.replace(marker, surface_helper + marker, 1)
 
-# Object coupling: displaced volume already creates the main wave. Extra momentum
-# is now a subtle wake/splash, rather than a second giant energy injection.
 world = once(world, '        sqrt(maxf(impact_energy_j, 0.0)) * 0.055\n        + sqrt(displaced_liters) * 0.10,\n        0.12,\n        3.2', '        sqrt(maxf(impact_energy_j, 0.0)) * 0.018\n        + sqrt(displaced_liters) * 0.035,\n        0.04,\n        0.90', 'impact energy')
 world = once(world, '        + impact_energy_j / 350000.0,\n        0.012', '        + impact_energy_j / 1200000.0,\n        0.003', 'splash volume')
 world = once(world, '            int(4.0 + sqrt(maxf(impact_energy_j, 0.0)) * 0.35 + object_width_px * 0.06),\n            4,\n            72', '            int(2.0 + sqrt(maxf(impact_energy_j, 0.0)) * 0.12 + object_width_px * 0.025),\n            2,\n            16', 'splash count')
@@ -197,8 +190,6 @@ world = once(world, '                        clampf(absf(d.vel.y) / pixels_per_m
 world = once(world, '            int(ceil(2.0 + sqrt(maxf(liters, 0.0)) * 5.0)),\n            2,\n            24', '            int(ceil(1.0 + sqrt(maxf(liters, 0.0)) * 1.6)),\n            1,\n            6', 'waterfall packets')
 world = once(world, '            "life": _rng.randf_range(1.2, 3.5),', '            "life": _rng.randf_range(0.75, 1.65),', 'particle lifetime')
 
-# Rendering: one polygon per contiguous wet region instead of multiple rectangles
-# for every solver cell. Secondary particles remain intentionally sparse.
 draw_start = world.find('func _draw() -> void:\n')
 if draw_start < 0:
     raise RuntimeError('missing _draw')
@@ -262,7 +253,6 @@ func _draw_water_run(first: int, last: int) -> void:
         draw_polyline(surface_line, WATER_TOP, maxf(1.0, cell_size_px * 0.35))
 '''
 
-# BODY: 20 buoyancy samples rather than 42 and only send wakes when moving.
 body = once(body, '@export_range(3, 11, 1) var sample_columns: int = 7', '@export_range(3, 11, 1) var sample_columns: int = 5', 'sample cols')
 body = once(body, '@export_range(3, 11, 1) var sample_rows: int = 6', '@export_range(3, 11, 1) var sample_rows: int = 4', 'sample rows')
 body = once(body, '    contact_monitor = true\n    max_contacts_reported = 16', '    contact_monitor = false\n    max_contacts_reported = 0', 'contact monitor')
@@ -288,11 +278,10 @@ new_motion = '''    var sink_ratio := maxf(0.0, predicted_submerged_fraction - 1
 '''
 body = once(body, old_motion, new_motion, 'conditional underwater motion')
 
-# MAIN: previous code was overriding the calmer solver defaults with old values.
 main = once(main, '    water.cell_size_px = 4.0', '    water.cell_size_px = 6.0', 'demo grid')
 main = once(
     main,
-    '    water.linear_flow_damping = 0.36\n    water.quadratic_flow_damping = 0.105\n    water.momentum_neighbor_mix = 0.030',
+    '    water.linear_flow_damping = 0.68\n    water.quadratic_flow_damping = 0.17\n    water.momentum_neighbor_mix = 0.018',
     '    water.cfl_number = 0.42\n    water.max_substeps = 14\n    water.linear_flow_damping = 0.82\n    water.quadratic_flow_damping = 0.18\n    water.momentum_neighbor_mix = 0.008\n    water.rest_velocity_m_s = 0.045\n    water.rest_surface_delta_px = 0.55\n    water.max_flow_speed_m_s = 4.5\n    water.max_splash_particles = 140\n    water.max_bubbles = 64\n    water.max_foam_particles = 100\n    water.spray_volume_fraction = 0.008',
     'demo tuning',
 )
