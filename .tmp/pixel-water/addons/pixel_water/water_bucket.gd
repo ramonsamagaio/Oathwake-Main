@@ -19,6 +19,15 @@ extends InteractiveBuoyantPixelBody2D
 @export_range(0.1, 4.0, 0.05) var empty_bucket_mass_kg: float = 0.85
 @export_range(1.0, 20.0, 0.1) var hull_displacement_liters: float = 9.6
 
+@export_category("Inertial water slosh")
+@export_range(0.5, 5.0, 0.1) var vertical_slosh_frequency_hz: float = 2.15
+@export_range(0.05, 1.2, 0.01) var vertical_slosh_damping_ratio: float = 0.30
+@export_range(0.1, 1.5, 0.05) var vertical_slosh_coupling: float = 0.90
+@export_range(1.0, 8.0, 0.25) var max_slosh_acceleration_g: float = 4.5
+@export_range(0.0, 8.0, 0.25) var dynamic_spill_threshold_px: float = 1.5
+@export_range(1.0, 24.0, 0.5) var max_dynamic_spill_liters_s: float = 12.0
+@export_range(0.2, 1.0, 0.01) var dynamic_spill_discharge_coefficient: float = 0.72
+
 @export_category("Stable bucket grab")
 @export_range(2.0, 30.0, 0.5) var held_angle_response: float = 16.0
 @export_range(2.0, 40.0, 0.5) var held_angle_damping: float = 18.0
@@ -31,6 +40,9 @@ var _dry_mass_kg: float = 0.8
 var _held_target_angle: float = 0.0
 var _last_draw_rotation: float = INF
 var _last_draw_volume: float = -1.0
+var _last_bucket_velocity := Vector2.ZERO
+var _vertical_slosh_offset_px: float = 0.0
+var _vertical_slosh_velocity_px_s: float = 0.0
 
 const INTERNAL_WATER := Color("#0b8fc9")
 const INTERNAL_WATER_TOP := Color("#17a9dc")
@@ -51,6 +63,7 @@ func _ready() -> void:
 
     _dry_mass_kg = maxf(0.10, empty_bucket_mass_kg)
     mass = _dry_mass_kg
+    _last_bucket_velocity = linear_velocity
     _update_total_mass()
     queue_redraw()
 
@@ -90,10 +103,6 @@ func _add_bucket_rect(size: Vector2, local_pos: Vector2) -> void:
 func _build_samples() -> void:
     _sample_points.clear()
 
-    # An upright open bucket behaves like a tiny boat while its rim stays above
-    # the water: the cavity excludes outside water. As it fills, the contained
-    # water adds the same density back as weight. At full capacity only the shell
-    # surplus remains, so this test bucket becomes slightly denser than water.
     var cols := 5
     var rows := 4
     for y_index in range(rows):
@@ -113,8 +122,10 @@ func _physics_process(delta: float) -> void:
         return
 
     _stabilize_held_bucket(delta)
+    _update_vertical_slosh(delta)
     _equalize_with_world(delta)
     _spill_if_needed(delta)
+    _spill_from_vertical_slosh(delta)
     _update_total_mass()
 
     if (
@@ -126,8 +137,6 @@ func _physics_process(delta: float) -> void:
         queue_redraw()
 
 func _begin_drag() -> void:
-    # Tool-like grab: the cursor pulls the center of mass, so merely picking up
-    # the bucket never injects accidental angular momentum.
     _dragging = true
     sleeping = false
     _grab_local_point = Vector2.ZERO
@@ -183,6 +192,125 @@ func _stabilize_held_bucket(delta: float) -> void:
         desired_angular_velocity,
         clampf(blend, 0.0, 1.0)
     )
+
+func _update_vertical_slosh(delta: float) -> void:
+    if delta <= 0.0:
+        return
+
+    var acceleration_y := (
+        linear_velocity.y - _last_bucket_velocity.y
+    ) / maxf(delta, 0.0001)
+    _last_bucket_velocity = linear_velocity
+
+    var gravity_px := 980.0
+    if _water != null:
+        gravity_px = _water.gravity_px_s2
+    acceleration_y = clampf(
+        acceleration_y,
+        -gravity_px * max_slosh_acceleration_g,
+        gravity_px * max_slosh_acceleration_g
+    )
+
+    # In the accelerating bucket frame: g_effective = g - a_bucket.
+    # One damped vertical free-surface mode is enough to capture the inertial
+    # lag that throws water out during an up/down shake, at essentially no cost.
+    var omega := TAU * maxf(vertical_slosh_frequency_hz, 0.1)
+    var oscillator_acceleration := (
+        -omega * omega * _vertical_slosh_offset_px
+        -2.0 * vertical_slosh_damping_ratio * omega * _vertical_slosh_velocity_px_s
+        -acceleration_y * vertical_slosh_coupling
+    )
+    _vertical_slosh_velocity_px_s += oscillator_acceleration * delta
+    _vertical_slosh_offset_px += _vertical_slosh_velocity_px_s * delta
+
+    var interior_height := _interior_rect_local().size.y
+    _vertical_slosh_offset_px = clampf(
+        _vertical_slosh_offset_px,
+        -interior_height * 0.92,
+        interior_height * 0.92
+    )
+    var max_relative_speed := maxf(180.0, interior_height * omega * 1.6)
+    _vertical_slosh_velocity_px_s = clampf(
+        _vertical_slosh_velocity_px_s,
+        -max_relative_speed,
+        max_relative_speed
+    )
+
+func _opening_center_world() -> Vector2:
+    var points := _opening_world_points()
+    if points.is_empty():
+        return global_position
+    var center := Vector2.ZERO
+    for p in points:
+        center += p
+    return center / float(points.size())
+
+func _spill_from_vertical_slosh(delta: float) -> void:
+    if contained_volume_m3 <= 0.000001 or delta <= 0.0:
+        return
+
+    var fill_fraction := contained_volume_m3 / maxf(_capacity_m3(), 0.000001)
+    var static_surface_y := _waterline_world_y_for_fraction(fill_fraction)
+    var opening_center := _opening_center_world()
+
+    var upward_displacement := maxf(0.0, -_vertical_slosh_offset_px)
+    var upward_relative_speed := maxf(0.0, -_vertical_slosh_velocity_px_s)
+    var gravity_px := 980.0
+    if _water != null:
+        gravity_px = _water.gravity_px_s2
+
+    # Kinetic head converts relative vertical water speed into the height that
+    # inertia can lift the free surface: h = v^2/(2g).
+    var kinetic_head_px := (
+        upward_relative_speed * upward_relative_speed
+        / maxf(2.0 * gravity_px, 1.0)
+    )
+    var dynamic_surface_y := (
+        static_surface_y
+        - upward_displacement
+        - kinetic_head_px * 0.55
+    )
+    var head_px := opening_center.y - dynamic_surface_y
+    if head_px <= dynamic_spill_threshold_px:
+        return
+
+    var ppm := pixels_per_meter
+    var g_m_s2 := gravity_px / ppm
+    var head_m := maxf(0.001, head_px / ppm)
+    var opening_width_m := _interior_rect_local().size.x / ppm
+    var opening_area_m2 := opening_width_m * physical_depth_m
+    var q_m3_s := (
+        dynamic_spill_discharge_coefficient
+        * opening_area_m2
+        * sqrt(2.0 * g_m_s2 * head_m)
+    )
+    q_m3_s = minf(q_m3_s, max_dynamic_spill_liters_s / 1000.0)
+    var poured := minf(contained_volume_m3, q_m3_s * delta)
+    if poured <= 0.0:
+        return
+
+    contained_volume_m3 -= poured
+
+    var hydraulic_speed_px := sqrt(2.0 * g_m_s2 * head_m) * ppm
+    var relative_out_speed := maxf(
+        upward_relative_speed * 0.72,
+        hydraulic_speed_px
+    )
+    var out_velocity := linear_velocity + Vector2(0.0, -relative_out_speed)
+    var packet_count := clampi(
+        int(ceil(2.0 + sqrt(maxf(poured * 1000.0, 0.0)) * 2.2)),
+        3,
+        7
+    )
+    _water.emit_water_stream(
+        opening_center + Vector2(0.0, -2.0),
+        poured,
+        out_velocity,
+        packet_count
+    )
+
+    _vertical_slosh_velocity_px_s *= 0.72
+    _vertical_slosh_offset_px *= 0.86
 
 func _capacity_m3() -> float:
     return maxf(capacity_liters, 0.1) / 1000.0
@@ -337,9 +465,6 @@ func _equalize_with_world(delta: float) -> void:
 
     var outside_surface_y := outside_surface_sum / float(submerged_count)
     var average_x := sample_x_sum / float(submerged_count)
-
-    # An open moving container seeks the same hydrostatic free surface as the
-    # surrounding water whenever its opening is submerged.
     var target_fraction := _fraction_below_world_y(outside_surface_y)
     var target_volume := _capacity_m3() * target_fraction
     var difference := target_volume - contained_volume_m3
@@ -477,6 +602,9 @@ func reset_to_spawn() -> void:
         )
     contained_volume_m3 = 0.0
     _held_target_angle = 0.0
+    _vertical_slosh_offset_px = 0.0
+    _vertical_slosh_velocity_px_s = 0.0
+    _last_bucket_velocity = Vector2.ZERO
     _update_total_mass()
     await super.reset_to_spawn()
     queue_redraw()
