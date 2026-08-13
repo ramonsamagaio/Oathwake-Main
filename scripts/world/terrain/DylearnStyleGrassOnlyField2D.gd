@@ -2,15 +2,49 @@
 class_name DylearnStyleGrassOnlyField2D
 extends Node2D
 
-const GRASS_TEXTURE: Texture2D = preload(
-	"res://assets/sprites/terrain/dylearn_style/oathwake_grassleaf_16.png"
-)
-const ACCENT_TEXTURE: Texture2D = preload(
-	"res://assets/sprites/terrain/dylearn_style/oathwake_grass_accent_16.png"
-)
 const GRASS_SHADER: Shader = preload(
 	"res://shaders/terrain/dylearn_style_grass_2d.gdshader"
 )
+
+# The grass masks are embedded as 16x16 pixel art so this lab has no binary
+# texture import dependency. This avoids PNG import/cache failures entirely.
+const GRASS_MASK_ROWS := [
+	".......##.......",
+	"......####......",
+	".....#####......",
+	"...######.......",
+	"..#####...##....",
+	".#####...####...",
+	"...####..####...",
+	"....###.#####...",
+	".....#######....",
+	"...########.....",
+	"..########......",
+	"....######......",
+	".....#####......",
+	"......####......",
+	"......####......",
+	".......##.......",
+]
+
+const ACCENT_MASK_ROWS := [
+	".......##.......",
+	"..##...##...##..",
+	".####..##..####.",
+	"#####..##..#####",
+	".#####.##.#####.",
+	"..###########...",
+	"...#########....",
+	"....#######.....",
+	".....#####......",
+	".....#####......",
+	"......####......",
+	"......####......",
+	"......####......",
+	".......##.......",
+	".......##.......",
+	".......##.......",
+]
 
 @export_category("Field")
 @export var field_size_pixels := Vector2(3200.0, 2200.0)
@@ -165,10 +199,13 @@ func set_wind_direction(new_direction: Vector2) -> void:
 
 
 func _prepare_resources() -> void:
+	var grass_texture := _create_mask_texture(GRASS_MASK_ROWS)
+	var accent_texture := _create_mask_texture(ACCENT_MASK_ROWS)
+
 	_grass_material = ShaderMaterial.new()
 	_grass_material.shader = GRASS_SHADER
-	_grass_material.set_shader_parameter("grass_texture", GRASS_TEXTURE)
-	_grass_material.set_shader_parameter("accent_texture", ACCENT_TEXTURE)
+	_grass_material.set_shader_parameter("grass_texture", grass_texture)
+	_grass_material.set_shader_parameter("accent_texture", accent_texture)
 	_grass_material.set_shader_parameter("grass_color_base", grass_color_base)
 	_grass_material.set_shader_parameter("grass_color_patch_a", grass_color_patch_a)
 	_grass_material.set_shader_parameter("grass_color_patch_b", grass_color_patch_b)
@@ -196,6 +233,16 @@ func _prepare_resources() -> void:
 	_quad_mesh.size = grass_quad_size_pixels
 
 
+func _create_mask_texture(rows: Array) -> Texture2D:
+	var image := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+	for y in range(16):
+		var row: String = rows[y]
+		for x in range(16):
+			var alpha := 1.0 if row.substr(x, 1) == "#" else 0.0
+			image.set_pixel(x, y, Color(1.0, 1.0, 1.0, alpha))
+	return ImageTexture.create_from_image(image)
+
+
 func _create_chunk(chunk: Vector2i, entries: Array) -> void:
 	if entries.is_empty():
 		return
@@ -211,12 +258,10 @@ func _create_chunk(chunk: Vector2i, entries: Array) -> void:
 		var entry: Dictionary = entries[index]
 		var scale: Vector2 = entry["scale"]
 		var local_position: Vector2 = entry["position"] - chunk_origin
-
 		var root_anchor_offset := Vector2(
 			0.0,
 			-grass_quad_size_pixels.y * absf(scale.y) * 0.5
 		)
-
 		var transform := Transform2D(
 			float(entry["rotation"]),
 			scale,
