@@ -1,0 +1,42 @@
+name: Apply Reactive Water FX Patch
+
+on:
+  push:
+    branches:
+      - tmp-pixel-water-build-20260811
+    paths:
+      - ".tmp/pixel-water/tools/apply_reactive_water_fx_patch.py"
+      - ".github/workflows/apply-reactive-water-fx.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: tmp-pixel-water-build-20260811
+          fetch-depth: 0
+
+      - name: Apply patch
+        run: python .tmp/pixel-water/tools/apply_reactive_water_fx_patch.py
+
+      - name: Commit patched simulator
+        shell: bash
+        run: |
+          set -e
+          if git diff --quiet -- .tmp/pixel-water/addons/pixel_water; then
+            echo "No simulator changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .tmp/pixel-water/addons/pixel_water/pixel_water_world.gd \
+                  .tmp/pixel-water/addons/pixel_water/buoyant_body.gd \
+                  .tmp/pixel-water/addons/pixel_water/water_buoyancy_2d.gd
+          git commit -m "feat: add reactive bubbles and energetic surface foam"
+          git push origin HEAD:tmp-pixel-water-build-20260811
