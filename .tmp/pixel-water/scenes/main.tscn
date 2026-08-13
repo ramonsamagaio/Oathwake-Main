@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://demo/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://addons/pixel_water/pixel_water_world.tscn" id="2_water"]
 [ext_resource type="Script" path="res://demo/demo_water_world.gd" id="3_showcase_water"]
 [ext_resource type="Script" path="res://demo/hydraulic_test_course.gd" id="4_course"]
+[ext_resource type="Script" path="res://demo/underwater_fx_toggle.gd" id="5_fx_toggle"]
 
 [node name="PixelWaterSimulatorDemo" type="Node2D"]
 script = ExtResource("1_main")
@@ -16,3 +17,7 @@ script = ExtResource("4_course")
 
 [node name="Water" parent="." instance=ExtResource("2_water")]
 script = ExtResource("3_showcase_water")
+
+[node name="UnderwaterFxToggle" type="CanvasLayer" parent="."]
+layer = 11
+script = ExtResource("5_fx_toggle")
