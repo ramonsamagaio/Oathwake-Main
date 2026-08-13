@@ -6,16 +6,21 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ground"]
 shader = ExtResource("1_ground_shader")
-shader_parameter/grass_base = Color(0.18, 0.31, 0.095, 1)
-shader_parameter/grass_patch_a = Color(0.23, 0.37, 0.105, 1)
-shader_parameter/grass_patch_b = Color(0.135, 0.245, 0.075, 1)
-shader_parameter/macro_scale = 0.00075
-shader_parameter/detail_scale = 0.0021
-shader_parameter/patch_threshold_a = 0.58
-shader_parameter/patch_threshold_b = 0.72
-shader_parameter/pixel_block_pixels = 3.0
-shader_parameter/tonal_variation = 0.045
-shader_parameter/world_seed = 91373.0
+shader_parameter/grass_base = Color(0.16, 0.305, 0.07, 1)
+shader_parameter/grass_patch_a = Color(0.225, 0.39, 0.085, 1)
+shader_parameter/grass_patch_b = Color(0.1, 0.22, 0.052, 1)
+shader_parameter/patch_scale_a = 0.00065
+shader_parameter/patch_scale_b = 0.00165
+shader_parameter/patch_threshold_a = 0.6
+shader_parameter/patch_threshold_b = 0.73
+shader_parameter/toon_field_scale = 0.00072
+shader_parameter/toon_shadow_threshold = 0.38
+shader_parameter/toon_highlight_threshold = 0.64
+shader_parameter/toon_transition = 0.028
+shader_parameter/toon_shadow_factor = 0.68
+shader_parameter/toon_mid_factor = 0.92
+shader_parameter/toon_highlight_factor = 1.14
+shader_parameter/sample_pixel_size = 2.0
 
 [sub_resource type="QuadMesh" id="QuadMesh_ground"]
 size = Vector2(3200, 2200)
@@ -34,47 +39,46 @@ mesh = SubResource("QuadMesh_ground")
 [node name="GrassField" type="Node2D" parent="."]
 script = ExtResource("2_field_script")
 field_size_pixels = Vector2(3200, 2200)
-spacing_pixels = Vector2(17, 14)
-jitter_pixels = Vector2(5.5, 4.5)
-chunk_size_pixels = 320.0
+spacing_pixels = Vector2(18, 11)
+jitter_pixels = Vector2(5, 3)
 world_seed = 91373
-min_scale = 0.88
-max_scale = 1.28
-rotation_variation_radians = 0.06
-grass_quad_size_pixels = Vector2(22, 22)
-accent_a_frequency = 0.034
-accent_b_frequency = 0.012
-grass_color_base = Color(0.19, 0.34, 0.1, 1)
-grass_color_patch_a = Color(0.27, 0.43, 0.12, 1)
-grass_color_patch_b = Color(0.13, 0.25, 0.075, 1)
-accent_color_a = Color(0.39, 0.52, 0.14, 1)
-accent_color_b = Color(0.31, 0.42, 0.1, 1)
-patch_scale_a = 0.0009
-patch_scale_b = 0.0023
-patch_threshold_a = 0.58
-patch_threshold_b = 0.72
-stepped_framerate = 5.0
-quantised_animation = true
+min_scale = 0.9
+max_scale = 1.16
+rotation_variation_radians = 0.022
+grass_quad_size_pixels = Vector2(40, 28)
+accent_a_frequency = 0.022
+accent_b_frequency = 0.007
+grass_color_base = Color(0.195, 0.355, 0.082, 1)
+grass_color_patch_a = Color(0.285, 0.455, 0.105, 1)
+grass_color_patch_b = Color(0.115, 0.255, 0.06, 1)
+accent_color_a = Color(0.355, 0.51, 0.105, 1)
+accent_color_b = Color(0.285, 0.42, 0.082, 1)
+patch_scale_a = 0.00065
+patch_scale_b = 0.00165
+patch_threshold_a = 0.6
+patch_threshold_b = 0.73
+toon_field_scale = 0.00072
+toon_shadow_threshold = 0.38
+toon_highlight_threshold = 0.64
+toon_transition = 0.028
+toon_shadow_factor = 0.68
+toon_mid_factor = 0.92
+toon_highlight_factor = 1.14
+stepped_framerate = 6.0
 wind_direction = Vector2(0.92, 0.38)
-wind_strength_pixels = 5.0
-wind_noise_scale = 0.0017
-wind_noise_speed = 0.055
+wind_strength_pixels = 3.6
+wind_noise_scale = 0.00155
+wind_noise_speed = 0.05
 wind_noise_threshold = 0.34
-wind_gust_width = 0.18
-noise_diverge_angle = 0.22
-fake_perspective_scale = 0.22
-displacement_radius_pixels = 40.0
-displacement_strength_pixels = 8.0
-displacement_radius_exponent = 1.45
+wind_gust_width = 0.19
+noise_diverge_angle = 0.23
+fake_perspective_scale = 0.16
+displacement_radius_pixels = 42.0
+displacement_strength_pixels = 7.0
+displacement_radius_exponent = 1.55
 interaction_update_interval = 0.05
-chunk_visibility_margin = 192.0
-near_lod_distance = 420.0
-mid_lod_distance = 860.0
-mid_visible_ratio = 0.72
-far_visible_ratio = 0.46
-lod_update_interval = 0.18
 
-[node name="Walker" type="CharacterBody2D" parent="."]
+[node name="Walker" type="CharacterBody2D" parent="." groups=["grass_displacer"]]
 z_index = 4
 script = ExtResource("3_walker_script")
 position = Vector2(0, 0)
@@ -110,7 +114,7 @@ limit_bottom = 1100
 [node name="Panel" type="ColorRect" parent="UI"]
 offset_left = 16.0
 offset_top = 16.0
-offset_right = 820.0
+offset_right = 790.0
 offset_bottom = 102.0
 mouse_filter = 2
 color = Color(0.025, 0.03, 0.018, 0.82)
@@ -118,20 +122,20 @@ color = Color(0.025, 0.03, 0.018, 0.82)
 [node name="Title" type="Label" parent="UI/Panel"]
 offset_left = 14.0
 offset_top = 10.0
-offset_right = 790.0
+offset_right = 760.0
 offset_bottom = 34.0
-text = "GRASS ONLY LAB V3  |  prettier + lighter Dylearn-inspired pass"
+text = "GRASS ONLY LAB V4  |  dense toon carpet"
 
 [node name="Help" type="Label" parent="UI/Panel"]
 offset_left = 14.0
 offset_top = 38.0
-offset_right = 790.0
+offset_right = 760.0
 offset_bottom = 62.0
 text = "WASD / setas: mover   |   Shift: correr   |   ainda sem dirt / sem tileset"
 
 [node name="Tech" type="Label" parent="UI/Panel"]
 offset_left = 14.0
 offset_top = 62.0
-offset_right = 790.0
+offset_right = 760.0
 offset_bottom = 84.0
-text = "6 silhouettes + travelling gust map + chunk culling/LOD + stepped wind + displacement"
+text = "1 MultiMesh + overlapping clumps + shared toon bands + shared 6 FPS gust clock"

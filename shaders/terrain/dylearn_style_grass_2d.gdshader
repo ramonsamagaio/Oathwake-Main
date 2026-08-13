@@ -5,32 +5,39 @@ uniform sampler2D grass_atlas : source_color, filter_nearest, repeat_disable;
 uniform sampler2D patch_noise : filter_linear, repeat_enable;
 uniform sampler2D wind_noise : filter_linear, repeat_enable;
 
-uniform vec4 grass_color_base : source_color = vec4(0.190, 0.340, 0.100, 1.0);
-uniform vec4 grass_color_patch_a : source_color = vec4(0.270, 0.430, 0.120, 1.0);
-uniform vec4 grass_color_patch_b : source_color = vec4(0.130, 0.250, 0.075, 1.0);
-uniform vec4 accent_color_a : source_color = vec4(0.390, 0.520, 0.140, 1.0);
-uniform vec4 accent_color_b : source_color = vec4(0.310, 0.420, 0.100, 1.0);
+uniform vec4 grass_color_base : source_color = vec4(0.195, 0.355, 0.082, 1.0);
+uniform vec4 grass_color_patch_a : source_color = vec4(0.285, 0.455, 0.105, 1.0);
+uniform vec4 grass_color_patch_b : source_color = vec4(0.115, 0.255, 0.060, 1.0);
+uniform vec4 accent_color_a : source_color = vec4(0.355, 0.510, 0.105, 1.0);
+uniform vec4 accent_color_b : source_color = vec4(0.285, 0.420, 0.082, 1.0);
 
-uniform float patch_scale_a : hint_range(0.0001, 0.01, 0.0001) = 0.0009;
-uniform float patch_scale_b : hint_range(0.0001, 0.01, 0.0001) = 0.0023;
-uniform float patch_threshold_a : hint_range(0.0, 1.0, 0.001) = 0.58;
-uniform float patch_threshold_b : hint_range(0.0, 1.0, 0.001) = 0.72;
+uniform float patch_scale_a : hint_range(0.0001, 0.01, 0.0001) = 0.00065;
+uniform float patch_scale_b : hint_range(0.0001, 0.01, 0.0001) = 0.00165;
+uniform float patch_threshold_a : hint_range(0.0, 1.0, 0.001) = 0.60;
+uniform float patch_threshold_b : hint_range(0.0, 1.0, 0.001) = 0.73;
 
-uniform float framerate : hint_range(1.0, 16.0, 1.0) = 5.0;
-uniform bool quantised = true;
+uniform float toon_field_scale : hint_range(0.0001, 0.01, 0.0001) = 0.00072;
+uniform float toon_shadow_threshold : hint_range(0.0, 1.0, 0.001) = 0.38;
+uniform float toon_highlight_threshold : hint_range(0.0, 1.0, 0.001) = 0.64;
+uniform float toon_transition : hint_range(0.001, 0.2, 0.001) = 0.028;
+uniform float toon_shadow_factor : hint_range(0.1, 2.0, 0.01) = 0.68;
+uniform float toon_mid_factor : hint_range(0.1, 2.0, 0.01) = 0.92;
+uniform float toon_highlight_factor : hint_range(0.1, 2.0, 0.01) = 1.14;
+
+uniform float stepped_time = 0.0;
 uniform vec2 wind_direction = vec2(0.92, 0.38);
-uniform float wind_strength_pixels : hint_range(0.0, 12.0, 0.1) = 5.0;
-uniform float wind_noise_scale : hint_range(0.0001, 0.02, 0.0001) = 0.0017;
-uniform float wind_noise_speed : hint_range(0.0, 0.25, 0.001) = 0.055;
+uniform float wind_strength_pixels : hint_range(0.0, 12.0, 0.1) = 3.6;
+uniform float wind_noise_scale : hint_range(0.0001, 0.02, 0.0001) = 0.00155;
+uniform float wind_noise_speed : hint_range(0.0, 0.25, 0.001) = 0.050;
 uniform float wind_noise_threshold : hint_range(0.0, 1.0, 0.001) = 0.34;
-uniform float wind_gust_width : hint_range(0.001, 0.5, 0.001) = 0.18;
-uniform float noise_diverge_angle : hint_range(0.0, 1.2, 0.01) = 0.22;
-uniform float fake_perspective_scale : hint_range(-0.5, 0.75, 0.01) = 0.22;
+uniform float wind_gust_width : hint_range(0.001, 0.5, 0.001) = 0.19;
+uniform float noise_diverge_angle : hint_range(0.0, 1.2, 0.01) = 0.23;
+uniform float fake_perspective_scale : hint_range(-0.5, 0.75, 0.01) = 0.16;
 
 uniform vec3 displacer = vec3(-100000.0, -100000.0, 1.0);
-uniform float displacement_strength_pixels : hint_range(0.0, 20.0, 0.1) = 8.0;
-uniform float radius_exponent : hint_range(0.1, 6.0, 0.1) = 1.45;
-uniform vec2 quad_size_pixels = vec2(22.0, 22.0);
+uniform float displacement_strength_pixels : hint_range(0.0, 20.0, 0.1) = 7.0;
+uniform float radius_exponent : hint_range(0.1, 6.0, 0.1) = 1.55;
+uniform vec2 quad_size_pixels = vec2(40.0, 28.0);
 
 varying vec2 object_origin;
 varying float tuft_variation;
@@ -61,18 +68,35 @@ vec2 rotate_around_base(vec2 vertex, float angle) {
 }
 
 
+float shared_toon_factor(vec2 world_position) {
+	float primary = texture(
+		patch_noise,
+		world_position * toon_field_scale + vec2(0.17, 0.41)
+	).r;
+	float secondary = texture(
+		patch_noise,
+		world_position * (toon_field_scale * 0.47) + vec2(0.71, 0.13)
+	).r;
+	float field = clamp(primary * 0.78 + secondary * 0.22, 0.0, 1.0);
+	float shadow_to_mid = smoothstep(
+		toon_shadow_threshold - toon_transition,
+		toon_shadow_threshold + toon_transition,
+		field
+	);
+	float mid_to_high = smoothstep(
+		toon_highlight_threshold - toon_transition,
+		toon_highlight_threshold + toon_transition,
+		field
+	);
+	float factor = mix(toon_shadow_factor, toon_mid_factor, shadow_to_mid);
+	return mix(factor, toon_highlight_factor, mid_to_high);
+}
+
+
 void vertex() {
 	object_origin = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xy;
-	tuft_variation = INSTANCE_CUSTOM.g;
-	sprite_index_v = round(INSTANCE_CUSTOM.b * 5.0);
-
-	float safe_framerate = max(framerate, 1.0);
-	float frame_time = 1.0 / safe_framerate;
-	float stepped_time = TIME;
-	if (quantised) {
-		stepped_time += INSTANCE_CUSTOM.r * frame_time;
-		stepped_time = round(stepped_time * safe_framerate) / safe_framerate;
-	}
+	tuft_variation = INSTANCE_CUSTOM.r;
+	sprite_index_v = round(INSTANCE_CUSTOM.g * 7.0);
 
 	vec2 wind_dir = wind_direction;
 	if (length(wind_dir) < 0.0001) {
@@ -87,8 +111,8 @@ void vertex() {
 		+ wind_dir_1 * stepped_time * wind_noise_speed
 	);
 	vec2 wind_uv_2 = (
-		object_origin * (wind_noise_scale * 0.8)
-		+ wind_dir_2 * stepped_time * wind_noise_speed * 0.89
+		object_origin * (wind_noise_scale * 0.81)
+		+ wind_dir_2 * stepped_time * wind_noise_speed * 0.91
 		+ vec2(0.37, 0.61)
 	);
 
@@ -101,26 +125,35 @@ void vertex() {
 		combined_noise
 	);
 
-	// Strong motion travels in coherent gust bands instead of moving the whole field.
+	// Dylearn's field reads as one organism: all instances share the exact same
+	// stepped clock and world-space gust map. Individual susceptibility only
+	// nudges amplitude; it never gives a tuft its own animation phase.
+	float susceptibility = mix(0.82, 1.0, INSTANCE_CUSTOM.b);
 	float background_sway = (noise_1 - 0.5) * 0.18;
-	float susceptibility = smoothstep(0.28, 0.95, INSTANCE_CUSTOM.a);
 	float wind_sample = clamp(
-		(background_sway + gust) * susceptibility,
-		-0.2,
-		1.0
+		(background_sway + gust * 0.88) * susceptibility,
+		-0.16,
+		0.95
 	);
 
-	// Analytic bend mask: root stays planted while the upper pixels flex.
+	// Keep the lower edge planted while the upper pixels flex together.
 	float top_influence = UV.y;
 	float top_curve = top_influence * top_influence;
-	float sway_angle = wind_sample * wind_dir.x * 0.18;
+	float shape_stiffness = mix(0.92, 1.08, INSTANCE_CUSTOM.a);
+	float sway_angle = wind_sample * wind_dir.x * 0.115 * shape_stiffness;
 	VERTEX = rotate_around_base(VERTEX, sway_angle);
-	VERTEX.x += wind_dir.x * wind_sample * wind_strength_pixels * top_curve;
+	VERTEX.x += (
+		wind_dir.x
+		* wind_sample
+		* wind_strength_pixels
+		* top_curve
+		* shape_stiffness
+	);
 	VERTEX.y += (
 		wind_dir.y
 		* abs(wind_sample)
 		* wind_strength_pixels
-		* 0.24
+		* 0.18
 		* top_curve
 	);
 
@@ -146,28 +179,27 @@ void vertex() {
 		displacement_dir.y
 		* displacement
 		* displacement_strength_pixels
-		* 0.38
+		* 0.34
 		* top_curve
 	);
 
 	fake_perspective_amount = (
 		wind_sample * wind_dir.y * fake_perspective_scale
-		- displacement_dir.y * displacement * 0.34
+		- displacement_dir.y * displacement * 0.28
 	);
 }
 
 
 void fragment() {
-	// Preserve the orientation used by the accepted V2 runtime pass.
 	vec2 uv = vec2(UV.x, 1.0 - UV.y);
 	uv.x -= 0.5;
 	uv.x *= (1.0 - uv.y) * fake_perspective_amount + 1.0;
 	uv.x += 0.5;
 	uv.x = clamp(uv.x, 0.0, 1.0);
 
-	float atlas_index = clamp(sprite_index_v, 0.0, 5.0);
+	float atlas_index = clamp(sprite_index_v, 0.0, 7.0);
 	vec2 atlas_uv = vec2(
-		(uv.x + atlas_index) / 6.0,
+		(uv.x + atlas_index) / 8.0,
 		uv.y
 	);
 	vec4 albedo_tex = texture(grass_atlas, atlas_uv);
@@ -191,16 +223,18 @@ void fragment() {
 	if (patch_b > patch_threshold_b) {
 		tint = grass_color_patch_b.rgb;
 	}
-
-	if (atlas_index > 4.5) {
+	if (atlas_index > 6.5) {
 		tint = accent_color_b.rgb;
-	} else if (atlas_index > 3.5) {
+	} else if (atlas_index > 5.5) {
 		tint = accent_color_a.rgb;
 	}
 
-	float instance_variation = mix(0.94, 1.06, tuft_variation);
+	// Keep per-card tint differences tiny. The shared world-space toon field does
+	// the large visual grouping, which is what makes overlapping cards fuse.
+	float instance_variation = mix(0.975, 1.025, tuft_variation);
+	float toon_factor = shared_toon_factor(object_origin);
 	COLOR = vec4(
-		tint * instance_variation * albedo_tex.rgb,
+		tint * instance_variation * toon_factor * albedo_tex.rgb,
 		albedo_tex.a
 	);
 }
