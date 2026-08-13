@@ -11,6 +11,7 @@ signal exited_water
 signal head_submerged
 signal head_emerged
 signal submersion_changed(value: float)
+signal surface_exit_jump
 
 @export_category("Quick setup")
 @export var enabled: bool = true
@@ -31,6 +32,13 @@ signal submersion_changed(value: float)
 @export var use_builtin_swim_input: bool = true
 @export var swim_up_action: StringName = &"ui_accept"
 @export var swim_down_action: StringName = &"ui_down"
+
+@export_category("Surface exit")
+@export var enable_surface_exit_jump: bool = true
+@export var surface_exit_action: StringName = &"ui_accept"
+@export_range(0.10, 0.90, 0.01) var surface_exit_max_submersion: float = 0.62
+@export_range(100.0, 900.0, 10.0) var surface_exit_jump_speed_px_s: float = 430.0
+@export var surface_exit_splash: bool = true
 
 @export_category("Interaction")
 @export_range(0.01, 0.50, 0.01) var water_enter_threshold: float = 0.05
@@ -111,6 +119,15 @@ func get_surface_y() -> float:
 
 func is_head_underwater() -> bool:
     return head_is_submerged
+
+func can_surface_exit() -> bool:
+    if not enable_surface_exit_jump or not is_in_water():
+        return false
+    if submersion_ratio > surface_exit_max_submersion:
+        return false
+    # The player may jump as soon as the head is breaking through the surface,
+    # or slightly before that while already inside the configured exit band.
+    return not head_is_submerged or submersion_ratio <= surface_exit_max_submersion * 0.82
 
 func _find_water() -> void:
     if _body == null:
@@ -252,6 +269,26 @@ func _emit_optional_interaction(delta: float) -> void:
         delta
     )
 
+func _apply_surface_exit_jump(result: Vector2) -> Vector2:
+    if not can_surface_exit():
+        return result
+    if not Input.is_action_just_pressed(surface_exit_action):
+        return result
+
+    # This intentionally runs after the normal swim-speed clamp. Surface exit is
+    # a jump out of the liquid, not a faster swimming speed, so it must be allowed
+    # to exceed max_vertical_swim_speed_px_s for one launch impulse.
+    result.y = minf(result.y, -maxf(surface_exit_jump_speed_px_s, 1.0))
+    surface_exit_jump.emit()
+
+    if surface_exit_splash and _water != null and _body != null:
+        _water.emit_visual_splash(
+            Vector2(_body.global_position.x, water_surface_y - _water.cell_size_px * 0.35),
+            Vector2(result.x * 0.12, -minf(surface_exit_jump_speed_px_s * 0.32, 160.0)),
+            3
+        )
+    return result
+
 func apply_water_motion(current_velocity: Vector2, delta: float) -> Vector2:
     ## Call this after the user's normal movement/gravity calculations and before
     ## CharacterBody2D.move_and_slide(). Outside water it returns velocity unchanged.
@@ -289,7 +326,7 @@ func apply_water_motion(current_velocity: Vector2, delta: float) -> Vector2:
 
     var max_speed := maxf(max_vertical_swim_speed_px_s, 1.0)
     result.y = clampf(result.y, -max_speed, max_speed)
-    return result
+    return _apply_surface_exit_jump(result)
 
 func apply_water_motion_with_axis(
     current_velocity: Vector2,
@@ -297,7 +334,8 @@ func apply_water_motion_with_axis(
     vertical_swim_axis: float
 ) -> Vector2:
     ## Same as apply_water_motion(), but lets a custom controller provide its own
-    ## vertical swim input. -1 = up, +1 = down.
+    ## vertical swim input. -1 = up, +1 = down. The configured surface_exit_action
+    ## can still trigger a surface-exit jump without any extra integration code.
     var old_builtin := use_builtin_swim_input
     use_builtin_swim_input = false
     var result := apply_water_motion(current_velocity, delta)
@@ -312,5 +350,6 @@ func apply_water_motion_with_axis(
     )
     result.y += clampf(vertical_swim_axis, -1.0, 1.0) * swim_acceleration_px_s2 * wet * delta
     var max_speed := maxf(max_vertical_swim_speed_px_s, 1.0)
-    result.y = clampf(result.y, -max_speed, max_speed)
+    if result.y > -surface_exit_jump_speed_px_s + 0.001:
+        result.y = clampf(result.y, -max_speed, max_speed)
     return result
