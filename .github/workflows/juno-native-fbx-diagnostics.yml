@@ -1,0 +1,94 @@
+name: Juno native FBX diagnostics
+
+on:
+  push:
+    branches:
+      - tool/juno-walk-native-fbx-export
+    paths:
+      - '.github/workflows/juno-native-fbx-diagnostics.yml'
+      - 'tools/juno_native_fbx/**'
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode Juno animation packs and inspect walk clips
+        shell: bash
+        run: |
+          mkdir -p /tmp/juno_diag
+          python3 - <<'PY'
+          import base64,gzip,json,zlib,pathlib,re,sys
+          root=pathlib.Path('.')
+          out=pathlib.Path('/tmp/juno_diag')
+          def decode_file(p):
+              s=pathlib.Path(p).read_text().strip()
+              b=base64.b64decode(s)
+              print('PACK',p,'encoded',len(s),'compressed',len(b),'head',b[:16].hex(),'tail',b[-8:].hex())
+              trials=[]
+              try: trials.append(('gzip',gzip.decompress(b)))
+              except Exception as e: print(' gzip failed',repr(e))
+              if len(b)>18:
+                  try: trials.append(('rawdeflate@10',zlib.decompress(b[10:-8],-15)))
+                  except Exception as e: print(' rawdeflate@10 failed',repr(e))
+              patched=bytearray(b)
+              if len(patched)>3:
+                  patched[0]=0x1f; patched[1]=0x8b; patched[2]=0x08
+                  try: trials.append(('patched-gzip',gzip.decompress(bytes(patched))))
+                  except Exception as e: print(' patched gzip failed',repr(e))
+              for method,raw in trials:
+                  try:
+                      obj=json.loads(raw.decode('utf-8'))
+                      print(' decoded with',method,'bytes',len(raw),'root',type(obj).__name__)
+                      return obj,raw
+                  except Exception as e: print(' json parse failed',method,repr(e))
+              return None,None
+          packs=[
+            'data/labs/alabaster/juno_player_anims.json.gz.b64',
+            'data/labs/alabaster/juno_runtime.json.gz.b64',
+          ]
+          decoded={}
+          for p in packs:
+              obj,raw=decode_file(p)
+              if obj is not None:
+                  decoded[p]=obj
+                  pathlib.Path(out/(pathlib.Path(p).name+'.json')).write_text(json.dumps(obj,indent=2))
+          def walk_hits(obj,path='$',hits=None):
+              if hits is None: hits=[]
+              if isinstance(obj,dict):
+                  for k,v in obj.items():
+                      kp=f'{path}.{k}'
+                      if 'walk' in str(k).lower() or 'smooth' in str(k).lower():
+                          hits.append((kp, type(v).__name__, v if isinstance(v,(str,int,float,bool,type(None))) else None))
+                      walk_hits(v,kp,hits)
+              elif isinstance(obj,list):
+                  for i,v in enumerate(obj): walk_hits(v,f'{path}[{i}]',hits)
+              elif isinstance(obj,str) and ('walk' in obj.lower() or 'smooth' in obj.lower()): hits.append((path,'str',obj))
+              return hits
+          allhits=[]
+          for p,obj in decoded.items():
+              hits=walk_hits(obj)
+              print('\nHITS',p,'count',len(hits))
+              for h in hits[:500]: print('HIT',h)
+              allhits.extend((p,*h) for h in hits)
+          pathlib.Path(out/'walk_hits.json').write_text(json.dumps(allhits,indent=2,default=str))
+          # Dump shallow key structure and likely figure/anims containers.
+          def summarize(obj,depth=0,maxdepth=4):
+              if depth>maxdepth:return '...'
+              if isinstance(obj,dict):
+                  r={}
+                  for k,v in list(obj.items())[:200]:
+                      if isinstance(v,dict): r[k]={'__type':'dict','__len':len(v),'keys':list(v.keys())[:100]}
+                      elif isinstance(v,list): r[k]={'__type':'list','__len':len(v)}
+                      else:r[k]=v
+                  return r
+              return str(type(obj))
+          for p,obj in decoded.items(): pathlib.Path(out/(pathlib.Path(p).stem+'.summary.json')).write_text(json.dumps(summarize(obj),indent=2,default=str))
+          if not decoded:
+              sys.exit('No pack decoded')
+          PY
+      - name: Upload diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: juno-native-fbx-diagnostics
+          path: /tmp/juno_diag
