@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/world/terrain/OathwakeProceduralTerrainRegion.tscn" id="1_region"]
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="2_player"]
+
+[node name="ProceduralTerrainLab" type="Node2D"]
+
+[node name="Background" type="ColorRect" parent="."]
+z_index = -100
+offset_left = -1800.0
+offset_top = -1100.0
+offset_right = 1800.0
+offset_bottom = 1100.0
+mouse_filter = 2
+color = Color(0.0706, 0.0627, 0.0471, 1)
+
+[node name="ProceduralTerrain" parent="." instance=ExtResource("1_region")]
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(0, 0)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="ColorRect" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 760.0
+offset_bottom = 92.0
+color = Color(0.035, 0.031, 0.025, 0.88)
+
+[node name="Title" type="Label" parent="UI/Panel"]
+offset_left = 14.0
+offset_top = 10.0
+offset_right = 720.0
+offset_bottom = 34.0
+text = "PROCEDURAL TERRAIN LAB  |  Oathwake"
+
+[node name="Help" type="Label" parent="UI/Panel"]
+offset_left = 14.0
+offset_top = 38.0
+offset_right = 720.0
+offset_bottom = 62.0
+text = "WASD / SETAS: mover   |   Shift: correr   |   grama: vento + deslocamento pelo player"

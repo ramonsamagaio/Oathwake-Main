@@ -1,6 +1,7 @@
 {
 	"default": {
 		"acceleration": 600.0,
+		"alabaster_weapon_visibility": "attack_only",
 		"attack_buffer_window": 0.32,
 		"camera": {
 			"default_zoom": 2.0,
@@ -10,13 +11,13 @@
 			"zoom_smoothing_speed": 10.0,
 			"zoom_step": 0.15
 		},
-		"character_id": "test_template_player",
+		"character_id": "default_alabaster",
 		"dash_cooldown": 0.34,
 		"dash_duration": 0.14,
-		"dash_smoke_end_count": 0.0,
+		"dash_smoke_end_count": 0,
 		"dash_smoke_interval": 1.14,
 		"dash_smoke_scale": 0.55,
-		"dash_smoke_start_count": 0.0,
+		"dash_smoke_start_count": 0,
 		"dash_speed": 430.0,
 		"dash_stamina_cost": 10.0,
 		"deceleration": 2000.0,
@@ -30,22 +31,10 @@
 			"aura_intensity": 0.0,
 			"aura_scale": 0.44,
 			"blur": 1.25,
-			"color": "#FFE6AAFF",
+			"color": "#ffe6aaff",
 			"day_multiplier": 0.0,
-			"emission": 0.52,
+			"emission": 0.5,
 			"enabled": true,
-			"ground_ellipse_offset": {
-				"x": 0.0,
-				"y": 12.0
-			},
-			"ground_ellipse_scale": {
-				"x": 2.0,
-				"y": 0.75
-			},
-			"ground_halo_alpha": 0.22,
-			"ground_halo_blur": 2.0,
-			"ground_halo_intensity": 0.75,
-			"ground_halo_texture_scale": 0.2,
 			"night_multiplier": 1.0,
 			"offset": {
 				"x": 0.0,

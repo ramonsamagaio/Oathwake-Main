@@ -1,0 +1,57 @@
+name: Validate Procedural Creatures
+
+on:
+  push:
+    paths:
+      - "scripts/creatures/**"
+      - "scripts/labs/alabaster/**"
+      - "scenes/labs/ProceduralCreatureLab.tscn"
+      - "scripts/test/ProceduralCreatureValidator.gd"
+      - ".github/workflows/validate-procedural-creatures.yml"
+  pull_request:
+    paths:
+      - "scripts/creatures/**"
+      - "scripts/labs/alabaster/**"
+      - "scenes/labs/ProceduralCreatureLab.tscn"
+      - "scripts/test/ProceduralCreatureValidator.gd"
+      - ".github/workflows/validate-procedural-creatures.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.6.3
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip" \
+            --output godot.zip
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+
+      - name: Import project and catch parser failures
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot --headless --editor --path . --quit-after 30 --verbose 2>&1 | tee procedural-creature-import.log
+          if grep -E "Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Error parsing|Invalid call|Invalid access" procedural-creature-import.log; then
+            echo "Godot import reported a parser/runtime failure."
+            exit 1
+          fi
+
+      - name: Run procedural creature contract smoke test
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot --headless --path . --script res://scripts/test/ProceduralCreatureValidator.gd --verbose 2>&1 | tee procedural-creature-validator.log
+          if grep -E "PROCEDURAL_CREATURE_VALIDATION_FAILURE|Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access" procedural-creature-validator.log; then
+            exit 1
+          fi
+          grep -F "PROCEDURAL_CREATURE_VALIDATION_OK" procedural-creature-validator.log

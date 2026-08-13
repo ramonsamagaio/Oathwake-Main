@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://4s6ayhj2bvn4"
+
+[deps]
+
+files=["res://docs/alabaster/DEFAULT_ATLAS_REGIONS.node.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.gfx.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.equipment.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.x.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.y.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.tile.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.tile.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.unique.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.rows.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.facing.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.direction.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.notes.translation"]
+
+source_file="res://docs/alabaster/DEFAULT_ATLAS_REGIONS.csv"
+dest_files=["res://docs/alabaster/DEFAULT_ATLAS_REGIONS.node.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.gfx.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.equipment.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.x.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.y.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.tile.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.tile.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.unique.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.rows.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.facing.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.direction.translation", "res://docs/alabaster/DEFAULT_ATLAS_REGIONS.notes.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

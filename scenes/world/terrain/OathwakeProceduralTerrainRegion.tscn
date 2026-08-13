@@ -1,0 +1,21 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/terrain/ProceduralTerrainRegion2D.gd" id="1_region"]
+[ext_resource type="PackedScene" path="res://scenes/world/terrain/OathwakeGrassDirtTerrainLayer.tscn" id="2_ground"]
+[ext_resource type="Script" path="res://scripts/world/terrain/ProceduralGrassField2D.gd" id="3_grass"]
+[ext_resource type="Resource" path="res://resources/terrain/oathwake_procedural_grass_profile.tres" id="4_profile"]
+
+[node name="OathwakeProceduralTerrainRegion" type="Node2D"]
+script = ExtResource("1_region")
+profile = ExtResource("4_profile")
+generation_size_tiles = Vector2i(44, 28)
+ground_layer_path = NodePath("Ground")
+grass_field_path = NodePath("Grass")
+
+[node name="Ground" parent="." instance=ExtResource("2_ground")]
+
+[node name="Grass" type="Node2D" parent="."]
+script = ExtResource("3_grass")
+profile = ExtResource("4_profile")
+terrain_layer_path = NodePath("../Ground")
+render_above_characters = true
