@@ -13,19 +13,19 @@ extends Node2D
 
 @export_category("Underwater look")
 @export_range(40.0, 500.0, 10.0) var full_effect_depth_px: float = 220.0
-@export_range(0.0, 0.5, 0.01) var base_tint_strength: float = 0.16
-@export_range(0.0, 0.3, 0.01) var deep_tint_extra: float = 0.06
-@export_range(0.0, 0.25, 0.005) var depth_darkening: float = 0.065
-@export_range(0.0, 2.0, 0.05) var max_blur_lod: float = 0.62
-@export var shallow_tint: Color = Color(0.78, 0.94, 1.06, 1.0)
-@export var deep_tint: Color = Color(0.68, 0.86, 1.02, 1.0)
+@export_range(0.0, 0.5, 0.01) var base_tint_strength: float = 0.14
+@export_range(0.0, 0.3, 0.01) var deep_tint_extra: float = 0.055
+@export_range(0.0, 0.25, 0.005) var depth_darkening: float = 0.055
+@export_range(0.0, 2.0, 0.05) var max_blur_lod: float = 0.55
+@export var shallow_tint: Color = Color(0.82, 0.94, 1.0, 1.0)
+@export var deep_tint: Color = Color(0.72, 0.86, 0.98, 1.0)
 
 @export_category("Large-water light shafts")
 @export var light_shafts_enabled: bool = true
 @export_range(40.0, 800.0, 10.0) var large_water_min_width_px: float = 220.0
 @export_range(20.0, 400.0, 10.0) var large_water_min_depth_px: float = 90.0
 @export_range(10.0, 3000.0, 10.0) var large_water_min_volume_liters: float = 220.0
-@export_range(0.0, 0.5, 0.01) var ray_strength: float = 0.13
+@export_range(0.0, 0.5, 0.01) var ray_strength: float = 0.11
 @export_range(1.0, 16.0, 1.0) var ray_pixel_step: float = 6.0
 @export_range(80.0, 520.0, 5.0) var ray_period_px: float = 285.0
 @export_range(0.0, 2.0, 0.01) var ray_speed: float = 0.20
@@ -101,8 +101,10 @@ func _draw() -> void:
     )
     var ray_mask := _build_large_water_mask(cell_count, cell_size)
 
-    # Stable one-cell quads avoid the giant-polygon triangulation failure class
-    # entirely. Vertex colors carry depth information into the shader.
+    # Stable one-cell quads avoid giant-polygon triangulation. Vertex colors are
+    # used only as shader data. Alpha is deliberately ZERO: if the shader ever
+    # fails to compile, the fallback primitive is invisible instead of exposing
+    # the red/green/blue data channels as giant colored blocks.
     for i in range(cell_count):
         var x0 := _water.world_left + float(i) * cell_size
         var x1 := minf(x0 + cell_size + 0.35, _water.world_right)
@@ -136,8 +138,8 @@ func _draw() -> void:
             Vector2(x1, floor_y),
             Vector2(x0, floor_y)
         ])
-        var top_data := Color(0.0, ray_flag, column_depth_factor, 1.0)
-        var bottom_data := Color(1.0, ray_flag, column_depth_factor, 1.0)
+        var top_data := Color(0.0, ray_flag, column_depth_factor, 0.0)
+        var bottom_data := Color(1.0, ray_flag, column_depth_factor, 0.0)
         var colors := PackedColorArray([
             top_data,
             top_data,
