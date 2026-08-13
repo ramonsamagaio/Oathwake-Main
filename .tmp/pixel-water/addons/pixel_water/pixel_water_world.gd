@@ -44,8 +44,8 @@ extends Node2D
 @export_category("Secondary effects")
 @export var foam_lifetime: float = 2.25
 @export var max_splash_particles: int = 140
-@export var max_bubbles: int = 64
-@export var max_foam_particles: int = 100
+@export var max_bubbles: int = 128
+@export var max_foam_particles: int = 180
 @export_range(0.0, 1.0, 0.001) var spray_volume_fraction: float = 0.008
 
 var _cell_count: int = 0
@@ -930,8 +930,13 @@ func register_object_impact(
         count
     )
 
-    if impact_energy_j > 18.0:
-        _spawn_foam(world_x, clampf(impact_energy_j / 120.0, 0.35, 0.85))
+    # Energetic entries deserve a visible foam burst, but calm floating should not.
+    if impact_energy_j > 12.0:
+        var foam_intensity := clampf(impact_energy_j / 105.0, 0.38, 0.95)
+        var foam_count := 3 if impact_energy_j > 70.0 else 2
+        for foam_index in range(foam_count):
+            var offset := (float(foam_index) - float(foam_count - 1) * 0.5) * object_width_px * 0.16
+            _spawn_foam(world_x + offset, foam_intensity)
 
 func register_displacement_surge(
     world_x: float,
@@ -957,6 +962,81 @@ func register_displacement_surge(
     if displaced_volume_delta_m3 < 0.0:
         strength *= -0.20
     _add_radial_momentum(world_x, radius, strength)
+
+func register_object_activity_fx(
+    world_point: Vector2,
+    velocity_px_s: Vector2,
+    size_px: float,
+    submerged_fraction: float,
+    submerged_delta: float,
+    angular_velocity_rad_s: float = 0.0,
+    delta: float = 1.0 / 60.0
+) -> void:
+    # Visual-only reaction layer. It never changes depth or momentum, so adding
+    # bubbles/foam cannot re-introduce the old floating-object feedback loop.
+    if world_point.x < world_left or world_point.x >= world_right:
+        return
+    if depth_m_at(world_point.x) <= dry_depth_m:
+        return
+
+    var sy := surface_y_at(world_point.x)
+    var half_size := maxf(size_px * 0.5, cell_size_px)
+    var speed := velocity_px_s.length()
+    var edge_speed := absf(angular_velocity_rad_s) * half_size
+    var activity_speed := maxf(speed, edge_speed)
+    var wet := clampf(submerged_fraction, 0.0, 1.0)
+    var crossing := absf(submerged_delta)
+    var near_surface := absf(world_point.y - sy) <= half_size * 1.45
+
+    # Any material can carry/entrain air while moving under water. Density no
+    # longer gates bubbles, which is why cork/wood/plastic now react too.
+    if wet > 0.08 and activity_speed > 34.0 and _bubbles.size() < max_bubbles:
+        var bubble_rate := clampf(
+            1.6 + activity_speed / 52.0 + crossing * 30.0,
+            1.6,
+            18.0
+        )
+        var bubble_p := 1.0 - exp(-bubble_rate * maxf(delta, 0.0))
+        if _rng.randf() < bubble_p:
+            var bubble_count := 2 if activity_speed > 165.0 or crossing > 0.11 else 1
+            for _bubble_index in range(bubble_count):
+                if _bubbles.size() >= max_bubbles:
+                    break
+                var bubble_y := maxf(
+                    world_point.y + _rng.randf_range(-half_size * 0.25, half_size * 0.35),
+                    sy + cell_size_px * 0.75
+                )
+                _bubbles.append({
+                    "pos": Vector2(
+                        world_point.x + _rng.randf_range(-half_size * 0.65, half_size * 0.65),
+                        bubble_y
+                    ),
+                    "rise": _rng.randf_range(20.0, 48.0),
+                    "drift": _rng.randf_range(-9.0, 9.0),
+                    "size": cell_size_px * (0.5 if _rng.randf() < 0.55 else 1.0),
+                    "life": _rng.randf_range(3.6, 5.4)
+                })
+
+    # Foam is tied to surface-crossing energy, not mere presence at the surface.
+    # Fast entry/exit, translation or rotation can create it; resting floaters cannot.
+    var energetic_surface_motion := (
+        absf(velocity_px_s.y) > 52.0
+        or edge_speed > 68.0
+        or crossing > 0.022
+    )
+    if near_surface and energetic_surface_motion and activity_speed > 44.0:
+        var foam_rate := clampf(
+            4.5 + activity_speed / 24.0 + crossing * 58.0,
+            4.5,
+            24.0
+        )
+        var foam_p := 1.0 - exp(-foam_rate * maxf(delta, 0.0))
+        if _rng.randf() < foam_p:
+            var foam_count := 2 if activity_speed > 125.0 or crossing > 0.07 else 1
+            var intensity := clampf(0.38 + activity_speed / 420.0 + crossing * 1.8, 0.38, 0.95)
+            for foam_index in range(foam_count):
+                var offset := (float(foam_index) - float(foam_count - 1) * 0.5) * half_size * 0.65
+                _spawn_foam(world_point.x + offset, intensity)
 
 func register_underwater_motion(
     world_point: Vector2,

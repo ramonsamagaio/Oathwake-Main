@@ -247,6 +247,16 @@ func _physics_process(delta: float) -> void:
 
     _apply_ground_piston_coupling(delta)
 
+    _water.register_object_activity_fx(
+        global_position,
+        linear_velocity,
+        maxf(object_size_px.x, object_size_px.y),
+        submerged_fraction,
+        submerged_fraction - _previous_submerged_fraction,
+        angular_velocity,
+        delta
+    )
+
     if submerged_fraction <= 0.0005:
         last_buoyant_force = 0.0
         return
