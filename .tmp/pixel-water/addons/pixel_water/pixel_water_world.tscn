@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://addons/pixel_water/pixel_water_world.gd" id="1_water"]
+[ext_resource type="Script" path="res://addons/pixel_water/water_visual_fx.gd" id="2_fx"]
 
 [node name="PixelWaterWorld2D" type="Node2D"]
 script = ExtResource("1_water")
+
+[node name="WaterVisualFX" type="Node2D" parent="."]
+script = ExtResource("2_fx")
