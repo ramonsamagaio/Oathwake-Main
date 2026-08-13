@@ -90,7 +90,6 @@ func _prepare_runtime_resources() -> void:
 
 	_quad_mesh = QuadMesh.new()
 	_quad_mesh.size = profile.tuft_size_pixels
-	_quad_mesh.material = _grass_material
 
 
 func _scatter_cell(terrain: TileMapLayer, cell: Vector2i, groups: Dictionary) -> void:
@@ -218,6 +217,10 @@ func _create_chunk(chunk: Vector2i, entries: Array) -> void:
 	chunk_node.name = "GrassChunk_%d_%d" % [chunk.x, chunk.y]
 	chunk_node.position = chunk_local_origin
 	chunk_node.multimesh = multimesh
+	# MultiMeshInstance2D is a CanvasItem. Its CanvasItem material must carry the
+	# canvas shader; assigning the shader only to the QuadMesh leaves the 2D
+	# instances on the default white material on some render paths.
+	chunk_node.material = _grass_material
 	chunk_node.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	chunk_node.z_index = 1 if render_above_characters else -1
 	add_child(chunk_node)
