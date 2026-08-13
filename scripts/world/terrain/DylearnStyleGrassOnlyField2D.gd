@@ -212,9 +212,6 @@ func _create_chunk(chunk: Vector2i, entries: Array) -> void:
 		var scale: Vector2 = entry["scale"]
 		var local_position: Vector2 = entry["position"] - chunk_origin
 
-		# The grass sprite is authored root-down/tip-up. In screen coordinates,
-		# moving the quad centre upward by half its scaled height anchors the root
-		# to the generated world position instead of hanging the tuft upside down.
 		var root_anchor_offset := Vector2(
 			0.0,
 			-grass_quad_size_pixels.y * absf(scale.y) * 0.5
