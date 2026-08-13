@@ -21,10 +21,12 @@ float meadow_field(vec2 position) {
 }
 
 vec3 palette_colour(float field) {
-	if (field < palette_threshold_1) return palette_shadow.rgb;
-	if (field < palette_threshold_2) return palette_dark_mid.rgb;
-	if (field < palette_threshold_3) return palette_mid_light.rgb;
-	return palette_highlight.rgb;
+	float index = step(palette_threshold_1, field) + step(palette_threshold_2, field) + step(palette_threshold_3, field);
+	vec3 colour = palette_shadow.rgb;
+	colour = mix(colour, palette_dark_mid.rgb, step(0.5, index));
+	colour = mix(colour, palette_mid_light.rgb, step(1.5, index));
+	colour = mix(colour, palette_highlight.rgb, step(2.5, index));
+	return colour;
 }
 
 void vertex() {
