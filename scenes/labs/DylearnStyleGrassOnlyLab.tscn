@@ -83,7 +83,7 @@ polygon = PackedVector2Array(0, -11, 6, -6, 7, 4, 3, 10, -3, 10, -7, 4, -6, -6)
 color = Color(0.78, 0.69, 0.53, 1)
 
 [node name="Core" type="Polygon2D" parent="Walker"]
-polygon = PackedVector2Array(0, -6, 3, -3, 3, 3, 0, 6, -3, 3, -3, -3, -3)
+polygon = PackedVector2Array(0, -6, 3, -3, 3, 3, 0, 6, -3, 3, -3, -3)
 color = Color(0.18, 0.22, 0.12, 1)
 
 [node name="Camera2D" type="Camera2D" parent="Walker"]
