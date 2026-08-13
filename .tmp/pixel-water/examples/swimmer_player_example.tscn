@@ -1,20 +1,101 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=10 format=3]
 
-[ext_resource type="Script" path="res://examples/swimmer_player_example.gd" id="1_player"]
-[ext_resource type="PackedScene" path="res://addons/pixel_water/water_swimmer_2d.tscn" id="2_swimmer"]
+[ext_resource type="Script" path="res://examples/example_water_stage.gd" id="1_stage"]
+[ext_resource type="PackedScene" path="res://addons/pixel_water/pixel_water_world.tscn" id="2_water"]
+[ext_resource type="Script" path="res://examples/swimmer_player_example.gd" id="3_player"]
+[ext_resource type="PackedScene" path="res://addons/pixel_water/water_swimmer_2d.tscn" id="4_swimmer"]
+[ext_resource type="PackedScene" path="res://addons/pixel_water/water_buoyancy_2d.tscn" id="5_buoyancy"]
 
-[sub_resource type="CapsuleShape2D" id="Capsule_player"]
-radius = 10.0
-height = 36.0
+[sub_resource type="RectangleShape2D" id="FloorShape"]
+size = Vector2(680, 40)
 
-[node name="SwimmerPlayerExample" type="CharacterBody2D"]
-script = ExtResource("1_player")
+[sub_resource type="RectangleShape2D" id="WallShape"]
+size = Vector2(40, 260)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("Capsule_player")
+[sub_resource type="CapsuleShape2D" id="PlayerShape"]
+radius = 12.0
+height = 46.0
 
-[node name="Visual" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(-10, -18, 10, -18, 10, 18, -10, 18)
-color = Color(0.94, 0.75, 0.35, 1)
+[sub_resource type="RectangleShape2D" id="PlatformShape"]
+size = Vector2(180, 20)
 
-[node name="WaterSwimmer2D" parent="." instance=ExtResource("2_swimmer")]
+[node name="SwimmerPlayerExample" type="Node2D"]
+script = ExtResource("1_stage")
+
+[node name="Water" parent="." instance=ExtResource("2_water")]
+
+[node name="TankCollision" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="Floor" type="CollisionShape2D" parent="TankCollision"]
+position = Vector2(400, 540)
+shape = SubResource("FloorShape")
+
+[node name="LeftWall" type="CollisionShape2D" parent="TankCollision"]
+position = Vector2(60, 390)
+shape = SubResource("WallShape")
+
+[node name="RightWall" type="CollisionShape2D" parent="TankCollision"]
+position = Vector2(740, 390)
+shape = SubResource("WallShape")
+
+[node name="FloorVisual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(60, 520, 740, 520, 740, 600, 60, 600)
+color = Color(0.18, 0.22, 0.23, 1)
+
+[node name="LeftWallVisual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(40, 260, 80, 260, 80, 540, 40, 540)
+color = Color(0.18, 0.22, 0.23, 1)
+
+[node name="RightWallVisual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(720, 260, 760, 260, 760, 540, 720, 540)
+color = Color(0.18, 0.22, 0.23, 1)
+
+[node name="FloatingPlatform" type="RigidBody2D" parent="."]
+position = Vector2(520, 330)
+mass = 7.0
+continuous_cd = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FloatingPlatform"]
+shape = SubResource("PlatformShape")
+
+[node name="Visual" type="Polygon2D" parent="FloatingPlatform"]
+polygon = PackedVector2Array(-90, -10, 90, -10, 90, 10, -90, 10)
+color = Color(0.18, 0.78, 0.52, 1)
+
+[node name="WaterBuoyancy2D" parent="FloatingPlatform" instance=ExtResource("5_buoyancy")]
+physical_depth_m = 0.16
+
+[node name="Player" type="CharacterBody2D" parent="."]
+position = Vector2(280, 270)
+script = ExtResource("3_player")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+shape = SubResource("PlayerShape")
+
+[node name="Visual" type="Polygon2D" parent="Player"]
+polygon = PackedVector2Array(-12, -23, 12, -23, 12, 23, -12, 23)
+color = Color(0.96, 0.70, 0.23, 1)
+
+[node name="HeadMarker" type="Polygon2D" parent="Player"]
+polygon = PackedVector2Array(-7, -18, 7, -18, 7, -8, -7, -8)
+color = Color(1, 0.88, 0.48, 1)
+
+[node name="WaterSwimmer2D" parent="Player" instance=ExtResource("4_swimmer")]
+
+[node name="Title" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 520.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 18
+text = "DROP-IN SWIMMER + FLOATING PLATFORM"
+
+[node name="Instructions" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 52.0
+offset_right = 770.0
+offset_bottom = 96.0
+theme_override_font_sizes/font_size = 12
+text = "Arrow keys: move  |  Space: swim up / jump  |  Down: swim down\nPlayer keeps its CharacterBody2D controller. The green platform is a normal RigidBody2D with WaterBuoyancy2D."

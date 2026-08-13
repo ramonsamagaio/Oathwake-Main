@@ -1,18 +1,78 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=8 format=3]
 
-[ext_resource type="PackedScene" path="res://addons/pixel_water/water_buoyancy_2d.tscn" id="1_buoyancy"]
+[ext_resource type="Script" path="res://examples/example_water_stage.gd" id="1_stage"]
+[ext_resource type="PackedScene" path="res://addons/pixel_water/pixel_water_world.tscn" id="2_water"]
+[ext_resource type="PackedScene" path="res://addons/pixel_water/water_buoyancy_2d.tscn" id="3_buoyancy"]
 
-[sub_resource type="RectangleShape2D" id="Rectangle_platform"]
-size = Vector2(120, 18)
+[sub_resource type="RectangleShape2D" id="FloorShape"]
+size = Vector2(680, 40)
 
-[node name="FloatingPlatformExample" type="RigidBody2D"]
+[sub_resource type="RectangleShape2D" id="WallShape"]
+size = Vector2(40, 260)
+
+[sub_resource type="RectangleShape2D" id="PlatformShape"]
+size = Vector2(160, 22)
+
+[node name="FloatingPlatformExample" type="Node2D"]
+script = ExtResource("1_stage")
+
+[node name="Water" parent="." instance=ExtResource("2_water")]
+
+[node name="TankCollision" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="Floor" type="CollisionShape2D" parent="TankCollision"]
+position = Vector2(400, 540)
+shape = SubResource("FloorShape")
+
+[node name="LeftWall" type="CollisionShape2D" parent="TankCollision"]
+position = Vector2(60, 390)
+shape = SubResource("WallShape")
+
+[node name="RightWall" type="CollisionShape2D" parent="TankCollision"]
+position = Vector2(740, 390)
+shape = SubResource("WallShape")
+
+[node name="FloorVisual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(60, 520, 740, 520, 740, 600, 60, 600)
+color = Color(0.18, 0.22, 0.23, 1)
+
+[node name="LeftWallVisual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(40, 260, 80, 260, 80, 540, 40, 540)
+color = Color(0.18, 0.22, 0.23, 1)
+
+[node name="RightWallVisual" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(720, 260, 760, 260, 760, 540, 720, 540)
+color = Color(0.18, 0.22, 0.23, 1)
+
+[node name="FloatingPlatform" type="RigidBody2D" parent="."]
+position = Vector2(400, 220)
 mass = 5.0
+continuous_cd = 2
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("Rectangle_platform")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FloatingPlatform"]
+shape = SubResource("PlatformShape")
 
-[node name="Visual" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(-60, -9, 60, -9, 60, 9, -60, 9)
-color = Color(0.45, 0.67, 0.38, 1)
+[node name="Visual" type="Polygon2D" parent="FloatingPlatform"]
+polygon = PackedVector2Array(-80, -11, 80, -11, 80, 11, -80, 11)
+color = Color(0.18, 0.78, 0.52, 1)
 
-[node name="WaterBuoyancy2D" parent="." instance=ExtResource("1_buoyancy")]
+[node name="WaterBuoyancy2D" parent="FloatingPlatform" instance=ExtResource("3_buoyancy")]
+physical_depth_m = 0.16
+
+[node name="Title" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 500.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 18
+text = "DROP-IN FLOATING PLATFORM"
+
+[node name="Instructions" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 52.0
+offset_right = 760.0
+offset_bottom = 92.0
+theme_override_font_sizes/font_size = 12
+text = "Normal RigidBody2D + WaterBuoyancy2D child. Press F6: the plank falls into the same PixelWaterWorld2D and floats."
