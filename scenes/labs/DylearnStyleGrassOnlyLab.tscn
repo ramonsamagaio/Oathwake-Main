@@ -1,0 +1,127 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Shader" path="res://shaders/terrain/dylearn_style_ground_2d.gdshader" id="1_ground_shader"]
+[ext_resource type="Script" path="res://scripts/world/terrain/DylearnStyleGrassOnlyField2D.gd" id="2_field_script"]
+[ext_resource type="Script" path="res://scripts/labs/DylearnGrassTestWalker.gd" id="3_walker_script"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ground"]
+shader = ExtResource("1_ground_shader")
+shader_parameter/grass_base = Color(0.19, 0.32, 0.09, 1)
+shader_parameter/grass_patch_a = Color(0.275, 0.44, 0.12, 1)
+shader_parameter/grass_patch_b = Color(0.125, 0.235, 0.065, 1)
+shader_parameter/macro_scale = 0.0045
+shader_parameter/detail_scale = 0.013
+shader_parameter/patch_threshold_a = 0.57
+shader_parameter/patch_threshold_b = 0.68
+shader_parameter/pixel_block_pixels = 2.0
+shader_parameter/speckle_amount = 0.035
+shader_parameter/world_seed = 91373.0
+
+[sub_resource type="QuadMesh" id="QuadMesh_ground"]
+size = Vector2(3200, 2200)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape_walker"]
+size = Vector2(14, 18)
+
+[node name="DylearnStyleGrassOnlyLab" type="Node2D"]
+
+[node name="Ground" type="MeshInstance2D" parent="."]
+z_index = -10
+texture_filter = 1
+material = SubResource("ShaderMaterial_ground")
+mesh = SubResource("QuadMesh_ground")
+
+[node name="GrassField" type="Node2D" parent="."]
+script = ExtResource("2_field_script")
+field_size_pixels = Vector2(3200, 2200)
+spacing_pixels = Vector2(14, 11)
+jitter_pixels = Vector2(5, 4)
+chunk_size_pixels = 384.0
+world_seed = 91373
+min_scale = 0.82
+max_scale = 1.22
+rotation_variation_radians = 0.07
+grass_quad_size_pixels = Vector2(18, 18)
+grass_color_base = Color(0.235, 0.39, 0.105, 1)
+grass_color_patch_a = Color(0.315, 0.5, 0.135, 1)
+grass_color_patch_b = Color(0.145, 0.27, 0.075, 1)
+patch_scale_a = 0.0046
+patch_scale_b = 0.0082
+patch_threshold_a = 0.59
+patch_threshold_b = 0.66
+accent_frequency = 0.075
+accent_color = Color(0.5, 0.65, 0.17, 1)
+stepped_framerate = 5.0
+quantised_animation = true
+wind_direction = Vector2(0.92, 0.38)
+wind_strength_pixels = 5.4
+wind_noise_scale = 0.032
+wind_noise_speed = 14.0
+wind_noise_threshold = 0.34
+noise_diverge_angle = 0.42
+fake_perspective_scale = 0.28
+displacement_radius_pixels = 42.0
+displacement_strength_pixels = 9.0
+displacement_radius_exponent = 1.4
+
+[node name="Walker" type="CharacterBody2D" parent="."]
+z_index = 4
+script = ExtResource("3_walker_script")
+position = Vector2(0, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walker"]
+shape = SubResource("RectangleShape_walker")
+
+[node name="Shadow" type="Polygon2D" parent="Walker"]
+z_index = -1
+position = Vector2(0, 7)
+polygon = PackedVector2Array(-7, 0, -4, -3, 4, -3, 7, 0, 4, 3, -4, 3)
+color = Color(0.045, 0.06, 0.025, 0.45)
+
+[node name="Body" type="Polygon2D" parent="Walker"]
+polygon = PackedVector2Array(0, -11, 6, -6, 7, 4, 3, 10, -3, 10, -7, 4, -6, -6)
+color = Color(0.78, 0.69, 0.53, 1)
+
+[node name="Core" type="Polygon2D" parent="Walker"]
+polygon = PackedVector2Array(0, -6, 3, -3, 3, 3, 0, 6, -3, 3, -3, -3)
+color = Color(0.18, 0.22, 0.12, 1)
+
+[node name="Camera2D" type="Camera2D" parent="Walker"]
+enabled = true
+position_smoothing_enabled = true
+position_smoothing_speed = 7.0
+limit_left = -1600
+limit_top = -1100
+limit_right = 1600
+limit_bottom = 1100
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="ColorRect" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 780.0
+offset_bottom = 102.0
+mouse_filter = 2
+color = Color(0.025, 0.03, 0.018, 0.82)
+
+[node name="Title" type="Label" parent="UI/Panel"]
+offset_left = 14.0
+offset_top = 10.0
+offset_right = 750.0
+offset_bottom = 34.0
+text = "GRASS ONLY LAB  |  Dylearn-inspired 2D pass"
+
+[node name="Help" type="Label" parent="UI/Panel"]
+offset_left = 14.0
+offset_top = 38.0
+offset_right = 750.0
+offset_bottom = 62.0
+text = "WASD / setas: mover   |   Shift: correr   |   sem dirt / sem tileset"
+
+[node name="Tech" type="Label" parent="UI/Panel"]
+offset_left = 14.0
+offset_top = 62.0
+offset_right = 750.0
+offset_bottom = 84.0
+text = "world-space patches + MultiMesh grass + stepped wind + fake perspective + displacement"
