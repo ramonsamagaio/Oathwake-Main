@@ -36,6 +36,15 @@ const NATIVE_BIG_ROCKS := ["rock6", "rock7", "rock8", "rock9", "rock10"]
 const RESOURCE_SPACING_BUCKET_SIZE := 64.0
 const RESOURCE_SPACING_MARGIN := 2.0
 
+# Romestead AutoTilerCliffs.DrawCliff uses an eight-column atlas and a two-tile
+# cliff face for PlainsCliff. The cap stays on the logical structure tile and
+# the two face rows extend DOWN from it. The earlier Godot port had this stack
+# inverted (cap two tiles above, face ending on the logical tile), which made
+# large formations look like stretched/stacked rock slabs.
+const PLAINS_CLIFF_ATLAS_COLUMNS := 8
+const PLAINS_CLIFF_HEIGHT := 2
+const PLAINS_CLIFF_FACE_MASK := 0x3F3E
+
 
 func _ready() -> void:
 	super._ready()
@@ -235,14 +244,49 @@ func _reconcile_resources_with_player_buildings() -> void:
 			_pending_resource_spawns.erase(key)
 
 
-func _apply_plains_cliff_second_pass(_start: Vector2i, _finish: Vector2i) -> void:
-	# The large formation reported as the "big rock" is not a rock ResourceNode:
-	# it is the 128x256 plains_3D_cliffs autotile sheet. The current partial port
-	# can assemble it into the giant slab seen in-game. Do not ship a malformed
-	# pseudo-rock: suppress this structure in the integrated world until the full
-	# native cliff rule/height contract is ported. Normal 48x48 big rocks continue
-	# to spawn through NATIVE_BIG_ROCKS above.
-	_plains_cliffs.clear()
+func _apply_plains_cliff_second_pass(start: Vector2i, finish: Vector2i) -> void:
+	# Re-enable the native formation cleanup. The previous hotfix cleared the
+	# dictionary only because the rendered stack was inverted; the topology
+	# filtering itself was not the problem.
+	super._apply_plains_cliff_second_pass(start, finish)
+
+
+func _draw_plains_cliff(cell: Vector2i) -> void:
+	if not _plains_cliffs.has(cell):
+		return
+
+	var mask := _plains_cliff_mask(cell)
+	if mask <= 0 or mask >= PLAINS_CLIFF_BASE_FRAMES.size():
+		return
+	var options := PLAINS_CLIFF_BASE_FRAMES[mask] as Array
+	if options.is_empty():
+		return
+
+	# MultiTilePattern.Mode.InOrderXy: alternate the authored pair by x+y.
+	var frame := int(options[posmod(cell.x + cell.y, options.size())])
+	var top_coord := Vector2i(
+		frame % PLAINS_CLIFF_ATLAS_COLUMNS,
+		frame / PLAINS_CLIFF_ATLAS_COLUMNS
+	)
+
+	# Native AutoTilerCliffs.DrawCliff anchors the cap on the logical structure
+	# coordinate. The wall is an extrusion toward screen-down, never screen-up.
+	_plains_cliff_layers[0].set_cell(cell, 0, top_coord, 0)
+
+	var exposes_face := ((1 << mask) & PLAINS_CLIFF_FACE_MASK) != 0
+	if exposes_face:
+		for face_row in range(1, PLAINS_CLIFF_HEIGHT + 1):
+			var face_frame := frame + PLAINS_CLIFF_ATLAS_COLUMNS * face_row
+			var face_coord := Vector2i(
+				face_frame % PLAINS_CLIFF_ATLAS_COLUMNS,
+				face_frame / PLAINS_CLIFF_ATLAS_COLUMNS
+			)
+			_plains_cliff_layers[face_row].set_cell(cell + Vector2i.DOWN * face_row, 0, face_coord, 0)
+
+	# Keep physics on the authored logical structure cell, matching the native
+	# structure-map contract rather than making the decorative vertical face a
+	# three-cell-thick obstacle.
+	_plains_cliff_collision.set_cell(cell, 0, Vector2i(0, 4), 0)
 
 
 func _forest_frame_for_mask(mask: int) -> int:
