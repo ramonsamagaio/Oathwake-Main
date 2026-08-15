@@ -49,6 +49,9 @@ func _process(_delta: float) -> void:
 	if _target == null or not is_instance_valid(_target) or _source == null or not is_instance_valid(_source):
 		visible = false
 		_hide_render_proxy()
+		# Persisted/duplicated building scenes can contain an unconfigured shadow
+		# child. It has nothing to synchronize and must not spin forever.
+		set_process(false)
 		return
 	_refresh_silhouette()
 

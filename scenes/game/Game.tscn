@@ -17,19 +17,34 @@
 [ext_resource type="Script" uid="uid://bq6u7sqiptlbl" path="res://scripts/enemies/NightEnemySpawner.gd" id="15_night_spawner"]
 [ext_resource type="PackedScene" uid="uid://c3wm4u4aeb7c4" path="res://scenes/enemies/Slime.tscn" id="16_slime"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUDStatusUI.tscn" id="17_hud_status"]
-[ext_resource type="PackedScene" path="res://scenes/effects/MapFogOverlay.tscn" id="18_map_fog"]
 [ext_resource type="PackedScene" path="res://scenes/effects/ScreenEffects.tscn" id="19_screen_effects"]
-[ext_resource type="PackedScene" path="res://scenes/effects/LightShaftOverlay.tscn" id="20_light_shafts"]
 [ext_resource type="Script" path="res://scripts/ui/RuntimeContentEditorButton.gd" id="21_runtime_content_editor"]
 [ext_resource type="Script" path="res://scripts/ui/DisplayShortcut.gd" id="22_display_shortcut"]
-[ext_resource type="Script" path="res://scripts/ui/DayNightDebugControls.gd" id="23_day_night_debug"]
-[ext_resource type="Script" path="res://scripts/effects/LocalLightShadowDirector.gd" id="24_local_shadow_director"]
 [ext_resource type="Script" path="res://scripts/effects/ProjectedShadowGroup.gd" id="25_projected_shadow_group"]
+[ext_resource type="Script" path="res://scripts/labs/romestead_systems/RomesteadEnvironmentController.gd" id="26_romestead_environment"]
+[ext_resource type="Script" path="res://scripts/labs/romestead_systems/AlabasterWeatherController.gd" id="27_alabaster_weather"]
+[ext_resource type="Script" path="res://scripts/labs/romestead_systems/RomesteadWeatherVisuals2D.gd" id="28_weather_visuals"]
+[ext_resource type="Script" path="res://scripts/ui/WeatherControlPanel.gd" id="29_weather_panel"]
+[ext_resource type="Script" path="res://scripts/ui/FpsMeter.gd" id="30_fps_meter"]
 
 [node name="Game" type="Node2D" unique_id=2133599417]
 script = ExtResource("1_game_script")
 
 [node name="WorldTint" type="CanvasModulate" parent="." unique_id=1359142384]
+
+[node name="Sun" type="DirectionalLight2D" parent="."]
+rotation = 1.2
+energy = 0.04
+color = Color(1, 0.91, 0.72, 1)
+height = 0.62
+shadow_enabled = false
+
+[node name="Moon" type="DirectionalLight2D" parent="."]
+rotation = -1.8
+energy = 0.18
+color = Color(0.45, 0.61, 0.92, 1)
+height = 0.48
+shadow_enabled = false
 
 [node name="ProjectedShadowGroup" type="CanvasGroup" parent="."]
 script = ExtResource("25_projected_shadow_group")
@@ -43,14 +58,39 @@ y_sort_enabled = true
 
 [node name="WorldPostEffects" type="Node" parent="." unique_id=128443278]
 
-[node name="MapFogOverlay" parent="WorldPostEffects" unique_id=38958819 instance=ExtResource("18_map_fog")]
-
-[node name="LightShaftOverlay" parent="WorldPostEffects" instance=ExtResource("20_light_shafts")]
-
 [node name="ScreenEffects" parent="WorldPostEffects" unique_id=1165169849 instance=ExtResource("19_screen_effects")]
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=53977041]
 layer = 10
+
+[node name="FpsMeterBackdrop" type="ColorRect" parent="UI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -190.0
+offset_top = 10.0
+offset_right = -12.0
+offset_bottom = 38.0
+grow_horizontal = 0
+mouse_filter = 2
+color = Color(0.025, 0.03, 0.026, 0.76)
+
+[node name="FpsMeter" type="Label" parent="UI/FpsMeterBackdrop"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 13
+text = "FPS 60  |  pico 16.7 ms"
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("30_fps_meter")
 
 [node name="InventoryUI" parent="UI" unique_id=704599672 instance=ExtResource("4_inventory_ui")]
 
@@ -66,9 +106,6 @@ layer = 10
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="DayNightDebugControls" type="HBoxContainer" parent="UI"]
-script = ExtResource("23_day_night_debug")
-
 [node name="SpawnMonsterButton" type="Button" parent="UI" unique_id=794836599]
 anchors_preset = 6
 anchor_left = 1.0
@@ -83,6 +120,22 @@ grow_horizontal = 0
 grow_vertical = 2
 focus_mode = 0
 text = "SPAWN"
+
+[node name="WeatherButton" type="Button" parent="UI"]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -124.0
+offset_right = -16.0
+offset_bottom = -88.0
+grow_horizontal = 0
+grow_vertical = 2
+focus_mode = 0
+text = "☀  CLIMA"
+tooltip_text = "Abrir controles de clima e iluminação"
 
 [node name="ContentEditorButton" type="Button" parent="UI"]
 anchors_preset = 6
@@ -172,6 +225,21 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="WeatherControlPanel" type="Panel" parent="UI"]
+visible = false
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -490.0
+offset_top = -215.0
+offset_right = -196.0
+offset_bottom = 215.0
+grow_horizontal = 0
+grow_vertical = 2
+script = ExtResource("29_weather_panel")
+
 [node name="DisplayShortcut" type="Node" parent="."]
 script = ExtResource("22_display_shortcut")
 
@@ -197,10 +265,32 @@ script = ExtResource("13_settlement_manager")
 
 [node name="DayNightCycle" type="Node" parent="Systems" unique_id=1918717164]
 script = ExtResource("14_day_night")
+external_visual_control = true
+cycle_paused = true
+time_of_day = 0.4166667
 
-[node name="LocalLightShadowDirector" type="Node" parent="Systems"]
-script = ExtResource("24_local_shadow_director")
+[node name="RomesteadEnvironment" type="Node" parent="Systems"]
+script = ExtResource("26_romestead_environment")
+time_paused = true
+canvas_modulate_path = NodePath("../../WorldTint")
+sun_path = NodePath("../../Sun")
+moon_path = NodePath("../../Moon")
+world_path = NodePath("")
+
+[node name="AlabasterWeather" type="Node" parent="Systems"]
+script = ExtResource("27_alabaster_weather")
+initial_weather = "clear"
+auto_cycle = false
+auto_cycle_seconds = 24.0
+environment_path = NodePath("../RomesteadEnvironment")
+visuals_path = NodePath("../../WeatherLayer/Visuals")
 
 [node name="NightEnemySpawner" type="Node" parent="Systems" unique_id=1328287738]
 script = ExtResource("15_night_spawner")
 slime_scene = ExtResource("16_slime")
+
+[node name="WeatherLayer" type="CanvasLayer" parent="."]
+layer = 8
+
+[node name="Visuals" type="Node2D" parent="WeatherLayer"]
+script = ExtResource("28_weather_visuals")

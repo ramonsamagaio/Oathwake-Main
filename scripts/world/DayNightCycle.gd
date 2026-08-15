@@ -7,8 +7,9 @@ signal lighting_state_changed(time_of_day: float, night_strength: float, dayligh
 @export var night_color: Color = Color(0.28, 0.34, 0.55, 1.0)
 @export var canvas_modulate_path: NodePath = "../WorldTint"
 @export var state_label_path: NodePath = "../UI/DayNightLabel"
-
-var time_of_day := 0.0
+@export var external_visual_control := false
+@export var cycle_paused := false
+@export_range(0.0, 1.0, 0.001) var time_of_day := 0.0
 
 var canvas_modulate: CanvasModulate
 var state_label: Label
@@ -19,6 +20,7 @@ func _ready() -> void:
 	add_to_group("day_night_cycle")
 	setup({})
 	_update_day_night_visuals()
+	set_process(not cycle_paused)
 
 
 func setup(context: Dictionary) -> void:
@@ -31,8 +33,20 @@ func setup(context: Dictionary) -> void:
 
 
 func _process(delta: float) -> void:
+	if cycle_paused:
+		return
 	time_of_day = fposmod(time_of_day + (delta / maxf(cycle_duration_seconds, 0.001)), 1.0)
 	_update_day_night_visuals()
+
+
+func set_cycle_paused(paused: bool) -> void:
+	cycle_paused = paused
+	set_process(not cycle_paused)
+	_update_day_night_visuals()
+	if not cycle_paused:
+		for shadow in get_tree().get_nodes_in_group("projected_shadow_caster"):
+			if shadow != null and shadow.has_method("set_solar_shadow_processing"):
+				shadow.call("set_solar_shadow_processing", true)
 
 
 func set_time_of_day(normalized_time: float) -> void:
@@ -41,7 +55,9 @@ func set_time_of_day(normalized_time: float) -> void:
 
 
 func set_day() -> void:
-	set_time_of_day(0.25)
+	# 16:00 keeps the game clearly in daytime while preserving the characteristic
+	# diagonal Romestead projection. At noon those shadows sit under the sprites.
+	set_time_of_day(10.0 / 24.0)
 
 
 func set_night() -> void:
@@ -64,6 +80,7 @@ func get_solar_shadow_strength() -> float:
 	var solar := _get_solar_shadow_config()
 	if not bool(solar.get("fade_with_night", true)):
 		return 1.0
+	var night_minimum := clampf(float(solar.get("night_minimum_strength", 0.28)), 0.0, 1.0)
 	var thresholds := _get_solar_thresholds(solar)
 	var dusk_start := float(thresholds["dusk_start"])
 	var dusk_end := float(thresholds["dusk_end"])
@@ -71,10 +88,10 @@ func get_solar_shadow_strength() -> float:
 	if time_of_day < dusk_start:
 		return 1.0
 	if time_of_day < dusk_end:
-		return 1.0 - smoothstep(dusk_start, dusk_end, time_of_day)
+		return lerpf(1.0, night_minimum, smoothstep(dusk_start, dusk_end, time_of_day))
 	if time_of_day < dawn_start:
-		return 0.0
-	return smoothstep(dawn_start, 1.0, time_of_day)
+		return night_minimum
+	return lerpf(night_minimum, 1.0, smoothstep(dawn_start, 1.0, time_of_day))
 
 
 func get_sun_shadow_direction() -> Vector2:
@@ -103,7 +120,7 @@ func _update_day_night_visuals() -> void:
 	var night_strength := _get_night_strength()
 	var daylight_strength := 1.0 - night_strength
 	var solar_shadow_strength := get_solar_shadow_strength()
-	if canvas_modulate != null:
+	if canvas_modulate != null and not external_visual_control:
 		canvas_modulate.color = day_color.lerp(night_color, night_strength)
 	if state_label != null:
 		state_label.text = "Day" if is_day() else "Night"

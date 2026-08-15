@@ -386,5 +386,6151 @@
 		"respawn_time_seconds": 120.0,
 		"skill_type": "lumbering",
 		"xp_reward": 75.0
-	}
+	},
+	"tree2": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 10,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 2",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_2",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree3": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 10,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 3",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_3",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree4": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 10,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 4",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_4",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree5": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 10,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 5",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_5",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree6": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 10,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 6",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_6",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree7": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 10,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 7",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_7",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree8": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 10,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 8",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_8",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree9": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 10,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 9",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_9",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree10": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 10,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 10",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_10",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree11": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 10,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 11",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_11",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree12": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 12",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_12",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree13": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 13",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_13",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree14": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 14",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_14",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree15": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 15",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_15",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree16": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 16",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_16",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"rock1": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 15,
+			"interaction_radius": 31,
+			"body_offset": {
+				"x": 0,
+				"y": -7
+			}
+		},
+		"display_name": "Rock 1",
+		"drop_amount": 2,
+		"drop_item_id": "stone",
+		"max_health": 28,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 28,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_rock_1",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10
+	},
+	"rock2": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 15,
+			"interaction_radius": 31,
+			"body_offset": {
+				"x": 0,
+				"y": -7
+			}
+		},
+		"display_name": "Rock 2",
+		"drop_amount": 2,
+		"drop_item_id": "stone",
+		"max_health": 28,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 28,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_rock_2",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10
+	},
+	"rock3": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 15,
+			"interaction_radius": 31,
+			"body_offset": {
+				"x": 0,
+				"y": -7
+			}
+		},
+		"display_name": "Rock 3",
+		"drop_amount": 2,
+		"drop_item_id": "stone",
+		"max_health": 28,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 28,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_rock_3",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10
+	},
+	"rock4": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 15,
+			"interaction_radius": 31,
+			"body_offset": {
+				"x": 0,
+				"y": -7
+			}
+		},
+		"display_name": "Rock 4",
+		"drop_amount": 2,
+		"drop_item_id": "stone",
+		"max_health": 28,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 28,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_rock_4",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10
+	},
+	"rock5": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 15,
+			"interaction_radius": 31,
+			"body_offset": {
+				"x": 0,
+				"y": -7
+			}
+		},
+		"display_name": "Rock 5",
+		"drop_amount": 2,
+		"drop_item_id": "stone",
+		"max_health": 28,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 28,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_rock_5",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10
+	},
+	"stone1": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 9,
+			"interaction_radius": 25,
+			"body_offset": {
+				"x": 0,
+				"y": -4
+			}
+		},
+		"display_name": "Stone 1",
+		"drop_amount": 1,
+		"drop_item_id": "stone",
+		"max_health": 16,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 16,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_stone_1",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 6
+	},
+	"stone2": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 9,
+			"interaction_radius": 25,
+			"body_offset": {
+				"x": 0,
+				"y": -4
+			}
+		},
+		"display_name": "Stone 2",
+		"drop_amount": 1,
+		"drop_item_id": "stone",
+		"max_health": 16,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 16,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_stone_2",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 6
+	},
+	"stone3": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 9,
+			"interaction_radius": 25,
+			"body_offset": {
+				"x": 0,
+				"y": -4
+			}
+		},
+		"display_name": "Stone 3",
+		"drop_amount": 1,
+		"drop_item_id": "stone",
+		"max_health": 16,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 16,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_stone_3",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 6
+	},
+	"stone4": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 9,
+			"interaction_radius": 25,
+			"body_offset": {
+				"x": 0,
+				"y": -4
+			}
+		},
+		"display_name": "Stone 4",
+		"drop_amount": 1,
+		"drop_item_id": "stone",
+		"max_health": 16,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 16,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_stone_4",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 6
+	},
+	"bush1": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 1",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_1",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush2": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 2",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_2",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush3": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 3",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_3",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush4": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 4",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_4",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush5": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 5",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_5",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush6": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 6",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_6",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush7": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 7",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_7",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"wheat1": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 1",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_1",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat2": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 2",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_2",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat3": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 3",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_3",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat4": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 4",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_4",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"tree17": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 17",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_17",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree18": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 18",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_18",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree19": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 19",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_19",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree20": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 20",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_20",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree21": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 21",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_21",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree22": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 22",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_22",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree23": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 23",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_23",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree24": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 24",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_24",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree25": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 25",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_25",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree26": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 26",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_26",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree27": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 27",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_27",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree28": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 28",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_28",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree29": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 29",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_29",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree30": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 30",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_30",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree31": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 31",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_31",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree32": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 32",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_32",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree33": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 33",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_33",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree34": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 34",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_34",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree35": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 35",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_35",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree36": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 36",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_36",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree37": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 37",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_37",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree38": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 38",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_38",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree39": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 39",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_b",
+			"canopy_sprite_id": "romestead_tree_canopy_39",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"tree40": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "wood",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest"
+		],
+		"collision": {
+			"body_radius": 7,
+			"interaction_radius": 30,
+			"body_offset": {
+				"x": 0,
+				"y": -3
+			}
+		},
+		"display_name": "Tree 40",
+		"drop_amount": 2,
+		"drop_item_id": "wood",
+		"max_health": 22,
+		"rare_drops": [],
+		"required_tool_type": "axe",
+		"resource_hp": 22,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 60,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "lumbering",
+		"sprite_id": "",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.2,
+			"sway_scale": 1,
+			"tree_hit_shake": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10,
+		"layered_visual": {
+			"enabled": true,
+			"trunk_sprite_id": "romestead_trunk_a",
+			"canopy_sprite_id": "romestead_tree_canopy_40",
+			"trunk_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_offset": {
+				"x": 0,
+				"y": 0
+			},
+			"canopy_z_offset": 2,
+			"canopy_wind_enabled": false
+		}
+	},
+	"rock6": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 15,
+			"interaction_radius": 31,
+			"body_offset": {
+				"x": 0,
+				"y": -7
+			}
+		},
+		"display_name": "Rock 6",
+		"drop_amount": 2,
+		"drop_item_id": "stone",
+		"max_health": 28,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 28,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_rock_6",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10
+	},
+	"rock7": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 15,
+			"interaction_radius": 31,
+			"body_offset": {
+				"x": 0,
+				"y": -7
+			}
+		},
+		"display_name": "Rock 7",
+		"drop_amount": 2,
+		"drop_item_id": "stone",
+		"max_health": 28,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 28,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_rock_7",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10
+	},
+	"rock8": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 15,
+			"interaction_radius": 31,
+			"body_offset": {
+				"x": 0,
+				"y": -7
+			}
+		},
+		"display_name": "Rock 8",
+		"drop_amount": 2,
+		"drop_item_id": "stone",
+		"max_health": 28,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 28,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_rock_8",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10
+	},
+	"rock9": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 15,
+			"interaction_radius": 31,
+			"body_offset": {
+				"x": 0,
+				"y": -7
+			}
+		},
+		"display_name": "Rock 9",
+		"drop_amount": 2,
+		"drop_item_id": "stone",
+		"max_health": 28,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 28,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_rock_9",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10
+	},
+	"rock10": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 4,
+				"min_amount": 2
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 15,
+			"interaction_radius": 31,
+			"body_offset": {
+				"x": 0,
+				"y": -7
+			}
+		},
+		"display_name": "Rock 10",
+		"drop_amount": 2,
+		"drop_item_id": "stone",
+		"max_health": 28,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 28,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_rock_10",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 10
+	},
+	"stone5": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 9,
+			"interaction_radius": 25,
+			"body_offset": {
+				"x": 0,
+				"y": -4
+			}
+		},
+		"display_name": "Stone 5",
+		"drop_amount": 1,
+		"drop_item_id": "stone",
+		"max_health": 16,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 16,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_stone_5",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 6
+	},
+	"stone6": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 9,
+			"interaction_radius": 25,
+			"body_offset": {
+				"x": 0,
+				"y": -4
+			}
+		},
+		"display_name": "Stone 6",
+		"drop_amount": 1,
+		"drop_item_id": "stone",
+		"max_health": 16,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 16,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_stone_6",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 6
+	},
+	"stone7": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 9,
+			"interaction_radius": 25,
+			"body_offset": {
+				"x": 0,
+				"y": -4
+			}
+		},
+		"display_name": "Stone 7",
+		"drop_amount": 1,
+		"drop_item_id": "stone",
+		"max_health": 16,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 16,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_stone_7",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 6
+	},
+	"stone8": {
+		"allow_hands": false,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "stone",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dirt",
+			"dry",
+			"meadow"
+		],
+		"collision": {
+			"body_radius": 9,
+			"interaction_radius": 25,
+			"body_offset": {
+				"x": 0,
+				"y": -4
+			}
+		},
+		"display_name": "Stone 8",
+		"drop_amount": 1,
+		"drop_item_id": "stone",
+		"max_health": 16,
+		"rare_drops": [],
+		"required_tool_type": "pickaxe",
+		"resource_hp": 16,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 45,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "mining",
+		"sprite_id": "romestead_stone_8",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"rock_hit_jolt": true
+		},
+		"vfx_hooks": [],
+		"xp_reward": 6
+	},
+	"bush8": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 8",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_8",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush9": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 9",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_9",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush10": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 10",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_10",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush11": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 11",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_11",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush12": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 12",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_12",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush13": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 13",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_13",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush14": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 14",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_14",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush15": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 15",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_15",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush16": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 16",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_16",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush17": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 17",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_17",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush18": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 18",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_18",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush19": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 19",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_19",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush20": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 20",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_20",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"bush21": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 3,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"meadow",
+			"forest",
+			"dry"
+		],
+		"collision": {
+			"body_radius": 6,
+			"interaction_radius": 22,
+			"body_offset": {
+				"x": 0,
+				"y": -2
+			}
+		},
+		"display_name": "Bush 21",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 8,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 8,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 35,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_bush_21",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 4
+	},
+	"wheat5": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 5",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_5",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat6": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 6",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_6",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat7": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 7",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_7",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat8": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 8",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_8",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat9": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 9",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_9",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat10": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 10",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_10",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat11": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 11",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_11",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat12": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 12",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_12",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat13": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 13",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_13",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat14": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 14",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_14",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat15": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 15",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_15",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat16": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 16",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_16",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat17": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 17",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_17",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat18": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 18",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_18",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat19": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 19",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_19",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat20": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 20",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_20",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat21": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 21",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_21",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat22": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 22",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_22",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat23": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 23",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_23",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"wheat24": {
+		"allow_hands": true,
+		"base_drops": [
+			{
+				"chance": 1,
+				"item_id": "fiber",
+				"max_amount": 2,
+				"min_amount": 1
+			}
+		],
+		"biomes": [
+			"dry",
+			"dirt"
+		],
+		"collision": {
+			"body_radius": 4,
+			"interaction_radius": 20,
+			"body_offset": {
+				"x": 0,
+				"y": -1
+			}
+		},
+		"display_name": "Wheat 24",
+		"drop_amount": 1,
+		"drop_item_id": "fiber",
+		"max_health": 6,
+		"rare_drops": [],
+		"required_tool_type": "hands",
+		"resource_hp": 6,
+		"resource_tier": 1,
+		"respawn_randomly": true,
+		"respawn_time_seconds": 30,
+		"scene_path": "res://scenes/resources/ResourceNodeBase.tscn",
+		"shadow": {
+			"enabled": true,
+			"opacity": 0.16,
+			"stretch": 0.55,
+			"z_index": -1
+		},
+		"skill_type": "foraging",
+		"sprite_id": "romestead_wheat_24",
+		"tags": [
+			"romestead",
+			"procedural",
+			"basic"
+		],
+		"romestead_motion": {
+			"wind_enabled": true,
+			"sway_speed": 0.3,
+			"sway_scale": 1
+		},
+		"vfx_hooks": [],
+		"xp_reward": 3
+	},
+	"tree41": {"display_name":"Apple Tree","scene_path":"res://scenes/resources/ResourceNodeBase.tscn","sprite_id":"","resource_hp":24,"max_health":24,"resource_tier":1,"required_tool_type":"axe","allow_hands":false,"skill_type":"lumbering","drop_item_id":"wood","drop_amount":2,"base_drops":[{"item_id":"wood","min_amount":2,"max_amount":3,"chance":1.0},{"item_id":"berry","min_amount":1,"max_amount":2,"chance":0.75}],"rare_drops":[],"xp_reward":12,"respawn_time_seconds":75,"respawn_randomly":true,"biomes":["meadow","forest_light","forest"],"collision":{"body_radius":9,"interaction_radius":30,"body_offset":{"x":0,"y":-3}},"layered_visual":{"enabled":true,"trunk_sprite_id":"romestead_apple_stump","alive_trunk_sprite_id":"romestead_apple_stump","stump_sprite_id":"romestead_apple_stump","canopy_sprite_id":"romestead_apple_canopy","trunk_offset":{"x":0,"y":0},"canopy_offset":{"x":0,"y":0},"canopy_ground_lift":0,"canopy_z_offset":2,"canopy_wind_enabled":false,"tree_fall_enabled":true,"fall_duration":1.2},"romestead_motion":{"wind_enabled":true,"sway_speed":0.2,"sway_scale":1.0,"tree_hit_shake":true},"shadow":{"enabled":true,"opacity":0.16},"tags":["romestead","procedural","basic"]},
+	"tree42": {"display_name":"Stone Pine","scene_path":"res://scenes/resources/ResourceNodeBase.tscn","sprite_id":"","resource_hp":26,"max_health":26,"resource_tier":1,"required_tool_type":"axe","allow_hands":false,"skill_type":"lumbering","drop_item_id":"wood","drop_amount":3,"base_drops":[{"item_id":"wood","min_amount":2,"max_amount":4,"chance":1.0}],"rare_drops":[],"xp_reward":12,"respawn_time_seconds":75,"respawn_randomly":true,"biomes":["forest_light","forest","forest_deep"],"collision":{"body_radius":10,"interaction_radius":32,"body_offset":{"x":0,"y":-3}},"layered_visual":{"enabled":true,"trunk_sprite_id":"romestead_stone_pine_stump","alive_trunk_sprite_id":"romestead_stone_pine_stump","stump_sprite_id":"romestead_stone_pine_stump","canopy_sprite_id":"romestead_stone_pine_canopy","trunk_offset":{"x":0,"y":0},"canopy_offset":{"x":0,"y":1},"canopy_ground_lift":0,"canopy_z_offset":2,"canopy_wind_enabled":false,"tree_fall_enabled":true,"fall_duration":1.2},"romestead_motion":{"wind_enabled":true,"sway_speed":0.2,"sway_scale":1.0,"tree_hit_shake":true},"shadow":{"enabled":true,"opacity":0.16},"tags":["romestead","procedural","basic"]},
+	"purple_bush1": {"max_health":6,"resource_tier":1,"display_name":"Purple Bush","scene_path":"res://scenes/resources/ResourceNodeBase.tscn","sprite_id":"romestead_purple_bush","resource_hp":6,"required_tool_type":"hands","allow_hands":true,"skill_type":"foraging","drop_item_id":"fiber","drop_amount":1,"base_drops":[{"item_id":"fiber","min_amount":1,"max_amount":2,"chance":1.0}],"rare_drops":[],"xp_reward":3,"respawn_time_seconds":30,"respawn_randomly":true,"biomes":["dry","dirt"],"collision":{"body_radius":4,"interaction_radius":20,"player_pass_through":true},"romestead_motion":{"wind_enabled":true,"sway_speed":0.3,"sway_scale":0.75},"tags":["romestead","procedural"]},
+	"forest_bush1": {"max_health":6,"resource_tier":1,"display_name":"Forest Bush","scene_path":"res://scenes/resources/ResourceNodeBase.tscn","sprite_id":"romestead_forest_bush","resource_hp":6,"required_tool_type":"hands","allow_hands":true,"skill_type":"foraging","drop_item_id":"fiber","drop_amount":1,"base_drops":[{"item_id":"fiber","min_amount":1,"max_amount":2,"chance":1.0}],"rare_drops":[],"xp_reward":3,"respawn_time_seconds":30,"respawn_randomly":true,"biomes":["forest_light","forest","forest_deep"],"collision":{"body_radius":4,"interaction_radius":20,"player_pass_through":true},"romestead_motion":{"wind_enabled":true,"sway_speed":0.3,"sway_scale":0.6},"tags":["romestead","procedural"]},
+	"mushroom_red": {"max_health":3,"resource_tier":1,"display_name":"Amanita Mushroom","scene_path":"res://scenes/resources/ResourceNodeBase.tscn","sprite_id":"romestead_mushroom_red","resource_hp":3,"required_tool_type":"hands","allow_hands":true,"skill_type":"foraging","drop_item_id":"fiber","drop_amount":1,"base_drops":[{"item_id":"fiber","min_amount":1,"max_amount":1,"chance":1.0}],"rare_drops":[],"xp_reward":2,"respawn_time_seconds":35,"respawn_randomly":true,"biomes":["forest","forest_deep"],"collision":{"body_radius":3,"interaction_radius":18},"tags":["romestead","procedural"]},
+	"mushroom_brown": {"max_health":3,"resource_tier":1,"display_name":"Boletus Mushroom","scene_path":"res://scenes/resources/ResourceNodeBase.tscn","sprite_id":"romestead_mushroom_brown","resource_hp":3,"required_tool_type":"hands","allow_hands":true,"skill_type":"foraging","drop_item_id":"fiber","drop_amount":1,"base_drops":[{"item_id":"fiber","min_amount":1,"max_amount":1,"chance":1.0}],"rare_drops":[],"xp_reward":2,"respawn_time_seconds":35,"respawn_randomly":true,"biomes":["forest_light","forest"],"collision":{"body_radius":3,"interaction_radius":18},"tags":["romestead","procedural"]},
+	"mushroom_yellow": {"max_health":3,"resource_tier":1,"display_name":"Chanterelle Mushroom","scene_path":"res://scenes/resources/ResourceNodeBase.tscn","sprite_id":"romestead_mushroom_yellow","resource_hp":3,"required_tool_type":"hands","allow_hands":true,"skill_type":"foraging","drop_item_id":"fiber","drop_amount":1,"base_drops":[{"item_id":"fiber","min_amount":1,"max_amount":1,"chance":1.0}],"rare_drops":[],"xp_reward":2,"respawn_time_seconds":35,"respawn_randomly":true,"biomes":["forest","forest_deep"],"collision":{"body_radius":3,"interaction_radius":18},"tags":["romestead","procedural"]},
+	"bellflower1": {"max_health":4,"resource_tier":1,"display_name":"Bellflowers","scene_path":"res://scenes/resources/ResourceNodeBase.tscn","sprite_id":"romestead_bellflower","resource_hp":4,"required_tool_type":"hands","allow_hands":true,"skill_type":"foraging","drop_item_id":"fiber","drop_amount":1,"base_drops":[{"item_id":"fiber","min_amount":1,"max_amount":2,"chance":1.0}],"rare_drops":[],"xp_reward":2,"respawn_time_seconds":30,"respawn_randomly":true,"biomes":["meadow","forest_light"],"collision":{"body_radius":3,"interaction_radius":18},"romestead_motion":{"wind_enabled":true,"sway_speed":0.3,"sway_scale":0.45},"tags":["romestead","procedural"]},
+	"lily1": {"max_health":4,"resource_tier":1,"display_name":"Wild Lilies","scene_path":"res://scenes/resources/ResourceNodeBase.tscn","sprite_id":"romestead_lily","resource_hp":4,"required_tool_type":"hands","allow_hands":true,"skill_type":"foraging","drop_item_id":"fiber","drop_amount":1,"base_drops":[{"item_id":"fiber","min_amount":1,"max_amount":2,"chance":1.0}],"rare_drops":[],"xp_reward":2,"respawn_time_seconds":30,"respawn_randomly":true,"biomes":["meadow","forest_light"],"collision":{"body_radius":4,"interaction_radius":20},"romestead_motion":{"wind_enabled":true,"sway_speed":0.3,"sway_scale":0.5},"tags":["romestead","procedural"]},
+	"copper_ore_node": {"max_health":20,"resource_tier":1,"display_name":"Copper Ore Node","scene_path":"res://scenes/resources/ResourceNodeBase.tscn","sprite_id":"romestead_copper_ore","resource_hp":20,"required_tool_type":"pickaxe","allow_hands":false,"skill_type":"mining","drop_item_id":"copper_ore","drop_amount":2,"base_drops":[{"item_id":"copper_ore","min_amount":1,"max_amount":3,"chance":1.0}],"rare_drops":[{"item_id":"stone","min_amount":1,"max_amount":1,"chance":0.35}],"xp_reward":9,"respawn_time_seconds":65,"respawn_randomly":true,"biomes":["meadow","forest_light","forest"],"collision":{"body_radius":6,"interaction_radius":22},"romestead_motion":{"wind_enabled":false,"rock_hit_jolt":true},"tags":["romestead","procedural"]},
+	"mossy_rock1": {"max_health":34,"resource_tier":1,"display_name":"Mossy Boulder","scene_path":"res://scenes/resources/ResourceNodeBase.tscn","sprite_id":"romestead_mossy_boulder","resource_hp":34,"required_tool_type":"pickaxe","allow_hands":false,"skill_type":"mining","drop_item_id":"stone","drop_amount":3,"base_drops":[{"item_id":"stone","min_amount":2,"max_amount":4,"chance":1.0}],"rare_drops":[{"item_id":"copper_ore","min_amount":1,"max_amount":1,"chance":0.2}],"xp_reward":12,"respawn_time_seconds":75,"respawn_randomly":true,"biomes":["forest_light","forest","forest_deep"],"collision":{"body_radius":13,"interaction_radius":32,"body_offset":{"x":0,"y":-4}},"romestead_motion":{"wind_enabled":false,"rock_hit_jolt":true},"tags":["romestead","procedural"]}
 }

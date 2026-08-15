@@ -1,0 +1,135 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ContentDB loaded successfully
+PASS: Content Editor loads expanded Romestead catalogs
+PASS: Content Editor lists tree41
+PASS: tree41 passes Content Editor validation
+PASS: Content Editor lists tree42
+PASS: tree42 passes Content Editor validation
+PASS: Content Editor lists purple_bush1
+PASS: purple_bush1 passes Content Editor validation
+PASS: Content Editor lists forest_bush1
+PASS: forest_bush1 passes Content Editor validation
+PASS: Content Editor lists mushroom_red
+PASS: mushroom_red passes Content Editor validation
+PASS: Content Editor lists mushroom_brown
+PASS: mushroom_brown passes Content Editor validation
+PASS: Content Editor lists mushroom_yellow
+PASS: mushroom_yellow passes Content Editor validation
+PASS: Content Editor lists bellflower1
+PASS: bellflower1 passes Content Editor validation
+PASS: Content Editor lists lily1
+PASS: lily1 passes Content Editor validation
+PASS: Content Editor lists copper_ore_node
+PASS: copper_ore_node passes Content Editor validation
+PASS: Content Editor lists mossy_rock1
+PASS: mossy_rock1 passes Content Editor validation
+PASS: Content Editor lists squirrel
+PASS: squirrel passes Content Editor validation
+PASS: squirrel has native animations
+PASS: Content Editor lists rabbit
+PASS: rabbit passes Content Editor validation
+PASS: rabbit has native animations
+PASS: Content Editor lists deer_female
+PASS: deer_female passes Content Editor validation
+PASS: deer_female has native animations
+PASS: Content Editor lists bird
+PASS: bird passes Content Editor validation
+PASS: bird has native animations
+PASS: Content Editor lists sprite romestead_apple_canopy
+PASS: romestead_apple_canopy passes sprite validation
+PASS: Content Editor lists sprite romestead_apple_stump
+PASS: romestead_apple_stump passes sprite validation
+PASS: Content Editor lists sprite romestead_stone_pine_canopy
+PASS: romestead_stone_pine_canopy passes sprite validation
+PASS: Content Editor lists sprite romestead_stone_pine_stump
+PASS: romestead_stone_pine_stump passes sprite validation
+PASS: Content Editor lists sprite romestead_purple_bush
+PASS: romestead_purple_bush passes sprite validation
+PASS: Content Editor lists sprite romestead_forest_bush
+PASS: romestead_forest_bush passes sprite validation
+PASS: Content Editor lists sprite romestead_mushroom_red
+PASS: romestead_mushroom_red passes sprite validation
+PASS: Content Editor lists sprite romestead_bellflower
+PASS: romestead_bellflower passes sprite validation
+PASS: Content Editor lists sprite romestead_lily
+PASS: romestead_lily passes sprite validation
+PASS: Content Editor lists sprite romestead_copper_ore
+PASS: romestead_copper_ore passes sprite validation
+PASS: Content Editor lists sprite romestead_mossy_boulder
+PASS: romestead_mossy_boulder passes sprite validation
+PASS: Content Editor lists sprite romestead_tiny_leaf
+PASS: romestead_tiny_leaf passes sprite validation
+PASS: Content Editor lists sprite romestead_tiny_flower
+PASS: romestead_tiny_flower passes sprite validation
+PASS: Editable native asset exists: romestead_wildlife_native_atlas.png
+PASS: Editable native asset exists: forest_unbreakable_bushes_bottom_.png
+PASS: Editable native asset exists: forest_unbreakable_bushes_top_.png
+PASS: Editable native asset exists: tree_wall.png
+WIPPlayer loaded 6 idle south frames and 6 run south frames.
+BONES_VISUAL_CONFIGURE runtime=alabaster profile=juno animation_set=player_templar_body inferred=false
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_EMBED_JSON_BEGIN path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 encoded_chars=5620
+ALABASTER_EMBED_JSON_BYTES path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 compressed=4215 gzip_size=55306 limit=67108864
+ALABASTER_EMBED_JSON_RAW path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 raw_bytes=55306
+ALABASTER_EMBED_JSON_OK path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 root_keys=["figures", "spriteSheets"]
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+BONES_PLAYER_READY character=juno_alabaster profile=juno animations=419 source=SOURCE_JSON cache={ "cached_tracks": 8, "prewarmed_tracks": 7, "current_animation": "idle" }
+PASS: Expanded procedural world instantiated
+PASS: World contains forest-light transition
+PASS: World contains closed forest
+PASS: Closed forest is reachable from the enlarged starting area
+PASS: Closed forest has authored barrier tiles
+PASS: Closed forest barrier has collision
+PASS: Procedural world spawns the four wildlife populations
+PASS: squirrel is present in the generated world
+PASS: rabbit is present in the generated world
+PASS: deer_female is present in the generated world
+PASS: bird is present in the generated world
+PASS: A layered tree is available for fall validation
+PASS: Tree does not drop before crown fall finishes
+PASS: Tree still waits midway through the 1.2 second fall
+Collected resource: romestead_resource_-14_-10_tree2
+PASS: Tree drops only after the 1.2 second crown fall
+PASS: Fallen crown is removed
+PASS: Cut trunk remains in the world
+ROMESTEAD_BIOME_WILDLIFE_VALIDATION: PASS wildlife=36

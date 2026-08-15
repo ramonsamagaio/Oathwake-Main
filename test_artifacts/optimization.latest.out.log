@@ -1,0 +1,88 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ContentDB loaded successfully
+WIPPlayer loaded 6 idle south frames and 6 run south frames.
+BONES_VISUAL_CONFIGURE runtime=alabaster profile=juno animation_set=player_templar_body inferred=false
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_EMBED_JSON_BEGIN path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 encoded_chars=5620
+ALABASTER_EMBED_JSON_BYTES path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 compressed=4215 gzip_size=55306 limit=67108864
+ALABASTER_EMBED_JSON_RAW path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 raw_bytes=55306
+ALABASTER_EMBED_JSON_OK path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 root_keys=["figures", "spriteSheets"]
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+BONES_PLAYER_READY character=juno_alabaster profile=juno animations=419 source=SOURCE_JSON cache={ "cached_tracks": 8, "prewarmed_tracks": 7, "current_animation": "idle" }
+PASS: player has no emitted light
+PASS: player has no unshaded readability override
+PASS: day cycle starts locked
+PASS: default clock is locked at 16:00
+PASS: weather starts clear and locked
+PASS: weather controls are next to the editor controls
+PASS: rolling FPS and frame-peak meter is visible
+PASS: four uses cause no whole durability loss
+PASS: five uses cost one durability
+PASS: Juno uses 1:1 source-pixel scale
+PASS: slime uses 1:1 source-pixel scale
+PASS: slime glow is disabled
+PASS: butterfly_blue uses 1:1 source-pixel scale
+PASS: butterfly_grey uses 1:1 source-pixel scale
+PASS: butterfly_pink uses 1:1 source-pixel scale
+PASS: butterfly_red uses 1:1 source-pixel scale
+PASS: butterfly_white uses 1:1 source-pixel scale
+PASS: butterfly_yellow uses 1:1 source-pixel scale
+PASS: player shadow is flattened before opacity is applied
+PASS: player shadow parts cannot create overlapping alpha seams
+PASS: firefly, leaf and dust field is active
+PASS: spawn ids are unique without creating new content models
+PASS: tree/rock models are reused across repeated spawns
+PASS: resource shadows use the visible diagonal Romestead projection
+PASS: trees sort from their authored ground contact
+PASS: tree/player ordering changes correctly across the trunk
+PASS: resource occlusion removes only thirty percent opacity
+FAIL: tree crown leaves the grounded trunk visible
+PASS: tree respawn keeps at least 64 pixels from other trees
+PASS: default clear-weather wind moves the tree canopy
+PASS: active procedural resources have no individual idle process
+Blue Butterfly loaded monster data from ContentDB
+PASS: flying monster uses a compact contact shadow
+PASS: resource shadows remain subtly visible at night
+PASS: player shadow remains subtly visible at night
+PASS: pet butterfly shadow follows night strength
+PASS: two wrong-tool hits cause no durability/UI writes

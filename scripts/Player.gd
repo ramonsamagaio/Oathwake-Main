@@ -668,23 +668,34 @@ func _attack_enemy(target: Node) -> void:
 	_reduce_current_hotbar_item_durability()
 
 
-func _attack_resource(target: Node) -> void:
-	if _is_current_hotbar_item_broken():
-		FloatingCombatTextSpawner.show_text("Tool is broken!", global_position + Vector2(0, -28), Color(0.8, 0.2, 0.2, 1.0))
-		return
-
+func _attack_resource(target: Node) -> Dictionary:
 	var eq_system = _get_equipment_system()
 	var actor_data := player_stats_resolver.get_total_player_data(self, eq_system)
+	actor_data["world_position"] = global_position
+	return _attack_resource_with_context(target, _get_current_held_item_data(), actor_data, true)
+
+
+func _attack_resource_with_context(target: Node, held_item_data: Dictionary, actor_data: Dictionary, show_blocked_feedback := true) -> Dictionary:
+	if _is_current_hotbar_item_broken():
+		if show_blocked_feedback:
+			FloatingCombatTextSpawner.show_text("Tool is broken!", global_position + Vector2(0, -28), Color(0.8, 0.2, 0.2, 1.0))
+		return {"can_damage": false, "reason": "Tool is broken!"}
 
 	if target.has_method("apply_gather_hit"):
 		attack_hit_frame.emit()
-		target.call("apply_gather_hit", _get_current_held_item_data(), actor_data, {})
-		_reduce_current_hotbar_item_durability()
-		return
+		var result_value: Variant = target.call("apply_gather_hit", held_item_data, actor_data, {}, show_blocked_feedback)
+		var gather_result: Dictionary = result_value as Dictionary if result_value is Dictionary else {}
+		# A rejected strike neither damages nor wears the tool. Besides being the
+		# correct gameplay rule, this avoids an inventory metadata/UI refresh for
+		# every nearby resource hit by the same swing.
+		if gather_result.is_empty() or bool(gather_result.get("can_damage", false)):
+			_reduce_current_hotbar_item_durability()
+		return gather_result
 
 	attack_hit_frame.emit()
 	target.call("take_damage", _get_resource_attack_damage(target))
 	_reduce_current_hotbar_item_durability()
+	return {"can_damage": true}
 
 
 func _get_combat_data() -> Dictionary:
@@ -1057,7 +1068,12 @@ func _reduce_current_hotbar_item_durability() -> void:
 	var current_dura: int = int(meta.get("current_durability", max_dura))
 	if current_dura <= 0:
 		return
-	meta["current_durability"] = max(0, current_dura - 1)
+	# One use now causes 0.2 durability wear. Store the fraction separately so
+	# existing integer durability UI/save contracts remain compatible.
+	var wear_progress := float(meta.get("durability_wear_progress", 0.0)) + 0.2
+	var whole_wear := floori(wear_progress + 0.0001)
+	meta["durability_wear_progress"] = fmod(wear_progress, 1.0)
+	meta["current_durability"] = max(0, current_dura - whole_wear)
 	inventory.set_slot_metadata(slot_index, meta)
 
 

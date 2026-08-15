@@ -1,0 +1,104 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ContentDB loaded successfully
+PASS: Content Editor loads expanded Romestead catalogs
+PASS: Content Editor lists tree41
+PASS: Content Editor lists tree42
+PASS: Content Editor lists purple_bush1
+PASS: Content Editor lists forest_bush1
+PASS: Content Editor lists mushroom_red
+PASS: Content Editor lists mushroom_brown
+PASS: Content Editor lists mushroom_yellow
+PASS: Content Editor lists bellflower1
+PASS: Content Editor lists lily1
+PASS: Content Editor lists copper_ore_node
+PASS: Content Editor lists mossy_rock1
+PASS: Content Editor lists squirrel
+PASS: squirrel has native animations
+PASS: Content Editor lists rabbit
+PASS: rabbit has native animations
+PASS: Content Editor lists deer_female
+PASS: deer_female has native animations
+PASS: Content Editor lists bird
+PASS: bird has native animations
+PASS: Editable native asset exists: romestead_wildlife_native_atlas.png
+PASS: Editable native asset exists: forest_unbreakable_bushes_bottom_.png
+PASS: Editable native asset exists: forest_unbreakable_bushes_top_.png
+PASS: Editable native asset exists: tree_wall.png
+WIPPlayer loaded 6 idle south frames and 6 run south frames.
+BONES_VISUAL_CONFIGURE runtime=alabaster profile=juno animation_set=player_templar_body inferred=false
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_EMBED_JSON_BEGIN path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 encoded_chars=5620
+ALABASTER_EMBED_JSON_BYTES path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 compressed=4215 gzip_size=55306 limit=67108864
+ALABASTER_EMBED_JSON_RAW path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 raw_bytes=55306
+ALABASTER_EMBED_JSON_OK path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 root_keys=["figures", "spriteSheets"]
+WARNING: BuildSystem has no build layer yet; waiting for setup(context).
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] setup (res://scripts/BuildSystem.gd:75)
+       [1] setup (res://scripts/BuildSystemLightingSuite.gd:20)
+       [2] _ready (res://scripts/BuildSystem.gd:56)
+       [3] _ready (res://scripts/BuildSystemLightingSuite.gd:14)
+       [4] _run (res://scripts/test/RomesteadBiomeWildlifeValidator.gd:32)
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+BONES_PLAYER_READY character=juno_alabaster profile=juno animations=419 source=SOURCE_JSON cache={ "cached_tracks": 8, "prewarmed_tracks": 7, "current_animation": "idle" }
+PASS: Expanded procedural world instantiated
+PASS: World contains forest-light transition
+PASS: World contains closed forest
+PASS: Closed forest has authored barrier tiles
+PASS: Closed forest barrier has collision
+PASS: Procedural world spawns the four wildlife populations
+PASS: squirrel is present in the generated world
+PASS: rabbit is present in the generated world
+PASS: deer_female is present in the generated world
+PASS: bird is present in the generated world
+PASS: A layered tree is available for fall validation
+PASS: Tree does not drop before crown fall finishes
+PASS: Tree still waits midway through the 1.2 second fall
+Collected resource: romestead_resource_16_-3
+PASS: Tree drops only after the 1.2 second crown fall
+PASS: Fallen crown is removed
+ERROR: Cut trunk remains in the world
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://scripts/test/RomesteadBiomeWildlifeValidator.gd:79)
+ROMESTEAD_BIOME_WILDLIFE_VALIDATION: FAIL count=1

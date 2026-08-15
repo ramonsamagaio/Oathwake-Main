@@ -1,0 +1,65 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ContentDB loaded successfully
+WIPPlayer loaded 6 idle south frames and 6 run south frames.
+BONES_VISUAL_CONFIGURE runtime=alabaster profile=juno animation_set=player_templar_body inferred=false
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_EMBED_JSON_BEGIN path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 encoded_chars=5620
+ALABASTER_EMBED_JSON_BYTES path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 compressed=4215 gzip_size=55306 limit=67108864
+ALABASTER_EMBED_JSON_RAW path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 raw_bytes=55306
+ALABASTER_EMBED_JSON_OK path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 root_keys=["figures", "spriteSheets"]
+WARNING: BuildSystem has no build layer yet; waiting for setup(context).
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] setup (res://scripts/BuildSystem.gd:75)
+       [1] setup (res://scripts/BuildSystemLightingSuite.gd:20)
+       [2] _ready (res://scripts/BuildSystem.gd:56)
+       [3] _ready (res://scripts/BuildSystemLightingSuite.gd:14)
+       [4] _run (res://scripts/test/GamePerformanceAudit.gd:16)
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+BONES_PLAYER_READY character=juno_alabaster profile=juno animations=419 source=SOURCE_JSON cache={ "cached_tracks": 8, "prewarmed_tracks": 7, "current_animation": "idle" }
+GAME_PERFORMANCE_AUDIT stats={ "nodes": 6839, "processing": 90, "physics_processing": 26, "canvas_items": 6225, "visible_canvas_items": 2741, "point_lights": 3, "directional_lights": 2, "projected_shadows": 51, "resources": 497 } process_ms=29.917 physics_ms=3.091 objects=16792 draw_calls=0 primitives=0
+GAME_PERFORMANCE_AUDIT process_top=[{ "script": "res://scripts/effects/PinnedActiveFrameProjectedShadow.gd", "count": 39 }, { "script": "res://scripts/systems/ElementalConditionController.gd", "count": 22 }, { "script": "res://scripts/effects/EmberEmitter.gd", "count": 3 }, { "script": "res://scripts/effects/GlowOverlay.gd", "count": 3 }, { "script": "res://scripts/game/GameplayAudioController.gd", "count": 1 }, { "script": "res://scripts/effects/AmbientParticleField.gd", "count": 1 }, { "script": "res://scripts/enemies/NightEnemySpawner.gd", "count": 1 }, { "script": "res://scripts/systems/CraftingSystem.gd", "count": 1 }, { "script": "res://scripts/BuildSystemLightingSuite.gd", "count": 1 }, { "script": "res://scripts/ui/HUDStatusUIStaminaSuite.gd", "count": 1 }, { "script": "res://scripts/ui/FpsMeter.gd", "count": 1 }, { "script": "res://scripts/effects/ScreenEffectsPixelationSuite.gd", "count": 1 }, { "script": "res://scripts/systems/bones/BonesSystem.gd", "count": 1 }, { "script": "res://scripts/camera/CameraShake2D.gd", "count": 1 }, { "script": "res://scripts/world/RomesteadProceduralGameWorld.gd", "count": 1 }]
+GAME_PERFORMANCE_AUDIT physics_top=[{ "script": "res://scripts/creatures/RomesteadWildlife.gd", "count": 21 }, { "script": "res://scripts/systems/EnvironmentalHazard.gd", "count": 3 }, { "script": "res://scripts/systems/MultiFloorBuildManager.gd", "count": 1 }, { "script": "res://scripts/systems/bones/PlayerBones.gd", "count": 1 }]
+GAME_PERFORMANCE_AUDIT pinned_samples=["/root/Game/CurrentMapRoot/MapRoot/Enemies/@CharacterBody2D@396/GroundShadow source=AnimatedSprite2D", "/root/Game/CurrentMapRoot/MapRoot/Enemies/@CharacterBody2D@397/GroundShadow source=AnimatedSprite2D", "/root/Game/CurrentMapRoot/MapRoot/Enemies/@CharacterBody2D@400/GroundShadow source=AnimatedSprite2D", "/root/Game/CurrentMapRoot/MapRoot/Enemies/@CharacterBody2D@401/GroundShadow source=AnimatedSprite2D", "/root/Game/CurrentMapRoot/MapRoot/Enemies/@CharacterBody2D@404/GroundShadow source=AnimatedSprite2D", "/root/Game/CurrentMapRoot/MapRoot/Enemies/@CharacterBody2D@405/GroundShadow source=AnimatedSprite2D", "/root/Game/CurrentMapRoot/MapRoot/Enemies/@CharacterBody2D@406/GroundShadow source=AnimatedSprite2D", "/root/Game/CurrentMapRoot/MapRoot/Enemies/@CharacterBody2D@407/GroundShadow source=AnimatedSprite2D", "/root/Game/CurrentMapRoot/MapRoot/Enemies/@CharacterBody2D@408/GroundShadow source=AnimatedSprite2D", "/root/Game/CurrentMapRoot/MapRoot/Enemies/@CharacterBody2D@409/GroundShadow source=AnimatedSprite2D", "/root/Game/CurrentMapRoot/MapRoot/Enemies/@CharacterBody2D@410/GroundShadow source=AnimatedSprite2D", "/root/Game/CurrentMapRoot/MapRoot/Enemies/@CharacterBody2D@411/GroundShadow source=AnimatedSprite2D"]
+GAME_PERFORMANCE_AUDIT visible_classes=[{ "script": "Node2D", "count": 633 }, { "script": "Sprite2D", "count": 615 }, { "script": "CollisionShape2D", "count": 588 }, { "script": "StaticBody2D", "count": 306 }, { "script": "Area2D", "count": 281 }, { "script": "Polygon2D", "count": 128 }, { "script": "ColorRect", "count": 49 }, { "script": "AnimatedSprite2D", "count": 24 }, { "script": "TileMapLayer", "count": 23 }, { "script": "CharacterBody2D", "count": 22 }, { "script": "Line2D", "count": 21 }, { "script": "Button", "count": 16 }]
+GAME_PERFORMANCE_AUDIT visible_branches=[{ "script": "Resources", "count": 2189 }, { "script": "Other", "count": 298 }, { "script": "Buildings", "count": 118 }, { "script": "RuntimeEntities", "count": 52 }, { "script": "UI", "count": 40 }, { "script": "RomesteadProceduralGameWorld", "count": 36 }, { "script": "WeatherLayer", "count": 6 }, { "script": "WorldPostEffects", "count": 2 }]

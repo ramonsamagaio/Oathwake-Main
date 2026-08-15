@@ -18,7 +18,7 @@ func _process(delta: float) -> void:
 func _apply_pet_visual_scale() -> void:
 	if sprite == null:
 		return
-	var visual_scale := maxf(float(pet_data.get("visual_scale", 2.0)), 0.05)
+	var visual_scale := maxf(float(pet_data.get("visual_scale", 1.0)), 0.05)
 	sprite.scale = Vector2.ONE * visual_scale
 	set_meta("pet_visual_scale", visual_scale)
 

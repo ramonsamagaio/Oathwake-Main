@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/creatures/RomesteadWildlife.gd" id="1_wildlife"]
+
+[sub_resource type="CircleShape2D" id="1_body_shape"]
+radius = 7.0
+
+[sub_resource type="CircleShape2D" id="2_damage_shape"]
+radius = 10.0
+
+[node name="RomesteadWildlife" type="CharacterBody2D"]
+script = ExtResource("1_wildlife")
+show_nameplates = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("1_body_shape")
+
+[node name="DamageArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea"]
+position = Vector2(0, -3)
+shape = SubResource("2_damage_shape")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+centered = true
+position = Vector2(0, -16)
+texture_filter = 1

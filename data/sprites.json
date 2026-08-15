@@ -1554,5 +1554,3380 @@
 		"texture_path": "res://assets/sprites/items/testes/wooden_pickaxe.png",
 		"total_frames": 1.0,
 		"type": "single_sprite"
-	}
+	},
+	"romestead_trunk_a": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Trunk A",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_stump.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_trunk_b": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Trunk B",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 32,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_stump.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_olive_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Olive Trunk",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_olive_tree_stump.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_2": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Tree Canopy 2",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 80,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_3": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Tree Canopy 3",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 80,
+			"w": 48,
+			"x": 48,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_4": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Tree Canopy 4",
+		"frame_height": 96,
+		"frame_size": {
+			"h": 96,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 96,
+			"w": 64,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree2.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 32,
+			"y": 96
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_5": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Tree Canopy 5",
+		"frame_height": 96,
+		"frame_size": {
+			"h": 96,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 96,
+			"w": 64,
+			"x": 64,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree2.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 32,
+			"y": 96
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_6": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Tree Canopy 6",
+		"frame_height": 96,
+		"frame_size": {
+			"h": 96,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 96,
+			"w": 64,
+			"x": 128,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree2.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 32,
+			"y": 96
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_7": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Tree Canopy 7",
+		"frame_height": 96,
+		"frame_size": {
+			"h": 96,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 96,
+			"w": 64,
+			"x": 0,
+			"y": 96
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree2.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 32,
+			"y": 96
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_8": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Tree Canopy 8",
+		"frame_height": 96,
+		"frame_size": {
+			"h": 96,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 96,
+			"w": 64,
+			"x": 64,
+			"y": 96
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree2.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 32,
+			"y": 96
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_9": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Tree Canopy 9",
+		"frame_height": 96,
+		"frame_size": {
+			"h": 96,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 96,
+			"w": 64,
+			"x": 128,
+			"y": 96
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree2.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 32,
+			"y": 96
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_10": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Olive Canopy 10",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 80,
+			"w": 64,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_olive_tree_large.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 32,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_11": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Olive Canopy 11",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 80,
+			"w": 64,
+			"x": 64,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_olive_tree_large.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 32,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_12": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Cypress Canopy 12",
+		"frame_height": 96,
+		"frame_size": {
+			"h": 96,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 96,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tall_cypress.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 96
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_13": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 13",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_14": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 14",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 32,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_15": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 15",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 64,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_16": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 16",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 96,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_1": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 1",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_2": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 2",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 48,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_3": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 3",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 96,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_4": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 4",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 144,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_5": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 5",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 192,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_1": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 1",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_2": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 2",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 32,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_3": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 3",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 64,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_4": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 4",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 96,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_1": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 1",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_2": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 2",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 32,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_3": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 3",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 64,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_4": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 4",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 96,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_5": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 5",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 128,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_6": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 6",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 160,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_7": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 7",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 192,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_1": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 1",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 0,
+			"y": 224
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_2": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 2",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 16,
+			"y": 224
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_3": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 3",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 32,
+			"y": 224
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_4": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 4",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 48,
+			"y": 224
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_17": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 17",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 0,
+			"y": 80
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_18": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 18",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 32,
+			"y": 80
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_19": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 19",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 64,
+			"y": 80
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_20": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 20",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 96,
+			"y": 80
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_21": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 21",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 0,
+			"y": 160
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_22": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 22",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 32,
+			"y": 160
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_23": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 23",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 64,
+			"y": 160
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_24": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 24",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 96,
+			"y": 160
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_25": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 25",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 0,
+			"y": 240
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_26": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 26",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 32,
+			"y": 240
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_27": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 27",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 64,
+			"y": 240
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_28": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 28",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 96,
+			"y": 240
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_29": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 29",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 0,
+			"y": 320
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_30": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 30",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 32,
+			"y": 320
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_31": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 31",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 64,
+			"y": 320
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_32": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 32",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 96,
+			"y": 320
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_33": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 33",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 0,
+			"y": 400
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_34": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 34",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 32,
+			"y": 400
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_35": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 35",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 64,
+			"y": 400
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_36": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 36",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 96,
+			"y": 400
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_37": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 37",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 0,
+			"y": 480
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_38": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 38",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 32,
+			"y": 480
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_39": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 39",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 64,
+			"y": 480
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_40": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Skinny Canopy 40",
+		"frame_height": 80,
+		"frame_size": {
+			"h": 80,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 80,
+			"w": 32,
+			"x": 96,
+			"y": 480
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_6": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 6",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 48
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_7": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 7",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 48,
+			"y": 48
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_8": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 8",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 96,
+			"y": 48
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_9": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 9",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 144,
+			"y": 48
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_10": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 10",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 192,
+			"y": 48
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_5": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 5",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_6": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 6",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 32,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_7": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 7",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 64,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_8": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 8",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 96,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_8": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 8",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 32,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_9": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 9",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 64,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_10": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 10",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 128,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_11": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 11",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 160,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_12": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 12",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_13": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 13",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 64,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_14": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 14",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 96,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_15": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 15",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 160,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_16": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 16",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 192,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_17": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 17",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_18": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 18",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 32,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_19": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 19",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 96,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_20": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 20",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 128,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_21": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 21",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 192,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_5": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 5",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 0,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_6": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 6",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 16,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_7": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 7",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 32,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_8": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 8",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 48,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_9": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 9",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 0,
+			"y": 96
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_10": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 10",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 16,
+			"y": 96
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_11": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 11",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 32,
+			"y": 96
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_12": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 12",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 48,
+			"y": 96
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_13": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 13",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 0,
+			"y": 128
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_14": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 14",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 16,
+			"y": 128
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_15": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 15",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 32,
+			"y": 128
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_16": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 16",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 48,
+			"y": 128
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_17": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 17",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 0,
+			"y": 160
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_18": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 18",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 16,
+			"y": 160
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_19": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 19",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 32,
+			"y": 160
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_20": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 20",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 48,
+			"y": 160
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_21": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 21",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 0,
+			"y": 192
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_22": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 22",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 16,
+			"y": 192
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_23": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 23",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 32,
+			"y": 192
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_24": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 24",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 48,
+			"y": 192
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_apple_canopy": {"category":"resource","display_name":"Romestead Apple Tree Crown","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_apple_tree_large.png","type":"single_sprite","region_enabled":true,"region":{"x":64,"y":0,"w":64,"h":80},"frame_width":64,"frame_height":80,"frame_size":{"w":64,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":32,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_apple_stump": {"category":"resource","display_name":"Romestead Apple Tree Trunk","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_apple_tree_stump.png","type":"single_sprite","region_enabled":true,"region":{"x":64,"y":0,"w":64,"h":80},"frame_width":64,"frame_height":80,"frame_size":{"w":64,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":32,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_stone_pine_canopy": {"category":"resource","display_name":"Romestead Stone Pine Crown","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_stone_pine_large.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":80,"h":80},"frame_width":80,"frame_height":80,"frame_size":{"w":80,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":40,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_stone_pine_stump": {"category":"resource","display_name":"Romestead Stone Pine Trunk","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_stone_pine_stump.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":80,"h":80},"frame_width":80,"frame_height":80,"frame_size":{"w":80,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":40,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_purple_bush": {"category":"resource","display_name":"Romestead Purple Bush","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/desert_purplebush.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":32},"frame_width":16,"frame_height":32,"frame_size":{"w":16,"h":32},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":32},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_forest_bush": {"category":"resource","display_name":"Romestead Forest Bush","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_small_bush1.png","type":"single_sprite","region_enabled":true,"region":{"x":48,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_mushroom_red": {"category":"resource","display_name":"Romestead Red Mushroom","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_mushrooms.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_mushroom_brown": {"category":"resource","display_name":"Romestead Brown Mushroom","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_mushrooms.png","type":"single_sprite","region_enabled":true,"region":{"x":32,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_mushroom_yellow": {"category":"resource","display_name":"Romestead Yellow Mushroom","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_mushrooms.png","type":"single_sprite","region_enabled":true,"region":{"x":64,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_bellflower": {"category":"resource","display_name":"Romestead Bellflowers","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_bellflowers.png","type":"single_sprite","region_enabled":true,"region":{"x":32,"y":64,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_lily": {"category":"resource","display_name":"Romestead Lilies","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_lilies.png","type":"single_sprite","region_enabled":true,"region":{"x":48,"y":0,"w":32,"h":32},"frame_width":32,"frame_height":32,"frame_size":{"w":32,"h":32},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":16,"y":32},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_copper_ore": {"category":"resource","display_name":"Romestead Copper Ore","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/resources_copper_ore.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_mossy_boulder": {"category":"resource","display_name":"Romestead Mossy Boulder","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/poi_mossy_boulder_large.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":64,"h":80},"frame_width":64,"frame_height":80,"frame_size":{"w":64,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":32,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_tiny_leaf": {"category":"terrain_detail","display_name":"Romestead Tiny Ground Leaf","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_tiny_ground_leaves.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"tags":["romestead","editable_png"]},
+	"romestead_tiny_flower": {"category":"terrain_detail","display_name":"Romestead Tiny Flower","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_tiny_flowers.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"tags":["romestead","editable_png"]}
 }
