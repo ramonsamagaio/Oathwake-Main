@@ -25,21 +25,74 @@ const FOREST_FRAME_BY_MASK := {
 	8: 15,
 }
 
+# resources.json currently contains the five native 48x48 Romestead rock
+# records below. The inherited pool still contains legacy rock1..rock5 ids,
+# which are not part of the imported native resource set.
+const NATIVE_BIG_ROCKS := ["rock6", "rock7", "rock8", "rock9", "rock10"]
+
+# Spawn spacing is deliberately footprint-sized, not canopy-sized. This stops
+# opaque resource pixels from occupying each other while keeping the organic,
+# fairly dense Romestead distribution.
+const RESOURCE_SPACING_BUCKET_SIZE := 64.0
+const RESOURCE_SPACING_MARGIN := 2.0
+
 
 func _ready() -> void:
 	super._ready()
 	# The procedural world is generated before Main finishes restoring saved
-	# player buildings. Reconcile one deferred tick later so a loaded house/wall
-	# always wins over a procedural resource generated underneath it.
-	call_deferred("_reconcile_resources_with_player_buildings")
+	# player buildings. Reconcile after several process frames as well as through
+	# BuildSystem's per-building callback, so a loaded house always wins over a
+	# procedural resource regardless of node-ready order.
+	call_deferred("_reconcile_resources_after_build_restore")
+
+
+func _reconcile_resources_after_build_restore() -> void:
+	for _frame in range(4):
+		await get_tree().process_frame
+		_reconcile_resources_with_player_buildings()
+
+
+func _resource_type_for_prop(kind: PropKind, variation_seed: int) -> String:
+	if kind == PropKind.ROCK_BIG:
+		return _pick_variant(NATIVE_BIG_ROCKS, variation_seed)
+	return super._resource_type_for_prop(kind, variation_seed)
+
+
+func _reserve_initial_resource_position(candidate: Vector2, kind: PropKind) -> bool:
+	var radius := _resource_radius_for_kind(kind)
+	if _is_world_position_blocked(to_global(candidate), radius, false):
+		return false
+
+	var bucket := Vector2i(
+		floori(candidate.x / RESOURCE_SPACING_BUCKET_SIZE),
+		floori(candidate.y / RESOURCE_SPACING_BUCKET_SIZE)
+	)
+	for bucket_y in range(bucket.y - 1, bucket.y + 2):
+		for bucket_x in range(bucket.x - 1, bucket.x + 2):
+			var entries: Array = _initial_resource_spatial.get(Vector2i(bucket_x, bucket_y), []) as Array
+			for entry_value in entries:
+				var entry := entry_value as Dictionary
+				var other_position := Vector2(entry.get("position", Vector2.ZERO))
+				var other_radius := float(entry.get("radius", 6.0))
+				var minimum := radius + other_radius + RESOURCE_SPACING_MARGIN
+				if candidate.distance_squared_to(other_position) < minimum * minimum:
+					return false
+
+	if not _initial_resource_spatial.has(bucket):
+		_initial_resource_spatial[bucket] = []
+	(_initial_resource_spatial[bucket] as Array).append({
+		"position": candidate,
+		"radius": radius,
+	})
+	return true
 
 
 func _instantiate_functional_resource(prop_position: Vector2, kind: PropKind, variation_seed: int, resource_type: String) -> void:
 	# Pending streamed resources can materialize many frames after their original
-	# reservation. Revalidate at the actual spawn moment, after the player may
-	# have built or loaded a construction on that cell.
+	# reservation. Revalidate at the actual spawn moment against buildings AND
+	# resources that may have moved/respawned since generation.
 	var radius := _resource_radius_for_kind(kind)
-	if _is_world_position_blocked(to_global(prop_position), radius, false):
+	if _is_world_position_blocked(to_global(prop_position), radius, true):
 		return
 	super._instantiate_functional_resource(prop_position, kind, variation_seed, resource_type)
 
@@ -52,29 +105,62 @@ func _is_world_position_blocked(world_position: Vector2, radius: float, include_
 
 func clear_spawnables_in_building(building: Node2D) -> void:
 	# Preserve the collision-shape based relocation from the integrated world,
-	# then also reconcile against BuildSystem's logical TileMap. This catches
-	# tile-fallback walls and any construction whose visual collision is smaller
-	# than its occupied build footprint.
+	# then also reconcile against BuildSystem's logical occupied cells. This
+	# catches floors/interiors and metadata-only pieces whose physical collision
+	# is smaller than the actual construction footprint.
 	super.clear_spawnables_in_building(building)
 	call_deferred("_reconcile_resources_with_player_buildings")
 
 
 func _resource_radius_for_kind(kind: PropKind) -> float:
-	if kind in [PropKind.TREE_ROUND, PropKind.TREE_OLIVE, PropKind.TREE_CYPRESS, PropKind.APPLE_TREE, PropKind.STONE_PINE]:
-		return 10.0
-	if kind in [PropKind.ROCK_BIG, PropKind.MOSSY_ROCK]:
-		return 9.0
-	return 6.0
+	match kind:
+		PropKind.TREE_ROUND, PropKind.TREE_OLIVE, PropKind.APPLE_TREE:
+			return 12.0
+		PropKind.TREE_CYPRESS:
+			return 9.0
+		PropKind.STONE_PINE:
+			return 13.0
+		PropKind.ROCK_BIG:
+			return 20.0
+		PropKind.ROCK_SMALL:
+			return 13.0
+		PropKind.MOSSY_ROCK:
+			return 27.0
+		PropKind.BUSH:
+			return 12.0
+		PropKind.WHEAT:
+			return 6.0
+		PropKind.COPPER_ORE:
+			return 8.0
+		PropKind.MUSHROOM:
+			return 6.0
+		PropKind.FLOWER:
+			return 8.0
+		PropKind.PURPLE_BUSH, PropKind.SMALL_BUSH:
+			return 7.0
+		_:
+			return 6.0
 
 
 func _resource_radius_from_node(resource: Node2D) -> float:
+	var resource_type := str(resource.call("get_resource_type_id")) if resource.has_method("get_resource_type_id") else ""
+	var lowered := resource_type.to_lower()
+	if lowered.begins_with("tree"):
+		return 12.0
+	if lowered.begins_with("rock"):
+		return 20.0
+	if lowered.begins_with("stone"):
+		return 13.0
+	if lowered.contains("mossy"):
+		return 27.0
+
 	var resource_data_value: Variant = resource.get("resource_data")
 	if resource_data_value is Dictionary:
 		var collision_value: Variant = (resource_data_value as Dictionary).get("collision", {})
 		if collision_value is Dictionary:
-			return maxf(float((collision_value as Dictionary).get("body_radius", 6.0)), 4.0)
-	var resource_type := str(resource.call("get_resource_type_id")) if resource.has_method("get_resource_type_id") else ""
-	return 10.0 if _is_tree_type(resource_type) else 6.0
+			var body_radius := float((collision_value as Dictionary).get("body_radius", 6.0))
+			return maxf(body_radius * 1.2, 4.0)
+	return 6.0
 
 
 func _build_layer_blocks_resource(world_position: Vector2, radius: float) -> bool:
@@ -88,13 +174,32 @@ func _build_layer_blocks_resource(world_position: Vector2, radius: float) -> boo
 	if build_layer.tile_set == null:
 		return false
 
-	var center_cell := build_layer.local_to_map(build_layer.to_local(world_position))
-	var build_tile_size := build_layer.tile_set.tile_size
-	var radius_x := maxi(0, ceili(radius / maxf(float(build_tile_size.x), 1.0)))
-	var radius_y := maxi(0, ceili(radius / maxf(float(build_tile_size.y), 1.0)))
-	for y in range(center_cell.y - radius_y, center_cell.y + radius_y + 1):
-		for x in range(center_cell.x - radius_x, center_cell.x + radius_x + 1):
-			if build_layer.get_cell_source_id(Vector2i(x, y)) != -1:
+	var local_position := build_layer.to_local(world_position)
+	var center_cell := build_layer.local_to_map(local_position)
+	var build_tile_size := Vector2(build_layer.tile_set.tile_size)
+	var half_tile := build_tile_size * 0.5
+	var search_x := maxi(1, ceili(radius / maxf(build_tile_size.x, 1.0)) + 1)
+	var search_y := maxi(1, ceili(radius / maxf(build_tile_size.y, 1.0)) + 1)
+
+	for y in range(center_cell.y - search_y, center_cell.y + search_y + 1):
+		for x in range(center_cell.x - search_x, center_cell.x + search_x + 1):
+			var cell := Vector2i(x, y)
+			var occupied := build_layer.get_cell_source_id(cell) != -1
+			# Content-driven buildings may be metadata-only and therefore have no
+			# fallback TileMap cell. Ask BuildSystem's own authoritative lookup too.
+			if not occupied and build_system.has_method("_get_building_type_at_tile"):
+				occupied = not str(build_system.call("_get_building_type_at_tile", cell)).is_empty()
+			if not occupied:
+				continue
+
+			# Circle-vs-cell test avoids the old behavior where any non-zero radius
+			# rounded up to a whole extra 32px build tile of empty padding.
+			var cell_center := build_layer.map_to_local(cell)
+			var delta := Vector2(
+				maxf(absf(local_position.x - cell_center.x) - half_tile.x, 0.0),
+				maxf(absf(local_position.y - cell_center.y) - half_tile.y, 0.0)
+			)
+			if delta.length_squared() <= radius * radius:
 				return true
 	return false
 
@@ -110,12 +215,12 @@ func _reconcile_resources_with_player_buildings() -> void:
 		if resource == null or not is_instance_valid(resource):
 			continue
 		var radius := _resource_radius_from_node(resource)
-		if not _is_world_position_blocked(resource.global_position, radius, false):
+		if not _build_layer_blocks_resource(resource.global_position, radius):
 			continue
 		var resource_type := str(resource.call("get_resource_type_id")) if resource.has_method("get_resource_type_id") else ""
 		var old_position := resource.global_position
 		var replacement := get_random_respawn_position(resource_type, old_position)
-		if replacement != old_position and not _is_world_position_blocked(replacement, radius, false):
+		if replacement != old_position and not _build_layer_blocks_resource(replacement, radius):
 			resource.global_position = replacement
 		else:
 			resource.queue_free()
@@ -126,8 +231,18 @@ func _reconcile_resources_with_player_buildings() -> void:
 		var pending := _pending_resource_spawns[key] as Dictionary
 		var pending_world := to_global(Vector2(pending.get("position", Vector2.ZERO)))
 		var kind: PropKind = int(pending.get("kind", int(PropKind.BUSH)))
-		if _is_world_position_blocked(pending_world, _resource_radius_for_kind(kind), false):
+		if _build_layer_blocks_resource(pending_world, _resource_radius_for_kind(kind)):
 			_pending_resource_spawns.erase(key)
+
+
+func _apply_plains_cliff_second_pass(_start: Vector2i, _finish: Vector2i) -> void:
+	# The large formation reported as the "big rock" is not a rock ResourceNode:
+	# it is the 128x256 plains_3D_cliffs autotile sheet. The current partial port
+	# can assemble it into the giant slab seen in-game. Do not ship a malformed
+	# pseudo-rock: suppress this structure in the integrated world until the full
+	# native cliff rule/height contract is ported. Normal 48x48 big rocks continue
+	# to spawn through NATIVE_BIG_ROCKS above.
+	_plains_cliffs.clear()
 
 
 func _forest_frame_for_mask(mask: int) -> int:
