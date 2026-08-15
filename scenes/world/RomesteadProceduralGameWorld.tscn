@@ -1,11 +1,11 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/world/RomesteadProceduralGameWorld.gd" id="1_world"]
+[ext_resource type="Script" path="res://scripts/world/AlabasteadProceduralGameWorld.gd" id="1_world"]
 
 [node name="RomesteadProceduralGameWorld" type="Node2D"]
 script = ExtResource("1_world")
 world_seed = 74291
-world_size_tiles = Vector2i(240, 140)
+world_size_tiles = Vector2i(512, 320)
 tile_size = 16
 ground_path = NodePath("Ground")
 green_overlay_path = NodePath("GreenTerrain0")
