@@ -1,0 +1,36 @@
+{
+  "name": "BASESKIN",
+  "format": "oathwake_bonelab_reference_skin",
+  "version": 1,
+  "source_character": "Juno",
+  "frozen_from_branch": "ALABASTER_OPTIMIZATION",
+  "purpose": "Immutable Juno snapshot used as the canonical 2D retarget reference while Juno remains the active playable/source profile.",
+  "rig_family": "juno",
+  "preserve_internal_ids": true,
+  "character_files": [
+    "res://data/labs/alabaster/characters/baseskin.json",
+    "res://data/labs/alabaster/characters/baseskin-rd.json",
+    "res://data/labs/alabaster/characters/baseskin-figure.json"
+  ],
+  "atlas_parts": [
+    "res://data/labs/alabaster/baseskin_atlas_00.part",
+    "res://data/labs/alabaster/baseskin_atlas_01.part",
+    "res://data/labs/alabaster/baseskin_atlas_02.part",
+    "res://data/labs/alabaster/baseskin_atlas_03.part"
+  ],
+  "gameplay_animation_parts": [
+    "res://data/labs/alabaster/baseskin_gameplay_anims_00.part",
+    "res://data/labs/alabaster/baseskin_gameplay_anims_01.part",
+    "res://data/labs/alabaster/baseskin_gameplay_anims_02.part",
+    "res://data/labs/alabaster/baseskin_gameplay_anims_03.part",
+    "res://data/labs/alabaster/baseskin_gameplay_anims_04.part",
+    "res://data/labs/alabaster/baseskin_gameplay_anims_05.part",
+    "res://data/labs/alabaster/baseskin_gameplay_anims_06.part",
+    "res://data/labs/alabaster/baseskin_gameplay_anims_07.part"
+  ],
+  "packed_runtime": "res://data/labs/alabaster/baseskin_runtime.json.gz.b64",
+  "packed_player_animations": "res://data/labs/alabaster/baseskin_player_anims.json.gz.b64",
+  "sprite_manifest": "res://data/labs/alabaster/baseskin_player_sprite_manifest.json",
+  "full_animation_bank_prefix": "res://data/labs/alabaster/anims/baseskin_anims_",
+  "notes": "Files are byte-identical copies of the corresponding Juno payloads at snapshot creation. Internal Juno figure/bone IDs are intentionally retained so the skeleton is not mutated by the rename."
+}
