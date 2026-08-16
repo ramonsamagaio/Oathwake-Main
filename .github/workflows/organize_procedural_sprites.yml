@@ -1,0 +1,38 @@
+name: Organize procedural world sprites
+
+on:
+  push:
+    branches:
+      - feature/procedural-terrain-grass-v1
+    paths:
+      - .github/workflows/organize_procedural_sprites.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/procedural-terrain-grass-v1
+          fetch-depth: 0
+
+      - name: Run guarded migration
+        run: python3 tools/migrate_procedural_sprites.py
+
+      - name: Commit only after every guard passes
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/organize_procedural_sprites.yml
+          rm -f tools/migrate_procedural_sprites.py
+          git add -A
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: organize procedural world sprites safely"
+          git push origin HEAD:feature/procedural-terrain-grass-v1
