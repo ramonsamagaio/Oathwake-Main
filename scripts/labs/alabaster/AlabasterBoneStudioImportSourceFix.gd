@@ -2,7 +2,103 @@ extends "res://scripts/labs/alabaster/AlabasterBoneStudioSharedProfiles.gd"
 class_name AlabasterBoneStudioImportSourceFix
 
 const RobustImporter := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationSourceAdapter.gd")
+const RetargetJunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
+const RetargetDebugPanelScript := preload("res://scripts/labs/alabaster/AlabasterRetargetDebugPanel.gd")
 const FOLD_PREFIX := "@fold:"
+
+var _retarget_reference_rig: Node2D = null
+var _retarget_debug_panel: Control = null
+var retarget_limb_mode := "full_global_delta"
+
+
+func _ready() -> void:
+	super._ready()
+	# The advanced Live Tuning layer historically promoted DEFAULT after setup.
+	# Retarget authoring is now explicitly Juno-first, so restore Juno and keep a
+	# hidden canonical Juno reference rig for target hierarchy diagnostics even if
+	# the user later inspects another skin in LIVE TUNING.
+	call_deferred("_initialize_juno_retarget_workspace")
+
+
+func _initialize_juno_retarget_workspace() -> void:
+	_ensure_retarget_reference_rig()
+	ensure_juno_retarget_target()
+	_install_retarget_debug_panel()
+
+
+func _ensure_retarget_reference_rig() -> void:
+	if _retarget_reference_rig != null and is_instance_valid(_retarget_reference_rig):
+		return
+	var rig_value: Variant = RetargetJunoRigScript.new()
+	if not rig_value is Node2D:
+		push_error("Bone Studio: could not create canonical Juno retarget reference rig.")
+		return
+	_retarget_reference_rig = rig_value as Node2D
+	_retarget_reference_rig.name = "JunoRetargetReferenceRig"
+	_retarget_reference_rig.visible = false
+	add_child(_retarget_reference_rig)
+	_retarget_reference_rig.set_process(false)
+
+
+func get_retarget_reference_rig() -> Object:
+	_ensure_retarget_reference_rig()
+	return _retarget_reference_rig
+
+
+func ensure_juno_retarget_target() -> void:
+	if _live_tuning_panel != null and is_instance_valid(_live_tuning_panel):
+		var panel_object := _live_tuning_panel as Object
+		if panel_object.has_method("_on_target_pressed"):
+			panel_object.call("_on_target_pressed", "juno")
+			return
+	# Safety fallback if Live Tuning failed to initialize.
+	var current_rig_name := ""
+	if rig is Node:
+		current_rig_name = str((rig as Node).name)
+	if rig != null and current_rig_name == "JunoBoneStudioSharedRig":
+		return
+	var preview_world_value: Variant = get("preview_world")
+	if not preview_world_value is Node2D:
+		return
+	var old_rig_value: Variant = get("rig")
+	if old_rig_value is Node and is_instance_valid(old_rig_value):
+		var old_rig := old_rig_value as Node
+		if old_rig.get_parent() != null:
+			old_rig.get_parent().remove_child(old_rig)
+		old_rig.queue_free()
+	var new_rig := RetargetJunoRigScript.new() as Node2D
+	if new_rig == null:
+		return
+	new_rig.name = "JunoBoneStudioSharedRig"
+	(preview_world_value as Node2D).add_child(new_rig)
+	set("rig", new_rig)
+	new_rig.scale = Vector2.ONE * 3.2
+	new_rig.call_deferred("set_debug_enabled", true)
+	new_rig.call_deferred("set_facing_from_vector", Vector2.DOWN)
+	call_deferred("_populate_manual_bones")
+	call_deferred("_rebuild_mapping_table")
+
+
+func _install_retarget_debug_panel() -> void:
+	if _retarget_debug_panel != null and is_instance_valid(_retarget_debug_panel):
+		return
+	var panel_value: Variant = RetargetDebugPanelScript.new()
+	if not panel_value is Control:
+		push_error("Bone Studio: RETARGET DEBUG panel could not be created.")
+		return
+	_retarget_debug_panel = panel_value as Control
+	_retarget_debug_panel.call("setup", self)
+
+
+func set_retarget_limb_mode(mode: String) -> void:
+	if mode != "full_global_delta" and mode != "segment_swing":
+		return
+	retarget_limb_mode = mode
+	_set_status("Retarget limb solver: %s. Preview again to compare the result." % mode)
+
+
+func get_retarget_limb_mode() -> String:
+	return retarget_limb_mode
 
 
 func _on_source_selected(path: String) -> void:
@@ -29,7 +125,7 @@ func _on_source_selected(path: String) -> void:
 		import_reference_pose.button_pressed = false
 		if has_mixamo_scene:
 			import_reference_pose.disabled = true
-			import_reference_pose.tooltip_text = "Mixamo Track-Hierarchy V7 reads the FBX transform curves and composes them through the real Skeleton3D parent/rest hierarchy. Only rest-to-pose anatomical motion is transferred to Default."
+			import_reference_pose.tooltip_text = "Mixamo → Juno V8 reads the FBX transform curves and composes them through the real Skeleton3D parent/rest hierarchy. REST→POSE anatomical motion is solved globally, then projected into Juno's effective bone hierarchy."
 		else:
 			import_reference_pose.disabled = false
 			import_reference_pose.tooltip_text = "No Skeleton3D was exposed by this import, so only the lower-fidelity track fallback is available."
@@ -45,9 +141,9 @@ func _on_source_selected(path: String) -> void:
 
 	var kind := str(info.get("resource_kind", "godot_resource"))
 	if has_mixamo_scene:
-		_set_status("Mixamo Track-Hierarchy V7 detected: %d clips, %d bones. FBX tracks will be composed deterministically through the source hierarchy, avoiding the detached Skeleton3D pose-cache problem." % [source_clip_option.item_count, source_bones.size()])
+		_set_status("Mixamo → Juno V8 ready: %d clips, %d source bones. Full Skeleton3D REST/hierarchy solve is available. Open RETARGET DEBUG and RUN DEEP AUDIT before tuning offsets." % [source_clip_option.item_count, source_bones.size()])
 	elif profile == "mixamo":
-		_set_status("Mixamo detected, but this resource exposes no Skeleton3D. Track-only fallback is available; importing the raw FBX as a scene is recommended.")
+		_set_status("Mixamo detected, but this resource exposes no Skeleton3D. Track-only fallback is available; importing the raw FBX/GLB scene is recommended.")
 	else:
 		_set_status("Loaded %d clips and %d source bones from %s." % [source_clip_option.item_count, source_bones.size(), kind])
 
@@ -57,12 +153,17 @@ func _rebuild_mapping_table() -> void:
 	for child in mapping_container.get_children():
 		child.queue_free()
 	var targets: Array = []
-	if rig != null and rig.has_method("get_bone_names"):
-		var runtime_names: Variant = rig.call("get_bone_names")
+	var reference_rig := get_retarget_reference_rig()
+	if reference_rig != null and reference_rig.has_method("get_bone_names"):
+		var runtime_names: Variant = reference_rig.call("get_bone_names")
 		if runtime_names is Array:
 			targets = runtime_names.duplicate()
-	var auto := RobustImporter.make_auto_retarget(source_bones)
+	elif rig != null and rig.has_method("get_bone_names"):
+		var fallback_names: Variant = rig.call("get_bone_names")
+		if fallback_names is Array:
+			targets = fallback_names.duplicate()
 
+	var auto := RobustImporter.make_auto_retarget(source_bones)
 	for source_bone in source_bones:
 		var option := OptionButton.new()
 		option.add_item("-- Ignore --")
@@ -73,7 +174,7 @@ func _rebuild_mapping_table() -> void:
 			var fold_target := auto_value.trim_prefix(FOLD_PREFIX)
 			option.add_item("AUTO FOLD -> %s" % fold_target)
 			option.set_item_metadata(option.item_count - 1, auto_value)
-			option.set_item_tooltip(option.item_count - 1, "This Mixamo joint is an endpoint/helper used by the anatomical solve for %s. It does not independently overwrite an Alabaster transform." % fold_target)
+			option.set_item_tooltip(option.item_count - 1, "This source joint contributes to the anatomical solve but does not independently overwrite a Juno node.")
 			selected = option.item_count - 1
 		for target_value in targets:
 			var target := str(target_value)
@@ -86,6 +187,25 @@ func _rebuild_mapping_table() -> void:
 		mapping_controls[source_bone] = option
 
 
+func _get_import_settings() -> Dictionary:
+	var settings := super._get_import_settings()
+	settings["retarget_target_profile"] = "juno"
+	settings["retarget_limb_mode"] = retarget_limb_mode
+	settings["retarget_skip_attachment_nodes"] = ["shoulderL", "shoulderR", "hipL", "hipR"]
+
+	var reference_rig := get_retarget_reference_rig()
+	if reference_rig != null:
+		if reference_rig.has_method("get_bone_names"):
+			var names_value: Variant = reference_rig.call("get_bone_names")
+			if names_value is Array:
+				settings["target_bones"] = (names_value as Array).duplicate()
+		if reference_rig.has_method("get_bone_parent_map"):
+			var parent_value: Variant = reference_rig.call("get_bone_parent_map")
+			if parent_value is Dictionary:
+				settings["target_parent_map"] = (parent_value as Dictionary).duplicate(true)
+	return settings
+
+
 func _build_import_animation() -> Dictionary:
 	if source_path.is_empty() or source_clip_option.item_count <= 0 or source_clip_option.selected < 0:
 		_set_status("The source file is selected, but Godot exposed no animation clip. Reimport the FBX with Animation enabled and try again.", true)
@@ -94,6 +214,9 @@ func _build_import_animation() -> Dictionary:
 	if clip_name.is_empty():
 		_set_status("Select an animation clip first.", true)
 		return {}
+
+	ensure_juno_retarget_target()
+	var settings := _get_import_settings()
 	var result := RobustImporter.import_scene_clip(
 		source_path,
 		clip_name,
@@ -101,8 +224,8 @@ func _build_import_animation() -> Dictionary:
 		import_loop.button_pressed,
 		0.0,
 		_get_mapping(),
-		_get_import_settings()
+		settings
 	)
 	if result.is_empty():
-		_set_status("The clip was found but could not be converted. For Mixamo, keep the automatic mapping unchanged so Track-Hierarchy V7 can use the raw FBX hierarchy.", true)
+		_set_status("The clip was found but could not be converted. Keep automatic Mixamo mapping unchanged for the full V8 semantic solver, then open RETARGET DEBUG to see the failing stage.", true)
 	return result
