@@ -29,9 +29,9 @@ func _run() -> void:
 
 	for path in [
 		"res://assets/world_lab/romestead_native_png/romestead_wildlife_native_atlas.png",
-		"res://assets/world_lab/romestead_native_png/sources/floors/forest_unbreakable_bushes_bottom_.png",
-		"res://assets/world_lab/romestead_native_png/sources/floors/forest_unbreakable_bushes_top_.png",
-		"res://assets/world_lab/romestead_native_png/sources/floors/tree_wall.png",
+		"res://assets/sprites/world/procedural/terrain/forest_unbreakable_bushes_bottom_.png",
+		"res://assets/sprites/world/procedural/terrain/forest_unbreakable_bushes_top_.png",
+		"res://assets/sprites/world/procedural/terrain/tree_wall.png",
 	]:
 		_check(FileAccess.file_exists(path), "Editable native asset exists: %s" % path.get_file())
 

@@ -1577,7 +1577,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_stump.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_stump.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1609,7 +1609,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_stump.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_stump.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1641,7 +1641,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_olive_tree_stump.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_olive_tree_stump.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1673,7 +1673,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree1.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_tree1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1705,7 +1705,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree1.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_tree1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1737,7 +1737,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree2.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_tree2.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1769,7 +1769,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree2.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_tree2.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1801,7 +1801,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree2.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_tree2.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1833,7 +1833,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree2.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_tree2.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1865,7 +1865,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree2.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_tree2.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1897,7 +1897,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tree2.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_tree2.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1929,7 +1929,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_olive_tree_large.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_olive_tree_large.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1961,7 +1961,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_olive_tree_large.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_olive_tree_large.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -1993,7 +1993,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_tall_cypress.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_tall_cypress.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2025,7 +2025,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2057,7 +2057,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2089,7 +2089,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2121,7 +2121,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2153,7 +2153,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_big.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2185,7 +2185,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_big.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2217,7 +2217,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_big.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2249,7 +2249,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_big.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2281,7 +2281,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_big.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2313,7 +2313,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_small.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2345,7 +2345,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_small.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2377,7 +2377,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_small.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2409,7 +2409,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_small.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2441,7 +2441,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2473,7 +2473,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2505,7 +2505,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2537,7 +2537,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2569,7 +2569,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2601,7 +2601,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2633,7 +2633,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2665,7 +2665,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2697,7 +2697,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2729,7 +2729,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2761,7 +2761,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2793,7 +2793,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2825,7 +2825,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2857,7 +2857,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2889,7 +2889,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2921,7 +2921,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2953,7 +2953,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -2985,7 +2985,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3017,7 +3017,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3049,7 +3049,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3081,7 +3081,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3113,7 +3113,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3145,7 +3145,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3177,7 +3177,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3209,7 +3209,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3241,7 +3241,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3273,7 +3273,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3305,7 +3305,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3337,7 +3337,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3369,7 +3369,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3401,7 +3401,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3433,7 +3433,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3465,7 +3465,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3497,7 +3497,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3529,7 +3529,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_skinny_tree.png",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3561,7 +3561,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_big.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3593,7 +3593,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_big.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3625,7 +3625,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_big.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3657,7 +3657,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_big.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3689,7 +3689,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_big.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_big.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3721,7 +3721,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_small.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3753,7 +3753,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_small.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3785,7 +3785,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_small.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3817,7 +3817,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/terrain_round_rocks_small.png",
+		"texture_path": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_small.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3849,7 +3849,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3881,7 +3881,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3913,7 +3913,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3945,7 +3945,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -3977,7 +3977,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4009,7 +4009,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4041,7 +4041,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4073,7 +4073,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4105,7 +4105,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4137,7 +4137,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4169,7 +4169,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4201,7 +4201,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4233,7 +4233,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4265,7 +4265,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_big_bushes1.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4297,7 +4297,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4329,7 +4329,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4361,7 +4361,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4393,7 +4393,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4425,7 +4425,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4457,7 +4457,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4489,7 +4489,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4521,7 +4521,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4553,7 +4553,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4585,7 +4585,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4617,7 +4617,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4649,7 +4649,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4681,7 +4681,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4713,7 +4713,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4745,7 +4745,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4777,7 +4777,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4809,7 +4809,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4841,7 +4841,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4873,7 +4873,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4905,7 +4905,7 @@
 			"romestead",
 			"editable_png"
 		],
-		"texture_path": "res://assets/world_lab/romestead_native_png/sources/props/flora_wheat_animated.png",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
 		"total_frames": 1,
 		"type": "single_sprite",
 		"anchor": {
@@ -4915,19 +4915,19 @@
 		"fade_when_player_behind": true,
 		"shadow_profile_id": "auto"
 	},
-	"romestead_apple_canopy": {"category":"resource","display_name":"Romestead Apple Tree Crown","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_apple_tree_large.png","type":"single_sprite","region_enabled":true,"region":{"x":64,"y":0,"w":64,"h":80},"frame_width":64,"frame_height":80,"frame_size":{"w":64,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":32,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_apple_stump": {"category":"resource","display_name":"Romestead Apple Tree Trunk","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_apple_tree_stump.png","type":"single_sprite","region_enabled":true,"region":{"x":64,"y":0,"w":64,"h":80},"frame_width":64,"frame_height":80,"frame_size":{"w":64,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":32,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_stone_pine_canopy": {"category":"resource","display_name":"Romestead Stone Pine Crown","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_stone_pine_large.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":80,"h":80},"frame_width":80,"frame_height":80,"frame_size":{"w":80,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":40,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_stone_pine_stump": {"category":"resource","display_name":"Romestead Stone Pine Trunk","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_stone_pine_stump.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":80,"h":80},"frame_width":80,"frame_height":80,"frame_size":{"w":80,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":40,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_purple_bush": {"category":"resource","display_name":"Romestead Purple Bush","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/desert_purplebush.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":32},"frame_width":16,"frame_height":32,"frame_size":{"w":16,"h":32},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":32},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_forest_bush": {"category":"resource","display_name":"Romestead Forest Bush","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_small_bush1.png","type":"single_sprite","region_enabled":true,"region":{"x":48,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_mushroom_red": {"category":"resource","display_name":"Romestead Red Mushroom","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_mushrooms.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_mushroom_brown": {"category":"resource","display_name":"Romestead Brown Mushroom","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_mushrooms.png","type":"single_sprite","region_enabled":true,"region":{"x":32,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_mushroom_yellow": {"category":"resource","display_name":"Romestead Yellow Mushroom","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_mushrooms.png","type":"single_sprite","region_enabled":true,"region":{"x":64,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_bellflower": {"category":"resource","display_name":"Romestead Bellflowers","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_bellflowers.png","type":"single_sprite","region_enabled":true,"region":{"x":32,"y":64,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_lily": {"category":"resource","display_name":"Romestead Lilies","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_lilies.png","type":"single_sprite","region_enabled":true,"region":{"x":48,"y":0,"w":32,"h":32},"frame_width":32,"frame_height":32,"frame_size":{"w":32,"h":32},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":16,"y":32},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_copper_ore": {"category":"resource","display_name":"Romestead Copper Ore","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/resources_copper_ore.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_mossy_boulder": {"category":"resource","display_name":"Romestead Mossy Boulder","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/poi_mossy_boulder_large.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":64,"h":80},"frame_width":64,"frame_height":80,"frame_size":{"w":64,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":32,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
-	"romestead_tiny_leaf": {"category":"terrain_detail","display_name":"Romestead Tiny Ground Leaf","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_tiny_ground_leaves.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"tags":["romestead","editable_png"]},
-	"romestead_tiny_flower": {"category":"terrain_detail","display_name":"Romestead Tiny Flower","texture_path":"res://assets/world_lab/romestead_native_png/sources/props/flora_tiny_flowers.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"tags":["romestead","editable_png"]}
+	"romestead_apple_canopy": {"category":"resource","display_name":"Romestead Apple Tree Crown","texture_path":"res://assets/sprites/world/procedural/trees/flora_apple_tree_large.png","type":"single_sprite","region_enabled":true,"region":{"x":64,"y":0,"w":64,"h":80},"frame_width":64,"frame_height":80,"frame_size":{"w":64,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":32,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_apple_stump": {"category":"resource","display_name":"Romestead Apple Tree Trunk","texture_path":"res://assets/sprites/world/procedural/trees/flora_apple_tree_stump.png","type":"single_sprite","region_enabled":true,"region":{"x":64,"y":0,"w":64,"h":80},"frame_width":64,"frame_height":80,"frame_size":{"w":64,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":32,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_stone_pine_canopy": {"category":"resource","display_name":"Romestead Stone Pine Crown","texture_path":"res://assets/sprites/world/procedural/trees/flora_stone_pine_large.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":80,"h":80},"frame_width":80,"frame_height":80,"frame_size":{"w":80,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":40,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_stone_pine_stump": {"category":"resource","display_name":"Romestead Stone Pine Trunk","texture_path":"res://assets/sprites/world/procedural/trees/flora_stone_pine_stump.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":80,"h":80},"frame_width":80,"frame_height":80,"frame_size":{"w":80,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":40,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_purple_bush": {"category":"resource","display_name":"Romestead Purple Bush","texture_path":"res://assets/sprites/world/procedural/plants/desert_purplebush.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":32},"frame_width":16,"frame_height":32,"frame_size":{"w":16,"h":32},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":32},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_forest_bush": {"category":"resource","display_name":"Romestead Forest Bush","texture_path":"res://assets/sprites/world/procedural/plants/flora_small_bush1.png","type":"single_sprite","region_enabled":true,"region":{"x":48,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_mushroom_red": {"category":"resource","display_name":"Romestead Red Mushroom","texture_path":"res://assets/sprites/world/procedural/plants/flora_mushrooms.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_mushroom_brown": {"category":"resource","display_name":"Romestead Brown Mushroom","texture_path":"res://assets/sprites/world/procedural/plants/flora_mushrooms.png","type":"single_sprite","region_enabled":true,"region":{"x":32,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_mushroom_yellow": {"category":"resource","display_name":"Romestead Yellow Mushroom","texture_path":"res://assets/sprites/world/procedural/plants/flora_mushrooms.png","type":"single_sprite","region_enabled":true,"region":{"x":64,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_bellflower": {"category":"resource","display_name":"Romestead Bellflowers","texture_path":"res://assets/sprites/world/procedural/plants/flora_bellflowers.png","type":"single_sprite","region_enabled":true,"region":{"x":32,"y":64,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_lily": {"category":"resource","display_name":"Romestead Lilies","texture_path":"res://assets/sprites/world/procedural/plants/flora_lilies.png","type":"single_sprite","region_enabled":true,"region":{"x":48,"y":0,"w":32,"h":32},"frame_width":32,"frame_height":32,"frame_size":{"w":32,"h":32},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":16,"y":32},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_copper_ore": {"category":"resource","display_name":"Romestead Copper Ore","texture_path":"res://assets/sprites/world/procedural/rocks/resources_copper_ore.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_mossy_boulder": {"category":"resource","display_name":"Romestead Mossy Boulder","texture_path":"res://assets/sprites/world/procedural/rocks/poi_mossy_boulder_large.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":64,"h":80},"frame_width":64,"frame_height":80,"frame_size":{"w":64,"h":80},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":32,"y":80},"fade_when_player_behind":true,"shadow_profile_id":"auto","tags":["romestead","editable_png"]},
+	"romestead_tiny_leaf": {"category":"terrain_detail","display_name":"Romestead Tiny Ground Leaf","texture_path":"res://assets/sprites/world/procedural/plants/flora_tiny_ground_leaves.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"tags":["romestead","editable_png"]},
+	"romestead_tiny_flower": {"category":"terrain_detail","display_name":"Romestead Tiny Flower","texture_path":"res://assets/sprites/world/procedural/plants/flora_tiny_flowers.png","type":"single_sprite","region_enabled":true,"region":{"x":0,"y":0,"w":16,"h":16},"frame_width":16,"frame_height":16,"frame_size":{"w":16,"h":16},"columns":1,"rows":1,"total_frames":1,"anchor":{"x":8,"y":16},"tags":["romestead","editable_png"]}
 }
