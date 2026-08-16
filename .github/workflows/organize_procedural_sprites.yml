@@ -21,6 +21,29 @@ jobs:
           ref: feature/procedural-terrain-grass-v1
           fetch-depth: 0
 
+      - name: Preserve existing packed wildlife layout contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('tools/migrate_procedural_sprites.py')
+          text = path.read_text(encoding='utf-8')
+          old = '''                frame_width <= 0
+                or frame_height <= 0
+                or (start + frames) * frame_width > width
+                or (row + 1) * frame_height > height
+'''
+          new = '''                frame_width <= 0
+                or frame_height <= 0
+                or frame_width > width
+                or (row + 1) * frame_height > height
+'''
+          if old not in text:
+              raise SystemExit('Expected wildlife validation block not found; refusing a fuzzy patch')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
       - name: Run guarded migration
         run: python3 tools/migrate_procedural_sprites.py
 
