@@ -23,10 +23,14 @@ func _run() -> void:
 		"physics_processing": 0,
 		"canvas_items": 0,
 		"visible_canvas_items": 0,
+		"tilemap_layers": 0,
+		"multimesh_instances": 0,
 		"point_lights": 0,
 		"directional_lights": 0,
 		"projected_shadows": 0,
 		"resources": 0,
+		"areas_monitoring": 0,
+		"particles": 0,
 	}
 	var process_scripts := {}
 	var physics_scripts := {}
@@ -49,6 +53,9 @@ func _run() -> void:
 	_collect_visible_canvas_counts(root, visible_classes, visible_branches)
 	print("GAME_PERFORMANCE_AUDIT visible_classes=" + str(_top_counts(visible_classes, 12)))
 	print("GAME_PERFORMANCE_AUDIT visible_branches=" + str(_top_counts(visible_branches, 12)))
+	var romestead_environment := game.get_node_or_null("Systems/RomesteadEnvironment")
+	if romestead_environment != null and romestead_environment.has_method("get_runtime_performance_diagnostics"):
+		print("GAME_PERFORMANCE_AUDIT runtime_scheduler=" + str(romestead_environment.call("get_runtime_performance_diagnostics")))
 	quit(0)
 
 
@@ -58,10 +65,18 @@ func _audit_node(node: Node, stats: Dictionary, process_scripts: Dictionary, phy
 		stats["canvas_items"] = int(stats["canvas_items"]) + 1
 		if (node as CanvasItem).is_visible_in_tree():
 			stats["visible_canvas_items"] = int(stats["visible_canvas_items"]) + 1
+	if node is TileMapLayer:
+		stats["tilemap_layers"] = int(stats["tilemap_layers"]) + 1
+	if node is MultiMeshInstance2D:
+		stats["multimesh_instances"] = int(stats["multimesh_instances"]) + 1
 	if node is PointLight2D:
 		stats["point_lights"] = int(stats["point_lights"]) + 1
 	if node is DirectionalLight2D:
 		stats["directional_lights"] = int(stats["directional_lights"]) + 1
+	if node is Area2D and (node as Area2D).monitoring:
+		stats["areas_monitoring"] = int(stats["areas_monitoring"]) + 1
+	if node is GPUParticles2D or node is CPUParticles2D:
+		stats["particles"] = int(stats["particles"]) + 1
 	if node.is_in_group("projected_shadow_caster"):
 		stats["projected_shadows"] = int(stats["projected_shadows"]) + 1
 	if node.is_in_group("resource_node"):
