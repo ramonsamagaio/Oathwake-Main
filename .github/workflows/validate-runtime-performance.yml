@@ -12,6 +12,7 @@ on:
       - "scenes/game/Game.tscn"
       - "scripts/test/GamePerformanceAudit.gd"
       - "scripts/test/CurrentGameOptimizationValidator.gd"
+      - "scripts/test/RomesteadRuntimePerformanceValidator.gd"
       - ".github/workflows/validate-runtime-performance.yml"
   pull_request:
     paths:
@@ -24,6 +25,7 @@ on:
       - "scenes/game/Game.tscn"
       - "scripts/test/GamePerformanceAudit.gd"
       - "scripts/test/CurrentGameOptimizationValidator.gd"
+      - "scripts/test/RomesteadRuntimePerformanceValidator.gd"
       - ".github/workflows/validate-runtime-performance.yml"
   workflow_dispatch:
 
@@ -56,6 +58,16 @@ jobs:
             exit 1
           fi
 
+      - name: Validate chunked runtime scheduler
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 180s ./godot --headless --path . --script res://scripts/test/RomesteadRuntimePerformanceValidator.gd --verbose 2>&1 | tee runtime-scheduler-validator.log
+          if grep -E "ROMESTEAD_RUNTIME_PERFORMANCE_VALIDATION failures|Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access" runtime-scheduler-validator.log; then
+            exit 1
+          fi
+          grep -F "ROMESTEAD_RUNTIME_PERFORMANCE_VALIDATION: PASS" runtime-scheduler-validator.log
+
       - name: Run current game optimization contract
         shell: bash
         run: |
@@ -75,6 +87,7 @@ jobs:
             exit 1
           fi
           grep -F "GAME_PERFORMANCE_AUDIT stats=" game-performance-audit.log
+          grep -F "GAME_PERFORMANCE_AUDIT runtime_scheduler=" game-performance-audit.log
 
       - name: Upload performance logs
         if: always()
@@ -83,5 +96,6 @@ jobs:
           name: runtime-performance-logs
           path: |
             runtime-performance-import.log
+            runtime-scheduler-validator.log
             current-game-optimization.log
             game-performance-audit.log
