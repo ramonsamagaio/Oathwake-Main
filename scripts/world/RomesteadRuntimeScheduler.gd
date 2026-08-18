@@ -127,16 +127,18 @@ func _process(delta: float) -> void:
 		_index_check_accumulator = fmod(_index_check_accumulator, PENDING_INDEX_CHECK_INTERVAL)
 		_check_pending_index_integrity()
 
-	if _camera_refresh_needed():
+	# A large camera/focus jump is a streaming event, not only a visibility event.
+	# Run one bounded pass immediately so teleports, loads and uncapped headless
+	# validation do not have to wait for STREAM_INTERVAL wall-clock time to elapse.
+	var focus_changed: bool = _camera_refresh_needed()
+	if focus_changed:
 		_force_visibility_refresh = true
-
-	if _stream_accumulator >= STREAM_INTERVAL:
+		_run_stream_pass()
+		_stream_accumulator = 0.0
+	elif _stream_accumulator >= STREAM_INTERVAL:
 		var elapsed: float = _stream_accumulator
 		_stream_accumulator = fmod(_stream_accumulator, STREAM_INTERVAL)
-		var streamed: int = _stream_nearby_resources(_get_active_bounds().grow(STREAM_MARGIN_PIXELS))
-		if streamed > 0:
-			_force_visibility_refresh = true
-		_diagnostics["stream_ticks"] = int(_diagnostics["stream_ticks"]) + 1
+		_run_stream_pass()
 		# A long hitch must not cause a burst of catch-up spawn passes.
 		if elapsed > STREAM_INTERVAL * 4.0:
 			_stream_accumulator = 0.0
@@ -159,6 +161,13 @@ func _process(delta: float) -> void:
 	if _wildlife_accumulator >= WILDLIFE_INTERVAL:
 		_wildlife_accumulator = fmod(_wildlife_accumulator, WILDLIFE_INTERVAL)
 		_refresh_wildlife(_get_active_bounds())
+
+
+func _run_stream_pass() -> void:
+	var streamed: int = _stream_nearby_resources(_get_active_bounds().grow(STREAM_MARGIN_PIXELS))
+	if streamed > 0:
+		_force_visibility_refresh = true
+	_diagnostics["stream_ticks"] = int(_diagnostics["stream_ticks"]) + 1
 
 
 func _camera_refresh_needed() -> bool:
