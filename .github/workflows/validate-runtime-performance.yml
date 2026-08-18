@@ -1,0 +1,87 @@
+name: Validate Runtime Performance
+
+on:
+  push:
+    paths:
+      - "scripts/world/**"
+      - "scripts/labs/romestead_systems/**"
+      - "scripts/ResourceNode.gd"
+      - "scripts/game/**"
+      - "scenes/world/**"
+      - "scenes/maps/StartArea.tscn"
+      - "scenes/game/Game.tscn"
+      - "scripts/test/GamePerformanceAudit.gd"
+      - "scripts/test/CurrentGameOptimizationValidator.gd"
+      - ".github/workflows/validate-runtime-performance.yml"
+  pull_request:
+    paths:
+      - "scripts/world/**"
+      - "scripts/labs/romestead_systems/**"
+      - "scripts/ResourceNode.gd"
+      - "scripts/game/**"
+      - "scenes/world/**"
+      - "scenes/maps/StartArea.tscn"
+      - "scenes/game/Game.tscn"
+      - "scripts/test/GamePerformanceAudit.gd"
+      - "scripts/test/CurrentGameOptimizationValidator.gd"
+      - ".github/workflows/validate-runtime-performance.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.6.3
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip" \
+            --output godot.zip
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+
+      - name: Import project and catch parser failures
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot --headless --editor --path . --quit-after 45 --verbose 2>&1 | tee runtime-performance-import.log
+          if grep -E "Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Error parsing|Invalid call|Invalid access" runtime-performance-import.log; then
+            echo "Godot import reported a parser/runtime failure."
+            exit 1
+          fi
+
+      - name: Run current game optimization contract
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 180s ./godot --headless --path . --script res://scripts/test/CurrentGameOptimizationValidator.gd --verbose 2>&1 | tee current-game-optimization.log
+          if grep -E "CURRENT_GAME_OPTIMIZATION_VALIDATION failures|Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access" current-game-optimization.log; then
+            exit 1
+          fi
+          grep -F "CURRENT_GAME_OPTIMIZATION_VALIDATION: PASS" current-game-optimization.log
+
+      - name: Capture runtime performance audit
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 180s ./godot --headless --path . --script res://scripts/test/GamePerformanceAudit.gd --verbose 2>&1 | tee game-performance-audit.log
+          if grep -E "Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access" game-performance-audit.log; then
+            exit 1
+          fi
+          grep -F "GAME_PERFORMANCE_AUDIT stats=" game-performance-audit.log
+
+      - name: Upload performance logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-performance-logs
+          path: |
+            runtime-performance-import.log
+            current-game-optimization.log
+            game-performance-audit.log
