@@ -3,9 +3,13 @@ extends Node
 
 signal time_changed(display_time: String)
 
+const RuntimeSchedulerScript := preload("res://scripts/world/RomesteadRuntimeScheduler.gd")
+
 @export var time_of_day := 16.5
 @export var day_length_seconds := 210.0
 @export var time_paused := false
+@export_range(1.0, 30.0, 1.0) var visual_step_minutes := 4.0
+@export_range(0.25, 5.0, 0.25) var receiver_cache_refresh_seconds := 1.5
 @export_node_path("CanvasModulate") var canvas_modulate_path := NodePath("../WorldModulate")
 @export_node_path("DirectionalLight2D") var sun_path := NodePath("../Sun")
 @export_node_path("DirectionalLight2D") var moon_path := NodePath("../Moon")
@@ -27,41 +31,67 @@ var weather_state := {
 @onready var _moon := get_node_or_null(moon_path) as DirectionalLight2D
 @onready var _world := get_node_or_null(world_path)
 
+var _runtime_scheduler: Node
+var _cached_lab_lights: Array[PointLight2D] = []
+var _cached_receivers: Array[Node] = []
+var _receiver_cache_age := INF
+var _last_applied_hour := INF
+var _last_display_time := ""
+
 
 func _ready() -> void:
 	add_to_group("romestead_environment_controller")
-	_update_environment()
+	_refresh_receiver_cache()
+	_configure_runtime_scheduler()
+	_update_environment(true)
 	set_process(not time_paused)
 
 
 func _process(delta: float) -> void:
-	time_of_day = fmod(time_of_day + delta * 24.0 / maxf(day_length_seconds, 1.0), 24.0)
-	_update_environment()
-	time_changed.emit(get_time_string())
+	_receiver_cache_age += delta
+	if _receiver_cache_age >= receiver_cache_refresh_seconds:
+		_refresh_receiver_cache()
+
+	if not time_paused:
+		time_of_day = fmod(time_of_day + delta * 24.0 / maxf(day_length_seconds, 1.0), 24.0)
+		_maybe_update_environment(false)
+
+	var display_time := get_time_string()
+	if display_time != _last_display_time:
+		_last_display_time = display_time
+		time_changed.emit(display_time)
 
 
 func apply_weather_state(state: Dictionary) -> void:
+	var changed := false
 	for key in weather_state.keys():
-		if state.has(key):
+		if state.has(key) and weather_state[key] != state[key]:
 			weather_state[key] = state[key]
-	if time_paused:
-		_update_environment()
+			changed = true
+	if changed:
+		_update_environment(true)
 
 
 func set_world(world: Node) -> void:
 	_world = world
-	_update_environment()
+	_configure_runtime_scheduler()
+	_refresh_receiver_cache()
+	_update_environment(true)
 
 
 func set_time(new_hour: float) -> void:
 	time_of_day = fposmod(new_hour, 24.0)
-	_update_environment()
+	_maybe_update_environment(false)
+	var display_time := get_time_string()
+	if display_time != _last_display_time:
+		_last_display_time = display_time
+		time_changed.emit(display_time)
 
 
 func toggle_time_pause() -> void:
 	time_paused = not time_paused
 	set_process(not time_paused)
-	_update_environment()
+	_update_environment(true)
 
 
 func get_time_string() -> String:
@@ -74,7 +104,40 @@ func get_daylight_strength() -> float:
 	return clampf(sin((time_of_day - 6.0) / 24.0 * TAU), 0.0, 1.0)
 
 
-func _update_environment() -> void:
+func get_runtime_performance_diagnostics() -> Dictionary:
+	if _runtime_scheduler != null and is_instance_valid(_runtime_scheduler) and _runtime_scheduler.has_method("get_diagnostics"):
+		return _runtime_scheduler.call("get_diagnostics") as Dictionary
+	return {"scheduler_enabled": false}
+
+
+func _configure_runtime_scheduler() -> void:
+	if _runtime_scheduler != null and is_instance_valid(_runtime_scheduler):
+		_runtime_scheduler.queue_free()
+		_runtime_scheduler = null
+	if _world == null or not is_instance_valid(_world):
+		return
+	_runtime_scheduler = RuntimeSchedulerScript.new()
+	_runtime_scheduler.name = "RomesteadRuntimeScheduler"
+	add_child(_runtime_scheduler)
+	_runtime_scheduler.call("setup", _world)
+
+
+func _maybe_update_environment(force: bool) -> void:
+	if force or not is_finite(_last_applied_hour):
+		_update_environment(true)
+		return
+	var delta_hours := absf(time_of_day - _last_applied_hour)
+	delta_hours = minf(delta_hours, 24.0 - delta_hours)
+	var step_hours := maxf(visual_step_minutes, 1.0) / 60.0
+	if delta_hours >= step_hours:
+		_update_environment(false)
+
+
+func _update_environment(force_cache_refresh: bool = false) -> void:
+	if force_cache_refresh or _receiver_cache_age >= receiver_cache_refresh_seconds:
+		_refresh_receiver_cache()
+	_last_applied_hour = time_of_day
+
 	var daylight := clampf(sin((time_of_day - 6.0) / 24.0 * TAU), 0.0, 1.0)
 	var twilight := clampf(1.0 - absf(time_of_day - 18.0) / 2.2, 0.0, 1.0)
 	var dawn := clampf(1.0 - absf(time_of_day - 6.0) / 2.0, 0.0, 1.0)
@@ -93,18 +156,9 @@ func _update_environment() -> void:
 		_moon.energy = (1.0 - daylight) * 0.28
 		_moon.rotation = (time_of_day / 24.0) * TAU + PI * 0.5
 
-	var darkness := clampf(1.0 - daylight * 0.92, 0.08, 1.0)
-	var seconds := Time.get_ticks_msec() * 0.001
-	for node in get_tree().get_nodes_in_group("romestead_lab_lights"):
-		var light := node as PointLight2D
-		if light == null:
-			continue
-		var base_energy: float = float(light.get_meta("base_energy", 1.0))
-		var phase: float = float(light.get_meta("flicker_phase", 0.0))
-		var flicker := 0.92 + sin(seconds * 9.0 + phase) * 0.055 + sin(seconds * 17.0 + phase * 0.7) * 0.025
-		light.energy = base_energy * lerpf(0.28, 1.0, darkness) * flicker
+	_update_cached_lab_lights(daylight)
 
-	if _world != null and _world.has_method("set_environment"):
+	if _world != null and is_instance_valid(_world) and _world.has_method("set_environment"):
 		_world.call(
 			"set_environment",
 			float(weather_state["wetness"]),
@@ -115,8 +169,10 @@ func _update_environment() -> void:
 			time_of_day,
 			daylight
 		)
-	for receiver in get_tree().get_nodes_in_group("romestead_environment_receivers"):
-		if receiver == _world or not receiver.has_method("set_romestead_environment"):
+	for receiver in _cached_receivers:
+		if receiver == null or not is_instance_valid(receiver) or receiver == _world:
+			continue
+		if not receiver.has_method("set_romestead_environment"):
 			continue
 		receiver.call(
 			"set_romestead_environment",
@@ -128,6 +184,33 @@ func _update_environment() -> void:
 			time_of_day,
 			daylight
 		)
+
+
+func _refresh_receiver_cache() -> void:
+	_cached_lab_lights.clear()
+	_cached_receivers.clear()
+	if not is_inside_tree():
+		_receiver_cache_age = 0.0
+		return
+	for node in get_tree().get_nodes_in_group("romestead_lab_lights"):
+		if node is PointLight2D:
+			_cached_lab_lights.append(node as PointLight2D)
+	for node in get_tree().get_nodes_in_group("romestead_environment_receivers"):
+		if node is Node:
+			_cached_receivers.append(node as Node)
+	_receiver_cache_age = 0.0
+
+
+func _update_cached_lab_lights(daylight: float) -> void:
+	var darkness := clampf(1.0 - daylight * 0.92, 0.08, 1.0)
+	var seconds := Time.get_ticks_msec() * 0.001
+	for light in _cached_lab_lights:
+		if light == null or not is_instance_valid(light):
+			continue
+		var base_energy := float(light.get_meta("base_energy", 1.0))
+		var phase := float(light.get_meta("flicker_phase", 0.0))
+		var flicker := 0.92 + sin(seconds * 9.0 + phase) * 0.055 + sin(seconds * 17.0 + phase * 0.7) * 0.025
+		light.energy = base_energy * lerpf(0.28, 1.0, darkness) * flicker
 
 
 func _sample_day_color(hour: float) -> Color:
