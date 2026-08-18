@@ -5,6 +5,8 @@ signal weather_changed(weather_id: String)
 signal weather_state_changed(state: Dictionary)
 
 const TRANSITION_SECONDS := 7.0
+const STATE_PUBLISH_HZ := 12.0
+const STATE_PUBLISH_INTERVAL := 1.0 / STATE_PUBLISH_HZ
 const WEATHER_ORDER := ["clear", "windy", "rain", "storm", "snow", "embers"]
 const PROFILES := {
 	"clear": {
@@ -54,6 +56,7 @@ var _transition_elapsed := TRANSITION_SECONDS
 var _cycle_elapsed := 0.0
 var _storm_timer := 2.0
 var _lightning := 0.0
+var _publish_elapsed := STATE_PUBLISH_INTERVAL
 
 @onready var _environment := get_node_or_null(environment_path)
 @onready var _visuals := get_node_or_null(visuals_path)
@@ -66,10 +69,12 @@ func _ready() -> void:
 	_from_state = _current_state.duplicate(true)
 	_target_state = _current_state.duplicate(true)
 	_publish_state()
+	_publish_elapsed = 0.0
 	set_process(auto_cycle or current_weather == "storm")
 
 
 func _process(delta: float) -> void:
+	_publish_elapsed += delta
 	if auto_cycle:
 		_cycle_elapsed += delta
 		if _cycle_elapsed >= auto_cycle_seconds:
@@ -77,6 +82,7 @@ func _process(delta: float) -> void:
 			var next_index := (WEATHER_ORDER.find(target_weather) + 1) % WEATHER_ORDER.size()
 			set_weather(WEATHER_ORDER[next_index])
 
+	var transition_finished := false
 	if _transition_elapsed < TRANSITION_SECONDS:
 		_transition_elapsed = minf(_transition_elapsed + delta, TRANSITION_SECONDS)
 		var linear_t := _transition_elapsed / TRANSITION_SECONDS
@@ -84,12 +90,22 @@ func _process(delta: float) -> void:
 		_current_state = _blend_profiles(_from_state, _target_state, smooth_t)
 		if _transition_elapsed >= TRANSITION_SECONDS:
 			current_weather = target_weather
+			transition_finished = true
 			weather_changed.emit(current_weather)
 
 	_update_lightning(delta)
 	_current_state["lightning"] = _lightning
-	_publish_state()
+	var dynamic_state := _transition_elapsed < TRANSITION_SECONDS or target_weather == "storm"
+	if transition_finished or (dynamic_state and _publish_elapsed >= STATE_PUBLISH_INTERVAL):
+		_publish_state()
+		_publish_elapsed = 0.0
+
 	if not auto_cycle and _transition_elapsed >= TRANSITION_SECONDS and target_weather != "storm":
+		# Guarantee that the exact target profile is published before the process
+		# callback sleeps. Intermediate transition states may be sampled at 12 Hz.
+		if not transition_finished and _publish_elapsed > 0.0:
+			_publish_state()
+			_publish_elapsed = 0.0
 		set_process(false)
 
 
@@ -101,6 +117,7 @@ func set_weather(weather_id: String) -> void:
 	target_weather = weather_id
 	_transition_elapsed = 0.0
 	_cycle_elapsed = 0.0
+	_publish_elapsed = STATE_PUBLISH_INTERVAL
 	set_process(true)
 	weather_changed.emit(target_weather)
 
