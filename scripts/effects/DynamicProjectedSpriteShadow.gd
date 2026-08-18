@@ -48,7 +48,13 @@ func set_solar_shadow_processing(active: bool) -> void:
 func _sync_solar_processing_to_cycle() -> void:
 	var cycle := get_tree().get_first_node_in_group("day_night_cycle")
 	if cycle != null and cycle.has_method("get_solar_shadow_strength"):
-		set_solar_shadow_processing(float(cycle.call("get_solar_shadow_strength")) > 0.001)
+		var active := float(cycle.call("get_solar_shadow_strength")) > 0.001
+		set_solar_shadow_processing(active)
+		# A fixed sprite under a fixed clock has no changing frame or projection.
+		# Buildings used to recompute the same polygon every frame indefinitely.
+		if active and bool(cycle.get("cycle_paused")) and not (_source is AnimatedSprite2D):
+			_refresh_silhouette()
+			set_process(false)
 	else:
 		set_process(true)
 

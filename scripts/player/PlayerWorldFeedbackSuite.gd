@@ -269,10 +269,18 @@ func _perform_attack_hits() -> void:
 		if not item_is_broken:
 			hit_any_target = true
 
-	for target in _find_nearby_attack_targets("resource_node"):
+	var resource_targets := _find_nearby_attack_targets("resource_node")
+	var held_item_data := _get_current_held_item_data()
+	var actor_data: Dictionary = {}
+	if not resource_targets.is_empty():
+		actor_data = player_stats_resolver.get_total_player_data(self, _get_equipment_system())
+	var blocked_feedback_shown := false
+	for target in resource_targets:
 		if not _current_item_can_hit("can_hit_resources", true):
 			continue
-		_attack_resource(target)
+		var gather_result := _attack_resource_with_context(target, held_item_data, actor_data, not blocked_feedback_shown)
+		if not gather_result.is_empty() and not bool(gather_result.get("can_damage", true)):
+			blocked_feedback_shown = true
 		if not item_is_broken:
 			hit_any_target = true
 

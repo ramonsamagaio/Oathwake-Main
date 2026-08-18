@@ -7,6 +7,7 @@ class_name PlayerBones
 
 const RigVisualController := preload("res://scripts/player/AlabasterPlayerVisualController.gd")
 const BonesWeaponRuntime := preload("res://scripts/systems/bones/BonesWeapons.gd")
+const RomesteadCompositePlayerShadowScript := preload("res://scripts/effects/RomesteadCompositePlayerShadow.gd")
 const JUNO_WEAPON_TEST_ITEMS := [
 	["Sword", "juno_sword"],
 	["Hammer", "juno_hammer"],
@@ -26,6 +27,7 @@ var _last_bones_weapon_item_id := ""
 var _debug_forced_weapon_item_id := ""
 var _juno_weapon_test_layer: CanvasLayer
 var _juno_weapon_test_panel: PanelContainer
+var _romestead_player_shadow: Node2D
 
 
 func _sync_character_id_from_player_tuning() -> void:
@@ -63,6 +65,7 @@ func _setup_character_visual() -> void:
 	_rig_visual.prewarm_actions()
 	_force_rig_visual()
 	_publish_bones_ground_contract()
+	_ensure_romestead_player_shadow()
 	call_deferred("_ensure_juno_weapon_test_panel")
 	call_deferred("_configure_rig_night_readability")
 	call_deferred("_refresh_player_directional_shadow_source")
@@ -75,6 +78,31 @@ func _physics_process(delta: float) -> void:
 		_sync_bones_weapon(false)
 		_weapon_visual.set_attacking(action_state == ActionState.ATTACKING)
 		_weapon_visual.update()
+		if _romestead_player_shadow != null and _romestead_player_shadow.has_method("sync_projection"):
+			_romestead_player_shadow.call("sync_projection")
+
+
+func _apply_player_directional_shadow() -> void:
+	if _rig_visual.active:
+		_ensure_romestead_player_shadow()
+
+
+func _refresh_player_directional_shadow_source() -> void:
+	if _rig_visual.active:
+		_ensure_romestead_player_shadow()
+
+
+func _ensure_romestead_player_shadow() -> void:
+	var old_shadow := get_node_or_null("GroundShadow")
+	if old_shadow != null:
+		old_shadow.queue_free()
+	if not _rig_visual.active or _rig_visual.rig == null:
+		return
+	if _romestead_player_shadow == null or not is_instance_valid(_romestead_player_shadow):
+		_romestead_player_shadow = RomesteadCompositePlayerShadowScript.new()
+		add_child(_romestead_player_shadow)
+	if _romestead_player_shadow.has_method("configure"):
+		_romestead_player_shadow.call("configure", self, _rig_visual.rig)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -206,10 +234,8 @@ func _report_rig_player_ready() -> void:
 func _configure_rig_night_readability() -> void:
 	if not _rig_visual.active:
 		return
-	if _night_readability_material == null:
-		_configure_player_night_readability()
-	if _night_readability_material != null:
-		_rig_visual.set_material(_night_readability_material)
+	_configure_player_night_readability()
+	_rig_visual.set_material(null)
 
 
 func _apply_player_visual_tuning() -> void:

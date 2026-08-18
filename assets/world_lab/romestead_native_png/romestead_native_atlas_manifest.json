@@ -1,0 +1,2117 @@
+{
+  "native_tile_size": [
+    16,
+    16
+  ],
+  "notes": "All source pixels remain at 1:1 native resolution. Combined atlases add transparent padding only.",
+  "floor_sources": [
+    {
+      "name": "plainsgrass1",
+      "source": "autotiles/grass/plainsgrass1.png",
+      "editable_file": "sources/floors/plainsgrass1.png",
+      "native_size": [
+        64,
+        304
+      ]
+    },
+    {
+      "name": "plainsgrass2",
+      "source": "autotiles/grass/plainsgrass2.png",
+      "editable_file": "sources/floors/plainsgrass2.png",
+      "native_size": [
+        64,
+        304
+      ]
+    },
+    {
+      "name": "plainsgrass3",
+      "source": "autotiles/grass/plainsgrass3.png",
+      "editable_file": "sources/floors/plainsgrass3.png",
+      "native_size": [
+        64,
+        304
+      ]
+    },
+    {
+      "name": "plainsgrass_tall",
+      "source": "autotiles/grass/plainsgrass_tall.png",
+      "editable_file": "sources/floors/plainsgrass_tall.png",
+      "native_size": [
+        64,
+        304
+      ]
+    },
+    {
+      "name": "short_grass",
+      "source": "autotiles/grass/short_grass.png",
+      "editable_file": "sources/floors/short_grass.png",
+      "native_size": [
+        64,
+        304
+      ]
+    },
+    {
+      "name": "shortgrass_details",
+      "source": "autotiles/shortgrass_details.png",
+      "editable_file": "sources/floors/shortgrass_details.png",
+      "native_size": [
+        80,
+        16
+      ]
+    },
+    {
+      "name": "plainsgrass1_details",
+      "source": "autotiles/plainsgrass1_details.png",
+      "editable_file": "sources/floors/plainsgrass1_details.png",
+      "native_size": [
+        64,
+        16
+      ]
+    },
+    {
+      "name": "plainsgrass2_details",
+      "source": "autotiles/plainsgrass2_details.png",
+      "editable_file": "sources/floors/plainsgrass2_details.png",
+      "native_size": [
+        64,
+        16
+      ]
+    },
+    {
+      "name": "plainsgrass3_details",
+      "source": "autotiles/plainsgrass3_details.png",
+      "editable_file": "sources/floors/plainsgrass3_details.png",
+      "native_size": [
+        64,
+        16
+      ]
+    },
+    {
+      "name": "dirt_tileset",
+      "source": "autotiles/dirt_tileset.png",
+      "editable_file": "sources/floors/dirt_tileset.png",
+      "native_size": [
+        64,
+        112
+      ]
+    },
+    {
+      "name": "dirt_tileset_details",
+      "source": "autotiles/dirt_tileset_details.png",
+      "editable_file": "sources/floors/dirt_tileset_details.png",
+      "native_size": [
+        64,
+        8
+      ]
+    },
+    {
+      "name": "soil_damp_tileset",
+      "source": "autotiles/soil_damp_tileset.png",
+      "editable_file": "sources/floors/soil_damp_tileset.png",
+      "native_size": [
+        64,
+        96
+      ]
+    },
+    {
+      "name": "soil_dry_tileset",
+      "source": "autotiles/soil_dry_tileset.png",
+      "editable_file": "sources/floors/soil_dry_tileset.png",
+      "native_size": [
+        64,
+        96
+      ]
+    },
+    {
+      "name": "beachtile",
+      "source": "autotiles/beachtile.png",
+      "editable_file": "sources/floors/beachtile.png",
+      "native_size": [
+        64,
+        128
+      ]
+    },
+    {
+      "name": "beachdetails",
+      "source": "autotiles/beachdetails.png",
+      "editable_file": "sources/floors/beachdetails.png",
+      "native_size": [
+        64,
+        16
+      ]
+    },
+    {
+      "name": "sandtile",
+      "source": "autotiles/sandtile.png",
+      "editable_file": "sources/floors/sandtile.png",
+      "native_size": [
+        64,
+        128
+      ]
+    },
+    {
+      "name": "swamp_bottom1",
+      "source": "autotiles/swamp_bottom1.png",
+      "editable_file": "sources/floors/swamp_bottom1.png",
+      "native_size": [
+        16,
+        16
+      ]
+    },
+    {
+      "name": "swamp_bottom2",
+      "source": "autotiles/swamp_bottom2.png",
+      "editable_file": "sources/floors/swamp_bottom2.png",
+      "native_size": [
+        16,
+        16
+      ]
+    },
+    {
+      "name": "swamp_water_grass_green",
+      "source": "autotiles/swamp_water_grass_green.png",
+      "editable_file": "sources/floors/swamp_water_grass_green.png",
+      "native_size": [
+        80,
+        48
+      ]
+    },
+    {
+      "name": "swampgrass_green_details",
+      "source": "autotiles/swampgrass_green_details.png",
+      "editable_file": "sources/floors/swampgrass_green_details.png",
+      "native_size": [
+        48,
+        64
+      ]
+    },
+    {
+      "name": "burntgrass_tileset",
+      "source": "autotiles/burntgrass_tileset.png",
+      "editable_file": "sources/floors/burntgrass_tileset.png",
+      "native_size": [
+        64,
+        144
+      ]
+    },
+    {
+      "name": "ash_tileset",
+      "source": "autotiles/ash_tileset.png",
+      "editable_file": "sources/floors/ash_tileset.png",
+      "native_size": [
+        64,
+        128
+      ]
+    },
+    {
+      "name": "world_tile_ground",
+      "source": "tiles/world_tile_ground.png",
+      "editable_file": "sources/floors/world_tile_ground.png",
+      "native_size": [
+        256,
+        256
+      ]
+    },
+    {
+      "name": "water",
+      "source": "rendering/water.png",
+      "editable_file": "sources/floors/water.png",
+      "native_size": [
+        256,
+        256
+      ]
+    },
+    {
+      "name": "forest_path_short_grass_autumn",
+      "source": "autotiles/roads/forest_path_short_grass_autumn.png",
+      "editable_file": "sources/floors/forest_path_short_grass_autumn.png",
+      "native_size": [
+        96,
+        96
+      ]
+    },
+    {
+      "name": "forest_path_tall_grass_autumn",
+      "source": "autotiles/roads/forest_path_tall_grass_autumn.png",
+      "editable_file": "sources/floors/forest_path_tall_grass_autumn.png",
+      "native_size": [
+        96,
+        96
+      ]
+    },
+    {
+      "name": "forest_unbreakable_bushes_bottom_",
+      "source": "autotiles/forest_unbreakable_bushes_bottom_.png",
+      "editable_file": "sources/floors/forest_unbreakable_bushes_bottom_.png",
+      "native_size": [
+        64,
+        64
+      ]
+    },
+    {
+      "name": "forest_unbreakable_bushes_top_",
+      "source": "autotiles/forest_unbreakable_bushes_top_.png",
+      "editable_file": "sources/floors/forest_unbreakable_bushes_top_.png",
+      "native_size": [
+        64,
+        64
+      ]
+    },
+    {
+      "name": "tree_wall",
+      "source": "autotiles/tree_wall.png",
+      "editable_file": "sources/floors/tree_wall.png",
+      "native_size": [
+        32,
+        80
+      ]
+    }
+  ],
+  "prop_sources": [
+    {
+      "name": "stump",
+      "source": "sprites/flora/stump.png",
+      "editable_file": "sources/props/flora_stump.png",
+      "native_size": [
+        64,
+        32
+      ]
+    },
+    {
+      "name": "tree1",
+      "source": "sprites/flora/tree1.png",
+      "editable_file": "sources/props/flora_tree1.png",
+      "native_size": [
+        96,
+        80
+      ]
+    },
+    {
+      "name": "tree2",
+      "source": "sprites/flora/tree2.png",
+      "editable_file": "sources/props/flora_tree2.png",
+      "native_size": [
+        192,
+        192
+      ]
+    },
+    {
+      "name": "stone_pine_large",
+      "source": "sprites/flora/stone_pine_large.png",
+      "editable_file": "sources/props/flora_stone_pine_large.png",
+      "native_size": [
+        480,
+        80
+      ]
+    },
+    {
+      "name": "skinny_tree",
+      "source": "sprites/flora/skinny_tree.png",
+      "editable_file": "sources/props/flora_skinny_tree.png",
+      "native_size": [
+        128,
+        560
+      ]
+    },
+    {
+      "name": "tall_cypress",
+      "source": "sprites/flora/tall_cypress.png",
+      "editable_file": "sources/props/flora_tall_cypress.png",
+      "native_size": [
+        32,
+        96
+      ]
+    },
+    {
+      "name": "apple_tree_large",
+      "source": "sprites/flora/apple_tree_large.png",
+      "editable_file": "sources/props/flora_apple_tree_large.png",
+      "native_size": [
+        128,
+        80
+      ]
+    },
+    {
+      "name": "apple_tree_stump",
+      "source": "sprites/flora/apple_tree_stump.png",
+      "editable_file": "sources/props/flora_apple_tree_stump.png",
+      "native_size": [
+        128,
+        80
+      ]
+    },
+    {
+      "name": "stone_pine_stump",
+      "source": "sprites/flora/stone_pine_stump.png",
+      "editable_file": "sources/props/flora_stone_pine_stump.png",
+      "native_size": [
+        480,
+        80
+      ]
+    },
+    {
+      "name": "olive_tree_large",
+      "source": "sprites/flora/olive_tree_large.png",
+      "editable_file": "sources/props/flora_olive_tree_large.png",
+      "native_size": [
+        128,
+        80
+      ]
+    },
+    {
+      "name": "olive_tree_stump",
+      "source": "sprites/flora/olive_tree_stump.png",
+      "editable_file": "sources/props/flora_olive_tree_stump.png",
+      "native_size": [
+        32,
+        32
+      ]
+    },
+    {
+      "name": "big_bushes1",
+      "source": "sprites/flora/big_bushes1.png",
+      "editable_file": "sources/props/flora_big_bushes1.png",
+      "native_size": [
+        352,
+        96
+      ]
+    },
+    {
+      "name": "bush3",
+      "source": "sprites/flora/bush3.png",
+      "editable_file": "sources/props/flora_bush3.png",
+      "native_size": [
+        64,
+        64
+      ]
+    },
+    {
+      "name": "small_bush1",
+      "source": "sprites/flora/small_bush1.png",
+      "editable_file": "sources/props/flora_small_bush1.png",
+      "native_size": [
+        176,
+        16
+      ]
+    },
+    {
+      "name": "tiny_flowers",
+      "source": "sprites/flora/tiny_flowers.png",
+      "editable_file": "sources/props/flora_tiny_flowers.png",
+      "native_size": [
+        32,
+        32
+      ]
+    },
+    {
+      "name": "tiny_ground_leaves",
+      "source": "sprites/flora/tiny_ground_leaves.png",
+      "editable_file": "sources/props/flora_tiny_ground_leaves.png",
+      "native_size": [
+        144,
+        32
+      ]
+    },
+    {
+      "name": "mushrooms",
+      "source": "sprites/flora/mushrooms.png",
+      "editable_file": "sources/props/flora_mushrooms.png",
+      "native_size": [
+        96,
+        16
+      ]
+    },
+    {
+      "name": "bellflowers",
+      "source": "sprites/flora/bellflowers.png",
+      "editable_file": "sources/props/flora_bellflowers.png",
+      "native_size": [
+        64,
+        160
+      ]
+    },
+    {
+      "name": "lilies",
+      "source": "sprites/flora/lilies.png",
+      "editable_file": "sources/props/flora_lilies.png",
+      "native_size": [
+        96,
+        128
+      ]
+    },
+    {
+      "name": "purplebush",
+      "source": "sprites/flora/desert/purplebush.png",
+      "editable_file": "sources/props/desert_purplebush.png",
+      "native_size": [
+        48,
+        96
+      ]
+    },
+    {
+      "name": "ground_plants",
+      "source": "sprites/flora/ground_plants.png",
+      "editable_file": "sources/props/flora_ground_plants.png",
+      "native_size": [
+        192,
+        64
+      ]
+    },
+    {
+      "name": "wheat",
+      "source": "sprites/flora/wheat.png",
+      "editable_file": "sources/props/flora_wheat.png",
+      "native_size": [
+        16,
+        256
+      ]
+    },
+    {
+      "name": "wheat_animated",
+      "source": "sprites/flora/wheat_animated.png",
+      "editable_file": "sources/props/flora_wheat_animated.png",
+      "native_size": [
+        64,
+        256
+      ]
+    },
+    {
+      "name": "swamp_trees",
+      "source": "sprites/biomes/swamp/swamp_trees.png",
+      "editable_file": "sources/props/swamp_swamp_trees.png",
+      "native_size": [
+        432,
+        96
+      ]
+    },
+    {
+      "name": "round_rocks_big",
+      "source": "sprites/terrain/round_rocks_big.png",
+      "editable_file": "sources/props/terrain_round_rocks_big.png",
+      "native_size": [
+        240,
+        144
+      ]
+    },
+    {
+      "name": "round_rocks_small",
+      "source": "sprites/terrain/round_rocks_small.png",
+      "editable_file": "sources/props/terrain_round_rocks_small.png",
+      "native_size": [
+        128,
+        96
+      ]
+    },
+    {
+      "name": "mossy_boulder_large",
+      "source": "sprites/poi/mossy_boulder_large.png",
+      "editable_file": "sources/props/poi_mossy_boulder_large.png",
+      "native_size": [
+        64,
+        80
+      ]
+    },
+    {
+      "name": "rock_cave",
+      "source": "sprites/poi/rock_cave.png",
+      "editable_file": "sources/props/poi_rock_cave.png",
+      "native_size": [
+        80,
+        80
+      ]
+    },
+    {
+      "name": "rocks",
+      "source": "sprites/resources/rocks.png",
+      "editable_file": "sources/props/resources_rocks.png",
+      "native_size": [
+        64,
+        32
+      ]
+    },
+    {
+      "name": "copper_ore",
+      "source": "sprites/resources/copper_ore.png",
+      "editable_file": "sources/props/resources_copper_ore.png",
+      "native_size": [
+        32,
+        64
+      ]
+    },
+    {
+      "name": "rocks",
+      "source": "tiles/rocks.png",
+      "editable_file": "sources/props/tiles_rocks.png",
+      "native_size": [
+        256,
+        256
+      ]
+    },
+    {
+      "name": "brazier",
+      "source": "sprites/decor/decorations/tier0/brazier.png",
+      "editable_file": "sources/props/tier0_brazier.png",
+      "native_size": [
+        32,
+        64
+      ]
+    },
+    {
+      "name": "bonfire",
+      "source": "sprites/decor/decorations/tier0/bonfire.png",
+      "editable_file": "sources/props/tier0_bonfire.png",
+      "native_size": [
+        64,
+        64
+      ]
+    }
+  ],
+  "wildlife_sources": [
+    {
+      "name": "squirrel_idle",
+      "source": "sprites/creatures/wildlife/squirrel/squirrel_idle.png",
+      "editable_file": "sources/wildlife/squirrel_squirrel_idle.png",
+      "native_size": [
+        96,
+        32
+      ]
+    },
+    {
+      "name": "squirrel_running",
+      "source": "sprites/creatures/wildlife/squirrel/squirrel_running.png",
+      "editable_file": "sources/wildlife/squirrel_squirrel_running.png",
+      "native_size": [
+        96,
+        32
+      ]
+    },
+    {
+      "name": "squirrel_feeding",
+      "source": "sprites/creatures/wildlife/squirrel/squirrel_feeding.png",
+      "editable_file": "sources/wildlife/squirrel_squirrel_feeding.png",
+      "native_size": [
+        96,
+        32
+      ]
+    },
+    {
+      "name": "rabbit_idle",
+      "source": "sprites/creatures/wildlife/rabbit/rabbit_idle.png",
+      "editable_file": "sources/wildlife/rabbit_rabbit_idle.png",
+      "native_size": [
+        192,
+        160
+      ]
+    },
+    {
+      "name": "rabbit_run",
+      "source": "sprites/creatures/wildlife/rabbit/rabbit_run.png",
+      "editable_file": "sources/wildlife/rabbit_rabbit_run.png",
+      "native_size": [
+        192,
+        160
+      ]
+    },
+    {
+      "name": "deer_female_idle",
+      "source": "sprites/creatures/wildlife/deer/deer_female_idle.png",
+      "editable_file": "sources/wildlife/deer_deer_female_idle.png",
+      "native_size": [
+        288,
+        240
+      ]
+    },
+    {
+      "name": "deer_female_walk",
+      "source": "sprites/creatures/wildlife/deer/deer_female_walk.png",
+      "editable_file": "sources/wildlife/deer_deer_female_walk.png",
+      "native_size": [
+        384,
+        240
+      ]
+    },
+    {
+      "name": "deer_female_run",
+      "source": "sprites/creatures/wildlife/deer/deer_female_run.png",
+      "editable_file": "sources/wildlife/deer_deer_female_run.png",
+      "native_size": [
+        288,
+        240
+      ]
+    },
+    {
+      "name": "deer_female_alert",
+      "source": "sprites/creatures/wildlife/deer/deer_female_alert.png",
+      "editable_file": "sources/wildlife/deer_deer_female_alert.png",
+      "native_size": [
+        192,
+        240
+      ]
+    },
+    {
+      "name": "deer_female_alert_loop",
+      "source": "sprites/creatures/wildlife/deer/deer_female_alert_loop.png",
+      "editable_file": "sources/wildlife/deer_deer_female_alert_loop.png",
+      "native_size": [
+        96,
+        240
+      ]
+    },
+    {
+      "name": "bird_idle",
+      "source": "sprites/creatures/wildlife/bird/bird_idle.png",
+      "editable_file": "sources/wildlife/bird_bird_idle.png",
+      "native_size": [
+        32,
+        160
+      ]
+    },
+    {
+      "name": "bird_fly",
+      "source": "sprites/creatures/wildlife/bird/bird_fly.png",
+      "editable_file": "sources/wildlife/bird_bird_fly.png",
+      "native_size": [
+        192,
+        160
+      ]
+    },
+    {
+      "name": "idle",
+      "source": "sprites/creatures/wildlife/bird/idle.png",
+      "editable_file": "sources/wildlife/bird_idle.png",
+      "native_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "name": "hop",
+      "source": "sprites/creatures/wildlife/bird/hop.png",
+      "editable_file": "sources/wildlife/bird_hop.png",
+      "native_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "name": "peck",
+      "source": "sprites/creatures/wildlife/bird/peck.png",
+      "editable_file": "sources/wildlife/bird_peck.png",
+      "native_size": [
+        128,
+        128
+      ]
+    },
+    {
+      "name": "fly",
+      "source": "sprites/creatures/wildlife/bird/fly.png",
+      "editable_file": "sources/wildlife/bird_fly.png",
+      "native_size": [
+        128,
+        128
+      ]
+    }
+  ],
+  "floor_atlas": [
+    {
+      "name": "plainsgrass1",
+      "source": "autotiles/grass/plainsgrass1.png",
+      "rect": [
+        8,
+        8,
+        64,
+        304
+      ],
+      "native_size": [
+        64,
+        304
+      ],
+      "scaled": false
+    },
+    {
+      "name": "plainsgrass2",
+      "source": "autotiles/grass/plainsgrass2.png",
+      "rect": [
+        80,
+        8,
+        64,
+        304
+      ],
+      "native_size": [
+        64,
+        304
+      ],
+      "scaled": false
+    },
+    {
+      "name": "plainsgrass3",
+      "source": "autotiles/grass/plainsgrass3.png",
+      "rect": [
+        152,
+        8,
+        64,
+        304
+      ],
+      "native_size": [
+        64,
+        304
+      ],
+      "scaled": false
+    },
+    {
+      "name": "plainsgrass_tall",
+      "source": "autotiles/grass/plainsgrass_tall.png",
+      "rect": [
+        224,
+        8,
+        64,
+        304
+      ],
+      "native_size": [
+        64,
+        304
+      ],
+      "scaled": false
+    },
+    {
+      "name": "short_grass",
+      "source": "autotiles/grass/short_grass.png",
+      "rect": [
+        296,
+        8,
+        64,
+        304
+      ],
+      "native_size": [
+        64,
+        304
+      ],
+      "scaled": false
+    },
+    {
+      "name": "shortgrass_details",
+      "source": "autotiles/shortgrass_details.png",
+      "rect": [
+        368,
+        8,
+        80,
+        16
+      ],
+      "native_size": [
+        80,
+        16
+      ],
+      "scaled": false
+    },
+    {
+      "name": "plainsgrass1_details",
+      "source": "autotiles/plainsgrass1_details.png",
+      "rect": [
+        456,
+        8,
+        64,
+        16
+      ],
+      "native_size": [
+        64,
+        16
+      ],
+      "scaled": false
+    },
+    {
+      "name": "plainsgrass2_details",
+      "source": "autotiles/plainsgrass2_details.png",
+      "rect": [
+        528,
+        8,
+        64,
+        16
+      ],
+      "native_size": [
+        64,
+        16
+      ],
+      "scaled": false
+    },
+    {
+      "name": "plainsgrass3_details",
+      "source": "autotiles/plainsgrass3_details.png",
+      "rect": [
+        600,
+        8,
+        64,
+        16
+      ],
+      "native_size": [
+        64,
+        16
+      ],
+      "scaled": false
+    },
+    {
+      "name": "dirt_tileset",
+      "source": "autotiles/dirt_tileset.png",
+      "rect": [
+        672,
+        8,
+        64,
+        112
+      ],
+      "native_size": [
+        64,
+        112
+      ],
+      "scaled": false
+    },
+    {
+      "name": "dirt_tileset_details",
+      "source": "autotiles/dirt_tileset_details.png",
+      "rect": [
+        744,
+        8,
+        64,
+        8
+      ],
+      "native_size": [
+        64,
+        8
+      ],
+      "scaled": false
+    },
+    {
+      "name": "soil_damp_tileset",
+      "source": "autotiles/soil_damp_tileset.png",
+      "rect": [
+        816,
+        8,
+        64,
+        96
+      ],
+      "native_size": [
+        64,
+        96
+      ],
+      "scaled": false
+    },
+    {
+      "name": "soil_dry_tileset",
+      "source": "autotiles/soil_dry_tileset.png",
+      "rect": [
+        888,
+        8,
+        64,
+        96
+      ],
+      "native_size": [
+        64,
+        96
+      ],
+      "scaled": false
+    },
+    {
+      "name": "beachtile",
+      "source": "autotiles/beachtile.png",
+      "rect": [
+        8,
+        320,
+        64,
+        128
+      ],
+      "native_size": [
+        64,
+        128
+      ],
+      "scaled": false
+    },
+    {
+      "name": "beachdetails",
+      "source": "autotiles/beachdetails.png",
+      "rect": [
+        80,
+        320,
+        64,
+        16
+      ],
+      "native_size": [
+        64,
+        16
+      ],
+      "scaled": false
+    },
+    {
+      "name": "sandtile",
+      "source": "autotiles/sandtile.png",
+      "rect": [
+        152,
+        320,
+        64,
+        128
+      ],
+      "native_size": [
+        64,
+        128
+      ],
+      "scaled": false
+    },
+    {
+      "name": "swamp_bottom1",
+      "source": "autotiles/swamp_bottom1.png",
+      "rect": [
+        224,
+        320,
+        16,
+        16
+      ],
+      "native_size": [
+        16,
+        16
+      ],
+      "scaled": false
+    },
+    {
+      "name": "swamp_bottom2",
+      "source": "autotiles/swamp_bottom2.png",
+      "rect": [
+        248,
+        320,
+        16,
+        16
+      ],
+      "native_size": [
+        16,
+        16
+      ],
+      "scaled": false
+    },
+    {
+      "name": "swamp_water_grass_green",
+      "source": "autotiles/swamp_water_grass_green.png",
+      "rect": [
+        272,
+        320,
+        80,
+        48
+      ],
+      "native_size": [
+        80,
+        48
+      ],
+      "scaled": false
+    },
+    {
+      "name": "swampgrass_green_details",
+      "source": "autotiles/swampgrass_green_details.png",
+      "rect": [
+        360,
+        320,
+        48,
+        64
+      ],
+      "native_size": [
+        48,
+        64
+      ],
+      "scaled": false
+    },
+    {
+      "name": "burntgrass_tileset",
+      "source": "autotiles/burntgrass_tileset.png",
+      "rect": [
+        416,
+        320,
+        64,
+        144
+      ],
+      "native_size": [
+        64,
+        144
+      ],
+      "scaled": false
+    },
+    {
+      "name": "ash_tileset",
+      "source": "autotiles/ash_tileset.png",
+      "rect": [
+        488,
+        320,
+        64,
+        128
+      ],
+      "native_size": [
+        64,
+        128
+      ],
+      "scaled": false
+    },
+    {
+      "name": "world_tile_ground",
+      "source": "tiles/world_tile_ground.png",
+      "rect": [
+        560,
+        320,
+        256,
+        256
+      ],
+      "native_size": [
+        256,
+        256
+      ],
+      "scaled": false
+    },
+    {
+      "name": "water",
+      "source": "rendering/water.png",
+      "rect": [
+        8,
+        584,
+        256,
+        256
+      ],
+      "native_size": [
+        256,
+        256
+      ],
+      "scaled": false
+    },
+    {
+      "name": "forest_path_short_grass_autumn",
+      "source": "autotiles/roads/forest_path_short_grass_autumn.png",
+      "rect": [
+        272,
+        584,
+        96,
+        96
+      ],
+      "native_size": [
+        96,
+        96
+      ],
+      "scaled": false
+    },
+    {
+      "name": "forest_path_tall_grass_autumn",
+      "source": "autotiles/roads/forest_path_tall_grass_autumn.png",
+      "rect": [
+        376,
+        584,
+        96,
+        96
+      ],
+      "native_size": [
+        96,
+        96
+      ],
+      "scaled": false
+    },
+    {
+      "name": "forest_unbreakable_bushes_bottom_",
+      "source": "autotiles/forest_unbreakable_bushes_bottom_.png",
+      "rect": [
+        480,
+        584,
+        64,
+        64
+      ],
+      "native_size": [
+        64,
+        64
+      ],
+      "scaled": false
+    },
+    {
+      "name": "forest_unbreakable_bushes_top_",
+      "source": "autotiles/forest_unbreakable_bushes_top_.png",
+      "rect": [
+        552,
+        584,
+        64,
+        64
+      ],
+      "native_size": [
+        64,
+        64
+      ],
+      "scaled": false
+    },
+    {
+      "name": "tree_wall",
+      "source": "autotiles/tree_wall.png",
+      "rect": [
+        624,
+        584,
+        32,
+        80
+      ],
+      "native_size": [
+        32,
+        80
+      ],
+      "scaled": false
+    }
+  ],
+  "prop_atlas": [
+    {
+      "name": "stump",
+      "source": "sprites/flora/stump.png",
+      "rect": [
+        8,
+        8,
+        64,
+        32
+      ],
+      "native_size": [
+        64,
+        32
+      ],
+      "scaled": false
+    },
+    {
+      "name": "tree1",
+      "source": "sprites/flora/tree1.png",
+      "rect": [
+        80,
+        8,
+        96,
+        80
+      ],
+      "native_size": [
+        96,
+        80
+      ],
+      "scaled": false
+    },
+    {
+      "name": "tree2",
+      "source": "sprites/flora/tree2.png",
+      "rect": [
+        184,
+        8,
+        192,
+        192
+      ],
+      "native_size": [
+        192,
+        192
+      ],
+      "scaled": false
+    },
+    {
+      "name": "stone_pine_large",
+      "source": "sprites/flora/stone_pine_large.png",
+      "rect": [
+        384,
+        8,
+        480,
+        80
+      ],
+      "native_size": [
+        480,
+        80
+      ],
+      "scaled": false
+    },
+    {
+      "name": "skinny_tree",
+      "source": "sprites/flora/skinny_tree.png",
+      "rect": [
+        872,
+        8,
+        128,
+        560
+      ],
+      "native_size": [
+        128,
+        560
+      ],
+      "scaled": false
+    },
+    {
+      "name": "tall_cypress",
+      "source": "sprites/flora/tall_cypress.png",
+      "rect": [
+        8,
+        576,
+        32,
+        96
+      ],
+      "native_size": [
+        32,
+        96
+      ],
+      "scaled": false
+    },
+    {
+      "name": "apple_tree_large",
+      "source": "sprites/flora/apple_tree_large.png",
+      "rect": [
+        48,
+        576,
+        128,
+        80
+      ],
+      "native_size": [
+        128,
+        80
+      ],
+      "scaled": false
+    },
+    {
+      "name": "apple_tree_stump",
+      "source": "sprites/flora/apple_tree_stump.png",
+      "rect": [
+        184,
+        576,
+        128,
+        80
+      ],
+      "native_size": [
+        128,
+        80
+      ],
+      "scaled": false
+    },
+    {
+      "name": "stone_pine_stump",
+      "source": "sprites/flora/stone_pine_stump.png",
+      "rect": [
+        320,
+        576,
+        480,
+        80
+      ],
+      "native_size": [
+        480,
+        80
+      ],
+      "scaled": false
+    },
+    {
+      "name": "olive_tree_large",
+      "source": "sprites/flora/olive_tree_large.png",
+      "rect": [
+        808,
+        576,
+        128,
+        80
+      ],
+      "native_size": [
+        128,
+        80
+      ],
+      "scaled": false
+    },
+    {
+      "name": "olive_tree_stump",
+      "source": "sprites/flora/olive_tree_stump.png",
+      "rect": [
+        944,
+        576,
+        32,
+        32
+      ],
+      "native_size": [
+        32,
+        32
+      ],
+      "scaled": false
+    },
+    {
+      "name": "big_bushes1",
+      "source": "sprites/flora/big_bushes1.png",
+      "rect": [
+        8,
+        680,
+        352,
+        96
+      ],
+      "native_size": [
+        352,
+        96
+      ],
+      "scaled": false
+    },
+    {
+      "name": "bush3",
+      "source": "sprites/flora/bush3.png",
+      "rect": [
+        368,
+        680,
+        64,
+        64
+      ],
+      "native_size": [
+        64,
+        64
+      ],
+      "scaled": false
+    },
+    {
+      "name": "small_bush1",
+      "source": "sprites/flora/small_bush1.png",
+      "rect": [
+        440,
+        680,
+        176,
+        16
+      ],
+      "native_size": [
+        176,
+        16
+      ],
+      "scaled": false
+    },
+    {
+      "name": "tiny_flowers",
+      "source": "sprites/flora/tiny_flowers.png",
+      "rect": [
+        624,
+        680,
+        32,
+        32
+      ],
+      "native_size": [
+        32,
+        32
+      ],
+      "scaled": false
+    },
+    {
+      "name": "tiny_ground_leaves",
+      "source": "sprites/flora/tiny_ground_leaves.png",
+      "rect": [
+        664,
+        680,
+        144,
+        32
+      ],
+      "native_size": [
+        144,
+        32
+      ],
+      "scaled": false
+    },
+    {
+      "name": "mushrooms",
+      "source": "sprites/flora/mushrooms.png",
+      "rect": [
+        816,
+        680,
+        96,
+        16
+      ],
+      "native_size": [
+        96,
+        16
+      ],
+      "scaled": false
+    },
+    {
+      "name": "bellflowers",
+      "source": "sprites/flora/bellflowers.png",
+      "rect": [
+        920,
+        680,
+        64,
+        160
+      ],
+      "native_size": [
+        64,
+        160
+      ],
+      "scaled": false
+    },
+    {
+      "name": "lilies",
+      "source": "sprites/flora/lilies.png",
+      "rect": [
+        8,
+        848,
+        96,
+        128
+      ],
+      "native_size": [
+        96,
+        128
+      ],
+      "scaled": false
+    },
+    {
+      "name": "purplebush",
+      "source": "sprites/flora/desert/purplebush.png",
+      "rect": [
+        112,
+        848,
+        48,
+        96
+      ],
+      "native_size": [
+        48,
+        96
+      ],
+      "scaled": false
+    },
+    {
+      "name": "ground_plants",
+      "source": "sprites/flora/ground_plants.png",
+      "rect": [
+        168,
+        848,
+        192,
+        64
+      ],
+      "native_size": [
+        192,
+        64
+      ],
+      "scaled": false
+    },
+    {
+      "name": "wheat",
+      "source": "sprites/flora/wheat.png",
+      "rect": [
+        368,
+        848,
+        16,
+        256
+      ],
+      "native_size": [
+        16,
+        256
+      ],
+      "scaled": false
+    },
+    {
+      "name": "wheat_animated",
+      "source": "sprites/flora/wheat_animated.png",
+      "rect": [
+        392,
+        848,
+        64,
+        256
+      ],
+      "native_size": [
+        64,
+        256
+      ],
+      "scaled": false
+    },
+    {
+      "name": "swamp_trees",
+      "source": "sprites/biomes/swamp/swamp_trees.png",
+      "rect": [
+        464,
+        848,
+        432,
+        96
+      ],
+      "native_size": [
+        432,
+        96
+      ],
+      "scaled": false
+    },
+    {
+      "name": "round_rocks_big",
+      "source": "sprites/terrain/round_rocks_big.png",
+      "rect": [
+        8,
+        1112,
+        240,
+        144
+      ],
+      "native_size": [
+        240,
+        144
+      ],
+      "scaled": false
+    },
+    {
+      "name": "round_rocks_small",
+      "source": "sprites/terrain/round_rocks_small.png",
+      "rect": [
+        256,
+        1112,
+        128,
+        96
+      ],
+      "native_size": [
+        128,
+        96
+      ],
+      "scaled": false
+    },
+    {
+      "name": "mossy_boulder_large",
+      "source": "sprites/poi/mossy_boulder_large.png",
+      "rect": [
+        392,
+        1112,
+        64,
+        80
+      ],
+      "native_size": [
+        64,
+        80
+      ],
+      "scaled": false
+    },
+    {
+      "name": "rock_cave",
+      "source": "sprites/poi/rock_cave.png",
+      "rect": [
+        464,
+        1112,
+        80,
+        80
+      ],
+      "native_size": [
+        80,
+        80
+      ],
+      "scaled": false
+    },
+    {
+      "name": "rocks",
+      "source": "sprites/resources/rocks.png",
+      "rect": [
+        552,
+        1112,
+        64,
+        32
+      ],
+      "native_size": [
+        64,
+        32
+      ],
+      "scaled": false
+    },
+    {
+      "name": "copper_ore",
+      "source": "sprites/resources/copper_ore.png",
+      "rect": [
+        624,
+        1112,
+        32,
+        64
+      ],
+      "native_size": [
+        32,
+        64
+      ],
+      "scaled": false
+    },
+    {
+      "name": "rocks",
+      "source": "tiles/rocks.png",
+      "rect": [
+        664,
+        1112,
+        256,
+        256
+      ],
+      "native_size": [
+        256,
+        256
+      ],
+      "scaled": false
+    },
+    {
+      "name": "brazier",
+      "source": "sprites/decor/decorations/tier0/brazier.png",
+      "rect": [
+        928,
+        1112,
+        32,
+        64
+      ],
+      "native_size": [
+        32,
+        64
+      ],
+      "scaled": false
+    },
+    {
+      "name": "bonfire",
+      "source": "sprites/decor/decorations/tier0/bonfire.png",
+      "rect": [
+        8,
+        1376,
+        64,
+        64
+      ],
+      "native_size": [
+        64,
+        64
+      ],
+      "scaled": false
+    }
+  ],
+  "wildlife_atlas": [
+    {
+      "name": "squirrel_idle",
+      "source": "sprites/creatures/wildlife/squirrel/squirrel_idle.png",
+      "rect": [
+        8,
+        8,
+        96,
+        32
+      ],
+      "native_size": [
+        96,
+        32
+      ],
+      "scaled": false
+    },
+    {
+      "name": "squirrel_running",
+      "source": "sprites/creatures/wildlife/squirrel/squirrel_running.png",
+      "rect": [
+        112,
+        8,
+        96,
+        32
+      ],
+      "native_size": [
+        96,
+        32
+      ],
+      "scaled": false
+    },
+    {
+      "name": "squirrel_feeding",
+      "source": "sprites/creatures/wildlife/squirrel/squirrel_feeding.png",
+      "rect": [
+        216,
+        8,
+        96,
+        32
+      ],
+      "native_size": [
+        96,
+        32
+      ],
+      "scaled": false
+    },
+    {
+      "name": "rabbit_idle",
+      "source": "sprites/creatures/wildlife/rabbit/rabbit_idle.png",
+      "rect": [
+        320,
+        8,
+        192,
+        160
+      ],
+      "native_size": [
+        192,
+        160
+      ],
+      "scaled": false
+    },
+    {
+      "name": "rabbit_run",
+      "source": "sprites/creatures/wildlife/rabbit/rabbit_run.png",
+      "rect": [
+        520,
+        8,
+        192,
+        160
+      ],
+      "native_size": [
+        192,
+        160
+      ],
+      "scaled": false
+    },
+    {
+      "name": "deer_female_idle",
+      "source": "sprites/creatures/wildlife/deer/deer_female_idle.png",
+      "rect": [
+        720,
+        8,
+        288,
+        240
+      ],
+      "native_size": [
+        288,
+        240
+      ],
+      "scaled": false
+    },
+    {
+      "name": "deer_female_walk",
+      "source": "sprites/creatures/wildlife/deer/deer_female_walk.png",
+      "rect": [
+        8,
+        256,
+        384,
+        240
+      ],
+      "native_size": [
+        384,
+        240
+      ],
+      "scaled": false
+    },
+    {
+      "name": "deer_female_run",
+      "source": "sprites/creatures/wildlife/deer/deer_female_run.png",
+      "rect": [
+        400,
+        256,
+        288,
+        240
+      ],
+      "native_size": [
+        288,
+        240
+      ],
+      "scaled": false
+    },
+    {
+      "name": "deer_female_alert",
+      "source": "sprites/creatures/wildlife/deer/deer_female_alert.png",
+      "rect": [
+        696,
+        256,
+        192,
+        240
+      ],
+      "native_size": [
+        192,
+        240
+      ],
+      "scaled": false
+    },
+    {
+      "name": "deer_female_alert_loop",
+      "source": "sprites/creatures/wildlife/deer/deer_female_alert_loop.png",
+      "rect": [
+        896,
+        256,
+        96,
+        240
+      ],
+      "native_size": [
+        96,
+        240
+      ],
+      "scaled": false
+    },
+    {
+      "name": "bird_idle",
+      "source": "sprites/creatures/wildlife/bird/bird_idle.png",
+      "rect": [
+        8,
+        504,
+        32,
+        160
+      ],
+      "native_size": [
+        32,
+        160
+      ],
+      "scaled": false
+    },
+    {
+      "name": "bird_fly",
+      "source": "sprites/creatures/wildlife/bird/bird_fly.png",
+      "rect": [
+        48,
+        504,
+        192,
+        160
+      ],
+      "native_size": [
+        192,
+        160
+      ],
+      "scaled": false
+    },
+    {
+      "name": "idle",
+      "source": "sprites/creatures/wildlife/bird/idle.png",
+      "rect": [
+        248,
+        504,
+        128,
+        128
+      ],
+      "native_size": [
+        128,
+        128
+      ],
+      "scaled": false
+    },
+    {
+      "name": "hop",
+      "source": "sprites/creatures/wildlife/bird/hop.png",
+      "rect": [
+        384,
+        504,
+        128,
+        128
+      ],
+      "native_size": [
+        128,
+        128
+      ],
+      "scaled": false
+    },
+    {
+      "name": "peck",
+      "source": "sprites/creatures/wildlife/bird/peck.png",
+      "rect": [
+        520,
+        504,
+        128,
+        128
+      ],
+      "native_size": [
+        128,
+        128
+      ],
+      "scaled": false
+    },
+    {
+      "name": "fly",
+      "source": "sprites/creatures/wildlife/bird/fly.png",
+      "rect": [
+        656,
+        504,
+        128,
+        128
+      ],
+      "native_size": [
+        128,
+        128
+      ],
+      "scaled": false
+    }
+  ],
+  "runtime_floor_samples": [
+    {
+      "name": "water",
+      "source": "autotiles/swamp_bottom2.png",
+      "source_rect": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "atlas_rect": [
+        0,
+        0,
+        16,
+        16
+      ]
+    },
+    {
+      "name": "shore",
+      "source": "autotiles/beachtile.png",
+      "source_rect": [
+        32,
+        16,
+        48,
+        32
+      ],
+      "atlas_rect": [
+        16,
+        0,
+        16,
+        16
+      ]
+    },
+    {
+      "name": "meadow",
+      "source": "autotiles/grass/short_grass.png",
+      "source_rect": [
+        32,
+        16,
+        48,
+        32
+      ],
+      "atlas_rect": [
+        32,
+        0,
+        16,
+        16
+      ]
+    },
+    {
+      "name": "forest",
+      "source": "autotiles/grass/plainsgrass_tall.png",
+      "source_rect": [
+        32,
+        16,
+        48,
+        32
+      ],
+      "atlas_rect": [
+        48,
+        0,
+        16,
+        16
+      ]
+    },
+    {
+      "name": "swamp",
+      "source": "autotiles/swamp_bottom1.png",
+      "source_rect": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "atlas_rect": [
+        64,
+        0,
+        16,
+        16
+      ]
+    },
+    {
+      "name": "dry_plains",
+      "source": "autotiles/soil_dry_tileset.png",
+      "source_rect": [
+        32,
+        16,
+        48,
+        32
+      ],
+      "atlas_rect": [
+        80,
+        0,
+        16,
+        16
+      ]
+    }
+  ],
+  "runtime_prop_samples": [
+    {
+      "name": "tree_canopy",
+      "source": "sprites/flora/tree1.png",
+      "source_rect": [
+        0,
+        0,
+        48,
+        80
+      ],
+      "atlas_rect": [
+        0,
+        0,
+        96,
+        96
+      ],
+      "sprite_offset": [
+        24,
+        16
+      ],
+      "scaled": false
+    },
+    {
+      "name": "tree_trunk",
+      "source": "sprites/flora/stump.png",
+      "source_rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "atlas_rect": [
+        96,
+        0,
+        96,
+        96
+      ],
+      "sprite_offset": [
+        32,
+        64
+      ],
+      "scaled": false
+    },
+    {
+      "name": "round_rock",
+      "source": "sprites/terrain/round_rocks_big.png",
+      "source_rect": [
+        0,
+        0,
+        48,
+        48
+      ],
+      "atlas_rect": [
+        192,
+        0,
+        96,
+        96
+      ],
+      "sprite_offset": [
+        24,
+        48
+      ],
+      "scaled": false
+    },
+    {
+      "name": "bush",
+      "source": "sprites/flora/big_bushes1.png",
+      "source_rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "atlas_rect": [
+        288,
+        0,
+        96,
+        96
+      ],
+      "sprite_offset": [
+        32,
+        64
+      ],
+      "scaled": false
+    },
+    {
+      "name": "wheat",
+      "source": "sprites/flora/wheat_animated.png",
+      "source_rect": [
+        0,
+        64,
+        16,
+        96
+      ],
+      "atlas_rect": [
+        384,
+        0,
+        96,
+        96
+      ],
+      "sprite_offset": [
+        40,
+        64
+      ],
+      "scaled": false
+    },
+    {
+      "name": "brazier",
+      "source": "sprites/decor/decorations/tier0/brazier.png",
+      "source_rect": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "atlas_rect": [
+        480,
+        0,
+        96,
+        96
+      ],
+      "sprite_offset": [
+        32,
+        64
+      ],
+      "scaled": false
+    }
+  ]
+}

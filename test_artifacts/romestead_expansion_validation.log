@@ -1,0 +1,1525 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ContentDB loaded successfully
+PASS: Content Editor loads the expanded catalogs
+PASS: Content Editor lists tree2
+PASS: tree2 passes resource validation
+PASS: Content Editor lists tree3
+PASS: tree3 passes resource validation
+PASS: Content Editor lists tree4
+PASS: tree4 passes resource validation
+PASS: Content Editor lists tree5
+PASS: tree5 passes resource validation
+PASS: Content Editor lists tree6
+PASS: tree6 passes resource validation
+PASS: Content Editor lists tree7
+PASS: tree7 passes resource validation
+PASS: Content Editor lists tree8
+PASS: tree8 passes resource validation
+PASS: Content Editor lists tree9
+PASS: tree9 passes resource validation
+PASS: Content Editor lists tree10
+PASS: tree10 passes resource validation
+PASS: Content Editor lists tree11
+PASS: tree11 passes resource validation
+PASS: Content Editor lists tree12
+PASS: tree12 passes resource validation
+PASS: Content Editor lists tree13
+PASS: tree13 passes resource validation
+PASS: Content Editor lists tree14
+PASS: tree14 passes resource validation
+PASS: Content Editor lists tree15
+PASS: tree15 passes resource validation
+PASS: Content Editor lists tree16
+PASS: tree16 passes resource validation
+PASS: Content Editor lists tree17
+PASS: tree17 passes resource validation
+PASS: Content Editor lists tree18
+PASS: tree18 passes resource validation
+PASS: Content Editor lists tree19
+PASS: tree19 passes resource validation
+PASS: Content Editor lists tree20
+PASS: tree20 passes resource validation
+PASS: Content Editor lists tree21
+PASS: tree21 passes resource validation
+PASS: Content Editor lists tree22
+PASS: tree22 passes resource validation
+PASS: Content Editor lists tree23
+PASS: tree23 passes resource validation
+PASS: Content Editor lists tree24
+PASS: tree24 passes resource validation
+PASS: Content Editor lists tree25
+PASS: tree25 passes resource validation
+PASS: Content Editor lists tree26
+PASS: tree26 passes resource validation
+PASS: Content Editor lists tree27
+PASS: tree27 passes resource validation
+PASS: Content Editor lists tree28
+PASS: tree28 passes resource validation
+PASS: Content Editor lists tree29
+PASS: tree29 passes resource validation
+PASS: Content Editor lists tree30
+PASS: tree30 passes resource validation
+PASS: Content Editor lists tree31
+PASS: tree31 passes resource validation
+PASS: Content Editor lists tree32
+PASS: tree32 passes resource validation
+PASS: Content Editor lists tree33
+PASS: tree33 passes resource validation
+PASS: Content Editor lists tree34
+PASS: tree34 passes resource validation
+PASS: Content Editor lists tree35
+PASS: tree35 passes resource validation
+PASS: Content Editor lists tree36
+PASS: tree36 passes resource validation
+PASS: Content Editor lists tree37
+PASS: tree37 passes resource validation
+PASS: Content Editor lists tree38
+PASS: tree38 passes resource validation
+PASS: Content Editor lists tree39
+PASS: tree39 passes resource validation
+PASS: Content Editor lists tree40
+PASS: tree40 passes resource validation
+PASS: Content Editor lists rock1
+PASS: rock1 passes resource validation
+PASS: Content Editor lists rock2
+PASS: rock2 passes resource validation
+PASS: Content Editor lists rock3
+PASS: rock3 passes resource validation
+PASS: Content Editor lists rock4
+PASS: rock4 passes resource validation
+PASS: Content Editor lists rock5
+PASS: rock5 passes resource validation
+PASS: Content Editor lists rock6
+PASS: rock6 passes resource validation
+PASS: Content Editor lists rock7
+PASS: rock7 passes resource validation
+PASS: Content Editor lists rock8
+PASS: rock8 passes resource validation
+PASS: Content Editor lists rock9
+PASS: rock9 passes resource validation
+PASS: Content Editor lists rock10
+PASS: rock10 passes resource validation
+PASS: Content Editor lists stone1
+PASS: stone1 passes resource validation
+PASS: Content Editor lists stone2
+PASS: stone2 passes resource validation
+PASS: Content Editor lists stone3
+PASS: stone3 passes resource validation
+PASS: Content Editor lists stone4
+PASS: stone4 passes resource validation
+PASS: Content Editor lists stone5
+PASS: stone5 passes resource validation
+PASS: Content Editor lists stone6
+PASS: stone6 passes resource validation
+PASS: Content Editor lists stone7
+PASS: stone7 passes resource validation
+PASS: Content Editor lists stone8
+PASS: stone8 passes resource validation
+PASS: Content Editor lists wheat1
+PASS: wheat1 passes resource validation
+PASS: Content Editor lists wheat2
+PASS: wheat2 passes resource validation
+PASS: Content Editor lists wheat3
+PASS: wheat3 passes resource validation
+PASS: Content Editor lists wheat4
+PASS: wheat4 passes resource validation
+PASS: Content Editor lists wheat5
+PASS: wheat5 passes resource validation
+PASS: Content Editor lists wheat6
+PASS: wheat6 passes resource validation
+PASS: Content Editor lists wheat7
+PASS: wheat7 passes resource validation
+PASS: Content Editor lists wheat8
+PASS: wheat8 passes resource validation
+PASS: Content Editor lists wheat9
+PASS: wheat9 passes resource validation
+PASS: Content Editor lists wheat10
+PASS: wheat10 passes resource validation
+PASS: Content Editor lists wheat11
+PASS: wheat11 passes resource validation
+PASS: Content Editor lists wheat12
+PASS: wheat12 passes resource validation
+PASS: Content Editor lists wheat13
+PASS: wheat13 passes resource validation
+PASS: Content Editor lists wheat14
+PASS: wheat14 passes resource validation
+PASS: Content Editor lists wheat15
+PASS: wheat15 passes resource validation
+PASS: Content Editor lists wheat16
+PASS: wheat16 passes resource validation
+PASS: Content Editor lists wheat17
+PASS: wheat17 passes resource validation
+PASS: Content Editor lists wheat18
+PASS: wheat18 passes resource validation
+PASS: Content Editor lists wheat19
+PASS: wheat19 passes resource validation
+PASS: Content Editor lists wheat20
+PASS: wheat20 passes resource validation
+PASS: Content Editor lists wheat21
+PASS: wheat21 passes resource validation
+PASS: Content Editor lists wheat22
+PASS: wheat22 passes resource validation
+PASS: Content Editor lists wheat23
+PASS: wheat23 passes resource validation
+PASS: Content Editor lists wheat24
+PASS: wheat24 passes resource validation
+PASS: Content Editor lists bush1
+PASS: bush1 passes resource validation
+PASS: Content Editor lists bush2
+PASS: bush2 passes resource validation
+PASS: Content Editor lists bush3
+PASS: bush3 passes resource validation
+PASS: Content Editor lists bush4
+PASS: bush4 passes resource validation
+PASS: Content Editor lists bush5
+PASS: bush5 passes resource validation
+PASS: Content Editor lists bush6
+PASS: bush6 passes resource validation
+PASS: Content Editor lists bush7
+PASS: bush7 passes resource validation
+PASS: Content Editor lists bush8
+PASS: bush8 passes resource validation
+PASS: Content Editor lists bush9
+PASS: bush9 passes resource validation
+PASS: Content Editor lists bush10
+PASS: bush10 passes resource validation
+PASS: Content Editor lists bush11
+PASS: bush11 passes resource validation
+PASS: Content Editor lists bush12
+PASS: bush12 passes resource validation
+PASS: Content Editor lists bush13
+PASS: bush13 passes resource validation
+PASS: Content Editor lists bush14
+PASS: bush14 passes resource validation
+PASS: Content Editor lists bush15
+PASS: bush15 passes resource validation
+PASS: Content Editor lists bush16
+PASS: bush16 passes resource validation
+PASS: Content Editor lists bush17
+PASS: bush17 passes resource validation
+PASS: Content Editor lists bush18
+PASS: bush18 passes resource validation
+PASS: Content Editor lists bush19
+PASS: bush19 passes resource validation
+PASS: Content Editor lists bush20
+PASS: bush20 passes resource validation
+PASS: Content Editor lists bush21
+PASS: bush21 passes resource validation
+WIPPlayer loaded 6 idle south frames and 6 run south frames.
+BONES_VISUAL_CONFIGURE runtime=alabaster profile=juno animation_set=player_templar_body inferred=false
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_EMBED_JSON_BEGIN path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 encoded_chars=5620
+ALABASTER_EMBED_JSON_BYTES path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 compressed=4215 gzip_size=55306 limit=67108864
+ALABASTER_EMBED_JSON_RAW path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 raw_bytes=55306
+ALABASTER_EMBED_JSON_OK path=res://data/labs/alabaster/source/player-weapon.json.gz.b64 root_keys=["figures", "spriteSheets"]
+WARNING: BuildSystem has no build layer yet; waiting for setup(context).
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] setup (res://scripts/BuildSystem.gd:75)
+       [1] setup (res://scripts/BuildSystemLightingSuite.gd:20)
+       [2] _ready (res://scripts/BuildSystem.gd:56)
+       [3] _ready (res://scripts/BuildSystemLightingSuite.gd:14)
+       [4] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: add_collision_polygon (scene/resources/2d/tile_set.cpp:6387)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:363)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Index p_layer_id = 0 is out of bounds (physics.size() = 0).
+   at: set_collision_polygon_points (scene/resources/2d/tile_set.cpp:6400)
+   GDScript backtrace (most recent call first):
+       [0] _assign_native_tileset (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:364)
+       [1] _prepare_tilesets (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:333)
+       [2] generate_world (res://scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd:200)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:72)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+ERROR: Can't use get_node() with absolute paths from outside the active scene tree.
+   at: get_node_or_null (scene/main/node.cpp:1898)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:7)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+WARNING: MonsterSpawner could not access ContentDB.
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] get_scene_path (res://scripts/systems/MonsterSpawner.gd:9)
+       [1] spawn_monster (res://scripts/systems/MonsterSpawner.gd:29)
+       [2] _spawn_procedural_wildlife (res://scripts/world/RomesteadProceduralGameWorld.gd:219)
+       [3] generate_world (res://scripts/world/RomesteadProceduralGameWorld.gd:73)
+       [4] _ready (res://scripts/world/RomesteadProceduralGameWorld.gd:68)
+       [5] load_map (res://scripts/game/MapLoader.gd:34)
+       [6] _load_current_map (res://scripts/game/Game.gd:169)
+       [7] _ready (res://scripts/game/Game.gd:65)
+       [8] _run (res://scripts/test/RomesteadGameIntegrationValidator.gd:33)
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Squirrel loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Rabbit loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Deer Female loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+Bird loaded monster data from ContentDB
+BONES_PLAYER_READY character=juno_alabaster profile=juno animations=419 source=SOURCE_JSON cache={ "cached_tracks": 8, "prewarmed_tracks": 7, "current_animation": "idle" }
+PASS: GAME uses the Romestead procedural world
+PASS: Procedural world created functional resources
+PASS: Romestead lighting and Alabaster weather are active
+PASS: Romestead lighting has visual priority
+PASS: Trees and breakable rocks spawn as Oathwake resources
+PASS: Tree is split into static trunk and moving canopy
+PASS: Wind moves only the grounded canopy
+PASS: Tree reacts to a successful axe hit
+PASS: Breakable rock has gameplay collision
+Respawned resource: romestead_resource_-6_-30
+PASS: Destroyed resource respawns at a new procedural location
+PASS: Respawn remains inside an allowed biome
+ROMESTEAD_GAME_INTEGRATION_VALIDATION: PASS resources=466 catalog=102

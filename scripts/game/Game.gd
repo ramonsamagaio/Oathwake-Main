@@ -8,6 +8,7 @@ const GameplayAudioControllerScript := preload("res://scripts/game/GameplayAudio
 const ResourceSceneFactoryScript := preload("res://scripts/resources/ResourceSceneFactory.gd")
 const MonsterSpawnerScript := preload("res://scripts/systems/MonsterSpawner.gd")
 const WorldItemSpawner := preload("res://scripts/systems/WorldItemSpawner.gd")
+const AmbientParticleFieldScript := preload("res://scripts/effects/AmbientParticleField.gd")
 
 var inventory := InventoryScript.new()
 var equipment_system := EquipmentSystemScript.new()
@@ -17,6 +18,7 @@ var inventory_bridge: GameplayInventoryBridge
 var audio_controller: GameplayAudioController
 var monster_spawner := MonsterSpawnerScript.new()
 var resource_scene_factory := ResourceSceneFactoryScript.new()
+var ambient_particle_field: Node2D
 
 @onready var current_map_root: Node2D = $CurrentMapRoot
 @onready var runtime_entities: Node2D = $RuntimeEntities
@@ -28,6 +30,8 @@ var resource_scene_factory := ResourceSceneFactoryScript.new()
 @onready var housing_system = $Systems/HousingSystem
 @onready var settlement_manager = $Systems/SettlementManager
 @onready var day_night_cycle = $Systems/DayNightCycle
+@onready var romestead_environment = $Systems/RomesteadEnvironment
+@onready var alabaster_weather = $Systems/AlabasterWeather
 @onready var night_enemy_spawner = $Systems/NightEnemySpawner
 @onready var inventory_ui = $UI/InventoryUI
 @onready var hotbar_ui = $UI/HotbarUI
@@ -38,6 +42,8 @@ var resource_scene_factory := ResourceSceneFactoryScript.new()
 @onready var save_button: Button = $UI/SaveButton
 @onready var load_button: Button = $UI/LoadButton
 @onready var spawn_monster_button: Button = $UI/SpawnMonsterButton
+@onready var weather_button: Button = $UI/WeatherButton
+@onready var weather_panel: Panel = $UI/WeatherControlPanel
 @onready var monster_spawn_panel: Panel = $UI/MonsterSpawnPanel
 @onready var close_monster_spawn_button: Button = $UI/MonsterSpawnPanel/CloseButton
 @onready var monster_spawn_list: VBoxContainer = $UI/MonsterSpawnPanel/SpawnScroll/MonsterList
@@ -60,6 +66,7 @@ func _ready() -> void:
 	_setup_runtime_systems()
 	_configure_save_coordinator()
 	save_coordinator.apply_loaded_data()
+	_configure_weather_ui()
 	_connect_player_status()
 	audio_controller = GameplayAudioControllerScript.new()
 	add_child(audio_controller)
@@ -204,7 +211,56 @@ func _setup_runtime_systems() -> void:
 	housing_system.setup({"build_system": build_system})
 	settlement_manager.setup({"controller": self, "player": player, "build_system": build_system, "housing_system": housing_system})
 	day_night_cycle.setup({"canvas_modulate": $WorldTint})
+	day_night_cycle.external_visual_control = true
+	var lighting_callback := Callable(self, "_on_game_lighting_state_changed")
+	if not day_night_cycle.lighting_state_changed.is_connected(lighting_callback):
+		day_night_cycle.lighting_state_changed.connect(lighting_callback)
+	var procedural_world := map.find_child("RomesteadProceduralGameWorld", true, false)
+	romestead_environment.set_world(procedural_world)
+	_setup_ambient_particle_field(procedural_world)
+	_on_game_lighting_state_changed(
+		day_night_cycle.time_of_day,
+		day_night_cycle.get_night_strength(),
+		day_night_cycle.get_daylight_strength(),
+		day_night_cycle.get_sun_shadow_direction_degrees()
+	)
 	night_enemy_spawner.setup({"player": player, "day_night_cycle": day_night_cycle, "enemies_root": map.get_enemies_root(), "build_system": build_system, "world": map})
+
+
+func _setup_ambient_particle_field(wind_source: Node) -> void:
+	if ambient_particle_field == null or not is_instance_valid(ambient_particle_field):
+		ambient_particle_field = AmbientParticleFieldScript.new()
+		ambient_particle_field.name = "RomesteadAmbientParticles"
+		add_child(ambient_particle_field)
+	var particle_config := {
+		"enabled": true,
+		"area_size": {"x": 896.0, "y": 528.0},
+		"day_alpha": 1.15,
+		"night_alpha": 1.35,
+		"firefly_count": 10,
+		"leaf_count": 16,
+		"pollen_count": 24,
+		"firefly_color": "#FFE286FF",
+		"leaf_color": "#758B4DFF",
+		"pollen_color": "#D8D19AFF",
+		"z_index": 3600,
+	}
+	var content_db := get_node_or_null("/root/ContentDB")
+	if content_db != null and content_db.has_method("has_vfx_profile") and content_db.has_vfx_profile("default"):
+		var profile: Dictionary = content_db.get_vfx_profile("default")
+		var world_visuals_value: Variant = profile.get("world_visuals", {})
+		if world_visuals_value is Dictionary:
+			var configured_value: Variant = (world_visuals_value as Dictionary).get("particles", {})
+			if configured_value is Dictionary:
+				particle_config.merge((configured_value as Dictionary), true)
+	ambient_particle_field.call("configure", particle_config, wind_source)
+
+
+func _on_game_lighting_state_changed(normalized_time: float, _night_strength: float, _daylight_strength: float, _shadow_degrees: float) -> void:
+	if romestead_environment != null:
+		# Oathwake stores 0.0 as dawn and 0.5 as dusk. Romestead stores clock
+		# hours, so preserve gameplay day/night semantics while changing visuals.
+		romestead_environment.set_time(fposmod(normalized_time * 24.0 + 6.0, 24.0))
 
 
 func _connect_player_status() -> void:
@@ -267,6 +323,12 @@ func _configure_monster_spawn_debug_ui() -> void:
 	spawn_monster_button.pressed.connect(_on_spawn_monster_button_pressed)
 	close_monster_spawn_button.pressed.connect(_on_close_monster_spawn_pressed)
 	_populate_spawn_debug_panel()
+
+
+func _configure_weather_ui() -> void:
+	weather_button.focus_mode = Control.FOCUS_NONE
+	weather_button.pressed.connect(weather_panel.toggle_panel)
+	weather_panel.setup(day_night_cycle, alabaster_weather)
 
 
 func _populate_spawn_debug_panel() -> void:

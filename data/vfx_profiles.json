@@ -96,6 +96,7 @@
 				"dusk_fade_start": 0.42,
 				"evening_angle_from_up_degrees": 45.0,
 				"fade_with_night": true,
+				"night_minimum_strength": 0.28,
 				"morning_angle_from_up_degrees": -45.0,
 				"root_overlap": 6.0,
 				"rotate_with_day": true,

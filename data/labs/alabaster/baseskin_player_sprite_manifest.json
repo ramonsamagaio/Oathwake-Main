@@ -1,0 +1,38 @@
+{
+  "character_id": "juno_alabaster",
+  "source_sheet": "juno",
+  "scope": ["idle", "walk", "run", "atkSwordN1"],
+  "oathwake_master_views": ["N", "NE", "E", "SE", "S"],
+  "note": "Rows are articulation/pitch variants unless a frame_keys field says otherwise. Do not treat every row as a direction or animation.",
+  "blocks": [
+    {"id":"H-CABECA","node":"head","xy":[0,0],"cell":[20,20],"facing":"FACE_16_MIRR","rows":11,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"HG-ADORNO","node":"headGear","xy":[528,108],"cell":[16,16],"facing":"FACE_16_MIRR","rows":1,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"OLHO-NORMAL","node":"eyes","xy":[180,0],"cell":[12,8],"facing":"FACE_16_MIRR_FO","rows":3,"frame_keys":[1,4,5],"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"OLHO-BAIXO","node":"eyes","xy":[180,32],"cell":[12,8],"facing":"FACE_16_MIRR_FO","rows":3,"frame_keys":[1,4,5],"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"OLHO-CIMA","node":"eyes","xy":[180,64],"cell":[12,8],"facing":"FACE_16_MIRR_FO","rows":3,"frame_keys":[1,4,5],"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"OLHO-LATERAL","node":"eyes","xy":[180,96],"cell":[12,8],"facing":"FACE_16_FRONT_ONLY+FLIP","rows":2,"frame_keys":[2,3],"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"T-FRENTE","node":"top","gfx":0,"xy":[288,0],"cell":[12,12],"facing":"FACE_16","rows":4,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"T-COSTAS","node":"top","gfx":1,"xy":[288,84],"cell":[12,8],"facing":"FACE_8_MIRR","rows":2,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"C-FRENTE","node":"bottom","gfx":0,"xy":[480,48],"cell":[12,12],"facing":"FACE_16_MIRR","rows":5,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"C-TRAS","node":"bottom","gfx":1,"xy":[480,36],"cell":[12,12],"facing":"FACE_16_MIRR","rows":1,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"BR-R-A","node":"armR","gfx":0,"xy":[608,36],"cell":[8,8],"facing":"FACE_4_MIRR_FLIP","rows":3,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"BR-R-B","node":"armR","gfx":1,"xy":[608,60],"cell":[8,8],"facing":"FACE_4_MIRR_FLIP","rows":2,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"BR-L-A","node":"armL","gfx":0,"xy":[632,64],"cell":[8,8],"facing":"FACE_8_MIRR","rows":4,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"BR-L-B","node":"armL","gfx":1,"xy":[608,76],"cell":[8,8],"facing":"FACE_4_MIRR","rows":3,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"MAO-RL","node":["handR","handL"],"xy":[632,0],"cell":[8,8],"facing":"FACE_8_MIRR+FLIP","rows":5,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"DEDOS-RL","node":["fingerR","fingerL"],"xy":[632,40],"cell":[8,8],"facing":"FACE_8_MIRR+FLIP","rows":3,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"PERNA-R","node":"legR","xy":[480,0],"cell":[8,12],"facing":"FACE_8","rows":2,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"PERNA-L","node":"legL","xy":[544,0],"cell":[8,12],"facing":"FACE_8","rows":2,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"PE-RL","node":["footR","footL"],"xy":[608,0],"cell":[8,12],"facing":"FACE_4_MIRR+FLIP","rows":3,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"DEDO-PE-RL","node":["toeR","toeL"],"xy":[348,84],"cell":[8,8],"facing":"FACE_16_MIRR+FLIP","rows":2,"cycles":["idle","walk","run","atkSwordN1"]},
+    {"id":"TR-IDLE","node":"tailEnd","xy":[360,100],"cell":[8,28],"facing":"FACE_4_MIRR","rows":1,"cycles":["idle"]},
+    {"id":"TR-WALK","node":"tailEnd","xy":[308,100],"cell":[16,28],"facing":"FACE_1","rows":4,"frame_keys":[5,6,7,8],"cycles":["walk"]},
+    {"id":"TR-RUN","node":"tailEnd","xy":[324,100],"cell":[12,28],"facing":"FACE_4_MIRR","rows":4,"frame_keys":[1,2,3,4],"cycles":["run"]},
+    {"id":"TR-ATK","node":"tailEnd","xy":[384,100],"cell":[16,28],"facing":"FACE_2_FRONT_BACK+FLIP","rows":10,"frame_keys":[9,10,11,12,13,14,15,16,17,18],"cycles":["atkSwordN1"]}
+  ],
+  "sockets": [
+    {"id":"ARMA-R","node":"weaponR","pixels":false,"note":"Sword/equipment attaches here."},
+    {"id":"ARMA-L","node":"weaponL","pixels":false,"note":"Off-hand/left weapon socket."}
+  ],
+  "excluded_now": ["sleep_head", "hyper_eyes", "flashback", "stretched_fingers", "special/cutscene blocks"]
+}

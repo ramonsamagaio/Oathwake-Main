@@ -105,6 +105,13 @@ func _get_character_form_record() -> Dictionary:
 
 func _build_resource_form() -> void:
 	super._build_resource_form()
+	var collision := _record_dictionary(current_record, "collision")
+	_add_subsection_title("Resource Collision")
+	var collision_note := Label.new()
+	collision_note.text = "When enabled, the player and wildlife may cross this resource. Small foliage bends from its grounded base when a character brushes through it."
+	collision_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(collision_note)
+	_add_check_box("Player Can Pass Through (contact rustle)", "resource_player_pass_through", bool(collision.get("player_pass_through", false)))
 	var depth := _record_dictionary(current_record, "depth_sort")
 	_add_subsection_title("World Depth Line")
 	var depth_note := Label.new()
@@ -135,6 +142,9 @@ func _build_resource_form() -> void:
 
 func _get_resource_form_record() -> Dictionary:
 	var record := super._get_resource_form_record()
+	var collision := _record_dictionary(record, "collision")
+	collision["player_pass_through"] = _get_check_box_pressed("resource_player_pass_through")
+	record["collision"] = collision
 	record["depth_sort"] = {
 		"line_ratio": _get_spin_box_value("resource_depth_line_ratio"),
 		"offset_y": _get_spin_box_value("resource_depth_offset_y"),

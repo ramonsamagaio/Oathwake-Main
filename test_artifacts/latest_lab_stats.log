@@ -1,0 +1,14 @@
+﻿Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ContentDB loaded successfully
+ROMESTEAD_WORLD_SYSTEMS_LAB_VALIDATION_OK cells=33600 spots=12759 props=1499 lights=3 climates=6
+godot.exe : WARNING: MultiFloorBuildManager could not find the active BuildSystem yet.
+No linha:2 caractere:1
++ & 'C:\Godot\godot.exe' --headless --path 'C:\Oathwake\Oathwake-Main'  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (WARNING: MultiF...uildSystem yet.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _bootstrap (res://scripts/systems/MultiFloorBuildManager.gd:68)

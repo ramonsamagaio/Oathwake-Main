@@ -1,0 +1,8 @@
+WARNING: BuildSystem has no build layer yet; waiting for setup(context).
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] setup (res://scripts/BuildSystem.gd:75)
+       [1] setup (res://scripts/BuildSystemLightingSuite.gd:20)
+       [2] _ready (res://scripts/BuildSystem.gd:56)
+       [3] _ready (res://scripts/BuildSystemLightingSuite.gd:14)
+       [4] _capture (res://scripts/test/CurrentGameOptimizationCapture.gd:18)

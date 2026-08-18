@@ -2,6 +2,7 @@ extends RefCounted
 
 const GlowOverlayScene: PackedScene = preload("res://scenes/effects/GlowOverlay.tscn")
 const DirectionalShadowRuntimeScript := preload("res://scripts/effects/DirectionalShadowRuntime.gd")
+const NightScaledContactShadowScript := preload("res://scripts/effects/NightScaledContactShadow.gd")
 
 
 static func apply_content_effects(target: Node2D, record: Dictionary, default_glow_z := 24) -> void:
@@ -10,7 +11,7 @@ static func apply_content_effects(target: Node2D, record: Dictionary, default_gl
 	var glow_value: Variant = record.get("glow", {})
 	var shadow_value: Variant = record.get("shadow", {})
 	apply_glow(target, glow_value if glow_value is Dictionary else {}, default_glow_z)
-	apply_shadow(target, shadow_value if shadow_value is Dictionary else {})
+	apply_shadow(target, shadow_value if shadow_value is Dictionary else {}, bool(record.get("flying", false)))
 
 
 static func apply_glow(target: Node2D, config: Dictionary, default_glow_z := 24) -> Node2D:
@@ -53,9 +54,11 @@ static func apply_glow(target: Node2D, config: Dictionary, default_glow_z := 24)
 	return glow
 
 
-static func apply_shadow(target: Node2D, config: Dictionary) -> Polygon2D:
+static func apply_shadow(target: Node2D, config: Dictionary, use_contact_shadow := false) -> Polygon2D:
 	if target == null:
 		return null
+	if use_contact_shadow or str(config.get("mode", "")).to_lower() == "contact":
+		return _apply_contact_shadow(target, config)
 	var resolved_config := config.duplicate(true)
 	if not resolved_config.has("enabled"):
 		resolved_config["enabled"] = false
@@ -63,6 +66,21 @@ static func apply_shadow(target: Node2D, config: Dictionary) -> Polygon2D:
 	var visual_size := DirectionalShadowRuntimeScript.estimate_target_visual_size(target)
 	var foot_offset := DirectionalShadowRuntimeScript.estimate_target_foot_offset(target)
 	return DirectionalShadowRuntimeScript.apply_to_target(target, resolved_config, visual_size, foot_offset, active_source)
+
+
+static func _apply_contact_shadow(target: Node2D, config: Dictionary) -> Polygon2D:
+	var shadow := target.get_node_or_null("GroundShadow") as Polygon2D
+	if shadow == null or shadow.get_script() != NightScaledContactShadowScript:
+		if shadow != null:
+			target.remove_child(shadow)
+			shadow.queue_free()
+		shadow = NightScaledContactShadowScript.new() as Polygon2D
+		shadow.name = "GroundShadow"
+		target.add_child(shadow)
+	shadow.visible = bool(config.get("enabled", true))
+	if shadow.has_method("configure"):
+		shadow.call("configure", config)
+	return shadow
 
 
 static func _visual_mode_to_int(mode_name: String) -> int:

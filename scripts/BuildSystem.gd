@@ -1246,6 +1246,9 @@ func _spawn_building_scene(tile_position: Vector2i, building_type: String) -> vo
 		building_scene.set_storage_slots(storage_slots)
 	if building_scene.has_method("set_open"):
 		building_scene.set_open(bool(metadata.get("is_open", false)))
+	var procedural_world := get_tree().get_first_node_in_group("procedural_resource_world")
+	if procedural_world != null and procedural_world.has_method("clear_spawnables_in_building") and building_scene is Node2D:
+		procedural_world.call_deferred("clear_spawnables_in_building", building_scene as Node2D)
 
 	building_scene_by_cell[cell_key] = building_scene
 

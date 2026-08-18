@@ -10,6 +10,7 @@ const WorldVisualDirectorScript := preload("res://scripts/world/WorldVisualDirec
 @export var map_id: String = ""
 @export var display_name: String = ""
 @export var default_spawn_point_name: String = "PlayerSpawn"
+@export var use_world_visual_director := true
 
 var _loaded_save_data: Dictionary = {}
 var _world_visual_director: Node2D
@@ -67,15 +68,20 @@ func get_default_spawn_position() -> Vector2:
 	return spawn_point.global_position if spawn_point != null else global_position
 
 
-func get_tile_type_at_position(_global_position: Vector2) -> String:
+func get_tile_type_at_position(global_position: Vector2) -> String:
+	var procedural_world := find_child("RomesteadProceduralGameWorld", true, false)
+	if procedural_world != null and procedural_world.has_method("get_terrain_name_at_world"):
+		return str(procedural_world.call("get_terrain_name_at_world", global_position))
 	return "grass"
 
 
 func _ready() -> void:
-	_ensure_world_visual_director()
+	if use_world_visual_director:
+		_ensure_world_visual_director()
 	_ensure_functional_ground()
-	call_deferred("_configure_authored_prop_presentation")
-	call_deferred("_configure_authored_environment_layers")
+	if use_world_visual_director:
+		call_deferred("_configure_authored_prop_presentation")
+		call_deferred("_configure_authored_environment_layers")
 
 
 func _ensure_world_visual_director() -> void:
@@ -183,8 +189,8 @@ func _ensure_functional_ground() -> void:
 		tile_set.add_source(source, 0)
 		_ground_layer.tile_set = tile_set
 	if _ground_layer.get_used_cells().is_empty():
-		for x in range(-8, 60):
-			for y in range(-8, 40):
+		for x in range(-32, 61):
+			for y in range(-24, 41):
 				_ground_layer.set_cell(Vector2i(x, y), 0, Vector2i.ZERO)
 	if _build_layer.tile_set == null:
 		_build_layer.tile_set = _ground_layer.tile_set
