@@ -7,12 +7,13 @@ extends Node
 #
 # This script deliberately does not own generation. The authored procedural
 # world remains the source of truth for terrain/resources; this node only
-# decides what needs CPU work around the current camera.
+# decides what needs CPU work around the current camera/player focus.
 
 const STREAM_CHUNK_PIXELS: float = 384.0
 const ACTIVE_MARGIN_PIXELS: float = 176.0
 const STREAM_MARGIN_PIXELS: float = 288.0
 const CAMERA_REFRESH_DISTANCE: float = 96.0
+const STREAM_FOCUS_REFRESH_DISTANCE: float = 96.0
 const MAX_RESOURCE_SPAWNS_PER_TICK: int = 18
 
 const STREAM_INTERVAL: float = 0.05
@@ -36,6 +37,7 @@ var _active_resource_ids: Dictionary = {}
 
 var _player: Node2D
 var _last_focus_position: Vector2 = Vector2(INF, INF)
+var _last_stream_focus_position: Vector2 = Vector2(INF, INF)
 var _last_viewport_size: Vector2 = Vector2.ZERO
 var _last_zoom: Vector2 = Vector2.ZERO
 var _force_visibility_refresh: bool = true
@@ -94,12 +96,15 @@ func _detach_world() -> void:
 	if _world != null and is_instance_valid(_world) and _enabled:
 		_world.set_process(true)
 	_world = null
+	_player = null
 	_enabled = false
 	_pending_by_chunk.clear()
 	_active_resources.clear()
 	_active_wind_resources.clear()
 	_active_occlusion_resources.clear()
 	_active_resource_ids.clear()
+	_last_focus_position = Vector2(INF, INF)
+	_last_stream_focus_position = Vector2(INF, INF)
 	set_process(false)
 
 
@@ -127,12 +132,15 @@ func _process(delta: float) -> void:
 		_index_check_accumulator = fmod(_index_check_accumulator, PENDING_INDEX_CHECK_INTERVAL)
 		_check_pending_index_integrity()
 
-	# A large camera/focus jump is a streaming event, not only a visibility event.
-	# Run one bounded pass immediately so teleports, loads and uncapped headless
-	# validation do not have to wait for STREAM_INTERVAL wall-clock time to elapse.
-	var focus_changed: bool = _camera_refresh_needed()
-	if focus_changed:
+	# Visibility follows the camera, while resource streaming follows the player.
+	# Keeping those concerns separate makes teleports and load-position jumps
+	# deterministic even when Camera2D smoothing has not caught up yet.
+	var camera_changed: bool = _camera_refresh_needed()
+	var stream_focus_changed: bool = _stream_focus_refresh_needed()
+	if camera_changed:
 		_force_visibility_refresh = true
+
+	if stream_focus_changed:
 		_run_stream_pass()
 		_stream_accumulator = 0.0
 	elif _stream_accumulator >= STREAM_INTERVAL:
@@ -164,7 +172,7 @@ func _process(delta: float) -> void:
 
 
 func _run_stream_pass() -> void:
-	var streamed: int = _stream_nearby_resources(_get_active_bounds().grow(STREAM_MARGIN_PIXELS))
+	var streamed: int = _stream_nearby_resources(_get_stream_bounds())
 	if streamed > 0:
 		_force_visibility_refresh = true
 	_diagnostics["stream_ticks"] = int(_diagnostics["stream_ticks"]) + 1
@@ -199,6 +207,43 @@ func _camera_refresh_needed() -> bool:
 		_store_view_signature(focus_position, viewport_size, zoom)
 		return true
 	return false
+
+
+func _stream_focus_refresh_needed() -> bool:
+	var focus_position: Vector2 = _get_stream_focus_position()
+	if not _last_stream_focus_position.is_finite():
+		_last_stream_focus_position = focus_position
+		return true
+	if (
+		focus_position.distance_squared_to(_last_stream_focus_position)
+		>= STREAM_FOCUS_REFRESH_DISTANCE * STREAM_FOCUS_REFRESH_DISTANCE
+	):
+		_last_stream_focus_position = focus_position
+		return true
+	return false
+
+
+func _get_stream_focus_position() -> Vector2:
+	if _player == null or not is_instance_valid(_player):
+		_player = get_tree().get_first_node_in_group("player") as Node2D
+	if _player != null:
+		return _player.global_position
+
+	var viewport: Viewport = get_viewport()
+	var camera: Camera2D = viewport.get_camera_2d() if viewport != null else null
+	if camera != null:
+		return camera.global_position
+	return _world.global_position if _world != null else Vector2.ZERO
+
+
+func _get_stream_bounds() -> Rect2:
+	# Reuse the viewport-derived footprint so streaming remains bounded, but
+	# center that footprint on gameplay focus instead of a potentially smoothed
+	# camera. This prevents holes after teleports without increasing the budget.
+	var active_bounds: Rect2 = _get_active_bounds()
+	var stream_size: Vector2 = active_bounds.size + Vector2.ONE * STREAM_MARGIN_PIXELS * 2.0
+	var focus_position: Vector2 = _get_stream_focus_position()
+	return Rect2(focus_position - stream_size * 0.5, stream_size)
 
 
 func _store_view_signature(focus_position: Vector2, viewport_size: Vector2, zoom: Vector2) -> void:
