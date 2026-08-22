@@ -1,11 +1,34 @@
 class_name RomesteadRuntimeSchedulerOptimized
 extends "res://scripts/world/RomesteadRuntimeScheduler.gd"
 
-# Keep streaming work small enough that creating several ResourceNode scenes
-# cannot monopolize a render frame. The previous scheduler allowed 18 scene
-# instantiations every 50 ms, which made average FPS look healthy while frame
-# time still spiked visibly.
+# Keep main-thread work bounded. The previous scheduler could instantiate 18
+# ResourceNode scenes every 50 ms; terrain used to be built all at once before
+# frame one. Runtime now admits four resources plus at most one 16x16 terrain
+# chunk per stream pass.
 const SMOOTH_RESOURCE_SPAWNS_PER_PASS: int = 4
+const TERRAIN_CHUNKS_PER_PASS: int = 1
+
+
+func _run_stream_pass() -> void:
+	var stream_bounds: Rect2 = _get_stream_bounds()
+	var terrain_chunks: int = 0
+	if _world != null and _world.has_method("stream_terrain_for_bounds"):
+		terrain_chunks = int(_world.call("stream_terrain_for_bounds", stream_bounds, TERRAIN_CHUNKS_PER_PASS))
+	var streamed: int = _stream_nearby_resources(stream_bounds)
+	if streamed > 0 or terrain_chunks > 0:
+		_force_visibility_refresh = true
+	_diagnostics["stream_ticks"] = int(_diagnostics["stream_ticks"]) + 1
+	_diagnostics["streamed_terrain_chunks"] = int(_diagnostics.get("streamed_terrain_chunks", 0)) + terrain_chunks
+
+
+func get_diagnostics() -> Dictionary:
+	var result: Dictionary = super.get_diagnostics()
+	result["resource_spawn_budget"] = SMOOTH_RESOURCE_SPAWNS_PER_PASS
+	result["terrain_chunk_budget"] = TERRAIN_CHUNKS_PER_PASS
+	result["camera_uses_screen_center"] = true
+	if _world != null and _world.has_method("get_generation_diagnostics"):
+		result["generation"] = _world.call("get_generation_diagnostics")
+	return result
 
 
 func _camera_refresh_needed() -> bool:
@@ -17,9 +40,6 @@ func _camera_refresh_needed() -> bool:
 	var focus_position: Vector2 = _world.global_position if _world != null else Vector2.ZERO
 	var zoom_value: Vector2 = Vector2.ONE
 	if camera != null:
-		# With Camera2D smoothing enabled, global_position follows the target while
-		# the rendered screen can still be catching up. Visibility must follow what
-		# the player actually sees.
 		focus_position = camera.get_screen_center_position()
 		zoom_value = camera.zoom
 	var viewport_size: Vector2 = viewport.get_visible_rect().size
@@ -121,11 +141,6 @@ func _refresh_wildlife(active_bounds: Rect2) -> void:
 	var index: int = wildlife.size() - 1
 	while index >= 0:
 		var animal_value: Variant = wildlife[index]
-
-		# IMPORTANT: validate the Object before any `as Node2D` cast. Enemy death
-		# queue_free() can leave a Freed Object variant in an Array until the owner
-		# removes it. Casting that stale variant is the exact runtime error seen
-		# when the squirrel died.
 		if typeof(animal_value) != TYPE_OBJECT or not is_instance_valid(animal_value):
 			wildlife.remove_at(index)
 			index -= 1
