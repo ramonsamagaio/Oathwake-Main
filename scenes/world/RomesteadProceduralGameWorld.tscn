@@ -93,9 +93,11 @@ y_sort_enabled = true
 
 [node name="PlainsCliff1" type="TileMapLayer" parent="."]
 z_index = 2
+y_sort_enabled = true
 
 [node name="PlainsCliff2" type="TileMapLayer" parent="."]
 z_index = 3
+y_sort_enabled = true
 
 [node name="PlainsCliffCollision" type="TileMapLayer" parent="."]
 self_modulate = Color(1, 1, 1, 0)
