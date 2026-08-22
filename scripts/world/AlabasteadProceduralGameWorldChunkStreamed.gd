@@ -78,8 +78,9 @@ func _build_wildlife_resource_spatial() -> Dictionary:
 		var source_position_value: Variant = spot.get("position", Vector2.ZERO)
 		if not (source_position_value is Vector2):
 			continue
+		var source_position: Vector2 = source_position_value as Vector2
 		var local_position: Vector2 = (
-			Vector2(world_start) + source_position_value as Vector2
+			Vector2(world_start) + source_position
 		) * float(tile_size)
 		var clearance: float = maxf(float(spot.get("size", 0.5)) * float(tile_size), 6.0)
 		_wildlife_spatial_add(spatial, local_position, clearance)
