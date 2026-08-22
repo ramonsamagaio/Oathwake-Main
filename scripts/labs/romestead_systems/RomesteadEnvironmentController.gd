@@ -3,7 +3,7 @@ extends Node
 
 signal time_changed(display_time: String)
 
-const RuntimeSchedulerScript := preload("res://scripts/world/RomesteadRuntimeScheduler.gd")
+const RuntimeSchedulerScript := preload("res://scripts/world/RomesteadRuntimeSchedulerOptimized.gd")
 
 @export var time_of_day := 16.5
 @export var day_length_seconds := 210.0
