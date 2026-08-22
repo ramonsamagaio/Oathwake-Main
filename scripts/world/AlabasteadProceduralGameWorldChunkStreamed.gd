@@ -60,6 +60,32 @@ func _render_terrain_chunk(chunk: Vector2i) -> void:
 	_entity_spots_by_terrain_chunk.erase(chunk)
 
 
+func _build_wildlife_resource_spatial() -> Dictionary:
+	var spatial: Dictionary = super._build_wildlife_resource_spatial()
+	# Distant props have not been scattered yet, but accepted EntitySizeSpots
+	# already tell us where a prop may exist. Add those candidate positions as a
+	# conservative clearance mask so globally seeded wildlife cannot appear inside
+	# a tree/rock that will materialize when its chunk streams later.
+	var world_start := Vector2i(-world_size_tiles.x / 2, -world_size_tiles.y / 2)
+	for cell_value: Variant in _entity_spots.keys():
+		if not (cell_value is Vector2i):
+			continue
+		var cell: Vector2i = cell_value as Vector2i
+		var spot_value: Variant = _entity_spots.get(cell, null)
+		if not (spot_value is Dictionary):
+			continue
+		var spot: Dictionary = spot_value as Dictionary
+		var source_position_value: Variant = spot.get("position", Vector2.ZERO)
+		if not (source_position_value is Vector2):
+			continue
+		var local_position: Vector2 = (
+			Vector2(world_start) + source_position_value as Vector2
+		) * float(tile_size)
+		var clearance: float = maxf(float(spot.get("size", 0.5)) * float(tile_size), 6.0)
+		_wildlife_spatial_add(spatial, local_position, clearance)
+	return spatial
+
+
 func get_generation_diagnostics() -> Dictionary:
 	var result: Dictionary = super.get_generation_diagnostics()
 	result["deferred_prop_chunks"] = _entity_spots_by_terrain_chunk.size()
