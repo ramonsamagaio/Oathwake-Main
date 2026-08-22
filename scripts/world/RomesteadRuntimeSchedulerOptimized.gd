@@ -14,6 +14,11 @@ func _run_stream_pass() -> void:
 	var terrain_chunks: int = 0
 	if _world != null and _world.has_method("stream_terrain_for_bounds"):
 		terrain_chunks = int(_world.call("stream_terrain_for_bounds", stream_bounds, TERRAIN_CHUNKS_PER_PASS))
+	# Chunk materialization can enqueue deterministic resource spawns lazily.
+	# Refresh the spatial pending index in the same pass so those resources do
+	# not wait for the slower periodic integrity sweep before they can stream.
+	if terrain_chunks > 0:
+		_check_pending_index_integrity()
 	var streamed: int = _stream_nearby_resources(stream_bounds)
 	if streamed > 0 or terrain_chunks > 0:
 		_force_visibility_refresh = true
