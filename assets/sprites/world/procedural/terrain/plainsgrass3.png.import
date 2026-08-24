@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d15034phlkt1c"
-path="res://.godot/imported/plainsgrass3.png-44d2c028c6535d895e5ef4b2a3155fa6.ctex"
+path="res://.godot/imported/plainsgrass3.png-f6a50d3fd8fc527228f2d88ef0d55cd5.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/terrain/plainsgrass3.png"
-dest_files=["res://.godot/imported/plainsgrass3.png-44d2c028c6535d895e5ef4b2a3155fa6.ctex"]
+dest_files=["res://.godot/imported/plainsgrass3.png-f6a50d3fd8fc527228f2d88ef0d55cd5.ctex"]
 
 [params]
 

@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b6gdnqbrbfuh4"
-path="res://.godot/imported/flora_tiny_flowers.png-0568f370b1c2f6d2257fcde7810d19b7.ctex"
+path="res://.godot/imported/flora_tiny_flowers.png-2f9d60df8215802580a88d7e8b7d70f6.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/plants/flora_tiny_flowers.png"
-dest_files=["res://.godot/imported/flora_tiny_flowers.png-0568f370b1c2f6d2257fcde7810d19b7.ctex"]
+dest_files=["res://.godot/imported/flora_tiny_flowers.png-2f9d60df8215802580a88d7e8b7d70f6.ctex"]
 
 [params]
 

@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://crm74of60ec7"
-path="res://.godot/imported/terrain_round_rocks_small.png-b8ffd0754d61820a691d4133b64c465b.ctex"
+path="res://.godot/imported/terrain_round_rocks_small.png-3787b0d90d345fadb1c0e4d7cc54fa08.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/rocks/terrain_round_rocks_small.png"
-dest_files=["res://.godot/imported/terrain_round_rocks_small.png-b8ffd0754d61820a691d4133b64c465b.ctex"]
+dest_files=["res://.godot/imported/terrain_round_rocks_small.png-3787b0d90d345fadb1c0e4d7cc54fa08.ctex"]
 
 [params]
 

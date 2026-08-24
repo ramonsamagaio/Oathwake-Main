@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bocttb6tr7jx3"
-path="res://.godot/imported/flora_ground_plants.png-c5fc64484e4ea8c9fc572c4ef01ab001.ctex"
+path="res://.godot/imported/flora_ground_plants.png-b39cffa862e7c7ca6be9f247bf0084c1.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/plants/flora_ground_plants.png"
-dest_files=["res://.godot/imported/flora_ground_plants.png-c5fc64484e4ea8c9fc572c4ef01ab001.ctex"]
+dest_files=["res://.godot/imported/flora_ground_plants.png-b39cffa862e7c7ca6be9f247bf0084c1.ctex"]
 
 [params]
 

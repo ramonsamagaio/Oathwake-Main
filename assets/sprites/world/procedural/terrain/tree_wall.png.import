@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c5ra33cu3uwrv"
-path="res://.godot/imported/tree_wall.png-d854773231958232c9908b8075123fd9.ctex"
+path="res://.godot/imported/tree_wall.png-b3a4a356914d12137b7f8ae159542278.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/terrain/tree_wall.png"
-dest_files=["res://.godot/imported/tree_wall.png-d854773231958232c9908b8075123fd9.ctex"]
+dest_files=["res://.godot/imported/tree_wall.png-b3a4a356914d12137b7f8ae159542278.ctex"]
 
 [params]
 

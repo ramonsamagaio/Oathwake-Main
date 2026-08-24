@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b3rk43cfihlnk"
-path="res://.godot/imported/flora_lilies.png-c7af08cceba610230c78ce0b8e163913.ctex"
+path="res://.godot/imported/flora_lilies.png-7193f34ac9c2463bab910acc22de95e7.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/plants/flora_lilies.png"
-dest_files=["res://.godot/imported/flora_lilies.png-c7af08cceba610230c78ce0b8e163913.ctex"]
+dest_files=["res://.godot/imported/flora_lilies.png-7193f34ac9c2463bab910acc22de95e7.ctex"]
 
 [params]
 

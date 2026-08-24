@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ueupatxmrxu4"
-path="res://.godot/imported/deer_deer_female_walk.png-612fbcfb4c56e2d74b887f3533d2b0c1.ctex"
+path="res://.godot/imported/deer_deer_female_walk.png-52e995c8853a43523dc8d704e756dd7b.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/wildlife/deer_deer_female_walk.png"
-dest_files=["res://.godot/imported/deer_deer_female_walk.png-612fbcfb4c56e2d74b887f3533d2b0c1.ctex"]
+dest_files=["res://.godot/imported/deer_deer_female_walk.png-52e995c8853a43523dc8d704e756dd7b.ctex"]
 
 [params]
 
