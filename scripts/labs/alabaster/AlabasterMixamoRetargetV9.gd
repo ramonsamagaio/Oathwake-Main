@@ -99,7 +99,7 @@ static func convert_scene(
 	var target_parent_map := _target_parent_map(settings)
 	if target_rest_local.is_empty():
 		push_warning("Mixamo -> Juno V9: target rest vectors unavailable; using V8 segment swing fallback.")
-		var fallback_settings := settings.duplicate(true)
+		var fallback_settings: Dictionary = settings.duplicate(true)
 		fallback_settings["retarget_limb_mode"] = "segment_swing"
 		return V8.convert_scene(player, skeleton, clip_name, sample_fps, loop, translation_scale, fallback_settings)
 
@@ -117,25 +117,25 @@ static func convert_scene(
 			push_warning("Mixamo -> Juno V9: missing required source bone '%s'." % required_name)
 			return {}
 
-	var rest_pelvis_value := _body_frame_transforms(rest_semantic, "hips", "leftupleg", "rightupleg", "spine")
-	var rest_torso_value := _body_frame_transforms(rest_semantic, "spine2", "leftshoulder", "rightshoulder", "neck")
+	var rest_pelvis_value: Variant = _body_frame_transforms(rest_semantic, "hips", "leftupleg", "rightupleg", "spine")
+	var rest_torso_value: Variant = _body_frame_transforms(rest_semantic, "spine2", "leftshoulder", "rightshoulder", "neck")
 	if rest_pelvis_value == null or rest_torso_value == null:
 		return {}
-	var rest_pelvis: Basis = rest_pelvis_value
-	var rest_torso: Basis = rest_torso_value
+	var rest_pelvis: Basis = rest_pelvis_value as Basis
+	var rest_torso: Basis = rest_torso_value as Basis
 
 	# Characterize Juno from her actual authored node positions rather than a
 	# hard-coded axis guess. This automatically establishes the target handedness
 	# and therefore the correct forward/back direction for knees, feet and arms.
 	var target_rest_global := _build_target_rest_global(target_rest_local, target_parent_map)
-	var target_pelvis_value := _body_frame_points(target_rest_global, "bottom", "legL", "legR", "top")
+	var target_pelvis_value: Variant = _body_frame_points(target_rest_global, "bottom", "legL", "legR", "top")
 	if target_pelvis_value == null:
 		push_warning("Mixamo -> Juno V9: could not characterize target pelvis; using V8 fallback.")
-		var fallback_settings := settings.duplicate(true)
+		var fallback_settings: Dictionary = settings.duplicate(true)
 		fallback_settings["retarget_limb_mode"] = "segment_swing"
 		return V8.convert_scene(player, skeleton, clip_name, sample_fps, loop, translation_scale, fallback_settings)
-	var target_pelvis: Basis = target_pelvis_value
-	var source_to_target := (target_pelvis * rest_pelvis.inverse()).orthonormalized()
+	var target_pelvis: Basis = target_pelvis_value as Basis
+	var source_to_target: Basis = (target_pelvis * rest_pelvis.inverse()).orthonormalized()
 
 	var target_bones := _target_bones(settings)
 	var skip_nodes := _skip_nodes(settings)
@@ -161,14 +161,14 @@ static func convert_scene(
 		if pose_semantic.is_empty():
 			return {}
 
-		var pose_pelvis_value := _body_frame_transforms(pose_semantic, "hips", "leftupleg", "rightupleg", "spine")
-		var pose_torso_value := _body_frame_transforms(pose_semantic, "spine2", "leftshoulder", "rightshoulder", "neck")
+		var pose_pelvis_value: Variant = _body_frame_transforms(pose_semantic, "hips", "leftupleg", "rightupleg", "spine")
+		var pose_torso_value: Variant = _body_frame_transforms(pose_semantic, "spine2", "leftshoulder", "rightshoulder", "neck")
 		if pose_pelvis_value == null or pose_torso_value == null:
 			return {}
-		var pose_pelvis: Basis = pose_pelvis_value
-		var pose_torso: Basis = pose_torso_value
-		var pelvis_delta := (pose_pelvis * rest_pelvis.inverse()).orthonormalized()
-		var torso_delta := (pose_torso * rest_torso.inverse()).orthonormalized()
+		var pose_pelvis: Basis = pose_pelvis_value as Basis
+		var pose_torso: Basis = pose_torso_value as Basis
+		var pelvis_delta: Basis = (pose_pelvis * rest_pelvis.inverse()).orthonormalized()
+		var torso_delta: Basis = (pose_torso * rest_torso.inverse()).orthonormalized()
 
 		var target_global := {}
 		# Juno's gameplay facing owns root yaw. Pelvis/torso motion remains animated.
@@ -176,7 +176,7 @@ static func convert_scene(
 		target_global["bottom"] = _map_motion_basis(pelvis_delta, source_to_target)
 		target_global["top"] = _map_motion_basis(torso_delta, source_to_target)
 
-		var head_delta := _global_basis_motion(rest_semantic, pose_semantic, "head")
+		var head_delta: Variant = _global_basis_motion(rest_semantic, pose_semantic, "head")
 		target_global["head"] = _map_motion_basis(head_delta, source_to_target) if head_delta != null else target_global["top"]
 
 		for target_value in SOURCE_SEGMENT.keys():
@@ -320,9 +320,11 @@ static func _build_target_rest_point(
 		return Vector3.ZERO
 	visiting[bone] = true
 	var local_value: Variant = local_positions.get(bone, Vector3.ZERO)
-	var local := local_value if local_value is Vector3 else Vector3.ZERO
+	var local := Vector3.ZERO
+	if local_value is Vector3:
+		local = local_value as Vector3
 	var parent := str(parent_map.get(bone, ""))
-	var global := local
+	var global: Vector3 = local
 	if not parent.is_empty() and local_positions.has(parent):
 		global += _build_target_rest_point(parent, local_positions, parent_map, result, visiting)
 	visiting.erase(bone)
@@ -496,7 +498,7 @@ static func _global_basis_motion(rest_global: Dictionary, pose_global: Dictionar
 
 
 static func _map_motion_basis(source_motion_value: Variant, source_to_target: Basis) -> Basis:
-	var source_motion: Basis = source_motion_value
+	var source_motion: Basis = source_motion_value as Basis
 	return (source_to_target * source_motion * source_to_target.inverse()).orthonormalized()
 
 
