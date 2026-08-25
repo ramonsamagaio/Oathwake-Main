@@ -4,10 +4,12 @@ class_name AlabasterBoneStudioImportSourceFix
 const RobustImporter := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationSourceAdapter.gd")
 const RetargetJunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 const RetargetDebugPanelScript := preload("res://scripts/labs/alabaster/AlabasterRetargetDebugPanel.gd")
+const BoneBridgePanelScript := preload("res://scripts/labs/alabaster/AlabasterBoneBridgePanel.gd")
 const FOLD_PREFIX := "@fold:"
 
 var _retarget_reference_rig: Node2D = null
 var _retarget_debug_panel: Control = null
+var _bone_bridge_panel: Control = null
 var retarget_limb_mode := "full_global_delta"
 
 
@@ -24,6 +26,7 @@ func _initialize_juno_retarget_workspace() -> void:
 	_ensure_retarget_reference_rig()
 	ensure_juno_retarget_target()
 	_install_retarget_debug_panel()
+	_install_bone_bridge_panel()
 
 
 func _ensure_retarget_reference_rig() -> void:
@@ -90,6 +93,17 @@ func _install_retarget_debug_panel() -> void:
 	_retarget_debug_panel.call("setup", self)
 
 
+func _install_bone_bridge_panel() -> void:
+	if _bone_bridge_panel != null and is_instance_valid(_bone_bridge_panel):
+		return
+	var panel_value: Variant = BoneBridgePanelScript.new()
+	if not panel_value is Control:
+		push_error("Bone Studio: BONE BRIDGE panel could not be created.")
+		return
+	_bone_bridge_panel = panel_value as Control
+	_bone_bridge_panel.call("setup", self)
+
+
 func set_retarget_limb_mode(mode: String) -> void:
 	if mode != "full_global_delta" and mode != "segment_swing":
 		return
@@ -141,11 +155,11 @@ func _on_source_selected(path: String) -> void:
 
 	var kind := str(info.get("resource_kind", "godot_resource"))
 	if has_mixamo_scene:
-		_set_status("Mixamo → Juno V8 ready: %d clips, %d source bones. Full Skeleton3D REST/hierarchy solve is available. Open RETARGET DEBUG and RUN DEEP AUDIT before tuning offsets." % [source_clip_option.item_count, source_bones.size()])
+		_set_status("Mixamo → Juno V8 ready: %d clips, %d source bones. Full Skeleton3D REST/hierarchy solve is available. Open BONE BRIDGE for live side-by-side mapping, or RETARGET DEBUG for the deep audit." % [source_clip_option.item_count, source_bones.size()])
 	elif profile == "mixamo":
 		_set_status("Mixamo detected, but this resource exposes no Skeleton3D. Track-only fallback is available; importing the raw FBX/GLB scene is recommended.")
 	else:
-		_set_status("Loaded %d clips and %d source bones from %s." % [source_clip_option.item_count, source_bones.size(), kind])
+		_set_status("Loaded %d clips and %d source bones from %s. Open BONE BRIDGE to inspect the real source skeleton and mapping." % [source_clip_option.item_count, source_bones.size(), kind])
 
 
 func _rebuild_mapping_table() -> void:
