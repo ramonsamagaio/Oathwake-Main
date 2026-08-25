@@ -137,8 +137,8 @@ static func _stabilize_lower_limb_cycle(result: Dictionary, settings: Dictionary
 	var last_index := visible_indices[visible_indices.size() - 1]
 	for bone_name in LOWER_CHAIN:
 		for axis in range(3):
-			var first_value := _read_rotation_axis(transforms, first_index, bone_name, axis)
-			var last_value := _read_rotation_axis(transforms, last_index, bone_name, axis)
+			var first_value: Variant = _read_rotation_axis(transforms, first_index, bone_name, axis)
+			var last_value: Variant = _read_rotation_axis(transforms, last_index, bone_name, axis)
 			if first_value == null or last_value == null:
 				continue
 			var first_near_last := _unwrap_near(float(first_value), float(last_value))
@@ -165,8 +165,8 @@ static func _stabilize_lower_limb_cycle(result: Dictionary, settings: Dictionary
 	var max_after := 0.0
 	for bone_name in LOWER_CHAIN:
 		for axis in range(3):
-			var first_value := _read_rotation_axis(transforms, first_index, bone_name, axis)
-			var last_value := _read_rotation_axis(transforms, last_index, bone_name, axis)
+			var first_value: Variant = _read_rotation_axis(transforms, first_index, bone_name, axis)
+			var last_value: Variant = _read_rotation_axis(transforms, last_index, bone_name, axis)
 			if first_value == null or last_value == null:
 				continue
 			var first_near_last := _unwrap_near(float(first_value), float(last_value))
