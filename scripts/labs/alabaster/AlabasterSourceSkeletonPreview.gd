@@ -54,7 +54,7 @@ var _view_max := Vector2(1.0, 1.0)
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	mouse_default_cursor_shape = Control.CURSOR_CROSS
+	focus_mode = Control.FOCUS_ALL
 	clip_contents = true
 	set_process(true)
 	queue_redraw()
