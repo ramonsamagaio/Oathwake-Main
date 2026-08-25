@@ -3,6 +3,7 @@ extends SceneTree
 const BONE_STUDIO_SCENE := "res://scenes/labs/alabaster/AlabasterBoneStudio.tscn"
 const WALKING_SOURCE := "res://assets/anims/Walking.fbx"
 const PUNCHING_SOURCE := "res://assets/anims/Punching.fbx"
+const MIXAMO_V10 := preload("res://scripts/labs/alabaster/AlabasterMixamoRetargetV10.gd")
 
 
 func _initialize() -> void:
@@ -15,6 +16,11 @@ func _run() -> void:
 		return
 	if int(ProjectSettings.get_setting("display/window/size/viewport_height", 0)) != 1080:
 		_fail("Bone Studio project viewport height is not 1080.")
+		return
+
+	var calibration_test := MIXAMO_V10.run_self_test()
+	if not bool(calibration_test.get("ok", false)):
+		_fail("V10 REST calibration self-test failed: %s" % str(calibration_test.get("failures", [])))
 		return
 
 	var scene_value: Variant = load(BONE_STUDIO_SCENE)
@@ -119,8 +125,9 @@ func _run() -> void:
 		_fail("Juno target rig did not expose authored rest vectors.")
 		return
 
-	# Regression case from the original malformed walk capture: load the exact
-	# Walking.fbx committed to the repository and exercise the production V9 path.
+	# Regression from the recorded walk: V9 could preserve the skeleton while
+	# still choosing the wrong forward hemisphere and leaving ankle twist free.
+	# V10 must derive both from REST geometry before sampling the clip.
 	if not FileAccess.file_exists(WALKING_SOURCE):
 		_fail("Walking regression source is missing: %s" % WALKING_SOURCE)
 		return
@@ -142,11 +149,33 @@ func _run() -> void:
 		return
 	var meta := meta_value as Dictionary
 	if str(meta.get("limb_transfer_mode", "")) != "target_rest_swing":
-		_fail("Walking retarget did not use the V9 target-rest limb solver.")
+		_fail("Walking retarget did not use the target-rest production solver.")
 		return
-	if not str(meta.get("retarget_profile", "")).contains("V9"):
-		_fail("Walking retarget did not report the V9 target profile.")
+	if not str(meta.get("retarget_profile", "")).contains("V10"):
+		_fail("Walking retarget did not report the V10 REST-calibrated profile.")
 		return
+	if int(meta.get("rest_calibration_version", 0)) != 10:
+		_fail("Walking retarget did not persist V10 REST calibration metadata.")
+		return
+
+	# The committed Mixamo Walking.fbx and Juno use opposite semantic handedness.
+	# A positive bridge determinant recreates the exact moonwalk from the video.
+	var bridge_determinant := float(meta.get("source_to_target_determinant", 1.0))
+	if bridge_determinant >= -0.5:
+		_fail("Walking forward calibration lost the required handedness reflection (det=%.3f)." % bridge_determinant)
+		return
+
+	# Feet and terminal toes must use the two-vector plane solve. A one-vector
+	# shortest swing leaves axial twist undefined and can point the foot backward.
+	var plane_counts_value: Variant = meta.get("plane_solved_counts", {})
+	if not plane_counts_value is Dictionary:
+		_fail("Walking retarget did not report limb-plane calibration coverage.")
+		return
+	var plane_counts := plane_counts_value as Dictionary
+	for foot_target in ["footL", "toeL", "footR", "toeR"]:
+		if int(plane_counts.get(foot_target, 0)) <= 0:
+			_fail("Walking V10 did not resolve %s with a two-vector REST plane." % foot_target)
+			return
 
 	var valid_targets := {}
 	var bone_names_value: Variant = rig.call("get_bone_names")
@@ -155,7 +184,7 @@ func _run() -> void:
 			valid_targets[str(bone_value)] = true
 	var transforms_value: Variant = result.get("transforms", [])
 	if not transforms_value is Array or (transforms_value as Array).is_empty():
-		_fail("Walking V9 retarget contains no transform frames.")
+		_fail("Walking V10 retarget contains no transform frames.")
 		return
 	for frame_value in transforms_value as Array:
 		if not frame_value is Dictionary:
@@ -166,17 +195,20 @@ func _run() -> void:
 		for target_value in (node_xfm_value as Dictionary).keys():
 			var target := str(target_value)
 			if target.begins_with("@fold:"):
-				_fail("Walking V9 leaked pseudo target into runtime nodeXfm: %s" % target)
+				_fail("Walking V10 leaked pseudo target into runtime nodeXfm: %s" % target)
 				return
 			if not valid_targets.has(target):
-				_fail("Walking V9 emitted unknown Juno target: %s" % target)
+				_fail("Walking V10 emitted unknown Juno target: %s" % target)
 				return
 
-	print("ALABASTER_BONE_BRIDGE_VALIDATION_OK tabs=%d walking_frames=%d juno_bones=%d punching_segments=%d" % [
+	print("ALABASTER_BONE_BRIDGE_VALIDATION_OK tabs=%d walking_frames=%d juno_bones=%d punching_segments=%d bridge_det=%.3f foot_plane=%d/%d" % [
 		tabs.get_child_count(),
 		(transforms_value as Array).size(),
 		valid_targets.size(),
 		drawable_segments,
+		bridge_determinant,
+		int(plane_counts.get("footL", 0)),
+		int(plane_counts.get("footR", 0)),
 	])
 	studio.queue_free()
 	await process_frame
