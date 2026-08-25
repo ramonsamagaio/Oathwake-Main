@@ -4,6 +4,7 @@ const BONE_STUDIO_SCENE := "res://scenes/labs/alabaster/AlabasterBoneStudio.tscn
 const WALKING_SOURCE := "res://assets/anims/Walking.fbx"
 const LOWER_BONES := ["legL", "footL", "toeL", "legR", "footR", "toeR"]
 const DIAG_ANIMATION := "__walk_continuity_diag"
+const KINEMATIC_EPSILON := 0.000001
 
 
 func _initialize() -> void:
@@ -57,12 +58,14 @@ func _run() -> void:
 	var runtime_events: Array[Dictionary] = _measure_runtime_motion(rig, frame_count)
 	var key_events: Array[Dictionary] = _measure_key_rotation_steps(result, frame_count)
 	var key_window: Array[Dictionary] = _rotation_window(result, 36, 52)
-	var snap_window: Array[Dictionary] = _measure_raw_vs_snapped_window(rig, 39.0, 44.0, 0.25)
+	var continuity_window: Array[Dictionary] = _measure_raw_vs_runtime_window(rig, 39.0, 44.0, 0.25)
+	if not _assert_no_runtime_quantization(continuity_window):
+		return
 
 	print("ALABASTER_WALK_RUNTIME_JERK_TOP %s" % str(runtime_events.slice(0, mini(runtime_events.size(), 12))))
 	print("ALABASTER_WALK_KEY_ROTATION_TOP %s" % str(key_events.slice(0, mini(key_events.size(), 12))))
 	print("ALABASTER_WALK_KEY_WINDOW_36_52 %s" % str(key_window))
-	print("ALABASTER_WALK_RAW_VS_SNAPPED_39_44 %s" % str(snap_window))
+	print("ALABASTER_WALK_RAW_VS_RUNTIME_39_44 %s" % str(continuity_window))
 	print("ALABASTER_WALK_CONTINUITY_DIAGNOSTIC_OK frames=%d" % frame_count)
 	studio.queue_free()
 	await process_frame
@@ -111,12 +114,12 @@ func _measure_runtime_motion(rig: Object, frame_count: int) -> Array[Dictionary]
 	return events
 
 
-func _measure_raw_vs_snapped_window(rig: Object, start_frame: float, end_frame: float, step_size: float) -> Array[Dictionary]:
+func _measure_raw_vs_runtime_window(rig: Object, start_frame: float, end_frame: float, step_size: float) -> Array[Dictionary]:
 	var rows: Array[Dictionary] = []
 	var raw_prev: Dictionary = {}
 	var raw_step_prev: Dictionary = {}
-	var snapped_prev: Dictionary = {}
-	var snapped_step_prev: Dictionary = {}
+	var runtime_prev: Dictionary = {}
+	var runtime_step_prev: Dictionary = {}
 	var sample: float = start_frame
 	while sample <= end_frame + 0.0001:
 		rig.call("seek_animation_frame", sample)
@@ -126,39 +129,72 @@ func _measure_raw_vs_snapped_window(rig: Object, start_frame: float, end_frame: 
 				continue
 			var state: Dictionary = state_value as Dictionary
 			var raw_value: Variant = state.get("root_pos", Vector3.ZERO)
-			var snapped_value: Variant = state.get("g_self", Vector3.ZERO)
-			if not raw_value is Vector3 or not snapped_value is Vector3:
+			var runtime_value: Variant = state.get("g_self", Vector3.ZERO)
+			if not raw_value is Vector3 or not runtime_value is Vector3:
 				continue
 			var raw: Vector3 = raw_value as Vector3
-			var snapped: Vector3 = snapped_value as Vector3
+			var runtime: Vector3 = runtime_value as Vector3
 			var raw_step := Vector3.ZERO
 			var raw_accel := 0.0
-			var snapped_step := Vector3.ZERO
-			var snapped_accel := 0.0
+			var runtime_step := Vector3.ZERO
+			var runtime_accel := 0.0
 			if raw_prev.has(bone_name):
 				raw_step = raw - (raw_prev[bone_name] as Vector3)
 				if raw_step_prev.has(bone_name):
 					raw_accel = (raw_step - (raw_step_prev[bone_name] as Vector3)).length()
 				raw_step_prev[bone_name] = raw_step
-			if snapped_prev.has(bone_name):
-				snapped_step = snapped - (snapped_prev[bone_name] as Vector3)
-				if snapped_step_prev.has(bone_name):
-					snapped_accel = (snapped_step - (snapped_step_prev[bone_name] as Vector3)).length()
-				snapped_step_prev[bone_name] = snapped_step
+			if runtime_prev.has(bone_name):
+				runtime_step = runtime - (runtime_prev[bone_name] as Vector3)
+				if runtime_step_prev.has(bone_name):
+					runtime_accel = (runtime_step - (runtime_step_prev[bone_name] as Vector3)).length()
+				runtime_step_prev[bone_name] = runtime_step
 			rows.append({
 				"frame": snappedf(sample, 0.001),
 				"bone": bone_name,
 				"raw": raw,
 				"raw_step": raw_step.length(),
 				"raw_accel": raw_accel,
-				"snap": snapped,
-				"snap_step": snapped_step.length(),
-				"snap_accel": snapped_accel,
+				"runtime": runtime,
+				"runtime_step": runtime_step.length(),
+				"runtime_accel": runtime_accel,
 			})
 			raw_prev[bone_name] = raw
-			snapped_prev[bone_name] = snapped
+			runtime_prev[bone_name] = runtime
 		sample += step_size
 	return rows
+
+
+func _assert_no_runtime_quantization(rows: Array[Dictionary]) -> bool:
+	var checked := 0
+	var worst_step_error := 0.0
+	var worst: Dictionary = {}
+	for row in rows:
+		var raw_step := float(row.get("raw_step", 0.0))
+		var runtime_step := float(row.get("runtime_step", 0.0))
+		if raw_step <= KINEMATIC_EPSILON:
+			continue
+		checked += 1
+		var step_error := absf(runtime_step - raw_step)
+		if step_error > worst_step_error:
+			worst_step_error = step_error
+			worst = row
+		# The regression we measured on the real Walking.fbx was exactly this:
+		# root_pos kept moving while g_self stayed frozen on a quantized cell.
+		if runtime_step <= KINEMATIC_EPSILON:
+			_fail("Runtime quantized moving bone at frame=%s bone=%s raw_step=%.6f runtime_step=%.6f" % [
+				str(row.get("frame", "?")), str(row.get("bone", "?")), raw_step, runtime_step,
+			])
+			return false
+	if checked == 0:
+		_fail("Continuity regression checked no moving lower-limb samples.")
+		return false
+	# SOUTH facing applies zero root rotation, so raw root_pos and production
+	# g_self should preserve the same step magnitude to floating-point precision.
+	if worst_step_error > 0.00001:
+		_fail("Production world transform changed lower-limb step magnitude: error=%.8f worst=%s" % [worst_step_error, str(worst)])
+		return false
+	print("ALABASTER_WALK_KINEMATICS_CONTINUOUS_OK checked=%d worst_step_error=%.8f" % [checked, worst_step_error])
+	return true
 
 
 func _measure_key_rotation_steps(result: Dictionary, frame_count: int) -> Array[Dictionary]:
