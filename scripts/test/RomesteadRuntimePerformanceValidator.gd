@@ -1,5 +1,6 @@
 extends SceneTree
 
+# CI-only branch marker: runtime performance validation probe.
 const GAME_SCENE := preload("res://scenes/game/Game.tscn")
 
 var failures: Array[String] = []
