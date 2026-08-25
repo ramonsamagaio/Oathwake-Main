@@ -10,6 +10,7 @@ on:
       - "scripts/test/ProceduralCreatureValidator.gd"
       - "scripts/test/AlabasterBoneBridgeValidator.gd"
       - "scripts/test/AlabasterCardinalWalkValidator.gd"
+      - "scripts/test/AlabasterWalkContinuityDiagnostic.gd"
       - ".github/workflows/validate-procedural-creatures.yml"
   pull_request:
     paths:
@@ -20,6 +21,7 @@ on:
       - "scripts/test/ProceduralCreatureValidator.gd"
       - "scripts/test/AlabasterBoneBridgeValidator.gd"
       - "scripts/test/AlabasterCardinalWalkValidator.gd"
+      - "scripts/test/AlabasterWalkContinuityDiagnostic.gd"
       - ".github/workflows/validate-procedural-creatures.yml"
   workflow_dispatch:
 
@@ -81,3 +83,13 @@ jobs:
             exit 1
           fi
           grep -F "ALABASTER_CARDINAL_WALK_VALIDATION_OK" alabaster-cardinal-walk-validator.log
+
+      - name: Diagnose Alabaster Walking lower-limb continuity
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot --headless --path . --script res://scripts/test/AlabasterWalkContinuityDiagnostic.gd --verbose 2>&1 | tee alabaster-walk-continuity.log
+          if grep -E "ALABASTER_WALK_CONTINUITY_DIAGNOSTIC_FAILURE|Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access" alabaster-walk-continuity.log; then
+            exit 1
+          fi
+          grep -F "ALABASTER_WALK_CONTINUITY_DIAGNOSTIC_OK" alabaster-walk-continuity.log
