@@ -47,11 +47,11 @@ func apply_now() -> void:
 	if not front_suffix.is_empty():
 		_force_front_arm_over_lower_body(front_suffix)
 
-	# The safety pass above may raise a hand. Restore the normal skull ceiling so
-	# a near hand can cross the torso/legs without ever painting over the head.
-	if rig.has_method("_apply_humanoid_head_ceiling"):
-		rig.call("_apply_humanoid_head_ceiling")
-
+	# The safety pass above deliberately raises the near hand. Reassert the head
+	# ceiling from the same live sprite records instead of relying on a profile's
+	# inherited helper: Bone Bridge can run on Juno/DEFAULT/Dummy subclasses with
+	# different override chains, but the visual rule itself is universal.
+	_force_head_over_arms()
 	_last_debug = _build_debug(front_suffix)
 
 
@@ -118,6 +118,30 @@ func _force_front_arm_over_lower_body(front_suffix: String) -> void:
 			continue
 		sprite.z_index = clampi(sprite.z_index + shift, -4096, 4096)
 		sprite.set_meta("alabaster_bone_bridge_depth_reason", "near_arm_over_lower_body")
+		sprite.set_meta("alabaster_bone_bridge_depth_shift", shift)
+
+
+func _force_head_over_arms() -> void:
+	var arm_bounds := _visible_z_bounds([
+		"armL", "handL", "fingerL",
+		"armR", "handR", "fingerR",
+	])
+	var head_bounds := _visible_z_bounds(["head"])
+	if not bool(arm_bounds.get("found", false)) or not bool(head_bounds.get("found", false)):
+		return
+	var required_min := int(arm_bounds.get("max", 0)) + _layer_step()
+	var head_min := int(head_bounds.get("min", required_min))
+	if head_min >= required_min:
+		return
+	var shift := required_min - head_min
+	for record in _sprite_records():
+		if str(record.get("node", "")) != "head":
+			continue
+		var sprite := record.get("sprite") as Sprite2D
+		if sprite == null or not sprite.visible:
+			continue
+		sprite.z_index = clampi(sprite.z_index + shift, -4096, 4096)
+		sprite.set_meta("alabaster_bone_bridge_depth_reason", "head_over_arms")
 		sprite.set_meta("alabaster_bone_bridge_depth_shift", shift)
 
 
