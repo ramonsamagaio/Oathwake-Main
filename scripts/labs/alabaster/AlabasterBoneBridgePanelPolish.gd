@@ -23,6 +23,19 @@ func _highlight_source_bone(source_bone: String) -> void:
 			live_panel.call("_on_workspace_bone_selected", target)
 
 
+func _sync_target_to_source_time(time_seconds: float) -> void:
+	# The DEFAULT target rig can be rebuilt when profiles/sources change. Ensure
+	# the Bone Bridge-only z-order controller follows the CURRENT rig before every
+	# synchronized pose, then let the proven clock sync perform the actual seek.
+	if host != null and host.has_method("_ensure_bone_bridge_depth_polish"):
+		host.call("_ensure_bone_bridge_depth_polish")
+	super._sync_target_to_source_time(time_seconds)
+	if host != null:
+		var controller_value: Variant = host.get("_depth_polish_controller")
+		if controller_value is Object and (controller_value as Object).has_method("apply_now"):
+			(controller_value as Object).call("apply_now")
+
+
 func _mapped_juno_target(source_bone: String) -> String:
 	var bridge_option := bridge_mapping_controls.get(source_bone) as OptionButton
 	if bridge_option != null and bridge_option.selected >= 0:
