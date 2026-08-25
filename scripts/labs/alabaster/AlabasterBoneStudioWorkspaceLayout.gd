@@ -1,14 +1,16 @@
 extends "res://scripts/labs/alabaster/AlabasterBoneStudioImportSourceFix.gd"
 
 # Bone Studio workspace layout layer.
-# The project viewport is now genuinely 1920x1080, and this layer spends that
-# space like a desktop DCC tool rather than centering a 1600x900-era panel.
+# 1920x1080 is the authored project viewport, but the editor may display that
+# viewport scaled inside a smaller Game View. Keep the DCC layout responsive so
+# no panel is pushed off-screen just because the embedded preview is narrower.
 
 const STUDIO_SIZE := Vector2i(1920, 1080)
-const LEFT_MIN_WIDTH := 1040.0
-const RIGHT_MIN_WIDTH := 780.0
+const LEFT_MIN_WIDTH := 950.0
+const RIGHT_MIN_WIDTH := 525.0
 const WORKSPACE_LEFT_RATIO := 0.58
-const JUNO_BONE_PANEL_WIDTH := 250.0
+const JUNO_BONE_PANEL_WIDTH := 190.0
+const JUNO_PREVIEW_MIN_WIDTH := 320.0
 
 const JUNO_BONE_ORDER := [
 	"root", "bottom", "top", "head",
@@ -61,22 +63,22 @@ func _configure_studio_window() -> void:
 	var window := get_window()
 	if window != null:
 		window.content_scale_size = STUDIO_SIZE
-		# In a detached run this requests the real desktop window size. In Godot's
-		# embedded game view the project.godot viewport size is authoritative.
 		if not window.is_embedded():
 			window.size = STUDIO_SIZE
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
 
 
-# Override the 1600-era preview construction before any Live Tuning workspace
-# code runs. The workspace resizes the SubViewport manually, so stretch MUST be
-# false from birth, not toggled later after the first warning has already fired.
+# IMPORTANT: SubViewportContainer stretch stays ON. The previous revision turned
+# it off only to silence a resize warning, which made the live Juno render path
+# fragile in the embedded Game View. With stretch on, Godot owns the viewport
+# texture size and the character reliably remains visible. Geometry code below
+# no longer fights that automatic sizing.
 func _build_preview_container(parent: VBoxContainer) -> void:
 	var holder := SubViewportContainer.new()
 	holder.custom_minimum_size = Vector2(620.0, 620.0)
 	holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	holder.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	holder.stretch = false
+	holder.stretch = true
 	parent.add_child(holder)
 
 	var viewport := SubViewport.new()
@@ -89,6 +91,43 @@ func _build_preview_container(parent: VBoxContainer) -> void:
 	preview_world = Node2D.new()
 	preview_world.position = Vector2(310.0, 335.0)
 	viewport.add_child(preview_world)
+
+
+# Override Workspace.gd's manual SubViewport sizing. A stretched
+# SubViewportContainer rejects direct size changes and used to emit warnings.
+# More importantly, asking both systems to own the size can produce a blank
+# render texture on some embedded-editor layouts.
+func _sync_workspace_viewport_geometry() -> void:
+	if _workspace_holder == null or _workspace_viewport == null:
+		return
+	var holder_size := _workspace_holder.size
+	if not _workspace_holder.stretch:
+		_workspace_viewport.size = Vector2i(
+			maxi(roundi(holder_size.x), 1),
+			maxi(roundi(holder_size.y), 1)
+		)
+	if _workspace_editor != null:
+		_workspace_editor.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_sync_responsive_preview_origin()
+
+
+func _sync_workspace_editor_origin() -> void:
+	_sync_responsive_preview_origin()
+
+
+func _sync_responsive_preview_origin() -> void:
+	if _workspace_holder == null or host == null:
+		return
+	var preview_world_value: Variant = host.get("preview_world")
+	if not preview_world_value is Node2D:
+		return
+	var world := preview_world_value as Node2D
+	var holder_size := _workspace_holder.size
+	if holder_size.x < 4.0 or holder_size.y < 4.0:
+		holder_size = Vector2(_workspace_viewport.size) if _workspace_viewport != null else Vector2(620.0, 620.0)
+	world.position = Vector2(holder_size.x * 0.5, holder_size.y * 0.5 + 24.0) + _workspace_pan
+	if _workspace_editor != null:
+		_workspace_editor.call("set_preview_origin", world.position)
 
 
 func _install_workspace_layout() -> void:
@@ -109,15 +148,15 @@ func _install_workspace_layout() -> void:
 
 	_layout_installed = true
 	set_process(true)
-	_workspace_tabs.custom_minimum_size = Vector2(LEFT_MIN_WIDTH, 820.0)
+	_workspace_tabs.custom_minimum_size = Vector2(LEFT_MIN_WIDTH, 720.0)
 	if _preview_panel != null:
-		_preview_panel.custom_minimum_size = Vector2(RIGHT_MIN_WIDTH, 820.0)
+		_preview_panel.custom_minimum_size = Vector2(RIGHT_MIN_WIDTH, 720.0)
 	_main_split.add_theme_constant_override("separation", 14)
 
 	_preview_holder = _find_subviewport_container(_preview_panel)
 	if _preview_holder != null:
-		_preview_holder.stretch = false
-		_preview_holder.custom_minimum_size = Vector2(500.0, 720.0)
+		_preview_holder.stretch = true
+		_preview_holder.custom_minimum_size = Vector2(JUNO_PREVIEW_MIN_WIDTH, 560.0)
 		_preview_viewport = _preview_holder.get_child(0) as SubViewport if _preview_holder.get_child_count() > 0 else null
 		_install_juno_bone_inspector()
 		if not _preview_holder.resized.is_connected(_resize_juno_preview):
@@ -140,8 +179,10 @@ func _apply_responsive_layout() -> void:
 	var maximum_left := maxf(LEFT_MIN_WIDTH, available_width - RIGHT_MIN_WIDTH - 14.0)
 	_main_split.split_offset = int(clampf(desired_left, LEFT_MIN_WIDTH, maximum_left))
 	if _preview_bone_split != null:
-		var preview_width := maxf(_preview_bone_split.size.x, 500.0 + JUNO_BONE_PANEL_WIDTH + 12.0)
-		_preview_bone_split.split_offset = int(maxf(500.0, preview_width - JUNO_BONE_PANEL_WIDTH - 12.0))
+		var preview_width := maxf(_preview_bone_split.size.x, JUNO_PREVIEW_MIN_WIDTH + JUNO_BONE_PANEL_WIDTH + 12.0)
+		var desired_preview := preview_width - JUNO_BONE_PANEL_WIDTH - 12.0
+		_preview_bone_split.split_offset = int(maxf(JUNO_PREVIEW_MIN_WIDTH, desired_preview))
+	call_deferred("_resize_juno_preview")
 
 
 func _resize_juno_preview() -> void:
@@ -150,18 +191,19 @@ func _resize_juno_preview() -> void:
 	var holder_size := _preview_holder.size
 	if holder_size.x < 4.0 or holder_size.y < 4.0:
 		return
-	_preview_viewport.size = Vector2i(maxi(int(holder_size.x), 4), maxi(int(holder_size.y), 4))
+	if not _preview_holder.stretch:
+		_preview_viewport.size = Vector2i(maxi(int(holder_size.x), 4), maxi(int(holder_size.y), 4))
 	if preview_world != null:
-		preview_world.position = Vector2(holder_size.x * 0.5, holder_size.y * 0.53)
+		preview_world.position = Vector2(holder_size.x * 0.5, holder_size.y * 0.5 + 24.0) + _workspace_pan
 	if rig != null and rig is Node2D:
-		var fit := clampf(minf(holder_size.x, holder_size.y) / 180.0, 3.4, 5.8)
+		var fit := clampf(minf(holder_size.x, holder_size.y) / 175.0, 2.4, 5.2)
 		(rig as Node2D).scale = Vector2.ONE * fit
 	if _juno_overlay != null:
-		# The overlay owns FULL_RECT anchors. Adjust offsets, not size directly,
-		# so Godot does not complain about anchor-driven geometry after _ready().
 		_juno_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		if _juno_overlay.has_method("set_preview_origin") and preview_world != null:
 			_juno_overlay.call("set_preview_origin", preview_world.position)
+	if _workspace_editor != null and preview_world != null:
+		_workspace_editor.call("set_preview_origin", preview_world.position)
 
 
 func _install_juno_bone_inspector() -> void:
@@ -177,32 +219,33 @@ func _install_juno_bone_inspector() -> void:
 	_preview_bone_split.name = "JunoPreviewAndBoneList"
 	_preview_bone_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_preview_bone_split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_preview_bone_split.add_theme_constant_override("separation", 12)
+	_preview_bone_split.add_theme_constant_override("separation", 10)
 	original_parent.add_child(_preview_bone_split)
 	original_parent.move_child(_preview_bone_split, holder_index)
 	_preview_bone_split.add_child(_preview_holder)
 
 	var inspector := VBoxContainer.new()
 	inspector.name = "JunoBoneInspector"
-	inspector.custom_minimum_size = Vector2(JUNO_BONE_PANEL_WIDTH, 720.0)
+	inspector.custom_minimum_size = Vector2(JUNO_BONE_PANEL_WIDTH, 560.0)
+	inspector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inspector.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	inspector.add_theme_constant_override("separation", 7)
+	inspector.add_theme_constant_override("separation", 6)
 	_preview_bone_split.add_child(inspector)
 
 	var title := Label.new()
 	title.text = "JUNO BONES"
-	title.add_theme_font_size_override("font_size", 17)
+	title.add_theme_font_size_override("font_size", 16)
 	inspector.add_child(title)
 
 	var hint := Label.new()
-	hint.text = "Click a Juno bone to highlight it on the character. This is the target-side equivalent of the source bone list."
+	hint.text = "Click a target bone to highlight it on Juno."
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.add_theme_color_override("font_color", Color(0.72, 0.78, 0.78))
 	inspector.add_child(hint)
 
 	_juno_bone_filter = LineEdit.new()
 	_juno_bone_filter.placeholder_text = "Filter Juno bones..."
-	_juno_bone_filter.custom_minimum_size.y = 38.0
+	_juno_bone_filter.custom_minimum_size.y = 36.0
 	_juno_bone_filter.text_changed.connect(_on_juno_bone_filter_changed)
 	inspector.add_child(_juno_bone_filter)
 
@@ -210,7 +253,7 @@ func _install_juno_bone_inspector() -> void:
 	_juno_bone_list.name = "JunoBoneList"
 	_juno_bone_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_juno_bone_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_juno_bone_list.custom_minimum_size = Vector2(JUNO_BONE_PANEL_WIDTH, 560.0)
+	_juno_bone_list.custom_minimum_size = Vector2(JUNO_BONE_PANEL_WIDTH, 410.0)
 	_juno_bone_list.select_mode = ItemList.SELECT_SINGLE
 	_juno_bone_list.item_selected.connect(_on_juno_bone_selected)
 	inspector.add_child(_juno_bone_list)
@@ -218,7 +261,7 @@ func _install_juno_bone_inspector() -> void:
 	_juno_bone_detail = Label.new()
 	_juno_bone_detail.text = "Select a bone"
 	_juno_bone_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_juno_bone_detail.custom_minimum_size.y = 48.0
+	_juno_bone_detail.custom_minimum_size.y = 44.0
 	inspector.add_child(_juno_bone_detail)
 
 	if not _preview_bone_split.resized.is_connected(_apply_responsive_layout):
@@ -251,7 +294,7 @@ func _refresh_juno_bone_list() -> void:
 		var parent := str(parent_map.get(bone_name, ""))
 		var display := bone_name
 		if not parent.is_empty():
-			display = "%s   ← %s" % [bone_name, parent]
+			display = "%s  ← %s" % [bone_name, parent]
 		_juno_bone_list.add_item(display)
 		var index := _juno_bone_list.item_count - 1
 		_juno_bone_list.set_item_metadata(index, bone_name)
@@ -270,9 +313,9 @@ func _ordered_juno_bones(names: Array[String]) -> Array[String]:
 	remainder.sort_custom(func(a: String, b: String) -> bool:
 		return a.naturalnocasecmp_to(b) < 0
 	)
-	for name in remainder:
-		if not result.has(name):
-			result.append(name)
+	for bone_name in remainder:
+		if not result.has(bone_name):
+			result.append(bone_name)
 	return result
 
 
@@ -290,8 +333,6 @@ func _on_juno_bone_selected(index: int) -> void:
 func _select_juno_bone(bone_name: String, sync_list: bool = true) -> void:
 	if bone_name.is_empty():
 		return
-	# Reuse Live Tuning's selection path when available so the green sprite tint,
-	# overlay gizmo and tuning controls all agree on the same target bone.
 	if _live_tuning_panel != null and is_instance_valid(_live_tuning_panel) and _live_tuning_panel.has_method("_on_workspace_bone_selected"):
 		_live_tuning_panel.call("_on_workspace_bone_selected", bone_name)
 	else:
@@ -353,22 +394,22 @@ func _selected_juno_bone_from_list() -> String:
 func _polish_controls(node: Node) -> void:
 	if node is Button:
 		var button := node as Button
-		button.custom_minimum_size.y = maxf(button.custom_minimum_size.y, 38.0)
+		button.custom_minimum_size.y = maxf(button.custom_minimum_size.y, 36.0)
 		button.add_theme_font_size_override("font_size", 14)
 	elif node is OptionButton:
 		var option := node as OptionButton
-		option.custom_minimum_size.y = maxf(option.custom_minimum_size.y, 38.0)
+		option.custom_minimum_size.y = maxf(option.custom_minimum_size.y, 36.0)
 		option.add_theme_font_size_override("font_size", 14)
 	elif node is LineEdit:
 		var edit := node as LineEdit
-		edit.custom_minimum_size.y = maxf(edit.custom_minimum_size.y, 38.0)
+		edit.custom_minimum_size.y = maxf(edit.custom_minimum_size.y, 36.0)
 		edit.add_theme_font_size_override("font_size", 14)
 	elif node is SpinBox:
 		var spin := node as SpinBox
-		spin.custom_minimum_size.y = maxf(spin.custom_minimum_size.y, 38.0)
+		spin.custom_minimum_size.y = maxf(spin.custom_minimum_size.y, 36.0)
 	elif node is CheckBox:
 		var check := node as CheckBox
-		check.custom_minimum_size.y = maxf(check.custom_minimum_size.y, 34.0)
+		check.custom_minimum_size.y = maxf(check.custom_minimum_size.y, 32.0)
 		check.add_theme_font_size_override("font_size", 14)
 	elif node is Label:
 		var label := node as Label
