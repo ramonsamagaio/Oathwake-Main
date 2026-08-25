@@ -145,8 +145,9 @@ func _run() -> void:
 		return
 
 	# Regression from the recorded walk: V10 owns source/target forward and foot
-	# plane calibration, V11 stabilizes only the arm chains, and V12 adds only a
-	# tiny Juno-specific 2D presentation pass. These layers must remain additive.
+	# plane calibration, V11 stabilizes the arms, V12 added the first Juno 2D
+	# presentation pass, and V13 fixes the profile read + loop-foot seam without
+	# reopening any of those solved structural layers.
 	if not FileAccess.file_exists(WALKING_SOURCE):
 		_fail("Walking regression source is missing: %s" % WALKING_SOURCE)
 		return
@@ -170,36 +171,46 @@ func _run() -> void:
 	if str(meta.get("limb_transfer_mode", "")) != "target_rest_swing":
 		_fail("Walking retarget did not use the target-rest production solver.")
 		return
-	if not str(meta.get("retarget_profile", "")).contains("V12"):
-		_fail("Walking retarget did not report the V12 Juno presentation profile.")
+	if not str(meta.get("retarget_profile", "")).contains("V13"):
+		_fail("Walking retarget did not report the V13 profile/loop polish.")
 		return
-	# V12 is deliberately layered on top of the proven V10 REST solve. The base
-	# calibration version must therefore remain 10 while presentation becomes 12.
 	if int(meta.get("rest_calibration_version", 0)) != 10:
 		_fail("Walking retarget lost the V10 REST calibration metadata.")
 		return
-	if int(meta.get("presentation_calibration_version", 0)) != 12:
-		_fail("Walking retarget did not persist V12 presentation metadata.")
+	if int(meta.get("presentation_calibration_version", 0)) != 13:
+		_fail("Walking retarget did not persist V13 presentation metadata.")
 		return
-	if not bool(meta.get("v11_non_presentation_bones_preserved", false)):
-		_fail("V12 did not certify preservation of V11 non-presentation bones.")
+	if not bool(meta.get("v12_non_presentation_bones_preserved", false)):
+		_fail("V13 did not certify preservation of V12 non-presentation bones.")
 		return
+
 	var patch_targets_value: Variant = meta.get("presentation_patch_targets", [])
 	if not patch_targets_value is Array:
-		_fail("V12 did not report its presentation patch targets.")
+		_fail("V13 did not report its presentation patch targets.")
 		return
 	var patch_targets := patch_targets_value as Array
-	for required_patch_target in ["top", "toeL", "toeR"]:
+	for required_patch_target in ["top", "footL", "toeL", "footR", "toeR"]:
 		if not patch_targets.has(required_patch_target):
-			_fail("V12 presentation target list is missing %s." % required_patch_target)
+			_fail("V13 presentation target list is missing %s." % required_patch_target)
 			return
+
 	var torso_bias := float(meta.get("torso_back_bias_degrees", 99.0))
-	if torso_bias <= 0.0 or torso_bias > 2.0:
-		_fail("V12 torso bias is not the requested tiny correction: %.2f degrees." % torso_bias)
+	if torso_bias < 4.5 or torso_bias > 5.5:
+		_fail("V13 torso profile correction is outside the intended ~5 degree window: %.2f." % torso_bias)
+		return
+	var foot_pitch_keep := float(meta.get("foot_pitch_keep", -1.0))
+	if foot_pitch_keep < 0.70 or foot_pitch_keep > 0.85:
+		_fail("V13 foot pitch relaxation is outside the gentle range: %.3f." % foot_pitch_keep)
 		return
 	var toe_pitch_keep := float(meta.get("toe_pitch_keep", -1.0))
-	if toe_pitch_keep < 0.65 or toe_pitch_keep > 0.90:
-		_fail("V12 toe pitch neutralization is outside the gentle presentation range: %.3f." % toe_pitch_keep)
+	if toe_pitch_keep < 0.45 or toe_pitch_keep > 0.65:
+		_fail("V13 total toe pitch relaxation is outside the intended profile range: %.3f." % toe_pitch_keep)
+		return
+	if str(meta.get("lower_foot_smoothing", "")) != "circular_1_2_1":
+		_fail("V13 did not report the lower-foot 1-2-1 smoothing pass.")
+		return
+	if not bool(meta.get("runtime_loop_closure_key", false)):
+		_fail("V13 did not append the exclusive runtime loop closure key.")
 		return
 
 	# The committed Mixamo Walking.fbx and Juno use opposite semantic handedness.
@@ -210,7 +221,7 @@ func _run() -> void:
 		return
 
 	# Feet and terminal toes must still originate from V10's two-vector plane
-	# solve. V12 only relaxes the visible toe pitch/roll after this correct solve.
+	# solve. V13 only relaxes their visible pitch/roll after this correct solve.
 	var plane_counts_value: Variant = meta.get("plane_solved_counts", {})
 	if not plane_counts_value is Dictionary:
 		_fail("Walking retarget did not report limb-plane calibration coverage.")
@@ -228,33 +239,84 @@ func _run() -> void:
 			valid_targets[str(bone_value)] = true
 	var transforms_value: Variant = result.get("transforms", [])
 	if not transforms_value is Array or (transforms_value as Array).is_empty():
-		_fail("Walking V12 retarget contains no transform frames.")
+		_fail("Walking V13 retarget contains no transform frames.")
 		return
-	for frame_value in transforms_value as Array:
+	var transforms := transforms_value as Array
+	var frame_count := int(result.get("frameCnt", 0))
+	var has_exclusive_closure := false
+	for frame_value in transforms:
 		if not frame_value is Dictionary:
 			continue
-		var node_xfm_value: Variant = (frame_value as Dictionary).get("nodeXfm", {})
+		var frame_dict := frame_value as Dictionary
+		if int(frame_dict.get("frame", -1)) == frame_count and bool(frame_dict.get("v13_exclusive_loop_closure", false)):
+			has_exclusive_closure = true
+		var node_xfm_value: Variant = frame_dict.get("nodeXfm", {})
 		if not node_xfm_value is Dictionary:
 			continue
 		for target_value in (node_xfm_value as Dictionary).keys():
 			var target := str(target_value)
 			if target.begins_with("@fold:"):
-				_fail("Walking V12 leaked pseudo target into runtime nodeXfm: %s" % target)
+				_fail("Walking V13 leaked pseudo target into runtime nodeXfm: %s" % target)
 				return
 			if not valid_targets.has(target):
-				_fail("Walking V12 emitted unknown Juno target: %s" % target)
+				_fail("Walking V13 emitted unknown Juno target: %s" % target)
 				return
+	if not has_exclusive_closure:
+		_fail("Walking V13 metadata claimed loop closure but no frameCnt closure key exists.")
+		return
+	if transforms.size() != frame_count + 1:
+		_fail("Walking V13 should expose visible frames plus one exclusive closure: keys=%d frameCnt=%d." % [transforms.size(), frame_count])
+		return
 
-	print("ALABASTER_BONE_BRIDGE_VALIDATION_OK tabs=%d walking_frames=%d juno_bones=%d punching_segments=%d bridge_det=%.3f foot_plane=%d/%d torso_bias=%.2f toe_keep=%.2f" % [
+	# Exact regression for the user's remaining layer problem. Bone Bridge names
+	# its transient animation `__bone_bridge_preview`, which used to bypass the
+	# DEFAULT locomotion arm/pelvis policies. Force an E/W profile and prove that
+	# the near arm finishes above the whole lower-body silhouette while the head
+	# remains above the raised arm.
+	if not bool(rig.call("install_runtime_animation", "__bone_bridge_preview", result)):
+		_fail("Could not install V13 Walking result for layer-depth regression.")
+		return
+	rig.call("set_animation", "__bone_bridge_preview")
+	if rig.has_method("set_facing_from_vector"):
+		rig.call("set_facing_from_vector", Vector2.RIGHT)
+	rig.call("seek_animation_frame", floori(float(frame_count) * 0.42))
+	var depth_controller_value: Variant = studio.call("_ensure_bone_bridge_depth_polish")
+	if not depth_controller_value is Object:
+		_fail("Bone Bridge depth polish controller was not attached to the live target.")
+		return
+	var depth_controller := depth_controller_value as Object
+	depth_controller.call("apply_now")
+	var depth_debug_value: Variant = depth_controller.call("get_last_debug")
+	if not depth_debug_value is Dictionary:
+		_fail("Bone Bridge depth polish exposed no regression diagnostics.")
+		return
+	var depth_debug := depth_debug_value as Dictionary
+	if str(depth_debug.get("front_suffix", "")).is_empty():
+		_fail("Bone Bridge profile depth could not resolve the near arm.")
+		return
+	if not bool(depth_debug.get("lower_body_found", false)) or not bool(depth_debug.get("front_arm_found", false)):
+		_fail("Bone Bridge profile depth did not expose visible lower-body/front-arm layers.")
+		return
+	if int(depth_debug.get("front_arm_min", -4096)) <= int(depth_debug.get("lower_body_max", 4096)):
+		_fail("Bone Bridge near arm is still not above the lower body: %s" % str(depth_debug))
+		return
+	if bool(depth_debug.get("head_found", false)) and int(depth_debug.get("head_min", -4096)) <= int(depth_debug.get("front_arm_max", 4096)):
+		_fail("Bone Bridge head ceiling was lost after raising the near arm: %s" % str(depth_debug))
+		return
+
+	print("ALABASTER_BONE_BRIDGE_VALIDATION_OK tabs=%d walking_keys=%d frameCnt=%d juno_bones=%d punching_segments=%d bridge_det=%.3f foot_plane=%d/%d torso_bias=%.2f foot_keep=%.2f toe_keep=%.2f depth=%s" % [
 		tabs.get_child_count(),
-		(transforms_value as Array).size(),
+		transforms.size(),
+		frame_count,
 		valid_targets.size(),
 		drawable_segments,
 		bridge_determinant,
 		int(plane_counts.get("footL", 0)),
 		int(plane_counts.get("footR", 0)),
 		torso_bias,
+		foot_pitch_keep,
 		toe_pitch_keep,
+		str(depth_debug),
 	])
 	studio.queue_free()
 	await process_frame
