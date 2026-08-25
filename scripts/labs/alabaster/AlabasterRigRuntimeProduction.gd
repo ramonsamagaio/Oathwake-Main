@@ -8,10 +8,17 @@ class_name AlabasterRigRuntimeProduction
 const NO_LAYER_OVERRIDE := 999999
 const SIDE_DEPTH_EPSILON := 0.015
 const PROFILE_FACING_EPSILON := 11.26
+const CARDINAL_FACING_EPSILON := 11.26
+const CARDINAL_STANCE_MIN_HALF_HIP_RATIO := 0.38
+const CARDINAL_STANCE_MIN_PX := 1.5
+const CARDINAL_STANCE_MAX_SHIFT_PX := 8.0
+const CARDINAL_STANCE_MAX_SHIFT_HIP_RATIO := 0.90
+const CARDINAL_STANCE_LEG_WEIGHT := 0.45
 
 var editor_camera_enabled := false
 var editor_camera_pitch_degrees := -45.0
 var editor_animation_paused := false
+var _cardinal_stance_debug: Dictionary = {}
 
 
 func _process(delta: float) -> void:
@@ -23,10 +30,11 @@ func _process(delta: float) -> void:
 
 func _apply_pose() -> void:
 	# Let the source renderer and all existing directional corrections finish
-	# first. The profile arm/leg rule needs final sprite z values, not guesses
-	# based on the authored base z-order.
+	# first. Camera-dependent presentation guards need final sprite positions and
+	# z values, not guesses based on authored REST data.
 	super._apply_pose()
 	_apply_profile_front_arm_over_legs()
+	_apply_cardinal_walk_leg_corridor()
 
 
 func set_editor_camera_enabled(enabled: bool) -> void:
@@ -58,6 +66,10 @@ func seek_animation_frame(frame: float) -> void:
 
 func get_current_source_frame() -> float:
 	return _src_frame
+
+
+func get_cardinal_stance_debug() -> Dictionary:
+	return _cardinal_stance_debug.duplicate(true)
 
 
 func get_bone_visual_state(node_name: String) -> Dictionary:
@@ -225,6 +237,125 @@ func _apply_profile_front_arm_over_legs() -> void:
 			continue
 		sprite.z_index = clampi(sprite.z_index + required_shift, -4096, 4096)
 		sprite.set_meta("alabaster_profile_arm_over_leg", true)
+
+
+func _apply_cardinal_walk_leg_corridor() -> void:
+	_cardinal_stance_debug = {
+		"active": false,
+		"animation": current_animation,
+		"facing": facing_degrees,
+	}
+	if not _cardinal_walk_corridor_enabled():
+		return
+	var is_north := _angular_distance(facing_degrees, 0.0) <= CARDINAL_FACING_EPSILON
+	var is_south := _angular_distance(facing_degrees, 180.0) <= CARDINAL_FACING_EPSILON
+	if not is_north and not is_south:
+		return
+	for required_node in ["hipL", "hipR", "footL", "footR"]:
+		if not _states.has(required_node):
+			return
+
+	var hip_l := _project_state_anchor("hipL")
+	var hip_r := _project_state_anchor("hipR")
+	var foot_l := _project_state_anchor("footL")
+	var foot_r := _project_state_anchor("footR")
+	var center_x := (hip_l.x + hip_r.x) * 0.5
+	var half_hip_span := absf(hip_l.x - hip_r.x) * 0.5
+	if half_hip_span <= 0.25:
+		return
+
+	var min_half_stance := maxf(half_hip_span * CARDINAL_STANCE_MIN_HALF_HIP_RATIO, CARDINAL_STANCE_MIN_PX)
+	var max_shift := minf(CARDINAL_STANCE_MAX_SHIFT_PX, half_hip_span * CARDINAL_STANCE_MAX_SHIFT_HIP_RATIO)
+	var left_sign := signf(hip_l.x - center_x)
+	var right_sign := signf(hip_r.x - center_x)
+	if is_zero_approx(left_sign) or is_zero_approx(right_sign) or left_sign == right_sign:
+		return
+
+	var left_lateral := (foot_l.x - center_x) * left_sign
+	var right_lateral := (foot_r.x - center_x) * right_sign
+	var left_shift_mag := clampf(min_half_stance - left_lateral, 0.0, max_shift)
+	var right_shift_mag := clampf(min_half_stance - right_lateral, 0.0, max_shift)
+	var left_shift := left_shift_mag * left_sign
+	var right_shift := right_shift_mag * right_sign
+	_shift_cardinal_leg_sprites("L", left_shift)
+	_shift_cardinal_leg_sprites("R", right_shift)
+
+	_cardinal_stance_debug = {
+		"active": true,
+		"animation": current_animation,
+		"facing": facing_degrees,
+		"view": "north" if is_north else "south",
+		"center_x": center_x,
+		"hip_span": half_hip_span * 2.0,
+		"min_half_stance": min_half_stance,
+		"max_shift": max_shift,
+		"left_raw_lateral": left_lateral,
+		"right_raw_lateral": right_lateral,
+		"left_shift": left_shift,
+		"right_shift": right_shift,
+		"left_corrected_lateral": left_lateral + left_shift_mag,
+		"right_corrected_lateral": right_lateral + right_shift_mag,
+	}
+
+
+func _cardinal_walk_corridor_enabled() -> bool:
+	# Only playable humanoid skins receive this visual guard. The source Juno rig
+	# remains an untouched comparison reference in Bone Bridge.
+	var profile_value: Variant = get("skin_profile_id")
+	if profile_value == null or str(profile_value).is_empty():
+		return false
+	if current_animation == "walk" or current_animation == "juno_walk_retarget":
+		return true
+	if not current_animation.begins_with("__bone_bridge_"):
+		return false
+	var anim_value: Variant = _anims.get(current_animation, {})
+	if not anim_value is Dictionary:
+		return false
+	var anim := anim_value as Dictionary
+	var meta_value: Variant = anim.get("import_meta", {})
+	if not meta_value is Dictionary:
+		return false
+	var meta := meta_value as Dictionary
+	# V13's loop closure identifies the current imported Walking-style test path.
+	# Non-loop attacks/poses are intentionally left alone even in Bone Bridge.
+	return int(meta.get("presentation_calibration_version", 0)) >= 13 \
+		and bool(meta.get("runtime_loop_closure_key", false)) \
+		and bool(anim.get("repeat", false))
+
+
+func _project_state_anchor(node_name: String) -> Vector2:
+	if not _states.has(node_name):
+		return Vector2.ZERO
+	var state_value: Variant = _states[node_name]
+	if not state_value is Dictionary:
+		return Vector2.ZERO
+	return _project_world((state_value as Dictionary).get("g_self", Vector3.ZERO))
+
+
+func _shift_cardinal_leg_sprites(suffix: String, screen_shift: float) -> void:
+	if absf(screen_shift) <= 0.001:
+		return
+	var leg_name := "leg" + suffix
+	var foot_name := "foot" + suffix
+	var toe_name := "toe" + suffix
+	for record_value in _sprite_records:
+		if not record_value is Dictionary:
+			continue
+		var record := record_value as Dictionary
+		var node_name := str(record.get("node", ""))
+		var weight := 0.0
+		if node_name == leg_name:
+			weight = CARDINAL_STANCE_LEG_WEIGHT
+		elif node_name == foot_name or node_name == toe_name:
+			weight = 1.0
+		else:
+			continue
+		var sprite := record.get("sprite") as Sprite2D
+		if sprite == null or not sprite.visible:
+			continue
+		sprite.position.x += screen_shift * weight
+		sprite.set_meta("alabaster_cardinal_stance_shift", screen_shift * weight)
+		sprite.set_meta("alabaster_cardinal_stance_side", suffix)
 
 
 func _side_front_state(left_anchor: String, right_anchor: String, requested_side: String) -> int:
