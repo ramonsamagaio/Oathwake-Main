@@ -1,9 +1,8 @@
 extends "res://scripts/labs/alabaster/AlabasterBoneStudioImportSourceFix.gd"
 
-# Bone Studio workspace layout layer.
-# 1920x1080 is the authored project viewport, but the editor may display that
-# viewport scaled inside a smaller Game View. Keep the DCC layout responsive so
-# no panel is pushed off-screen just because the embedded preview is narrower.
+# Bone Studio host layout. 1920x1080 is the authored viewport, but Godot can
+# present it scaled inside a smaller embedded Game View. Keep the panels compact
+# enough that the Juno preview and target bone list remain visible there too.
 
 const STUDIO_SIZE := Vector2i(1920, 1080)
 const LEFT_MIN_WIDTH := 950.0
@@ -68,11 +67,9 @@ func _configure_studio_window() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
 
 
-# IMPORTANT: SubViewportContainer stretch stays ON. The previous revision turned
-# it off only to silence a resize warning, which made the live Juno render path
-# fragile in the embedded Game View. With stretch on, Godot owns the viewport
-# texture size and the character reliably remains visible. Geometry code below
-# no longer fights that automatic sizing.
+# Keep stretch enabled. The dedicated Live Tuning viewport controller now knows
+# not to write SubViewport.size while stretch owns it, which fixes the blank Juno
+# render without bringing the old resize warning back.
 func _build_preview_container(parent: VBoxContainer) -> void:
 	var holder := SubViewportContainer.new()
 	holder.custom_minimum_size = Vector2(620.0, 620.0)
@@ -91,43 +88,6 @@ func _build_preview_container(parent: VBoxContainer) -> void:
 	preview_world = Node2D.new()
 	preview_world.position = Vector2(310.0, 335.0)
 	viewport.add_child(preview_world)
-
-
-# Override Workspace.gd's manual SubViewport sizing. A stretched
-# SubViewportContainer rejects direct size changes and used to emit warnings.
-# More importantly, asking both systems to own the size can produce a blank
-# render texture on some embedded-editor layouts.
-func _sync_workspace_viewport_geometry() -> void:
-	if _workspace_holder == null or _workspace_viewport == null:
-		return
-	var holder_size := _workspace_holder.size
-	if not _workspace_holder.stretch:
-		_workspace_viewport.size = Vector2i(
-			maxi(roundi(holder_size.x), 1),
-			maxi(roundi(holder_size.y), 1)
-		)
-	if _workspace_editor != null:
-		_workspace_editor.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_sync_responsive_preview_origin()
-
-
-func _sync_workspace_editor_origin() -> void:
-	_sync_responsive_preview_origin()
-
-
-func _sync_responsive_preview_origin() -> void:
-	if _workspace_holder == null or host == null:
-		return
-	var preview_world_value: Variant = host.get("preview_world")
-	if not preview_world_value is Node2D:
-		return
-	var world := preview_world_value as Node2D
-	var holder_size := _workspace_holder.size
-	if holder_size.x < 4.0 or holder_size.y < 4.0:
-		holder_size = Vector2(_workspace_viewport.size) if _workspace_viewport != null else Vector2(620.0, 620.0)
-	world.position = Vector2(holder_size.x * 0.5, holder_size.y * 0.5 + 24.0) + _workspace_pan
-	if _workspace_editor != null:
-		_workspace_editor.call("set_preview_origin", world.position)
 
 
 func _install_workspace_layout() -> void:
@@ -179,8 +139,8 @@ func _apply_responsive_layout() -> void:
 	var maximum_left := maxf(LEFT_MIN_WIDTH, available_width - RIGHT_MIN_WIDTH - 14.0)
 	_main_split.split_offset = int(clampf(desired_left, LEFT_MIN_WIDTH, maximum_left))
 	if _preview_bone_split != null:
-		var preview_width := maxf(_preview_bone_split.size.x, JUNO_PREVIEW_MIN_WIDTH + JUNO_BONE_PANEL_WIDTH + 12.0)
-		var desired_preview := preview_width - JUNO_BONE_PANEL_WIDTH - 12.0
+		var preview_width := maxf(_preview_bone_split.size.x, JUNO_PREVIEW_MIN_WIDTH + JUNO_BONE_PANEL_WIDTH + 10.0)
+		var desired_preview := preview_width - JUNO_BONE_PANEL_WIDTH - 10.0
 		_preview_bone_split.split_offset = int(maxf(JUNO_PREVIEW_MIN_WIDTH, desired_preview))
 	call_deferred("_resize_juno_preview")
 
@@ -188,22 +148,18 @@ func _apply_responsive_layout() -> void:
 func _resize_juno_preview() -> void:
 	if _preview_holder == null or _preview_viewport == null:
 		return
-	var holder_size := _preview_holder.size
+	var holder_size: Vector2 = _preview_holder.size
 	if holder_size.x < 4.0 or holder_size.y < 4.0:
 		return
 	if not _preview_holder.stretch:
 		_preview_viewport.size = Vector2i(maxi(int(holder_size.x), 4), maxi(int(holder_size.y), 4))
-	if preview_world != null:
-		preview_world.position = Vector2(holder_size.x * 0.5, holder_size.y * 0.5 + 24.0) + _workspace_pan
 	if rig != null and rig is Node2D:
 		var fit := clampf(minf(holder_size.x, holder_size.y) / 175.0, 2.4, 5.2)
 		(rig as Node2D).scale = Vector2.ONE * fit
 	if _juno_overlay != null:
 		_juno_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		if _juno_overlay.has_method("set_preview_origin") and preview_world != null:
-			_juno_overlay.call("set_preview_origin", preview_world.position)
-	if _workspace_editor != null and preview_world != null:
-		_workspace_editor.call("set_preview_origin", preview_world.position)
+	if _live_tuning_panel != null and is_instance_valid(_live_tuning_panel) and _live_tuning_panel.has_method("_sync_workspace_viewport_geometry"):
+		_live_tuning_panel.call_deferred("_sync_workspace_viewport_geometry")
 
 
 func _install_juno_bone_inspector() -> void:
