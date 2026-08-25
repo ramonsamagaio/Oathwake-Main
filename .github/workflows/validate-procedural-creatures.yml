@@ -12,6 +12,8 @@ on:
       - "scripts/test/AlabasterCardinalWalkValidator.gd"
       - "scripts/test/AlabasterWalkContinuityDiagnostic.gd"
       - "scripts/test/AlabasterRetargetFidelityDiagnostic.gd"
+      - "scripts/test/AlabasterRetargetV16Diagnostic.gd"
+      - "scripts/test/AlabasterCustomBankRefreshValidator.gd"
       - "scripts/test/AlabasterSourcePoseCompositionDiagnostic.gd"
       - ".github/workflows/validate-procedural-creatures.yml"
   pull_request:
@@ -25,6 +27,8 @@ on:
       - "scripts/test/AlabasterCardinalWalkValidator.gd"
       - "scripts/test/AlabasterWalkContinuityDiagnostic.gd"
       - "scripts/test/AlabasterRetargetFidelityDiagnostic.gd"
+      - "scripts/test/AlabasterRetargetV16Diagnostic.gd"
+      - "scripts/test/AlabasterCustomBankRefreshValidator.gd"
       - "scripts/test/AlabasterSourcePoseCompositionDiagnostic.gd"
       - ".github/workflows/validate-procedural-creatures.yml"
   workflow_dispatch:
@@ -78,6 +82,16 @@ jobs:
           fi
           grep -F "ALABASTER_BONE_BRIDGE_VALIDATION_OK" alabaster-bone-bridge-validator.log
 
+      - name: Validate same-session custom animation bank refresh
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot --headless --path . --script res://scripts/test/AlabasterCustomBankRefreshValidator.gd --verbose 2>&1 | tee alabaster-custom-bank-refresh.log
+          if grep -E "ALABASTER_CUSTOM_BANK_REFRESH_FAILURE|Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access" alabaster-custom-bank-refresh.log; then
+            exit 1
+          fi
+          grep -F "ALABASTER_CUSTOM_BANK_REFRESH_OK" alabaster-custom-bank-refresh.log
+
       - name: Run Alabaster cardinal walk stance regression
         shell: bash
         run: |
@@ -107,6 +121,16 @@ jobs:
             exit 1
           fi
           grep -F "ALABASTER_RETARGET_FIDELITY_DIAGNOSTIC_OK" alabaster-retarget-fidelity.log
+
+      - name: Diagnose V16 on real Walking output
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot --headless --path . --script res://scripts/test/AlabasterRetargetV16Diagnostic.gd --verbose 2>&1 | tee alabaster-retarget-v16.log
+          if grep -E "ALABASTER_RETARGET_V16_DIAGNOSTIC_FAILURE|Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access" alabaster-retarget-v16.log; then
+            exit 1
+          fi
+          grep -F "ALABASTER_RETARGET_V16_DIAGNOSTIC_OK" alabaster-retarget-v16.log
 
       - name: Diagnose Alabaster source pose composition
         shell: bash
