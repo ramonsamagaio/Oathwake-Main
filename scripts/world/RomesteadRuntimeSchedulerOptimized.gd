@@ -1,35 +1,42 @@
 class_name RomesteadRuntimeSchedulerOptimized
 extends "res://scripts/world/RomesteadRuntimeScheduler.gd"
 
-# Keep main-thread work bounded. The previous scheduler could instantiate 18
-# ResourceNode scenes every 50 ms; terrain used to be built all at once before
-# frame one. Runtime now admits four resources plus at most one 16x16 terrain
-# chunk per stream pass.
+# Keep main-thread work bounded. Runtime terrain now arrives as 8x8 microchunks,
+# prop planning is admitted separately, and ResourceNode scene instantiation is
+# capped. This prevents terrain + decorative scatter + resources from landing in
+# the same frame as one large packet.
 const SMOOTH_RESOURCE_SPAWNS_PER_PASS: int = 4
 const TERRAIN_CHUNKS_PER_PASS: int = 1
+const PROP_CELLS_PER_PASS: int = 8
 
 
 func _run_stream_pass() -> void:
 	var stream_bounds: Rect2 = _get_stream_bounds()
 	var terrain_chunks: int = 0
+	var prop_cells: int = 0
 	if _world != null and _world.has_method("stream_terrain_for_bounds"):
 		terrain_chunks = int(_world.call("stream_terrain_for_bounds", stream_bounds, TERRAIN_CHUNKS_PER_PASS))
-	# Chunk materialization can enqueue deterministic resource spawns lazily.
-	# Refresh the spatial pending index in the same pass so those resources do
-	# not wait for the slower periodic integrity sweep before they can stream.
-	if terrain_chunks > 0:
+	if _world != null and _world.has_method("process_deferred_props"):
+		prop_cells = int(_world.call("process_deferred_props", PROP_CELLS_PER_PASS))
+
+	# Prop materialization can enqueue deterministic ResourceNode reservations.
+	# Refresh immediately so nearby resources do not wait for the slower periodic
+	# integrity sweep before entering the four-scene spawn budget below.
+	if terrain_chunks > 0 or prop_cells > 0:
 		_check_pending_index_integrity()
 	var streamed: int = _stream_nearby_resources(stream_bounds)
-	if streamed > 0 or terrain_chunks > 0:
+	if streamed > 0 or terrain_chunks > 0 or prop_cells > 0:
 		_force_visibility_refresh = true
 	_diagnostics["stream_ticks"] = int(_diagnostics["stream_ticks"]) + 1
 	_diagnostics["streamed_terrain_chunks"] = int(_diagnostics.get("streamed_terrain_chunks", 0)) + terrain_chunks
+	_diagnostics["processed_prop_cells"] = int(_diagnostics.get("processed_prop_cells", 0)) + prop_cells
 
 
 func get_diagnostics() -> Dictionary:
 	var result: Dictionary = super.get_diagnostics()
 	result["resource_spawn_budget"] = SMOOTH_RESOURCE_SPAWNS_PER_PASS
 	result["terrain_chunk_budget"] = TERRAIN_CHUNKS_PER_PASS
+	result["prop_cell_budget"] = PROP_CELLS_PER_PASS
 	result["camera_uses_screen_center"] = true
 	if _world != null and _world.has_method("get_generation_diagnostics"):
 		result["generation"] = _world.call("get_generation_diagnostics")
