@@ -113,6 +113,17 @@ static func make_auto_retarget(source_bones: Array[String]) -> Dictionary:
 	return LegacyImporter.make_auto_retarget(source_bones)
 
 
+# Bone Bridge keeps an imported scene alive while it evaluates AnimationPlayer
+# poses frame-by-frame. Expose the same authoritative source-opening path used by
+# the retargeter instead of implementing a second FBX/GLB loader in the UI.
+static func open_preview_source(source_path: String) -> Dictionary:
+	return _open_source(source_path)
+
+
+static func close_preview_source(opened: Dictionary) -> void:
+	_free_opened_source(opened)
+
+
 static func _mapping_matches_auto(source_bones: Array[String], mapping: Dictionary) -> bool:
 	if mapping.is_empty():
 		return true
