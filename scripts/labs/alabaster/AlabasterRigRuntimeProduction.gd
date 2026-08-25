@@ -9,11 +9,14 @@ const NO_LAYER_OVERRIDE := 999999
 const SIDE_DEPTH_EPSILON := 0.015
 const PROFILE_FACING_EPSILON := 11.26
 const CARDINAL_FACING_EPSILON := 11.26
-const CARDINAL_STANCE_MIN_HALF_HIP_RATIO := 0.38
-const CARDINAL_STANCE_MIN_PX := 1.5
-const CARDINAL_STANCE_MAX_SHIFT_PX := 8.0
-const CARDINAL_STANCE_MAX_SHIFT_HIP_RATIO := 0.90
-const CARDINAL_STANCE_LEG_WEIGHT := 0.45
+# Front/back locomotion needs a visibly wider sagittal corridor than the first
+# conservative pass. A foot may converge inward, but it should not collapse
+# onto the body centerline while the opposite leg is carrying the stride.
+const CARDINAL_STANCE_MIN_HALF_HIP_RATIO := 0.78
+const CARDINAL_STANCE_MIN_PX := 2.35
+const CARDINAL_STANCE_MAX_SHIFT_PX := 10.0
+const CARDINAL_STANCE_MAX_SHIFT_HIP_RATIO := 1.20
+const CARDINAL_STANCE_LEG_WEIGHT := 0.68
 
 var editor_camera_enabled := false
 var editor_camera_pitch_degrees := -45.0
@@ -357,7 +360,6 @@ func _shift_cardinal_leg_sprites(suffix: String, screen_shift: float) -> void:
 		sprite.position.x += screen_shift * weight
 		sprite.set_meta("alabaster_cardinal_stance_shift", screen_shift * weight)
 		sprite.set_meta("alabaster_cardinal_stance_side", suffix)
-
 
 func _side_front_state(left_anchor: String, right_anchor: String, requested_side: String) -> int:
 	if not _states.has(left_anchor) or not _states.has(right_anchor):
