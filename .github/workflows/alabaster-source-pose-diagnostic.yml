@@ -1,0 +1,42 @@
+name: Diagnose Alabaster Source Pose Math
+
+on:
+  push:
+    paths:
+      - "scripts/test/AlabasterSourcePoseCompositionDiagnostic.gd"
+      - "scripts/labs/alabaster/AlabasterMixamoRetargetV9.gd"
+      - ".github/workflows/alabaster-source-pose-diagnostic.yml"
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.6.3
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip" \
+            --output godot.zip >/dev/null 2>&1
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+
+      - name: Measure Skeleton3D source pose composition
+        shell: bash
+        run: |
+          set +e
+          ./godot --headless --path . --script res://scripts/test/AlabasterSourcePoseCompositionDiagnostic.gd > source-pose.log 2>&1
+          status=$?
+          grep -E "ALABASTER_SOURCE_POSE_(COMPOSITION|MODE|DETAIL)" source-pose.log || true
+          if [ "$status" -ne 0 ]; then
+            echo "--- diagnostic tail ---"
+            tail -120 source-pose.log
+            exit "$status"
+          fi
+          grep -F "ALABASTER_SOURCE_POSE_COMPOSITION_DIAGNOSTIC_OK" source-pose.log
