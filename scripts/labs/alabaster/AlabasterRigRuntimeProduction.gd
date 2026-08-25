@@ -179,11 +179,11 @@ func _apply_directional_layer_override(record: Dictionary, sprite: Sprite2D) -> 
 
 
 func _apply_profile_front_arm_over_legs() -> void:
-	# The authored z table can still leave the near profile arm one layer below
-	# a leg. Only fix exact E/W locomotion views. Attacks and diagonals retain
-	# their source-authored crossing order.
-	if current_animation not in ["idle", "walk", "run"]:
-		return
+	# At exact E/W profile the anatomical near-side arm must sit above the legs.
+	# This is a camera/depth rule, not a locomotion-name rule. Bone Bridge installs
+	# retargets under names such as __bone_bridge_preview, so the old idle/walk/run
+	# whitelist silently skipped the correction precisely while authoring imports.
+	# Diagonals still retain their authored crossing order.
 	var is_east := _angular_distance(facing_degrees, 90.0) <= PROFILE_FACING_EPSILON
 	var is_west := _angular_distance(facing_degrees, 270.0) <= PROFILE_FACING_EPSILON
 	if not is_east and not is_west:
