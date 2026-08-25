@@ -1,9 +1,14 @@
 extends Control
 
-# Lightweight 2D diagnostic view of a real imported Skeleton3D.
+# Lightweight diagnostic view of a real imported Skeleton3D.
 # The source scene/AnimationPlayer is evaluated normally, but only the skeleton is
 # drawn here so Mixamo/Rokoko/Cascadeur/etc. can be compared with Juno's green
 # Bone Studio view without Blender's octahedral bone display getting in the way.
+#
+# Navigation deliberately follows familiar DCC viewport behavior:
+#   RMB drag    = orbit around the skeleton
+#   Mouse wheel = zoom
+#   MMB drag    = pan
 
 const SourceAdapter := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationSourceAdapter.gd")
 
@@ -14,6 +19,12 @@ const BONE_SHADOW := Color(0.02, 0.18, 0.14, 0.90)
 const JOINT_COLOR := Color(1.0, 0.61, 0.08, 1.0)
 const SELECTED_COLOR := Color(1.0, 0.94, 0.35, 1.0)
 const LABEL_COLOR := Color(0.90, 1.0, 0.96, 1.0)
+const ORBIT_SENSITIVITY := 0.008
+const PAN_SENSITIVITY := 1.0
+const ZOOM_STEP := 1.12
+const MIN_ZOOM := 0.18
+const MAX_ZOOM := 8.0
+const MAX_PITCH := deg_to_rad(89.0)
 
 var _opened: Dictionary = {}
 var _source_root: Node = null
@@ -25,13 +36,25 @@ var _time := 0.0
 var _playing := true
 var _speed := 1.0
 var _selected_bone := ""
-var _rest_min := Vector2(-1.0, -1.0)
-var _rest_max := Vector2(1.0, 1.0)
 var _status := "No Skeleton3D loaded"
+
+# View state. These affect only the diagnostic projection, never the imported
+# skeleton or animation data.
+var _orbit_yaw := 0.0
+var _orbit_pitch := 0.0
+var _zoom := 1.0
+var _pan := Vector2.ZERO
+var _orbiting := false
+var _panning := false
+var _rest_points: Array[Vector3] = []
+var _rest_center := Vector3.ZERO
+var _view_min := Vector2(-1.0, -1.0)
+var _view_max := Vector2(1.0, 1.0)
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	mouse_default_cursor_shape = Control.CURSOR_CROSS
 	clip_contents = true
 	set_process(true)
 	queue_redraw()
@@ -69,7 +92,8 @@ func load_source(source_path: String, clip_name: String) -> Dictionary:
 		_source_root.get_parent().remove_child(_source_root)
 	add_child(_source_root)
 	_hide_3d_visuals(_source_root)
-	_compute_rest_bounds()
+	_compute_rest_geometry()
+	_reset_view()
 	set_clip(clip_name)
 	_status = "%d Skeleton3D bones" % _skeleton.get_bone_count()
 	queue_redraw()
@@ -94,6 +118,9 @@ func clear_source() -> void:
 	_time = 0.0
 	_selected_bone = ""
 	_status = "No Skeleton3D loaded"
+	_rest_points.clear()
+	_rest_center = Vector3.ZERO
+	_reset_view()
 	queue_redraw()
 
 
@@ -176,11 +203,50 @@ func _process(delta: float) -> void:
 		queue_redraw()
 
 
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var button := event as InputEventMouseButton
+		match button.button_index:
+			MOUSE_BUTTON_RIGHT:
+				_orbiting = button.pressed
+				if button.pressed:
+					grab_focus()
+				accept_event()
+			MOUSE_BUTTON_MIDDLE:
+				_panning = button.pressed
+				if button.pressed:
+					grab_focus()
+				accept_event()
+			MOUSE_BUTTON_WHEEL_UP:
+				if button.pressed:
+					_zoom = clampf(_zoom * ZOOM_STEP, MIN_ZOOM, MAX_ZOOM)
+					queue_redraw()
+				accept_event()
+			MOUSE_BUTTON_WHEEL_DOWN:
+				if button.pressed:
+					_zoom = clampf(_zoom / ZOOM_STEP, MIN_ZOOM, MAX_ZOOM)
+					queue_redraw()
+				accept_event()
+	elif event is InputEventMouseMotion:
+		var motion := event as InputEventMouseMotion
+		if _orbiting:
+			_orbit_yaw = wrapf(_orbit_yaw - motion.relative.x * ORBIT_SENSITIVITY, -PI, PI)
+			_orbit_pitch = clampf(_orbit_pitch - motion.relative.y * ORBIT_SENSITIVITY, -MAX_PITCH, MAX_PITCH)
+			queue_redraw()
+			accept_event()
+		elif _panning:
+			_pan += motion.relative * PAN_SENSITIVITY
+			queue_redraw()
+			accept_event()
+
+
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0.055, 0.065, 0.065, 1.0), true)
 	if _skeleton == null:
 		draw_string(ThemeDB.fallback_font, Vector2(18.0, 30.0), _status, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 14, Color(0.72, 0.78, 0.78))
 		return
+
+	_update_view_bounds()
 
 	# Draw parent-child segments first, then joints so the same cyan/green + orange
 	# visual language used by Juno remains readable even on dense Mixamo fingers.
@@ -202,7 +268,9 @@ func _draw() -> void:
 			draw_circle(point, 9.0, Color(1.0, 0.94, 0.35, 0.28), false, 2.0)
 			draw_string(ThemeDB.fallback_font, point + Vector2(10.0, -8.0), bone_name, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 13, LABEL_COLOR)
 
-	var footer := "%s  ·  %.2fs / %.2fs" % [_clip_name, _time, _clip_length]
+	var nav_hint := "RMB orbit  ·  Wheel zoom  ·  MMB pan"
+	draw_string(ThemeDB.fallback_font, Vector2(12.0, 22.0), nav_hint, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 12, Color(0.52, 0.62, 0.60))
+	var footer := "%s  ·  %.2fs / %.2fs  ·  %.2fx" % [_clip_name, _time, _clip_length, _zoom]
 	draw_string(ThemeDB.fallback_font, Vector2(12.0, size.y - 12.0), footer, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 12, Color(0.66, 0.78, 0.74))
 
 
@@ -214,30 +282,51 @@ func _pose_point(bone_index: int) -> Vector2:
 
 
 func _project_to_canvas(point_3d: Vector3) -> Vector2:
-	# Godot's humanoid convention is Y-up. Looking at the skeleton from the front
-	# therefore maps X horizontally and -Y vertically, matching the useful Blender
-	# armature view while ignoring depth for this comparison panel.
-	var p := Vector2(point_3d.x, -point_3d.y)
-	var span := _rest_max - _rest_min
+	var rotated := _rotate_view_point(point_3d)
+	var p := Vector2(rotated.x, -rotated.y)
+	var span := _view_max - _view_min
 	span.x = maxf(span.x, 0.001)
 	span.y = maxf(span.y, 0.001)
-	var available := Vector2(maxf(size.x - 36.0, 1.0), maxf(size.y - 54.0, 1.0))
-	var fit_scale := minf(available.x / span.x, available.y / span.y)
-	var rest_center := (_rest_min + _rest_max) * 0.5
-	var view_center := Vector2(size.x * 0.5, size.y * 0.5 - 4.0)
-	return view_center + (p - rest_center) * fit_scale
+	var available := Vector2(maxf(size.x - 42.0, 1.0), maxf(size.y - 72.0, 1.0))
+	var fit_scale := minf(available.x / span.x, available.y / span.y) * _zoom
+	var view_bounds_center := (_view_min + _view_max) * 0.5
+	var view_center := Vector2(size.x * 0.5, size.y * 0.5 - 2.0) + _pan
+	return view_center + (p - view_bounds_center) * fit_scale
 
 
-func _compute_rest_bounds() -> void:
+func _rotate_view_point(point_3d: Vector3) -> Vector3:
+	var local := point_3d - _rest_center
+	# Yaw around the humanoid's Y-up axis, then pitch around local X. This is a
+	# camera-like orbit while the actual imported Skeleton3D remains untouched.
+	local = local.rotated(Vector3.UP, _orbit_yaw)
+	local = local.rotated(Vector3.RIGHT, _orbit_pitch)
+	return local
+
+
+func _compute_rest_geometry() -> void:
+	_rest_points.clear()
+	_rest_center = Vector3.ZERO
 	if _skeleton == null or _skeleton.get_bone_count() <= 0:
-		_rest_min = Vector2(-1.0, -1.0)
-		_rest_max = Vector2(1.0, 1.0)
+		_rest_points.append(Vector3(-1.0, -1.0, 0.0))
+		_rest_points.append(Vector3(1.0, 1.0, 0.0))
+		return
+	for bone_index in range(_skeleton.get_bone_count()):
+		var rest := _skeleton.get_bone_global_rest(bone_index)
+		_rest_points.append(rest.origin)
+		_rest_center += rest.origin
+	_rest_center /= float(maxi(_rest_points.size(), 1))
+
+
+func _update_view_bounds() -> void:
+	if _rest_points.is_empty():
+		_view_min = Vector2(-1.0, -1.0)
+		_view_max = Vector2(1.0, 1.0)
 		return
 	var min_p := Vector2(INF, INF)
 	var max_p := Vector2(-INF, -INF)
-	for bone_index in range(_skeleton.get_bone_count()):
-		var rest := _skeleton.get_bone_global_rest(bone_index)
-		var p := Vector2(rest.origin.x, -rest.origin.y)
+	for point_3d in _rest_points:
+		var rotated := _rotate_view_point(point_3d)
+		var p := Vector2(rotated.x, -rotated.y)
 		min_p.x = minf(min_p.x, p.x)
 		min_p.y = minf(min_p.y, p.y)
 		max_p.x = maxf(max_p.x, p.x)
@@ -245,9 +334,20 @@ func _compute_rest_bounds() -> void:
 	if not is_finite(min_p.x) or not is_finite(min_p.y):
 		min_p = Vector2(-1.0, -1.0)
 		max_p = Vector2(1.0, 1.0)
-	var padding := maxf((max_p - min_p).length() * 0.06, 0.05)
-	_rest_min = min_p - Vector2.ONE * padding
-	_rest_max = max_p + Vector2.ONE * padding
+	var span := max_p - min_p
+	var padding := maxf(span.length() * 0.06, 0.05)
+	_view_min = min_p - Vector2.ONE * padding
+	_view_max = max_p + Vector2.ONE * padding
+
+
+func _reset_view() -> void:
+	_orbit_yaw = 0.0
+	_orbit_pitch = 0.0
+	_zoom = 1.0
+	_pan = Vector2.ZERO
+	_orbiting = false
+	_panning = false
+	queue_redraw()
 
 
 func _hide_3d_visuals(node: Node) -> void:
