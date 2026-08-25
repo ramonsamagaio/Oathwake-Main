@@ -68,6 +68,29 @@ func _configure_studio_window() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
 
 
+# Override the 1600-era preview construction before any Live Tuning workspace
+# code runs. The workspace resizes the SubViewport manually, so stretch MUST be
+# false from birth, not toggled later after the first warning has already fired.
+func _build_preview_container(parent: VBoxContainer) -> void:
+	var holder := SubViewportContainer.new()
+	holder.custom_minimum_size = Vector2(620.0, 620.0)
+	holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	holder.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	holder.stretch = false
+	parent.add_child(holder)
+
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(620, 620)
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	viewport.transparent_bg = false
+	viewport.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+	holder.add_child(viewport)
+
+	preview_world = Node2D.new()
+	preview_world.position = Vector2(310.0, 335.0)
+	viewport.add_child(preview_world)
+
+
 func _install_workspace_layout() -> void:
 	if _layout_installed:
 		return
@@ -93,9 +116,6 @@ func _install_workspace_layout() -> void:
 
 	_preview_holder = _find_subviewport_container(_preview_panel)
 	if _preview_holder != null:
-		# We resize the viewport explicitly because Bone Studio also owns an input
-		# overlay. Disabling stretch avoids Godot's repeated "can't change size"
-		# warnings and makes the viewport geometry deterministic.
 		_preview_holder.stretch = false
 		_preview_holder.custom_minimum_size = Vector2(500.0, 720.0)
 		_preview_viewport = _preview_holder.get_child(0) as SubViewport if _preview_holder.get_child_count() > 0 else null
@@ -137,8 +157,9 @@ func _resize_juno_preview() -> void:
 		var fit := clampf(minf(holder_size.x, holder_size.y) / 180.0, 3.4, 5.8)
 		(rig as Node2D).scale = Vector2.ONE * fit
 	if _juno_overlay != null:
-		_juno_overlay.position = Vector2.ZERO
-		_juno_overlay.size = holder_size
+		# The overlay owns FULL_RECT anchors. Adjust offsets, not size directly,
+		# so Godot does not complain about anchor-driven geometry after _ready().
+		_juno_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		if _juno_overlay.has_method("set_preview_origin") and preview_world != null:
 			_juno_overlay.call("set_preview_origin", preview_world.position)
 
