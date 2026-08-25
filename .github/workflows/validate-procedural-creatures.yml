@@ -9,6 +9,7 @@ on:
       - "scenes/labs/alabaster/AlabasterBoneStudio.tscn"
       - "scripts/test/ProceduralCreatureValidator.gd"
       - "scripts/test/AlabasterBoneBridgeValidator.gd"
+      - "scripts/test/AlabasterCardinalWalkValidator.gd"
       - ".github/workflows/validate-procedural-creatures.yml"
   pull_request:
     paths:
@@ -18,6 +19,7 @@ on:
       - "scenes/labs/alabaster/AlabasterBoneStudio.tscn"
       - "scripts/test/ProceduralCreatureValidator.gd"
       - "scripts/test/AlabasterBoneBridgeValidator.gd"
+      - "scripts/test/AlabasterCardinalWalkValidator.gd"
       - ".github/workflows/validate-procedural-creatures.yml"
   workflow_dispatch:
 
@@ -69,3 +71,13 @@ jobs:
             exit 1
           fi
           grep -F "ALABASTER_BONE_BRIDGE_VALIDATION_OK" alabaster-bone-bridge-validator.log
+
+      - name: Run Alabaster cardinal walk stance regression
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot --headless --path . --script res://scripts/test/AlabasterCardinalWalkValidator.gd --verbose 2>&1 | tee alabaster-cardinal-walk-validator.log
+          if grep -E "ALABASTER_CARDINAL_WALK_VALIDATION_FAILURE|Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access" alabaster-cardinal-walk-validator.log; then
+            exit 1
+          fi
+          grep -F "ALABASTER_CARDINAL_WALK_VALIDATION_OK" alabaster-cardinal-walk-validator.log
