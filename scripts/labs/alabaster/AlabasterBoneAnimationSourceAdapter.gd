@@ -5,6 +5,7 @@ const LegacyImporter := preload("res://scripts/labs/alabaster/AlabasterSmartBone
 # Compatibility file name retained so older callers remain stable; this shim now
 # delegates to AlabasterMixamoRetargetV8.
 const MixamoConverter := preload("res://scripts/labs/alabaster/AlabasterMixamoRetargetV6.gd")
+const FOLD_PREFIX := "@fold:"
 
 
 static func inspect_scene(source_path: String) -> Dictionary:
@@ -101,7 +102,16 @@ static func import_scene_clip(source_path: String, clip_name: String, sample_fps
 		if result.is_empty():
 			push_warning("Mixamo → Juno V8 conversion failed. Refusing to silently fall back to the known-distorting raw local-axis path. Open RETARGET DEBUG for the failing stage.")
 	else:
-		result = LegacyImporter.convert_animation(animation, sample_fps, loop, translation_scale, custom_retarget, settings)
+		# Bone Bridge exposes AUTO FOLD entries such as "@fold:top". Those are
+		# semantic instructions for the V8 anatomical solver, not real Juno node
+		# names. If the user overrides any mapping we currently enter the generic
+		# track fallback, so passing the pseudo-node through would create nodeXfm
+		# keys that the Juno runtime does not own and crash _source_tracks().
+		#
+		# In the generic fallback a folded helper must therefore behave as Ignore.
+		# Manual real targets still pass through unchanged.
+		var safe_retarget := _sanitize_track_fallback_mapping(custom_retarget)
+		result = LegacyImporter.convert_animation(animation, sample_fps, loop, translation_scale, safe_retarget, settings)
 		if profile == "mixamo" and skeleton == null:
 			push_warning("Mixamo source has no Skeleton3D; using track-only fallback. A raw FBX/GLB scene is recommended for authoritative REST-delta retargeting.")
 
@@ -132,6 +142,23 @@ static func _mapping_matches_auto(source_bones: Array[String], mapping: Dictiona
 		if str(mapping.get(source_bone, "")) != str(expected.get(source_bone, "")):
 			return false
 	return true
+
+
+static func _sanitize_track_fallback_mapping(mapping: Dictionary) -> Dictionary:
+	if mapping.is_empty():
+		return {}
+	var sanitized := mapping.duplicate(true)
+	for source_bone in sanitized.keys():
+		var entry: Variant = sanitized[source_bone]
+		if entry is String:
+			if str(entry).begins_with(FOLD_PREFIX):
+				sanitized[source_bone] = ""
+		elif entry is Dictionary:
+			var entry_dict := (entry as Dictionary).duplicate(true)
+			if str(entry_dict.get("target", "")).begins_with(FOLD_PREFIX):
+				entry_dict["target"] = ""
+			sanitized[source_bone] = entry_dict
+	return sanitized
 
 
 static func _open_source(source_path: String) -> Dictionary:
