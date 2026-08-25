@@ -2,10 +2,9 @@ extends RefCounted
 class_name AlabasterMixamoRetargetV6
 
 # Compatibility entry point kept so existing Bone Studio/source-adapter
-# references remain stable. The active implementation is now the target-aware
-# V9 solver. V9 can still delegate to the V8 full-delta/segment modes for A/B
-# comparison through RETARGET DEBUG.
-const V9 := preload("res://scripts/labs/alabaster/AlabasterMixamoRetargetV9.gd")
+# references remain stable. The active implementation is now the REST-calibrated
+# V10 solver. V10 preserves the older V8 comparison modes through RETARGET DEBUG.
+const V10 := preload("res://scripts/labs/alabaster/AlabasterMixamoRetargetV10.gd")
 
 
 static func convert_scene(
@@ -17,4 +16,4 @@ static func convert_scene(
 	translation_scale: float,
 	settings: Dictionary
 ) -> Dictionary:
-	return V9.convert_scene(player, skeleton, clip_name, sample_fps, loop, translation_scale, settings)
+	return V10.convert_scene(player, skeleton, clip_name, sample_fps, loop, translation_scale, settings)
