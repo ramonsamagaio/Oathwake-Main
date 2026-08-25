@@ -12,6 +12,7 @@ on:
       - "scripts/test/AlabasterCardinalWalkValidator.gd"
       - "scripts/test/AlabasterWalkContinuityDiagnostic.gd"
       - "scripts/test/AlabasterRetargetFidelityDiagnostic.gd"
+      - "scripts/test/AlabasterSourcePoseCompositionDiagnostic.gd"
       - ".github/workflows/validate-procedural-creatures.yml"
   pull_request:
     paths:
@@ -24,6 +25,7 @@ on:
       - "scripts/test/AlabasterCardinalWalkValidator.gd"
       - "scripts/test/AlabasterWalkContinuityDiagnostic.gd"
       - "scripts/test/AlabasterRetargetFidelityDiagnostic.gd"
+      - "scripts/test/AlabasterSourcePoseCompositionDiagnostic.gd"
       - ".github/workflows/validate-procedural-creatures.yml"
   workflow_dispatch:
 
@@ -105,3 +107,13 @@ jobs:
             exit 1
           fi
           grep -F "ALABASTER_RETARGET_FIDELITY_DIAGNOSTIC_OK" alabaster-retarget-fidelity.log
+
+      - name: Diagnose Alabaster source pose composition
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot --headless --path . --script res://scripts/test/AlabasterSourcePoseCompositionDiagnostic.gd --verbose 2>&1 | tee alabaster-source-pose-composition.log
+          if grep -E "ALABASTER_SOURCE_POSE_COMPOSITION_DIAGNOSTIC_FAILURE|Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access" alabaster-source-pose-composition.log; then
+            exit 1
+          fi
+          grep -F "ALABASTER_SOURCE_POSE_COMPOSITION_DIAGNOSTIC_OK" alabaster-source-pose-composition.log
