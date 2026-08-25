@@ -93,12 +93,12 @@ func _install_retarget_debug_panel() -> void:
 		return
 	_retarget_debug_panel = panel_value as Control
 	_retarget_debug_panel.call("setup", self)
-	# Preserve the old V8 modes for A/B work but make the actual V9 production
+	# Preserve the old V8 modes for A/B work but make the actual V10 production
 	# path visible in the diagnostics selector too.
 	var limb_option_value: Variant = _retarget_debug_panel.get("limb_mode_option")
 	if limb_option_value is OptionButton:
 		var limb_option := limb_option_value as OptionButton
-		limb_option.add_item("V9 Target-rest swing · recommended")
+		limb_option.add_item("V10 REST-calibrated · recommended")
 		limb_option.set_item_metadata(limb_option.item_count - 1, "target_rest_swing")
 		limb_option.select(limb_option.item_count - 1)
 
@@ -149,7 +149,7 @@ func _on_source_selected(path: String) -> void:
 		import_reference_pose.button_pressed = false
 		if has_mixamo_scene:
 			import_reference_pose.disabled = true
-			import_reference_pose.tooltip_text = "Mixamo → Juno reads the FBX transform curves through the real Skeleton3D hierarchy, characterizes Juno's authored rest vectors, then transfers each anatomical segment into Juno's own axes."
+			import_reference_pose.tooltip_text = "Mixamo → Juno reads the real Skeleton3D REST hierarchy, uses foot→toe REST vectors to resolve forward/handedness, and uses adjacent limb segments to resolve ankle/wrist twist before transferring motion into Juno."
 		else:
 			import_reference_pose.disabled = false
 			import_reference_pose.tooltip_text = "No Skeleton3D was exposed by this import, so only the lower-fidelity track fallback is available."
@@ -165,7 +165,7 @@ func _on_source_selected(path: String) -> void:
 
 	var kind := str(info.get("resource_kind", "godot_resource"))
 	if has_mixamo_scene:
-		_set_status("Mixamo → Juno V9 ready: %d clips, %d source bones. Source Skeleton3D + Juno target REST characterization are available. Open BONE BRIDGE for live comparison." % [source_clip_option.item_count, source_bones.size()])
+		_set_status("Mixamo → Juno V10 ready: %d clips, %d source bones. REST forward/handedness + two-vector limb twist calibration are active. Open BONE BRIDGE for live comparison." % [source_clip_option.item_count, source_bones.size()])
 	elif profile == "mixamo":
 		_set_status("Mixamo detected, but this resource exposes no Skeleton3D. Track-only fallback is available; importing the raw FBX/GLB scene is recommended.")
 	else:
