@@ -1,11 +1,14 @@
 extends "res://scripts/labs/alabaster/AlabasterBoneStudioWorkspaceLayout.gd"
 
 const BoneBridgePolishScript := preload("res://scripts/labs/alabaster/AlabasterBoneBridgePanelPolish.gd")
+const BoneStudioDepthPolishScript := preload("res://scripts/labs/alabaster/AlabasterBoneStudioDepthPolish.gd")
 
 # Final Bone Studio interaction layer. The editor overlay is now the ONE source of
 # Juno bone graphics. The runtime's older debug skeleton stays off, which removes
 # the doubled skeleton while preserving RMB orbit, wheel zoom and MMB pan even
 # when the user hides the bones.
+
+var _depth_polish_controller: Node = null
 
 
 func _install_bone_bridge_panel() -> void:
@@ -22,6 +25,7 @@ func _install_bone_bridge_panel() -> void:
 func _connect_juno_overlay() -> void:
 	super._connect_juno_overlay()
 	_sync_single_juno_bone_display()
+	call_deferred("_ensure_bone_bridge_depth_polish")
 
 
 func _on_bones_toggled(enabled: bool) -> void:
@@ -59,3 +63,24 @@ func _disable_runtime_debug_skeleton() -> void:
 		rig.call("set_debug_enabled", false)
 	if rig is CanvasItem:
 		(rig as CanvasItem).queue_redraw()
+
+
+func _ensure_bone_bridge_depth_polish() -> Node:
+	if rig == null or not is_instance_valid(rig):
+		return null
+	if _depth_polish_controller != null and is_instance_valid(_depth_polish_controller):
+		var current_rig_value: Variant = _depth_polish_controller.get("rig")
+		if current_rig_value == rig and _depth_polish_controller.get_parent() == rig:
+			return _depth_polish_controller
+		_depth_polish_controller.queue_free()
+		_depth_polish_controller = null
+
+	var controller_value: Variant = BoneStudioDepthPolishScript.new()
+	if not controller_value is Node:
+		push_error("Bone Studio: could not create Bone Bridge depth polish controller.")
+		return null
+	_depth_polish_controller = controller_value as Node
+	_depth_polish_controller.name = "BoneBridgeDepthPolish"
+	rig.add_child(_depth_polish_controller)
+	_depth_polish_controller.call("setup", rig)
+	return _depth_polish_controller
