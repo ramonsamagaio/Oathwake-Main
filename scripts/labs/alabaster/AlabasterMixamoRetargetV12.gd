@@ -45,7 +45,7 @@ static func convert_scene(
 	translation_scale: float,
 	settings: Dictionary
 ) -> Dictionary:
-	var baseline := V11.convert_scene(
+	var baseline: Dictionary = V11.convert_scene(
 		player,
 		skeleton,
 		clip_name,
@@ -57,12 +57,12 @@ static func convert_scene(
 	if baseline.is_empty():
 		return baseline
 
-	var mode := str(settings.get("retarget_limb_mode", "target_rest_swing"))
+	var mode: String = str(settings.get("retarget_limb_mode", "target_rest_swing"))
 	if mode == "full_global_delta" or mode == "segment_swing":
 		return baseline
 
 	var result: Dictionary = baseline.duplicate(true)
-	var patch_info := _apply_juno_2d_presentation(result, sample_fps, loop, settings)
+	var patch_info: Dictionary = _apply_juno_2d_presentation(result, sample_fps, loop, settings)
 	if not bool(patch_info.get("ok", false)):
 		push_warning("Mixamo -> Juno V12: presentation patch failed; preserving V11. %s" % str(patch_info.get("reason", "")))
 		return baseline
@@ -86,9 +86,13 @@ static func convert_scene(
 	meta["v11_non_presentation_bones_preserved"] = true
 	result["import_meta"] = meta
 
+	var result_transforms_value: Variant = result.get("transforms", [])
+	var result_frame_count := 0
+	if result_transforms_value is Array:
+		result_frame_count = (result_transforms_value as Array).size()
 	print("ALABASTER_MIXAMO_V12_2D_OK clip=%s frames=%d torso_bias=%.2f toe_keep=%.2f clamps=%d seam=%d v11_rest_preserved=true" % [
 		clip_name,
-		(result.get("transforms", []) as Array).size() if result.get("transforms", []) is Array else 0,
+		result_frame_count,
 		float(patch_info.get("torso_back_bias_degrees", 0.0)),
 		float(patch_info.get("toe_pitch_keep", 1.0)),
 		int(patch_info.get("toe_velocity_clamp_count", 0)),
@@ -107,33 +111,33 @@ static func _apply_juno_2d_presentation(
 	if not transforms_value is Array or (transforms_value as Array).is_empty():
 		return {"ok": false, "reason": "retarget result contains no transforms"}
 
-	var transforms := transforms_value as Array
-	var torso_bias := float(settings.get("juno_2d_torso_back_bias_degrees", DEFAULT_TORSO_BACK_BIAS_DEG))
-	var toe_pitch_keep := clampf(float(settings.get("juno_2d_toe_pitch_keep", DEFAULT_TOE_PITCH_KEEP)), 0.0, 1.0)
-	var toe_roll_keep := clampf(float(settings.get("juno_2d_toe_roll_keep", DEFAULT_TOE_ROLL_KEEP)), 0.0, 1.0)
-	var max_speed := maxf(float(settings.get("juno_2d_toe_max_deg_per_second", DEFAULT_TOE_MAX_DEG_PER_SECOND)), 90.0)
-	var fps := maxf(sample_fps, 1.0)
-	var max_step := max_speed / fps
-	var previous_toe := {}
+	var transforms: Array = transforms_value as Array
+	var torso_bias: float = float(settings.get("juno_2d_torso_back_bias_degrees", DEFAULT_TORSO_BACK_BIAS_DEG))
+	var toe_pitch_keep: float = clampf(float(settings.get("juno_2d_toe_pitch_keep", DEFAULT_TOE_PITCH_KEEP)), 0.0, 1.0)
+	var toe_roll_keep: float = clampf(float(settings.get("juno_2d_toe_roll_keep", DEFAULT_TOE_ROLL_KEEP)), 0.0, 1.0)
+	var max_speed: float = maxf(float(settings.get("juno_2d_toe_max_deg_per_second", DEFAULT_TOE_MAX_DEG_PER_SECOND)), 90.0)
+	var fps: float = maxf(sample_fps, 1.0)
+	var max_step: float = max_speed / fps
+	var previous_toe: Dictionary = {}
 	var clamp_count := 0
 
 	for frame_index in range(transforms.size()):
 		var frame_value: Variant = transforms[frame_index]
 		if not frame_value is Dictionary:
 			continue
-		var frame_dict := (frame_value as Dictionary).duplicate(true)
+		var frame_dict: Dictionary = (frame_value as Dictionary).duplicate(true)
 		var node_value: Variant = frame_dict.get("nodeXfm", {})
 		if not node_value is Dictionary:
 			continue
-		var node_xfm := (node_value as Dictionary).duplicate(true)
+		var node_xfm: Dictionary = (node_value as Dictionary).duplicate(true)
 
 		# Positive Alabaster pitch tilts Juno's +Z-up torso very slightly toward
 		# -Y, i.e. backward relative to the calibrated +Y forward direction.
 		if node_xfm.has("top"):
 			var top_value: Variant = node_xfm.get("top", {})
 			if top_value is Dictionary:
-				var top_xfm := (top_value as Dictionary).duplicate(true)
-				var top_rot := _rotation_array(top_xfm)
+				var top_xfm: Dictionary = (top_value as Dictionary).duplicate(true)
+				var top_rot: Array = _rotation_array(top_xfm)
 				top_rot[1] = float(top_rot[1]) + torso_bias
 				top_xfm["rot"] = top_rot
 				node_xfm["top"] = top_xfm
@@ -144,16 +148,16 @@ static func _apply_juno_2d_presentation(
 			var toe_value: Variant = node_xfm.get(toe_name, {})
 			if not toe_value is Dictionary:
 				continue
-			var toe_xfm := (toe_value as Dictionary).duplicate(true)
-			var rot := _rotation_array(toe_xfm)
+			var toe_xfm: Dictionary = (toe_value as Dictionary).duplicate(true)
+			var rot: Array = _rotation_array(toe_xfm)
 			# Yaw stays untouched so the fixed forward/handedness solution cannot
 			# regress. Only the two floor-reading axes are relaxed toward REST.
-			var pitch := _canonical_degrees(float(rot[1])) * toe_pitch_keep
-			var roll := _canonical_degrees(float(rot[2])) * toe_roll_keep
+			var pitch: float = _canonical_degrees(float(rot[1])) * toe_pitch_keep
+			var roll: float = _canonical_degrees(float(rot[2])) * toe_roll_keep
 			if previous_toe.has(toe_name):
 				var previous: Vector2 = previous_toe[toe_name]
-				var limited_pitch := _limit_angle_step(previous.x, pitch, max_step)
-				var limited_roll := _limit_angle_step(previous.y, roll, max_step)
+				var limited_pitch: float = _limit_angle_step(previous.x, pitch, max_step)
+				var limited_roll: float = _limit_angle_step(previous.y, roll, max_step)
 				if not is_equal_approx(limited_pitch, _unwrap_near(pitch, previous.x)):
 					clamp_count += 1
 				if not is_equal_approx(limited_roll, _unwrap_near(roll, previous.y)):
@@ -190,23 +194,23 @@ static func _apply_juno_2d_presentation(
 
 static func _stabilize_toe_loop_seam(transforms: Array, seam_limit: float) -> int:
 	var patch_count := 0
-	var blend_frames := mini(LOOP_SEAM_BLEND_FRAMES, transforms.size())
+	var blend_frames: int = mini(LOOP_SEAM_BLEND_FRAMES, transforms.size())
 	for toe_name in ["toeL", "toeR"]:
 		for axis in [1, 2]:
-			var first_value := _read_rotation_axis(transforms, 0, toe_name, axis)
-			var last_value := _read_rotation_axis(transforms, transforms.size() - 1, toe_name, axis)
+			var first_value: Variant = _read_rotation_axis(transforms, 0, toe_name, axis)
+			var last_value: Variant = _read_rotation_axis(transforms, transforms.size() - 1, toe_name, axis)
 			if first_value == null or last_value == null:
 				continue
-			var first_near_last := _unwrap_near(float(first_value), float(last_value))
-			var seam_delta := first_near_last - float(last_value)
+			var first_near_last: float = _unwrap_near(float(first_value), float(last_value))
+			var seam_delta: float = first_near_last - float(last_value)
 			if absf(seam_delta) <= seam_limit:
 				continue
-			var allowed_delta := clampf(seam_delta, -seam_limit, seam_limit)
-			var desired_last := first_near_last - allowed_delta
-			var correction := desired_last - float(last_value)
+			var allowed_delta: float = clampf(seam_delta, -seam_limit, seam_limit)
+			var desired_last: float = first_near_last - allowed_delta
+			var correction: float = desired_last - float(last_value)
 			for blend_index in range(blend_frames):
-				var frame_index := transforms.size() - blend_frames + blend_index
-				var weight := float(blend_index + 1) / float(blend_frames)
+				var frame_index: int = transforms.size() - blend_frames + blend_index
+				var weight: float = float(blend_index + 1) / float(blend_frames)
 				if _offset_rotation_axis(transforms, frame_index, toe_name, axis, correction * weight):
 					patch_count += 1
 	return patch_count
@@ -214,9 +218,9 @@ static func _stabilize_toe_loop_seam(transforms: Array, seam_limit: float) -> in
 
 static func _rotation_array(xfm: Dictionary) -> Array:
 	var rot_value: Variant = xfm.get("rot", [0.0, 0.0, 0.0])
-	var result := [0.0, 0.0, 0.0]
+	var result: Array = [0.0, 0.0, 0.0]
 	if rot_value is Array:
-		var source := rot_value as Array
+		var source: Array = rot_value as Array
 		for index in range(mini(source.size(), 3)):
 			result[index] = float(source[index])
 	return result
@@ -234,7 +238,7 @@ static func _read_rotation_axis(transforms: Array, frame_index: int, bone_name: 
 	var xfm_value: Variant = (node_value as Dictionary).get(bone_name, {})
 	if not xfm_value is Dictionary:
 		return null
-	var rot := _rotation_array(xfm_value as Dictionary)
+	var rot: Array = _rotation_array(xfm_value as Dictionary)
 	if axis < 0 or axis >= rot.size():
 		return null
 	return float(rot[axis])
@@ -246,16 +250,16 @@ static func _offset_rotation_axis(transforms: Array, frame_index: int, bone_name
 	var frame_value: Variant = transforms[frame_index]
 	if not frame_value is Dictionary:
 		return false
-	var frame_dict := (frame_value as Dictionary).duplicate(true)
+	var frame_dict: Dictionary = (frame_value as Dictionary).duplicate(true)
 	var node_value: Variant = frame_dict.get("nodeXfm", {})
 	if not node_value is Dictionary:
 		return false
-	var node_xfm := (node_value as Dictionary).duplicate(true)
+	var node_xfm: Dictionary = (node_value as Dictionary).duplicate(true)
 	var xfm_value: Variant = node_xfm.get(bone_name, {})
 	if not xfm_value is Dictionary:
 		return false
-	var xfm := (xfm_value as Dictionary).duplicate(true)
-	var rot := _rotation_array(xfm)
+	var xfm: Dictionary = (xfm_value as Dictionary).duplicate(true)
+	var rot: Array = _rotation_array(xfm)
 	if axis < 0 or axis >= rot.size():
 		return false
 	rot[axis] = float(rot[axis]) + amount
@@ -271,7 +275,7 @@ static func _canonical_degrees(value: float) -> float:
 
 
 static func _unwrap_near(value: float, reference: float) -> float:
-	var result := value
+	var result: float = value
 	while result - reference > 180.0:
 		result -= 360.0
 	while result - reference < -180.0:
@@ -280,8 +284,8 @@ static func _unwrap_near(value: float, reference: float) -> float:
 
 
 static func _limit_angle_step(previous: float, candidate: float, max_step: float) -> float:
-	var resolved := _unwrap_near(candidate, previous)
-	var delta := resolved - previous
+	var resolved: float = _unwrap_near(candidate, previous)
+	var delta: float = resolved - previous
 	if absf(delta) <= max_step:
 		return resolved
 	return previous + clampf(delta, -max_step, max_step)
@@ -292,8 +296,8 @@ static func _preserved_targets_match(before: Dictionary, after: Dictionary) -> b
 	var after_value: Variant = after.get("transforms", [])
 	if not before_value is Array or not after_value is Array:
 		return false
-	var before_frames := before_value as Array
-	var after_frames := after_value as Array
+	var before_frames: Array = before_value as Array
+	var after_frames: Array = after_value as Array
 	if before_frames.size() != after_frames.size():
 		return false
 	for frame_index in range(before_frames.size()):
@@ -305,15 +309,15 @@ static func _preserved_targets_match(before: Dictionary, after: Dictionary) -> b
 		var after_nodes_value: Variant = (after_frame_value as Dictionary).get("nodeXfm", {})
 		if not before_nodes_value is Dictionary or not after_nodes_value is Dictionary:
 			return false
-		var before_nodes := before_nodes_value as Dictionary
-		var after_nodes := after_nodes_value as Dictionary
-		var names := {}
+		var before_nodes: Dictionary = before_nodes_value as Dictionary
+		var after_nodes: Dictionary = after_nodes_value as Dictionary
+		var names: Dictionary = {}
 		for name_value in before_nodes.keys():
 			names[str(name_value)] = true
 		for name_value in after_nodes.keys():
 			names[str(name_value)] = true
 		for name_value in names.keys():
-			var bone_name := str(name_value)
+			var bone_name: String = str(name_value)
 			if ALLOWED_PATCH_TARGETS.has(bone_name):
 				continue
 			if before_nodes.get(bone_name, null) != after_nodes.get(bone_name, null):
