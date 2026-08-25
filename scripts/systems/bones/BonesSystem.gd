@@ -45,6 +45,25 @@ func set_rest_pose() -> void:
 	_apply_pose()
 
 
+func _globalize(local_pos: Vector3) -> Vector3:
+	# Production bones must remain continuous. The source-derived runtime snapped
+	# figure-global X/Y/Z to a half-pixel world grid here, before projection. That
+	# quantized the actual kinematic chain, so a smoothly moving foot could hold the
+	# same transform for several subframes and then jump when it crossed a cell.
+	#
+	# Keep only the authored root-facing rotation in world space. Pixel-art texture
+	# filtering is handled by CanvasItem rendering; spatial math, debug bones,
+	# attachments and billboard lengths all consume this continuous transform.
+	var angle: float = deg_to_rad(_rounded_face - 180.0)
+	var c: float = cos(angle)
+	var s: float = sin(angle)
+	return Vector3(
+		local_pos.x * c - local_pos.y * s,
+		local_pos.x * s + local_pos.y * c,
+		local_pos.z
+	)
+
+
 func prewarm_animations(animation_names: Array) -> void:
 	for raw_name in animation_names:
 		var animation_name := str(raw_name).strip_edges()
@@ -232,7 +251,9 @@ func _sample_source_track(track: Array, frame: float, anim_repeat: float) -> Dic
 func get_external_gfx_world(node_name: String, local_gfx_pos: Vector3) -> Vector3:
 	# Equipment figures reuse the player's authored attachment bone. Their local
 	# gfx offset must then follow the exact same 3D transform/global facing path
-	# used by the body renderer before projection.
+	# used by the body renderer before projection. Keep this continuous for the
+	# same reason as body bones: attachments must not freeze and jump on a world
+	# quantization grid independently from their parent chain.
 	if not _states.has(node_name):
 		return Vector3.ZERO
 	var state: Dictionary = _states[node_name]
@@ -244,7 +265,7 @@ func get_external_gfx_world(node_name: String, local_gfx_pos: Vector3) -> Vector
 		offset *= scale
 	if bool(state.get("rotated", false)):
 		offset = _figure_transform(offset, state.get("dir", Quaternion.IDENTITY))
-	return _snap_world(state.get("g_self", Vector3.ZERO) + _globalize(offset))
+	return state.get("g_self", Vector3.ZERO) + _globalize(offset)
 
 
 func resolve_external_billboard_transform(
