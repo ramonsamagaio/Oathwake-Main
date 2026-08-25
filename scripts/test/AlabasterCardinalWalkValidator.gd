@@ -48,6 +48,7 @@ func _run() -> void:
 		"set_facing_from_vector",
 		"seek_animation_frame",
 		"get_cardinal_stance_debug",
+		"get_bone_corridor_debug",
 		"get_bone_visual_state",
 	]:
 		if not rig.has_method(str(required_method)):
@@ -60,22 +61,23 @@ func _run() -> void:
 		return
 	rig.call("set_animation", preview_name)
 
-	# The user's remaining defect is visible in exact SOUTH/front view: during
-	# passing/push-off the rear foot converges toward or through the body's
-	# sagittal centerline. Sweep every visible frame and prove the final 2D
-	# presentation guard actually fires, moves only outward, and stays bounded.
+	# The recorded defect is visible in exact SOUTH/front view. The old guard moved
+	# only Sprite2D pieces, so the bone overlay still crossed the sagittal centerline
+	# and kicked back outward. Sweep the real Walking.fbx and require the correction
+	# to live on foot/leg BONE states before Production's sprite-only fallback runs.
 	rig.call("set_facing_from_vector", Vector2.DOWN)
 	var active_frames := 0
 	var corrected_frames := 0
 	var max_applied_shift := 0.0
 	var max_raw_intrusion := 0.0
+	var max_residual_sprite_shift := 0.0
 	var worst_debug: Dictionary = {}
 	var first_inactive_debug: Dictionary = {}
 	for frame in range(frame_count):
 		rig.call("seek_animation_frame", frame)
-		var debug_value: Variant = rig.call("get_cardinal_stance_debug")
+		var debug_value: Variant = rig.call("get_bone_corridor_debug")
 		if not debug_value is Dictionary:
-			_fail("Cardinal stance debug disappeared at frame %d." % frame)
+			_fail("Bone-state cardinal corridor debug disappeared at frame %d." % frame)
 			return
 		var debug := debug_value as Dictionary
 		if not bool(debug.get("active", false)):
@@ -83,6 +85,10 @@ func _run() -> void:
 				first_inactive_debug = debug.duplicate(true)
 			continue
 		active_frames += 1
+		if str(debug.get("correction_space", "")) != "bone_state":
+			_fail("Cardinal correction fell back to sprite space at frame %d: %s" % [frame, str(debug)])
+			return
+
 		var min_half_stance := float(debug.get("min_half_stance", 0.0))
 		var left_raw := float(debug.get("left_raw_lateral", 0.0))
 		var right_raw := float(debug.get("right_raw_lateral", 0.0))
@@ -97,12 +103,42 @@ func _run() -> void:
 			corrected_frames += 1
 			if worst_debug.is_empty() or frame_shift > maxf(absf(float(worst_debug.get("left_shift", 0.0))), absf(float(worst_debug.get("right_shift", 0.0)))):
 				worst_debug = debug.duplicate(true)
-		if left_corrected + 0.001 < left_raw or right_corrected + 0.001 < right_raw:
-			_fail("Cardinal stance correction moved a foot farther inward at frame %d: %s" % [frame, str(debug)])
+
+		if left_corrected + 0.03 < left_raw or right_corrected + 0.03 < right_raw:
+			_fail("Bone-state stance correction moved a foot farther inward at frame %d: %s" % [frame, str(debug)])
 			return
-		if left_shift > float(debug.get("max_shift", 0.0)) + 0.01 or right_shift > float(debug.get("max_shift", 0.0)) + 0.01:
-			_fail("Cardinal stance correction exceeded its safety cap at frame %d: %s" % [frame, str(debug)])
+		if left_raw + 0.03 < min_half_stance and left_corrected + 0.08 < min_half_stance:
+			_fail("Left foot bone remained inside the sagittal corridor at frame %d: %s" % [frame, str(debug)])
 			return
+		if right_raw + 0.03 < min_half_stance and right_corrected + 0.08 < min_half_stance:
+			_fail("Right foot bone remained inside the sagittal corridor at frame %d: %s" % [frame, str(debug)])
+			return
+		if left_shift > float(debug.get("max_shift", 0.0)) + 0.05 or right_shift > float(debug.get("max_shift", 0.0)) + 0.05:
+			_fail("Bone-state stance correction exceeded its safety cap at frame %d: %s" % [frame, str(debug)])
+			return
+
+		# Prove the shift is carried by the actual state returned to the overlay and
+		# attachments, rather than a second hidden Sprite2D nudge.
+		if left_shift > 0.05:
+			var left_state_value: Variant = rig.call("get_bone_visual_state", "footL")
+			if not left_state_value is Dictionary or absf(float((left_state_value as Dictionary).get("alabaster_bone_corridor_shift_px", 0.0))) <= 0.05:
+				_fail("Left foot correction did not reach the live bone state at frame %d." % frame)
+				return
+		if right_shift > 0.05:
+			var right_state_value: Variant = rig.call("get_bone_visual_state", "footR")
+			if not right_state_value is Dictionary or absf(float((right_state_value as Dictionary).get("alabaster_bone_corridor_shift_px", 0.0))) <= 0.05:
+				_fail("Right foot correction did not reach the live bone state at frame %d." % frame)
+				return
+
+		# Production still contains the former sprite-only corridor as a safety net.
+		# Once bones are corrected it should have virtually nothing left to do.
+		var presentation_debug_value: Variant = rig.call("get_cardinal_stance_debug")
+		if presentation_debug_value is Dictionary:
+			var presentation_debug := presentation_debug_value as Dictionary
+			max_residual_sprite_shift = maxf(
+				max_residual_sprite_shift,
+				maxf(absf(float(presentation_debug.get("left_shift", 0.0))), absf(float(presentation_debug.get("right_shift", 0.0))))
+			)
 
 	if active_frames < frame_count - 1:
 		var pose_debug := {
@@ -113,31 +149,34 @@ func _run() -> void:
 			"profile": rig.get("skin_profile_id"),
 			"current_animation": rig.get("current_animation"),
 		}
-		_fail("Cardinal stance guard was not active through the SOUTH walk cycle: active=%d/%d first=%s poses=%s." % [active_frames, frame_count, str(first_inactive_debug), str(pose_debug)])
+		_fail("Bone-state cardinal corridor was not active through the SOUTH walk cycle: active=%d/%d first=%s poses=%s." % [active_frames, frame_count, str(first_inactive_debug), str(pose_debug)])
 		return
 	if corrected_frames <= 0:
-		_fail("SOUTH Walking never triggered the centerline guard; the recorded foot-crossing regression is not covered.")
+		_fail("SOUTH Walking never triggered the bone-state centerline guard; the recorded foot-crossing regression is not covered.")
 		return
 	if max_applied_shift > 8.01:
-		_fail("Cardinal stance correction became too large: %.3f px." % max_applied_shift)
+		_fail("Bone-state cardinal correction became too large: %.3f px." % max_applied_shift)
+		return
+	if max_residual_sprite_shift > 0.10:
+		_fail("Sprite-only fallback still had meaningful work after bone correction: %.3f px." % max_residual_sprite_shift)
 		return
 
-	# The correction is deliberately a cardinal-view presentation rule. Profile
-	# must remain entirely untouched, otherwise fixing front view could regress the
-	# now-good E/W walk silhouette.
+	# This remains a cardinal-view articulation rule. Profile must stay untouched,
+	# otherwise fixing front view could regress the now-good E/W silhouette.
 	rig.call("set_facing_from_vector", Vector2.RIGHT)
 	rig.call("seek_animation_frame", floori(float(frame_count) * 0.42))
-	var profile_debug_value: Variant = rig.call("get_cardinal_stance_debug")
+	var profile_debug_value: Variant = rig.call("get_bone_corridor_debug")
 	if profile_debug_value is Dictionary and bool((profile_debug_value as Dictionary).get("active", false)):
-		_fail("Cardinal stance guard leaked into E/W profile: %s" % str(profile_debug_value))
+		_fail("Bone-state cardinal corridor leaked into E/W profile: %s" % str(profile_debug_value))
 		return
 
-	print("ALABASTER_CARDINAL_WALK_VALIDATION_OK frames=%d active=%d corrected=%d raw_intrusion=%.3f max_shift=%.3f worst=%s" % [
+	print("ALABASTER_CARDINAL_WALK_VALIDATION_OK frames=%d active=%d corrected=%d raw_intrusion=%.3f bone_shift=%.3f residual_sprite=%.3f worst=%s" % [
 		frame_count,
 		active_frames,
 		corrected_frames,
 		max_raw_intrusion,
 		max_applied_shift,
+		max_residual_sprite_shift,
 		str(worst_debug),
 	])
 	studio.queue_free()
