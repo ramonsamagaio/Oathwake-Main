@@ -57,7 +57,6 @@ func _install_workspace_layout() -> void:
 		_preview_panel = _main_split.get_child(tab_index + 1) as Control
 
 	_layout_installed = true
-	theme_default_font_size = 14
 	_workspace_tabs.custom_minimum_size = Vector2(LEFT_MIN_WIDTH, 760.0)
 	if _preview_panel != null:
 		_preview_panel.custom_minimum_size = Vector2(RIGHT_MIN_WIDTH, 760.0)
