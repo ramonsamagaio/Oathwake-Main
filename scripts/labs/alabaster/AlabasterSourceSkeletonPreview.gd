@@ -25,6 +25,7 @@ const ZOOM_STEP := 1.12
 const MIN_ZOOM := 0.18
 const MAX_ZOOM := 8.0
 const MAX_PITCH := deg_to_rad(89.0)
+const GEOMETRY_EPS := 0.000001
 
 var _opened: Dictionary = {}
 var _source_root: Node = null
@@ -37,6 +38,7 @@ var _playing := true
 var _speed := 1.0
 var _selected_bone := ""
 var _status := "No Skeleton3D loaded"
+var _source_kind := ""
 
 # View state. These affect only the diagnostic projection, never the imported
 # skeleton or animation data.
@@ -47,9 +49,11 @@ var _pan := Vector2.ZERO
 var _orbiting := false
 var _panning := false
 var _rest_points: Array[Vector3] = []
+var _pose_points: Array[Vector3] = []
 var _rest_center := Vector3.ZERO
 var _view_min := Vector2(-1.0, -1.0)
 var _view_max := Vector2(1.0, 1.0)
+var _using_rest_pose_fallback := false
 
 
 func _ready() -> void:
@@ -71,7 +75,11 @@ func load_source(source_path: String, clip_name: String) -> Dictionary:
 		queue_redraw()
 		return {"ok": false, "error": _status}
 
-	_opened = SourceAdapter.open_preview_source(source_path)
+	# For the visual diagnostic viewport, prefer Godot's already-imported scene.
+	# The production retargeter still opens the raw FBX independently, so this does
+	# not weaken the authoritative REST->POSE conversion path. The imported scene
+	# is simply much more reliable for live AnimationPlayer/Skeleton3D evaluation.
+	_opened = _open_visual_source(source_path)
 	if not bool(_opened.get("ok", false)):
 		_status = str(_opened.get("error", "Could not open source."))
 		queue_redraw()
@@ -80,21 +88,30 @@ func load_source(source_path: String, clip_name: String) -> Dictionary:
 	_source_root = _opened.get("root") as Node
 	_player = _opened.get("player") as AnimationPlayer
 	_skeleton = _opened.get("skeleton") as Skeleton3D
+	_source_kind = str(_opened.get("kind", "unknown"))
 	if _source_root == null or _player == null or _skeleton == null:
 		_status = "Source does not expose a live AnimationPlayer + Skeleton3D."
 		clear_source()
 		queue_redraw()
 		return {"ok": false, "error": _status}
 
-	# Keep the imported hierarchy alive so AnimationPlayer NodePaths resolve, but
-	# hide any cameras/meshes. The Bone Bridge intentionally renders only bones.
+	# Keep the hierarchy intact so AnimationPlayer NodePaths continue to resolve.
+	# VisualInstance3D children are hidden because this viewport intentionally draws
+	# a clean diagnostic skeleton in 2D instead of the imported mesh.
 	if _source_root.get_parent() != null:
 		_source_root.get_parent().remove_child(_source_root)
 	add_child(_source_root)
+	_source_root.process_mode = Node.PROCESS_MODE_ALWAYS
+	_player.process_mode = Node.PROCESS_MODE_ALWAYS
+	_skeleton.process_mode = Node.PROCESS_MODE_ALWAYS
 	_hide_3d_visuals(_source_root)
 	_compute_rest_geometry()
 	_reset_view()
-	set_clip(clip_name)
+	if not set_clip(clip_name):
+		var animations := _player.get_animation_list()
+		if not animations.is_empty():
+			set_clip(str(animations[0]))
+	_refresh_pose_geometry()
 	_status = "%d Skeleton3D bones" % _skeleton.get_bone_count()
 	queue_redraw()
 	return {
@@ -103,6 +120,8 @@ func load_source(source_path: String, clip_name: String) -> Dictionary:
 		"bones": get_bone_names(),
 		"clip": _clip_name,
 		"clip_length": _clip_length,
+		"source_kind": _source_kind,
+		"drawable_segments": get_drawable_segment_count(),
 	}
 
 
@@ -118,8 +137,11 @@ func clear_source() -> void:
 	_time = 0.0
 	_selected_bone = ""
 	_status = "No Skeleton3D loaded"
+	_source_kind = ""
 	_rest_points.clear()
+	_pose_points.clear()
 	_rest_center = Vector3.ZERO
+	_using_rest_pose_fallback = false
 	_reset_view()
 	queue_redraw()
 
@@ -135,6 +157,7 @@ func set_clip(clip_name: String) -> bool:
 	_player.play(_clip_name)
 	_player.pause()
 	_player.seek(0.0, true)
+	_flush_skeleton_pose()
 	queue_redraw()
 	pose_updated.emit(_time)
 	return true
@@ -164,6 +187,7 @@ func set_time(time_seconds: float) -> void:
 	else:
 		_time = maxf(time_seconds, 0.0)
 	_player.seek(_time, true)
+	_flush_skeleton_pose()
 	queue_redraw()
 	pose_updated.emit(_time)
 
@@ -185,6 +209,24 @@ func get_bone_names() -> Array[String]:
 	return result
 
 
+func get_drawable_segment_count() -> int:
+	if _skeleton == null:
+		return 0
+	_refresh_pose_geometry()
+	var count := 0
+	for bone_index in range(_skeleton.get_bone_count()):
+		var parent_index := _skeleton.get_bone_parent(bone_index)
+		if parent_index < 0 or bone_index >= _pose_points.size() or parent_index >= _pose_points.size():
+			continue
+		if _pose_points[bone_index].distance_squared_to(_pose_points[parent_index]) > GEOMETRY_EPS:
+			count += 1
+	return count
+
+
+func is_using_rest_pose_fallback() -> bool:
+	return _using_rest_pose_fallback
+
+
 func select_bone(bone_name: String) -> void:
 	_selected_bone = bone_name
 	queue_redraw()
@@ -200,6 +242,7 @@ func _process(delta: float) -> void:
 	if _playing:
 		set_time(_time + delta * _speed)
 	else:
+		_flush_skeleton_pose()
 		queue_redraw()
 
 
@@ -246,6 +289,7 @@ func _draw() -> void:
 		draw_string(ThemeDB.fallback_font, Vector2(18.0, 30.0), _status, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 14, Color(0.72, 0.78, 0.78))
 		return
 
+	_refresh_pose_geometry()
 	_update_view_bounds()
 
 	# Draw parent-child segments first, then joints so the same cyan/green + orange
@@ -270,15 +314,15 @@ func _draw() -> void:
 
 	var nav_hint := "RMB orbit  ·  Wheel zoom  ·  MMB pan"
 	draw_string(ThemeDB.fallback_font, Vector2(12.0, 22.0), nav_hint, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 12, Color(0.52, 0.62, 0.60))
-	var footer := "%s  ·  %.2fs / %.2fs  ·  %.2fx" % [_clip_name, _time, _clip_length, _zoom]
+	var pose_label := "REST fallback" if _using_rest_pose_fallback else "LIVE pose"
+	var footer := "%s  ·  %.2fs / %.2fs  ·  %.2fx  ·  %s" % [_clip_name, _time, _clip_length, _zoom, pose_label]
 	draw_string(ThemeDB.fallback_font, Vector2(12.0, size.y - 12.0), footer, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 12, Color(0.66, 0.78, 0.74))
 
 
 func _pose_point(bone_index: int) -> Vector2:
-	if _skeleton == null:
+	if bone_index < 0 or bone_index >= _pose_points.size():
 		return size * 0.5
-	var pose := _skeleton.get_bone_global_pose(bone_index)
-	return _project_to_canvas(pose.origin)
+	return _project_to_canvas(_pose_points[bone_index])
 
 
 func _project_to_canvas(point_3d: Vector3) -> Vector2:
@@ -310,11 +354,85 @@ func _compute_rest_geometry() -> void:
 		_rest_points.append(Vector3(-1.0, -1.0, 0.0))
 		_rest_points.append(Vector3(1.0, 1.0, 0.0))
 		return
+
+	# Reconstruct the hierarchy from LOCAL rest transforms instead of trusting the
+	# cached global-rest array. This also sidesteps historical Skeleton3D global-rest
+	# cache regressions and makes the preview deterministic for runtime-generated FBX.
+	var rest_globals: Array[Transform3D] = []
+	rest_globals.resize(_skeleton.get_bone_count())
 	for bone_index in range(_skeleton.get_bone_count()):
-		var rest := _skeleton.get_bone_global_rest(bone_index)
-		_rest_points.append(rest.origin)
-		_rest_center += rest.origin
+		var local_rest := _skeleton.get_bone_rest(bone_index)
+		var parent_index := _skeleton.get_bone_parent(bone_index)
+		var global_rest := local_rest
+		if parent_index >= 0 and parent_index < rest_globals.size():
+			global_rest = rest_globals[parent_index] * local_rest
+		rest_globals[bone_index] = global_rest
+		_rest_points.append(global_rest.origin)
+		_rest_center += global_rest.origin
 	_rest_center /= float(maxi(_rest_points.size(), 1))
+
+
+func _refresh_pose_geometry() -> void:
+	_pose_points.clear()
+	_using_rest_pose_fallback = false
+	if _skeleton == null or _skeleton.get_bone_count() <= 0:
+		return
+
+	# Build globals from each bone's LOCAL animated pose. This avoids depending on
+	# deferred global-pose cache timing after AnimationPlayer.seek(), which was the
+	# reason the Bone Bridge could report 33 bones while drawing an empty viewport.
+	var pose_globals: Array[Transform3D] = []
+	pose_globals.resize(_skeleton.get_bone_count())
+	var finite_count := 0
+	for bone_index in range(_skeleton.get_bone_count()):
+		var local_pose := _skeleton.get_bone_pose(bone_index)
+		var parent_index := _skeleton.get_bone_parent(bone_index)
+		var global_pose := local_pose
+		if parent_index >= 0 and parent_index < pose_globals.size():
+			global_pose = pose_globals[parent_index] * local_pose
+		pose_globals[bone_index] = global_pose
+		var point := global_pose.origin
+		_pose_points.append(point)
+		if _vector3_is_finite(point):
+			finite_count += 1
+
+	var pose_span := _point_span(_pose_points)
+	if finite_count != _skeleton.get_bone_count() or pose_span <= GEOMETRY_EPS:
+		_pose_points = _rest_points.duplicate()
+		_using_rest_pose_fallback = true
+
+
+func _flush_skeleton_pose() -> void:
+	if _player != null:
+		# seek(..., true) evaluates discrete tracks, while advance(0) flushes the
+		# AnimationPlayer's property writes into the imported hierarchy immediately.
+		_player.advance(0.0)
+	if _skeleton != null and _skeleton.has_method("force_update_all_bone_transforms"):
+		_skeleton.call("force_update_all_bone_transforms")
+	_refresh_pose_geometry()
+
+
+func _point_span(points: Array[Vector3]) -> float:
+	if points.size() < 2:
+		return 0.0
+	var min_point := Vector3(INF, INF, INF)
+	var max_point := Vector3(-INF, -INF, -INF)
+	for point in points:
+		if not _vector3_is_finite(point):
+			continue
+		min_point.x = minf(min_point.x, point.x)
+		min_point.y = minf(min_point.y, point.y)
+		min_point.z = minf(min_point.z, point.z)
+		max_point.x = maxf(max_point.x, point.x)
+		max_point.y = maxf(max_point.y, point.y)
+		max_point.z = maxf(max_point.z, point.z)
+	if not _vector3_is_finite(min_point) or not _vector3_is_finite(max_point):
+		return 0.0
+	return (max_point - min_point).length_squared()
+
+
+func _vector3_is_finite(value: Vector3) -> bool:
+	return is_finite(value.x) and is_finite(value.y) and is_finite(value.z)
 
 
 func _update_view_bounds() -> void:
@@ -348,6 +466,55 @@ func _reset_view() -> void:
 	_orbiting = false
 	_panning = false
 	queue_redraw()
+
+
+func _open_visual_source(source_path: String) -> Dictionary:
+	# ResourceLoader resolves an FBX path to Godot's imported PackedScene. Prefer
+	# that for the VIEW only, because its AnimationPlayer/Skeleton3D are already in
+	# the exact form the engine uses at runtime.
+	if ResourceLoader.exists(source_path):
+		var resource: Resource = load(source_path)
+		if resource is PackedScene:
+			var root := (resource as PackedScene).instantiate()
+			if root != null:
+				var player := _find_animation_player(root)
+				var skeleton := _find_skeleton3d(root)
+				if player != null and skeleton != null:
+					return {
+						"ok": true,
+						"kind": "imported_preview_scene",
+						"root": root,
+						"player": player,
+						"skeleton": skeleton,
+					}
+				root.free()
+	return SourceAdapter.open_preview_source(source_path)
+
+
+func _find_animation_player(node: Node) -> AnimationPlayer:
+	if node is AnimationPlayer:
+		return node as AnimationPlayer
+	for child_value in node.get_children():
+		var child := child_value as Node
+		if child == null:
+			continue
+		var found := _find_animation_player(child)
+		if found != null:
+			return found
+	return null
+
+
+func _find_skeleton3d(node: Node) -> Skeleton3D:
+	if node is Skeleton3D:
+		return node as Skeleton3D
+	for child_value in node.get_children():
+		var child := child_value as Node
+		if child == null:
+			continue
+		var found := _find_skeleton3d(child)
+		if found != null:
+			return found
+	return null
 
 
 func _hide_3d_visuals(node: Node) -> void:
