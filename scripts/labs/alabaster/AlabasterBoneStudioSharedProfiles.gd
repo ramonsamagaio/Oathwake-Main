@@ -5,8 +5,9 @@ extends "res://scripts/labs/alabaster/AlabasterBoneStudioPro.gd"
 # The workspace composition adds editor ergonomics without moving them into the
 # gameplay runtime.
 
-const LIVE_TUNING_PANEL_PATH = "res://scripts/labs/alabaster/AlabasterBoneStudioWorkspaceViewportFix.gd"
+const LIVE_TUNING_PANEL_PATH = "res://scripts/labs/alabaster/AlabasterBoneStudioWorkspaceBankRefresh.gd"
 const SharedJunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
+const SharedAnimationLibrary := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
 
 var _live_tuning_panel: Node = null
 
@@ -40,3 +41,35 @@ func _ready() -> void:
 		return
 	_live_tuning_panel = panel_value as Node
 	_live_tuning_panel.call("setup", self)
+
+
+# Import/Retarget and Manual Animator write the same persistent custom bank used
+# by LIVE TUNING. Notify the composed panel immediately after a successful save
+# so users do not need to restart Bone Studio just to see the new copy.
+func _save_import() -> void:
+	var animation_name := _sanitize_name(import_name_edit.text)
+	super._save_import()
+	_queue_live_tuning_bank_refresh(animation_name, "juno")
+
+
+func _save_manual() -> void:
+	var animation_name := _sanitize_name(manual_name_edit.text)
+	super._save_manual()
+	_queue_live_tuning_bank_refresh(animation_name, "juno")
+
+
+func _queue_live_tuning_bank_refresh(animation_name: String, profile_id: String) -> void:
+	if animation_name.is_empty():
+		return
+	var record: Dictionary = SharedAnimationLibrary.get_animation_record(profile_id, animation_name)
+	if record.is_empty() or str(record.get("source", "")) != "custom":
+		return
+	call_deferred("_refresh_live_tuning_bank", animation_name, profile_id)
+
+
+func _refresh_live_tuning_bank(animation_name: String, profile_id: String) -> void:
+	if _live_tuning_panel == null or not is_instance_valid(_live_tuning_panel):
+		return
+	if not _live_tuning_panel.has_method("refresh_animation_bank"):
+		return
+	_live_tuning_panel.call("refresh_animation_bank", animation_name, profile_id)
