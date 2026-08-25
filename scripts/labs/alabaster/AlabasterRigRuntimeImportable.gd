@@ -1,4 +1,4 @@
-extends "res://scripts/labs/alabaster/AlabasterRigRuntimeSourceLive.gd"
+extends "res://scripts/labs/alabaster/AlabasterRigRuntimeBoneCorridor.gd"
 class_name AlabasterRigRuntimeImportable
 
 const BoneAnimationLibrary := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
