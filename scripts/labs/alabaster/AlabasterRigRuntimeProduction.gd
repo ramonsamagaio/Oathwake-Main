@@ -299,28 +299,29 @@ func _apply_cardinal_walk_leg_corridor() -> void:
 
 
 func _cardinal_walk_corridor_enabled() -> bool:
-	# Only playable humanoid skins receive this visual guard. The source Juno rig
-	# remains an untouched comparison reference in Bone Bridge.
-	var profile_value: Variant = get("skin_profile_id")
-	if profile_value == null or str(profile_value).is_empty():
+	# Bone Bridge can host the DEFAULT rig behind a workspace wrapper whose dynamic
+	# property lookup does not expose skin_profile_id. The imported V13 animation
+	# metadata is the authoritative signal here and keeps non-loop attacks/poses
+	# completely untouched.
+	if current_animation.begins_with("__bone_bridge_"):
+		var bridge_anim_value: Variant = _anims.get(current_animation, {})
+		if not bridge_anim_value is Dictionary:
+			return false
+		var bridge_anim := bridge_anim_value as Dictionary
+		var bridge_meta_value: Variant = bridge_anim.get("import_meta", {})
+		if not bridge_meta_value is Dictionary:
+			return false
+		var bridge_meta := bridge_meta_value as Dictionary
+		return int(bridge_meta.get("presentation_calibration_version", 0)) >= 13 \
+			and bool(bridge_meta.get("runtime_loop_closure_key", false)) \
+			and bool(bridge_anim.get("repeat", false))
+
+	# Canonical gameplay walk still requires a playable-skin identity. Runtime
+	# summaries are reliable across DEFAULT subclasses whereas Object.get() is not.
+	if current_animation != "walk" and current_animation != "juno_walk_retarget":
 		return false
-	if current_animation == "walk" or current_animation == "juno_walk_retarget":
-		return true
-	if not current_animation.begins_with("__bone_bridge_"):
-		return false
-	var anim_value: Variant = _anims.get(current_animation, {})
-	if not anim_value is Dictionary:
-		return false
-	var anim := anim_value as Dictionary
-	var meta_value: Variant = anim.get("import_meta", {})
-	if not meta_value is Dictionary:
-		return false
-	var meta := meta_value as Dictionary
-	# V13's loop closure identifies the current imported Walking-style test path.
-	# Non-loop attacks/poses are intentionally left alone even in Bone Bridge.
-	return int(meta.get("presentation_calibration_version", 0)) >= 13 \
-		and bool(meta.get("runtime_loop_closure_key", false)) \
-		and bool(anim.get("repeat", false))
+	var runtime_summary := get_runtime_summary()
+	return not str(runtime_summary.get("skin_profile_id", "")).is_empty()
 
 
 func _project_state_anchor(node_name: String) -> Vector2:
