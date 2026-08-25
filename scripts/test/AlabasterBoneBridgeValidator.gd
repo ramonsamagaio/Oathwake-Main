@@ -2,6 +2,7 @@ extends SceneTree
 
 const BONE_STUDIO_SCENE := "res://scenes/labs/alabaster/AlabasterBoneStudio.tscn"
 const WALKING_SOURCE := "res://assets/anims/Walking.fbx"
+const PUNCHING_SOURCE := "res://assets/anims/Punching.fbx"
 
 
 func _initialize() -> void:
@@ -54,17 +55,61 @@ func _run() -> void:
 	if source_preview.focus_mode != Control.FOCUS_ALL:
 		_fail("Source skeleton viewport is not focusable for orbit/pan input.")
 		return
+	for source_method in ["load_source", "get_drawable_segment_count", "get_bone_names"]:
+		if not source_preview.has_method(str(source_method)):
+			_fail("Source preview is missing regression method: %s" % str(source_method))
+			return
+
+	# Exact regression from the user's blank Bone Bridge capture: Punching.fbx
+	# successfully populated 28 mappings while the source viewport itself drew
+	# nothing. Loading it here must now produce real parent-child geometry, not
+	# merely a non-null Skeleton3D object.
+	if not FileAccess.file_exists(PUNCHING_SOURCE):
+		_fail("Punching regression source is missing: %s" % PUNCHING_SOURCE)
+		return
+	var punching_preview_value: Variant = source_preview.call("load_source", PUNCHING_SOURCE, "mixamo_com")
+	if not punching_preview_value is Dictionary or not bool((punching_preview_value as Dictionary).get("ok", false)):
+		_fail("Punching.fbx could not be opened by the live source skeleton preview.")
+		return
+	for _frame in range(2):
+		await process_frame
+	var drawable_segments := int(source_preview.call("get_drawable_segment_count"))
+	if drawable_segments < 12:
+		_fail("Punching source preview collapsed to %d drawable segments; the viewport would appear blank." % drawable_segments)
+		return
+	var source_names_value: Variant = source_preview.call("get_bone_names")
+	if not source_names_value is Array or (source_names_value as Array).size() < 20:
+		_fail("Punching source preview did not expose a complete Mixamo skeleton.")
+		return
 
 	var juno_list := _find_named(studio, "JunoBoneList") as ItemList
 	if juno_list == null:
 		_fail("Juno target bone inspector was not installed beside the preview.")
 		return
 
+	# The Juno side of the same screenshot was blank after stretch was disabled to
+	# silence a resize warning. The render texture must remain container-owned.
+	var juno_holder := _find_subviewport_container(studio)
+	if juno_holder == null:
+		_fail("Live Juno preview has no SubViewportContainer.")
+		return
+	if not juno_holder.stretch:
+		_fail("Live Juno preview stretch is disabled; this can produce a blank embedded Game View.")
+		return
+	var preview_world_value: Variant = studio.get("preview_world")
+	if not preview_world_value is Node2D:
+		_fail("Live Juno preview world is missing.")
+		return
+	var preview_world := preview_world_value as Node2D
+
 	var rig_value: Variant = studio.get("rig")
 	if not rig_value is Object:
 		_fail("Bone Studio did not expose a live Juno target rig.")
 		return
 	var rig := rig_value as Object
+	if rig is Node and (rig as Node).get_parent() != preview_world:
+		_fail("Live Juno rig is detached from the preview world.")
+		return
 	for required_method in ["install_runtime_animation", "set_animation", "seek_animation_frame", "get_bone_names", "get_bone_parent_map", "get_bone_rest_local_positions"]:
 		if not rig.has_method(str(required_method)):
 			_fail("Juno target rig is missing required method: %s" % str(required_method))
@@ -74,7 +119,7 @@ func _run() -> void:
 		_fail("Juno target rig did not expose authored rest vectors.")
 		return
 
-	# Regression case from the real Bone Bridge capture: load the exact Mixamo
+	# Regression case from the original malformed walk capture: load the exact
 	# Walking.fbx committed to the repository and exercise the production V9 path.
 	if not FileAccess.file_exists(WALKING_SOURCE):
 		_fail("Walking regression source is missing: %s" % WALKING_SOURCE)
@@ -127,10 +172,11 @@ func _run() -> void:
 				_fail("Walking V9 emitted unknown Juno target: %s" % target)
 				return
 
-	print("ALABASTER_BONE_BRIDGE_VALIDATION_OK tabs=%d walking_frames=%d juno_bones=%d" % [
+	print("ALABASTER_BONE_BRIDGE_VALIDATION_OK tabs=%d walking_frames=%d juno_bones=%d punching_segments=%d" % [
 		tabs.get_child_count(),
 		(transforms_value as Array).size(),
 		valid_targets.size(),
+		drawable_segments,
 	])
 	studio.queue_free()
 	await process_frame
@@ -158,6 +204,19 @@ func _find_named(node: Node, target_name: String) -> Node:
 		if child == null:
 			continue
 		var found := _find_named(child, target_name)
+		if found != null:
+			return found
+	return null
+
+
+func _find_subviewport_container(node: Node) -> SubViewportContainer:
+	if node is SubViewportContainer:
+		return node as SubViewportContainer
+	for child_value in node.get_children():
+		var child := child_value as Node
+		if child == null:
+			continue
+		var found := _find_subviewport_container(child)
 		if found != null:
 			return found
 	return null
