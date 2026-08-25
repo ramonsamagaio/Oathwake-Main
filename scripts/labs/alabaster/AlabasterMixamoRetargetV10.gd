@@ -19,6 +19,16 @@ class_name AlabasterMixamoRetargetV10
 # - every limb uses a second adjacent segment as a plane hint, fixing twist;
 # - the exact same calibration is reused for every sampled frame and therefore
 #   for every Mixamo clip that shares the standard humanoid rest skeleton.
+#
+# Temporal pole stabilization (production patch 15):
+# When a knee approaches full extension, the primary thigh direction and the
+# shin/foot plane hint become nearly collinear. The raw two-vector frame then has
+# an ill-conditioned pole axis and can flip 180 degrees between adjacent samples,
+# even though the source Skeleton3D is perfectly smooth. Lower-limb pose frames
+# now carry their previous projected pole axis forward, enforce hemisphere
+# continuity, and progressively trust that previous axis near collinearity. This
+# changes only the ambiguous twist degree of freedom; the primary segment swing,
+# source handedness and Juno REST characterization remain unchanged.
 
 const V9 := preload("res://scripts/labs/alabaster/AlabasterMixamoRetargetV9.gd")
 const V8 := preload("res://scripts/labs/alabaster/AlabasterMixamoRetargetV8.gd")
@@ -26,6 +36,18 @@ const V8 := preload("res://scripts/labs/alabaster/AlabasterMixamoRetargetV8.gd")
 const TICK_RATE := 60.0
 const PROFILE_NAME := "MIXAMO_JUNO_REST_CALIBRATED_V10"
 const EPS := 0.000001
+const TEMPORAL_PLANE_STABILIZATION_VERSION := 15
+const PLANE_STABILITY_RATIO := 0.22
+const PLANE_HARD_FALLBACK_RATIO := 0.035
+
+const LOWER_TEMPORAL_PLANE_TARGETS := {
+	"legL": true,
+	"footL": true,
+	"toeL": true,
+	"legR": true,
+	"footR": true,
+	"toeR": true,
+}
 
 const CORE_TARGET_ORDER := [
 	"root", "bottom", "top", "head",
@@ -167,6 +189,29 @@ static func run_self_test() -> Dictionary:
 		if plane_out.dot(Vector3(0.0, 0.0, 1.0)) < 0.999:
 			failures.append("Two-vector ankle solve did not preserve the intended foot plane/twist.")
 
+	# Regression for the user's mid-stride snap. As the knee crosses almost full
+	# extension, the projected pole can change sign even though the anatomical
+	# motion is continuous. The temporal frame must keep the previous hemisphere.
+	var stable_a := _frame_from_primary_and_plane_stable(
+		Vector3(1.0, 0.0, 0.0),
+		Vector3(1.0, 0.06, 0.01),
+		null
+	)
+	var stable_a_axis_value: Variant = stable_a.get("plane_axis", null)
+	if not stable_a_axis_value is Vector3:
+		failures.append("Temporal lower-limb plane self-test could not create the initial pole axis.")
+	else:
+		var stable_b := _frame_from_primary_and_plane_stable(
+			Vector3(1.0, 0.0, 0.0),
+			Vector3(1.0, -0.02, -0.003),
+			stable_a_axis_value
+		)
+		var stable_b_axis_value: Variant = stable_b.get("plane_axis", null)
+		if not stable_b_axis_value is Vector3:
+			failures.append("Temporal lower-limb plane self-test lost the pole near extension.")
+		elif (stable_a_axis_value as Vector3).dot(stable_b_axis_value as Vector3) <= 0.0:
+			failures.append("Temporal lower-limb plane self-test still allowed a 180-degree pole flip.")
+
 	return {
 		"ok": failures.is_empty(),
 		"status": "PASS" if failures.is_empty() else "FAIL",
@@ -258,8 +303,12 @@ static func convert_scene(
 	var sample_count := frame_count if loop else frame_count + 1
 	var transforms: Array = []
 	var previous_angles := {}
+	var previous_plane_axes := {}
 	var plane_solved_counts := {}
 	var swing_fallback_counts := {}
+	var temporal_plane_low_confidence_counts := {}
+	var temporal_plane_flip_prevent_counts := {}
+	var temporal_plane_previous_blend_counts := {}
 
 	for frame in range(sample_count):
 		var time := minf(float(frame) / fps, animation.length)
@@ -298,13 +347,15 @@ static func convert_scene(
 
 		for target_value in SOURCE_PRIMARY.keys():
 			var target := str(target_value)
+			var previous_plane_axis: Variant = previous_plane_axes.get(target, null)
 			var solved := _solve_limb_global(
 				target,
 				pose_semantic,
 				source_to_target,
 				target_rest_local,
 				target_rest_global,
-				target_parent_map
+				target_parent_map,
+				previous_plane_axis
 			)
 			var basis_value: Variant = solved.get("basis", null)
 			if basis_value is Basis:
@@ -314,6 +365,15 @@ static func convert_scene(
 					plane_solved_counts[target] = int(plane_solved_counts.get(target, 0)) + 1
 				else:
 					swing_fallback_counts[target] = int(swing_fallback_counts.get(target, 0)) + 1
+				var plane_axis_value: Variant = solved.get("plane_axis", null)
+				if plane_axis_value is Vector3:
+					previous_plane_axes[target] = plane_axis_value
+				if bool(solved.get("plane_low_confidence", false)):
+					temporal_plane_low_confidence_counts[target] = int(temporal_plane_low_confidence_counts.get(target, 0)) + 1
+				if bool(solved.get("plane_flip_prevented", false)):
+					temporal_plane_flip_prevent_counts[target] = int(temporal_plane_flip_prevent_counts.get(target, 0)) + 1
+				if bool(solved.get("plane_used_previous", false)):
+					temporal_plane_previous_blend_counts[target] = int(temporal_plane_previous_blend_counts.get(target, 0)) + 1
 			else:
 				var parent_name := str(JUNO_PARENT_FALLBACK.get(target, ""))
 				target_global[target] = target_global[parent_name] if target_global.has(parent_name) else Basis.IDENTITY
@@ -355,12 +415,14 @@ static func convert_scene(
 			"nodeXfm": node_xfm,
 		})
 
-	print("ALABASTER_MIXAMO_V10_OK clip=%s frames=%d source_hand=%.0f target_hand=%.0f bridge_det=%.3f" % [
+	print("ALABASTER_MIXAMO_V10_OK clip=%s frames=%d source_hand=%.0f target_hand=%.0f bridge_det=%.3f pole_low=%s pole_flip=%s" % [
 		clip_name,
 		sample_count,
 		source_handedness,
 		target_handedness,
 		source_to_target.determinant(),
+		str(temporal_plane_low_confidence_counts),
+		str(temporal_plane_flip_prevent_counts),
 	])
 	return {
 		"category": str(settings.get("category", "DEFAULT")),
@@ -378,6 +440,11 @@ static func convert_scene(
 			"sample_fps": fps,
 			"limb_transfer_mode": "target_rest_swing",
 			"rest_calibration_version": 10,
+			"temporal_plane_stabilization_version": TEMPORAL_PLANE_STABILIZATION_VERSION,
+			"temporal_plane_policy": "lower-limb pole hemisphere continuity + previous projected pole near collinearity",
+			"temporal_plane_low_confidence_counts": temporal_plane_low_confidence_counts,
+			"temporal_plane_flip_prevent_counts": temporal_plane_flip_prevent_counts,
+			"temporal_plane_previous_blend_counts": temporal_plane_previous_blend_counts,
 			"forward_calibration": "average foot-to-toe REST direction",
 			"twist_calibration": "primary segment + adjacent segment plane",
 			"source_handedness": source_handedness,
@@ -400,7 +467,8 @@ static func _solve_limb_global(
 	source_to_target: Basis,
 	target_rest_local: Dictionary,
 	target_rest_global: Dictionary,
-	target_parent_map: Dictionary
+	target_parent_map: Dictionary,
+	previous_plane_axis: Variant = null
 ) -> Dictionary:
 	var primary_pair_value: Variant = SOURCE_PRIMARY.get(target, [])
 	if not primary_pair_value is Array or (primary_pair_value as Array).size() < 2:
@@ -434,13 +502,24 @@ static func _solve_limb_global(
 		var target_plane := _target_rest_vector(target_hint_name, target_rest_local, target_rest_global, target_parent_map)
 		if desired_plane.length_squared() > EPS and target_plane.length_squared() > EPS:
 			var rest_frame_value: Variant = _frame_from_primary_and_plane(target_primary, target_plane)
-			var pose_frame_value: Variant = _frame_from_primary_and_plane(desired_primary, desired_plane)
+			var pose_frame_value: Variant = null
+			var stable_info: Dictionary = {}
+			if LOWER_TEMPORAL_PLANE_TARGETS.has(target):
+				stable_info = _frame_from_primary_and_plane_stable(desired_primary, desired_plane, previous_plane_axis)
+				pose_frame_value = stable_info.get("basis", null)
+			else:
+				pose_frame_value = _frame_from_primary_and_plane(desired_primary, desired_plane)
 			if rest_frame_value is Basis and pose_frame_value is Basis:
 				var rest_frame: Basis = rest_frame_value as Basis
 				var pose_frame: Basis = pose_frame_value as Basis
 				return {
 					"basis": (pose_frame * rest_frame.inverse()).orthonormalized(),
 					"used_plane": true,
+					"plane_axis": stable_info.get("plane_axis", null),
+					"plane_ratio": float(stable_info.get("plane_ratio", 1.0)),
+					"plane_low_confidence": bool(stable_info.get("low_confidence", false)),
+					"plane_flip_prevented": bool(stable_info.get("flip_prevented", false)),
+					"plane_used_previous": bool(stable_info.get("used_previous", false)),
 				}
 
 	var swing := Quaternion(target_primary.normalized(), desired_primary.normalized())
@@ -479,6 +558,71 @@ static func _frame_from_primary_and_plane(primary: Vector3, plane_hint: Vector3)
 	axis_z = axis_z.normalized()
 	axis_y = axis_z.cross(axis_x).normalized()
 	return Basis(axis_x, axis_y, axis_z)
+
+
+static func _frame_from_primary_and_plane_stable(
+	primary: Vector3,
+	plane_hint: Vector3,
+	previous_plane_axis: Variant
+) -> Dictionary:
+	if primary.length_squared() <= EPS or plane_hint.length_squared() <= EPS:
+		return {}
+	var axis_x := primary.normalized()
+	var raw_axis_y := plane_hint - axis_x * plane_hint.dot(axis_x)
+	var plane_length := plane_hint.length()
+	var raw_length := raw_axis_y.length()
+	var ratio := raw_length / maxf(plane_length, EPS)
+
+	var previous_projected := Vector3.ZERO
+	var has_previous := false
+	if previous_plane_axis is Vector3:
+		previous_projected = previous_plane_axis as Vector3
+		previous_projected -= axis_x * previous_projected.dot(axis_x)
+		if previous_projected.length_squared() > EPS:
+			previous_projected = previous_projected.normalized()
+			has_previous = true
+
+	var low_confidence := ratio < PLANE_STABILITY_RATIO
+	var used_previous := false
+	var flip_prevented := false
+	var axis_y := Vector3.ZERO
+	if raw_length <= EPS:
+		if not has_previous:
+			return {}
+		axis_y = previous_projected
+		used_previous = true
+	else:
+		axis_y = raw_axis_y / raw_length
+		# A pole normal and its negation describe the same near-degenerate plane
+		# numerically, but not the same twist for Juno. Keep the hemisphere that is
+		# temporally closest to the preceding sample.
+		if has_previous and axis_y.dot(previous_projected) < 0.0:
+			axis_y = -axis_y
+			flip_prevented = true
+		if has_previous and low_confidence:
+			var trust_raw := clampf(
+				(ratio - PLANE_HARD_FALLBACK_RATIO) / maxf(PLANE_STABILITY_RATIO - PLANE_HARD_FALLBACK_RATIO, EPS),
+				0.0,
+				1.0
+			)
+			var blended := previous_projected.lerp(axis_y, trust_raw)
+			if blended.length_squared() > EPS:
+				axis_y = blended.normalized()
+				used_previous = trust_raw < 0.999
+
+	var axis_z := axis_x.cross(axis_y)
+	if axis_z.length_squared() <= EPS:
+		return {}
+	axis_z = axis_z.normalized()
+	axis_y = axis_z.cross(axis_x).normalized()
+	return {
+		"basis": Basis(axis_x, axis_y, axis_z),
+		"plane_axis": axis_y,
+		"plane_ratio": ratio,
+		"low_confidence": low_confidence,
+		"flip_prevented": flip_prevented,
+		"used_previous": used_previous,
+	}
 
 
 static func _source_forward_hint(data: Dictionary) -> Vector3:
