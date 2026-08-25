@@ -130,6 +130,23 @@ func get_current_tuning_frame() -> int:
 	return roundi(_src_frame)
 
 
+# Retargeting needs to characterize Juno herself, not just the incoming FBX.
+# In the Alabaster runtime each node's authored `pos` is the rest vector from its
+# parent to that node before animation rotations are applied. Exposing these
+# vectors lets the Mixamo V9 solver orient source limb motion against Juno's
+# actual axes instead of guessing that both skeletons share the same rest basis.
+func get_bone_rest_local_positions() -> Dictionary:
+	var result := {}
+	for node_name_value in _nodes.keys():
+		var node_name := str(node_name_value)
+		var node_value: Variant = _nodes[node_name_value]
+		if not node_value is Dictionary:
+			continue
+		var node_def := node_value as Dictionary
+		result[node_name] = _vec3_from_array(node_def.get("pos", [0.0, 0.0, 0.0]))
+	return result
+
+
 func get_sprite_part_names() -> Array[String]:
 	var seen := {}
 	for record_value in _sprite_records:

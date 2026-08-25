@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://41mfft0vociq"
-path="res://.godot/imported/squirrel_squirrel_running.png-7b5a30f6bdcaf540d5b8fb7d1c5c0735.ctex"
+path="res://.godot/imported/squirrel_squirrel_running.png-482f84d112f409b3f96df1cb8ddab6ee.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/wildlife/squirrel_squirrel_running.png"
-dest_files=["res://.godot/imported/squirrel_squirrel_running.png-7b5a30f6bdcaf540d5b8fb7d1c5c0735.ctex"]
+dest_files=["res://.godot/imported/squirrel_squirrel_running.png-482f84d112f409b3f96df1cb8ddab6ee.ctex"]
 
 [params]
 

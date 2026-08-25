@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhujgv1p2bwmm"
-path="res://.godot/imported/bird_hop.png-bcf0404631f95623083d35e8d09be33d.ctex"
+path="res://.godot/imported/bird_hop.png-ef09b3a290bf7c4f37939030174e535b.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/wildlife/bird_hop.png"
-dest_files=["res://.godot/imported/bird_hop.png-bcf0404631f95623083d35e8d09be33d.ctex"]
+dest_files=["res://.godot/imported/bird_hop.png-ef09b3a290bf7c4f37939030174e535b.ctex"]
 
 [params]
 

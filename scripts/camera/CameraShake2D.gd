@@ -24,13 +24,19 @@ var _display_config_signature := ""
 
 func _ready() -> void:
 	add_to_group("game_camera")
+	# Player movement is driven from _physics_process(). Updating the Camera2D
+	# scroll and its custom zoom/shake from the same clock prevents the tiny
+	# physics-vs-idle disagreement that appears as visual jitter at otherwise
+	# healthy average FPS.
+	process_callback = Camera2D.CAMERA2D_PROCESS_PHYSICS
 	base_offset = offset
 	_refresh_camera_tuning()
 	var content_db := get_node_or_null("/root/ContentDB")
 	var refresh_callable := Callable(self, "_refresh_camera_tuning")
 	if content_db != null and content_db.has_signal("content_reloaded") and not content_db.is_connected("content_reloaded", refresh_callable):
 		content_db.connect("content_reloaded", refresh_callable)
-	set_process(true)
+	set_process(false)
+	set_physics_process(true)
 	set_process_unhandled_input(true)
 
 
@@ -84,7 +90,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	_update_zoom(delta)
 	_update_shake(delta)
 

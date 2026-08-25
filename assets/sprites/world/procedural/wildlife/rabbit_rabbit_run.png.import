@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bisb0qvroeugi"
-path="res://.godot/imported/rabbit_rabbit_run.png-eb00707351233df72e3b7b27128b4848.ctex"
+path="res://.godot/imported/rabbit_rabbit_run.png-419e0725cc21e433268d79b8bbe12c4f.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/wildlife/rabbit_rabbit_run.png"
-dest_files=["res://.godot/imported/rabbit_rabbit_run.png-eb00707351233df72e3b7b27128b4848.ctex"]
+dest_files=["res://.godot/imported/rabbit_rabbit_run.png-419e0725cc21e433268d79b8bbe12c4f.ctex"]
 
 [params]
 

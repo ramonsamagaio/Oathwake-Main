@@ -22,12 +22,15 @@ const ROTATE_COLOR := Color("#A87BE8")
 var rig: Node2D
 var preview_origin := Vector2.ZERO
 var transform_mode := MODE_ROTATE
-var camera_locked := true
+# Juno is a 2D/2.5D rig, so RMB orbit means changing the runtime facing yaw
+# around the vertical axis rather than rotating a real 3D camera.
+var camera_locked := false
 var selected_bone := ""
 var _dragging_bone := false
 var _orbiting := false
 var _panning := false
 var _last_mouse := Vector2.ZERO
+var _view_yaw_degrees := 180.0
 
 
 func _ready() -> void:
@@ -40,6 +43,7 @@ func _ready() -> void:
 func configure(target_rig: Node2D, origin: Vector2) -> void:
 	rig = target_rig
 	preview_origin = origin
+	_sync_view_yaw_from_rig()
 	queue_redraw()
 
 
@@ -165,6 +169,7 @@ func _gui_input(event: InputEvent) -> void:
 				accept_event()
 			elif not button.pressed:
 				_orbiting = false
+				accept_event()
 			return
 
 	if event is InputEventMouseMotion:
@@ -195,8 +200,28 @@ func _gui_input(event: InputEvent) -> void:
 		if _orbiting and not camera_locked:
 			var orbit_motion := motion.position - _last_mouse
 			_last_mouse = motion.position
+			_view_yaw_degrees = wrapf(_view_yaw_degrees + orbit_motion.x * 0.35, 0.0, 360.0)
+			_apply_view_yaw()
 			orbit_delta.emit(orbit_motion.x * 0.35, orbit_motion.y * 0.25)
 			accept_event()
+
+
+func _sync_view_yaw_from_rig() -> void:
+	if rig == null or not is_instance_valid(rig):
+		return
+	if rig.has_method("get_runtime_summary"):
+		var summary_value: Variant = rig.call("get_runtime_summary")
+		if summary_value is Dictionary:
+			_view_yaw_degrees = wrapf(float((summary_value as Dictionary).get("facing_degrees", 180.0)), 0.0, 360.0)
+
+
+func _apply_view_yaw() -> void:
+	if rig == null or not is_instance_valid(rig) or not rig.has_method("set_facing_from_vector"):
+		return
+	# Runtime convention: north=0°, east=90°, south=180°, west=270°.
+	var radians := deg_to_rad(_view_yaw_degrees)
+	var direction := Vector2(sin(radians), -cos(radians))
+	rig.call("set_facing_from_vector", direction)
 
 
 func _pick_bone(mouse_position: Vector2) -> String:

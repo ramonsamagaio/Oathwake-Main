@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhh043e8nqv83"
-path="res://.godot/imported/forest_unbreakable_bushes_top_.png-035a0dbcc3423e8417621a43f7fb6709.ctex"
+path="res://.godot/imported/forest_unbreakable_bushes_top_.png-109f3b3a28a8a19674cbd36c7832afb2.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/terrain/forest_unbreakable_bushes_top_.png"
-dest_files=["res://.godot/imported/forest_unbreakable_bushes_top_.png-035a0dbcc3423e8417621a43f7fb6709.ctex"]
+dest_files=["res://.godot/imported/forest_unbreakable_bushes_top_.png-109f3b3a28a8a19674cbd36c7832afb2.ctex"]
 
 [params]
 

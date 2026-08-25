@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dl3ej8xfl6ypl"
-path="res://.godot/imported/shortgrass_details.png-6c2f88a6d362f0c2344d6cee47a944b7.ctex"
+path="res://.godot/imported/shortgrass_details.png-5646fcc7f9a0e31f3948dcc6a15a107c.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/terrain/shortgrass_details.png"
-dest_files=["res://.godot/imported/shortgrass_details.png-6c2f88a6d362f0c2344d6cee47a944b7.ctex"]
+dest_files=["res://.godot/imported/shortgrass_details.png-5646fcc7f9a0e31f3948dcc6a15a107c.ctex"]
 
 [params]
 

@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://pyn5u4tbt4yq"
-path="res://.godot/imported/flora_olive_tree_stump.png-dfa7924b98bee87ec9e637365694d58b.ctex"
+path="res://.godot/imported/flora_olive_tree_stump.png-58789f3da5bdb76120c2b6f0784bab17.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/trees/flora_olive_tree_stump.png"
-dest_files=["res://.godot/imported/flora_olive_tree_stump.png-dfa7924b98bee87ec9e637365694d58b.ctex"]
+dest_files=["res://.godot/imported/flora_olive_tree_stump.png-58789f3da5bdb76120c2b6f0784bab17.ctex"]
 
 [params]
 

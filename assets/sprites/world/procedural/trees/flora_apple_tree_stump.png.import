@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://gj3n7byufp2k"
-path="res://.godot/imported/flora_apple_tree_stump.png-6248e9fe08dfb9c3268ed02a0f6b9e2b.ctex"
+path="res://.godot/imported/flora_apple_tree_stump.png-6dadb6b694163ac0524a289c9bdc000e.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/trees/flora_apple_tree_stump.png"
-dest_files=["res://.godot/imported/flora_apple_tree_stump.png-6248e9fe08dfb9c3268ed02a0f6b9e2b.ctex"]
+dest_files=["res://.godot/imported/flora_apple_tree_stump.png-6dadb6b694163ac0524a289c9bdc000e.ctex"]
 
 [params]
 

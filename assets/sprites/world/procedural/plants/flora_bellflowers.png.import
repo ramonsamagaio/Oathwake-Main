@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dkxy86icuo8ur"
-path="res://.godot/imported/flora_bellflowers.png-157799081fa870cc2b51ef964797483a.ctex"
+path="res://.godot/imported/flora_bellflowers.png-1e2b71222320124a9df13ba8b6728b2c.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/plants/flora_bellflowers.png"
-dest_files=["res://.godot/imported/flora_bellflowers.png-157799081fa870cc2b51ef964797483a.ctex"]
+dest_files=["res://.godot/imported/flora_bellflowers.png-1e2b71222320124a9df13ba8b6728b2c.ctex"]
 
 [params]
 

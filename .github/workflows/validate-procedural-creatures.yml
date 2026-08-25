@@ -6,14 +6,18 @@ on:
       - "scripts/creatures/**"
       - "scripts/labs/alabaster/**"
       - "scenes/labs/ProceduralCreatureLab.tscn"
+      - "scenes/labs/alabaster/AlabasterBoneStudio.tscn"
       - "scripts/test/ProceduralCreatureValidator.gd"
+      - "scripts/test/AlabasterBoneBridgeValidator.gd"
       - ".github/workflows/validate-procedural-creatures.yml"
   pull_request:
     paths:
       - "scripts/creatures/**"
       - "scripts/labs/alabaster/**"
       - "scenes/labs/ProceduralCreatureLab.tscn"
+      - "scenes/labs/alabaster/AlabasterBoneStudio.tscn"
       - "scripts/test/ProceduralCreatureValidator.gd"
+      - "scripts/test/AlabasterBoneBridgeValidator.gd"
       - ".github/workflows/validate-procedural-creatures.yml"
   workflow_dispatch:
 
@@ -55,3 +59,13 @@ jobs:
             exit 1
           fi
           grep -F "PROCEDURAL_CREATURE_VALIDATION_OK" procedural-creature-validator.log
+
+      - name: Run Alabaster Bone Bridge scene smoke test
+        shell: bash
+        run: |
+          set -o pipefail
+          ./godot --headless --path . --script res://scripts/test/AlabasterBoneBridgeValidator.gd --verbose 2>&1 | tee alabaster-bone-bridge-validator.log
+          if grep -E "ALABASTER_BONE_BRIDGE_VALIDATION_FAILURE|Parse Error|Compile Error|SCRIPT ERROR|Failed to load script|Invalid call|Invalid access" alabaster-bone-bridge-validator.log; then
+            exit 1
+          fi
+          grep -F "ALABASTER_BONE_BRIDGE_VALIDATION_OK" alabaster-bone-bridge-validator.log

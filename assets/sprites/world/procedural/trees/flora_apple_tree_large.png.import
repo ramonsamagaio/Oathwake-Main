@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bhrc1he6271k8"
-path="res://.godot/imported/flora_apple_tree_large.png-d93d34195c2785f7d11eb3b30d629f40.ctex"
+path="res://.godot/imported/flora_apple_tree_large.png-83ea9335c4c32d1c3949dfcbf9aa702c.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/world/procedural/trees/flora_apple_tree_large.png"
-dest_files=["res://.godot/imported/flora_apple_tree_large.png-d93d34195c2785f7d11eb3b30d629f40.ctex"]
+dest_files=["res://.godot/imported/flora_apple_tree_large.png-83ea9335c4c32d1c3949dfcbf9aa702c.ctex"]
 
 [params]
 

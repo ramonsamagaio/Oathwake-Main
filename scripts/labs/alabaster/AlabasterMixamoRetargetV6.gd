@@ -2,9 +2,9 @@ extends RefCounted
 class_name AlabasterMixamoRetargetV6
 
 # Compatibility entry point kept so existing Bone Studio/source-adapter
-# references remain stable. The active implementation is the Juno-first V8
-# semantic REST-delta retarget.
-const V8 := preload("res://scripts/labs/alabaster/AlabasterMixamoRetargetV8.gd")
+# references remain stable. The active implementation is V11: V10's proven
+# forward/foot REST calibration plus a surgical upper-arm swing stabilization.
+const V11 := preload("res://scripts/labs/alabaster/AlabasterMixamoRetargetV11.gd")
 
 
 static func convert_scene(
@@ -16,4 +16,4 @@ static func convert_scene(
 	translation_scale: float,
 	settings: Dictionary
 ) -> Dictionary:
-	return V8.convert_scene(player, skeleton, clip_name, sample_fps, loop, translation_scale, settings)
+	return V11.convert_scene(player, skeleton, clip_name, sample_fps, loop, translation_scale, settings)
