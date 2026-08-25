@@ -1,14 +1,15 @@
 extends VBoxContainer
 
 # Live visual source-to-Juno comparison workspace.
-#
-# The Bone Studio already owns a large Juno preview on the right side of the
-# window. This tab uses the left workspace for:
-#   [source bone mapping] | [real imported Skeleton3D]
-# while the existing right preview remains the live Juno target.
+# The outer Bone Studio owns the Juno preview on the right. This tab uses the
+# large left workspace for mapping + the real imported Skeleton3D.
 
 const SourceAdapter := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationSourceAdapter.gd")
 const SourcePreviewScript := preload("res://scripts/labs/alabaster/AlabasterSourceSkeletonPreview.gd")
+
+const MAPPING_MIN_WIDTH := 500.0
+const SOURCE_MIN_WIDTH := 450.0
+const PANEL_GAP := 12.0
 
 var host: Control = null
 var source_preview: Control = null
@@ -17,10 +18,13 @@ var bridge_mapping_controls: Dictionary = {}
 var clip_option: OptionButton = null
 var play_button: Button = null
 var speed_option: OptionButton = null
-var source_label: Label = null
+var source_path_edit: LineEdit = null
 var status_label: Label = null
 var mode_label: Label = null
 var mapping_count_label: Label = null
+var mapping_filter_edit: LineEdit = null
+var selected_source_label: Label = null
+var bridge_split: HSplitContainer = null
 
 var _last_source_path := ""
 var _last_clip := ""
@@ -37,13 +41,17 @@ func setup(owner: Control) -> void:
 	name = "BONE BRIDGE"
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
+	add_theme_constant_override("separation", 8)
 	_build_ui()
 	var tabs := _find_tabs(owner)
 	if tabs == null:
 		push_error("Bone Studio: BONE BRIDGE could not find the workspace TabContainer.")
 		return
 	tabs.add_child(self)
+	if not resized.is_connected(_apply_panel_layout):
+		resized.connect(_apply_panel_layout)
 	set_process(true)
+	call_deferred("_apply_panel_layout")
 	call_deferred("_refresh_from_host", true)
 
 
@@ -63,127 +71,216 @@ func _process(delta: float) -> void:
 
 
 func _build_ui() -> void:
-	var title := Label.new()
-	title.text = "BONE BRIDGE · SOURCE ↔ JUNO LIVE"
-	title.add_theme_font_size_override("font_size", 19)
-	add_child(title)
+	var title_row := HBoxContainer.new()
+	title_row.custom_minimum_size.y = 40.0
+	title_row.add_theme_constant_override("separation", 12)
+	add_child(title_row)
 
-	var intro := Label.new()
-	intro.text = "Load an FBX/GLB, watch its real Skeleton3D in Bone Studio's green/orange language, then map every animated source bone to Juno or Ignore. The normal Juno preview on the right is synchronized to the same time."
-	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(intro)
+	var title := Label.new()
+	title.text = "BONE BRIDGE"
+	title.add_theme_font_size_override("font_size", 22)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_row.add_child(title)
+
+	mapping_count_label = Label.new()
+	mapping_count_label.text = "0 mapped / 0 animated"
+	mapping_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	mapping_count_label.add_theme_font_size_override("font_size", 14)
+	title_row.add_child(mapping_count_label)
+
+	var subtitle := Label.new()
+	subtitle.text = "Source skeleton and Juno run on the same clock. Map a bone, watch the result immediately."
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	subtitle.add_theme_color_override("font_color", Color(0.72, 0.78, 0.78))
+	add_child(subtitle)
 
 	var source_row := HBoxContainer.new()
+	source_row.custom_minimum_size.y = 42.0
+	source_row.add_theme_constant_override("separation", 8)
 	add_child(source_row)
+
 	var browse := Button.new()
-	browse.text = "LOAD FBX / GLB"
+	browse.text = "LOAD SOURCE"
+	browse.custom_minimum_size = Vector2(132.0, 38.0)
+	browse.tooltip_text = "Load FBX, GLB, GLTF or TSCN animation source"
 	browse.pressed.connect(_open_source_dialog)
 	source_row.add_child(browse)
-	source_label = Label.new()
-	source_label.text = "No source selected"
-	source_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	source_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	source_row.add_child(source_label)
 
-	var clip_row := HBoxContainer.new()
-	add_child(clip_row)
+	source_path_edit = LineEdit.new()
+	source_path_edit.editable = false
+	source_path_edit.placeholder_text = "No source selected"
+	source_path_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	source_path_edit.custom_minimum_size.y = 38.0
+	source_row.add_child(source_path_edit)
+
+	var transport_row := HBoxContainer.new()
+	transport_row.custom_minimum_size.y = 42.0
+	transport_row.add_theme_constant_override("separation", 8)
+	add_child(transport_row)
+
 	var clip_label := Label.new()
-	clip_label.text = "Clip"
-	clip_label.custom_minimum_size = Vector2(52.0, 0.0)
-	clip_row.add_child(clip_label)
+	clip_label.text = "CLIP"
+	clip_label.custom_minimum_size = Vector2(42.0, 0.0)
+	transport_row.add_child(clip_label)
+
 	clip_option = OptionButton.new()
 	clip_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	clip_option.custom_minimum_size = Vector2(260.0, 38.0)
 	clip_option.item_selected.connect(_on_bridge_clip_selected)
-	clip_row.add_child(clip_option)
+	transport_row.add_child(clip_option)
 
 	play_button = Button.new()
 	play_button.text = "PAUSE"
+	play_button.custom_minimum_size = Vector2(92.0, 38.0)
 	play_button.pressed.connect(_toggle_playback)
-	clip_row.add_child(play_button)
+	transport_row.add_child(play_button)
 
 	speed_option = OptionButton.new()
+	speed_option.custom_minimum_size = Vector2(96.0, 38.0)
 	for speed_value in [0.25, 0.5, 1.0, 1.5, 2.0]:
 		var speed := float(speed_value)
-		speed_option.add_item("%.2gx" % speed)
+		speed_option.add_item("%sx" % str(speed))
 		speed_option.set_item_metadata(speed_option.item_count - 1, speed)
 	speed_option.select(2)
 	speed_option.item_selected.connect(_on_speed_selected)
-	clip_row.add_child(speed_option)
+	transport_row.add_child(speed_option)
+
+	var reset_auto := Button.new()
+	reset_auto.text = "RESET AUTO MAP"
+	reset_auto.custom_minimum_size = Vector2(150.0, 38.0)
+	reset_auto.tooltip_text = "Restore Bone Studio automatic mapping, including folded helper joints."
+	reset_auto.pressed.connect(_reset_auto_mapping)
+	transport_row.add_child(reset_auto)
+
+	var refresh := Button.new()
+	refresh.text = "REBUILD TARGET"
+	refresh.custom_minimum_size = Vector2(150.0, 38.0)
+	refresh.tooltip_text = "Rebuild the Juno preview now. Mapping changes already do this automatically."
+	refresh.pressed.connect(_queue_target_refresh)
+	transport_row.add_child(refresh)
 
 	mode_label = Label.new()
 	mode_label.text = "RETARGET PATH: waiting for source"
 	mode_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	mode_label.custom_minimum_size.y = 30.0
+	mode_label.add_theme_font_size_override("font_size", 13)
 	add_child(mode_label)
 
-	var actions := HBoxContainer.new()
-	add_child(actions)
-	var reset_auto := Button.new()
-	reset_auto.text = "RESET AUTO MAP"
-	reset_auto.tooltip_text = "Restore Bone Studio automatic mapping, including folded helper joints."
-	reset_auto.pressed.connect(_reset_auto_mapping)
-	actions.add_child(reset_auto)
-	var refresh := Button.new()
-	refresh.text = "REBUILD TARGET"
-	refresh.tooltip_text = "Rebuild the Juno preview now. Mapping changes already do this automatically."
-	refresh.pressed.connect(_queue_target_refresh)
-	actions.add_child(refresh)
-	mapping_count_label = Label.new()
-	mapping_count_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	mapping_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	actions.add_child(mapping_count_label)
+	bridge_split = HSplitContainer.new()
+	bridge_split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bridge_split.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	bridge_split.add_theme_constant_override("separation", int(PANEL_GAP))
+	add_child(bridge_split)
 
-	var split := HSplitContainer.new()
-	split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	split.split_offset = 285
-	add_child(split)
-
-	var mapping_panel := VBoxContainer.new()
-	mapping_panel.custom_minimum_size = Vector2(265.0, 430.0)
-	mapping_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	mapping_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	split.add_child(mapping_panel)
-	var mapping_title := Label.new()
-	mapping_title.text = "SOURCE BONE  →  JUNO"
-	mapping_title.add_theme_font_size_override("font_size", 14)
-	mapping_panel.add_child(mapping_title)
-	var mapping_hint := Label.new()
-	mapping_hint.text = "Click a source bone name to highlight it. Dropdown changes rebuild Juno live."
-	mapping_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	mapping_panel.add_child(mapping_hint)
-	var mapping_scroll := ScrollContainer.new()
-	mapping_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	mapping_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	mapping_panel.add_child(mapping_scroll)
-	mapping_box = VBoxContainer.new()
-	mapping_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	mapping_scroll.add_child(mapping_box)
-
-	var source_panel := VBoxContainer.new()
-	source_panel.custom_minimum_size = Vector2(280.0, 430.0)
-	source_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	source_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	split.add_child(source_panel)
-	var preview_title := Label.new()
-	preview_title.text = "IMPORTED SOURCE · LIVE SKELETON3D"
-	preview_title.add_theme_font_size_override("font_size", 14)
-	source_panel.add_child(preview_title)
-
-	var preview_value: Variant = SourcePreviewScript.new()
-	if not preview_value is Control:
-		push_error("Bone Studio: could not create source Skeleton3D preview.")
-	else:
-		source_preview = preview_value as Control
-		source_preview.custom_minimum_size = Vector2(280.0, 430.0)
-		source_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		source_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		source_preview.connect("pose_updated", Callable(self, "_on_source_pose_updated"))
-		source_panel.add_child(source_preview)
+	_build_mapping_panel(bridge_split)
+	_build_source_preview_panel(bridge_split)
 
 	status_label = Label.new()
 	status_label.text = "Select an animation source."
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	status_label.custom_minimum_size.y = 34.0
+	status_label.add_theme_font_size_override("font_size", 13)
 	add_child(status_label)
+
+
+func _build_mapping_panel(parent: HSplitContainer) -> void:
+	var panel := VBoxContainer.new()
+	panel.custom_minimum_size = Vector2(MAPPING_MIN_WIDTH, 540.0)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.add_theme_constant_override("separation", 7)
+	parent.add_child(panel)
+
+	var header := HBoxContainer.new()
+	header.custom_minimum_size.y = 34.0
+	panel.add_child(header)
+
+	var mapping_title := Label.new()
+	mapping_title.text = "SOURCE BONE  →  JUNO"
+	mapping_title.add_theme_font_size_override("font_size", 16)
+	mapping_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(mapping_title)
+
+	mapping_filter_edit = LineEdit.new()
+	mapping_filter_edit.placeholder_text = "Filter bones..."
+	mapping_filter_edit.custom_minimum_size = Vector2(190.0, 34.0)
+	mapping_filter_edit.text_changed.connect(_on_mapping_filter_changed)
+	header.add_child(mapping_filter_edit)
+
+	var hint := Label.new()
+	hint.text = "Click the source name to highlight that joint. Dropdown changes rebuild Juno live."
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.add_theme_color_override("font_color", Color(0.68, 0.74, 0.74))
+	panel.add_child(hint)
+
+	var columns := HBoxContainer.new()
+	columns.custom_minimum_size.y = 28.0
+	panel.add_child(columns)
+	var source_column := Label.new()
+	source_column.text = "SOURCE"
+	source_column.custom_minimum_size.x = 230.0
+	source_column.add_theme_font_size_override("font_size", 12)
+	columns.add_child(source_column)
+	var target_column := Label.new()
+	target_column.text = "TARGET / BEHAVIOR"
+	target_column.add_theme_font_size_override("font_size", 12)
+	columns.add_child(target_column)
+
+	var mapping_scroll := ScrollContainer.new()
+	mapping_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mapping_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	mapping_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	panel.add_child(mapping_scroll)
+
+	mapping_box = VBoxContainer.new()
+	mapping_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mapping_box.add_theme_constant_override("separation", 4)
+	mapping_scroll.add_child(mapping_box)
+
+
+func _build_source_preview_panel(parent: HSplitContainer) -> void:
+	var panel := VBoxContainer.new()
+	panel.custom_minimum_size = Vector2(SOURCE_MIN_WIDTH, 540.0)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.add_theme_constant_override("separation", 6)
+	parent.add_child(panel)
+
+	var header := HBoxContainer.new()
+	header.custom_minimum_size.y = 34.0
+	panel.add_child(header)
+
+	var preview_title := Label.new()
+	preview_title.text = "IMPORTED SOURCE · LIVE SKELETON3D"
+	preview_title.add_theme_font_size_override("font_size", 16)
+	preview_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(preview_title)
+
+	selected_source_label = Label.new()
+	selected_source_label.text = ""
+	selected_source_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	selected_source_label.add_theme_color_override("font_color", Color(1.0, 0.82, 0.34))
+	header.add_child(selected_source_label)
+
+	var preview_value: Variant = SourcePreviewScript.new()
+	if not preview_value is Control:
+		push_error("Bone Studio: could not create source Skeleton3D preview.")
+		return
+	source_preview = preview_value as Control
+	source_preview.custom_minimum_size = Vector2(SOURCE_MIN_WIDTH, 500.0)
+	source_preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	source_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	source_preview.connect("pose_updated", Callable(self, "_on_source_pose_updated"))
+	panel.add_child(source_preview)
+
+
+func _apply_panel_layout() -> void:
+	if bridge_split == null:
+		return
+	var available := maxf(size.x - PANEL_GAP, MAPPING_MIN_WIDTH + SOURCE_MIN_WIDTH + PANEL_GAP)
+	var desired := available * 0.51
+	var maximum := maxf(MAPPING_MIN_WIDTH, available - SOURCE_MIN_WIDTH - PANEL_GAP)
+	bridge_split.split_offset = int(clampf(desired, MAPPING_MIN_WIDTH, maximum))
 
 
 func _open_source_dialog() -> void:
@@ -191,7 +288,7 @@ func _open_source_dialog() -> void:
 		return
 	var dialog := host.get("file_dialog") as FileDialog
 	if dialog != null:
-		dialog.popup_centered_ratio(0.78)
+		dialog.popup_centered_ratio(0.86)
 
 
 func _refresh_from_host(force: bool = false) -> void:
@@ -206,8 +303,9 @@ func _refresh_from_host(force: bool = false) -> void:
 
 	if path_changed:
 		_last_source_path = path
-		source_label.text = path if not path.is_empty() else "No source selected"
-		source_label.tooltip_text = path
+		if source_path_edit != null:
+			source_path_edit.text = path
+			source_path_edit.tooltip_text = path
 		_source_info.clear()
 		if not path.is_empty():
 			_source_info = SourceAdapter.inspect_scene(path)
@@ -249,8 +347,8 @@ func _load_source_preview(path: String, clip: String) -> void:
 		return
 	var skeleton_bones := int(result.get("bone_count", 0))
 	var animated_bones := _host_source_bones().size()
-	mapping_count_label.text = "%d skeleton / %d animated" % [skeleton_bones, animated_bones]
-	_set_local_status("Source skeleton is live. Change a dropdown and the Juno preview on the right rebuilds immediately.", false)
+	mapping_count_label.text = "%d skeleton · %d animated" % [skeleton_bones, animated_bones]
+	_set_local_status("LIVE: source Skeleton3D and Juno share the same clock. Mapping changes rebuild the target automatically.", false)
 	_queue_target_refresh()
 
 
@@ -295,6 +393,10 @@ func _on_bridge_clip_selected(index: int) -> void:
 	_queue_target_refresh()
 
 
+func _on_mapping_filter_changed(_text: String) -> void:
+	_rebuild_mapping_rows()
+
+
 func _rebuild_mapping_rows() -> void:
 	if mapping_box == null:
 		return
@@ -311,37 +413,59 @@ func _rebuild_mapping_rows() -> void:
 		if host_controls_value is Dictionary:
 			host_controls = host_controls_value as Dictionary
 
+	var filter_text := ""
+	if mapping_filter_edit != null:
+		filter_text = mapping_filter_edit.text.strip_edges().to_lower()
+
 	var mapped_count := 0
+	var visible_count := 0
 	for source_bone in source_bones:
 		var host_option := host_controls.get(source_bone) as OptionButton
 		if host_option == null:
 			continue
+		var current_value := ""
+		if host_option.selected >= 0:
+			current_value = str(host_option.get_item_metadata(host_option.selected))
+		if not current_value.is_empty():
+			mapped_count += 1
+
+		var short_name := _short_bone_name(source_bone)
+		if not filter_text.is_empty():
+			var searchable := "%s %s %s" % [source_bone.to_lower(), short_name.to_lower(), current_value.to_lower()]
+			if not searchable.contains(filter_text):
+				continue
+		visible_count += 1
 
 		var row := HBoxContainer.new()
+		row.custom_minimum_size.y = 40.0
 		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_theme_constant_override("separation", 8)
 		mapping_box.add_child(row)
 
 		var bone_button := Button.new()
-		bone_button.text = _short_bone_name(source_bone)
+		bone_button.text = short_name
 		bone_button.tooltip_text = source_bone
-		bone_button.custom_minimum_size = Vector2(118.0, 0.0)
+		bone_button.custom_minimum_size = Vector2(230.0, 38.0)
 		bone_button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		bone_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		bone_button.pressed.connect(_highlight_source_bone.bind(source_bone))
 		row.add_child(bone_button)
 
 		var option := OptionButton.new()
 		option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		option.custom_minimum_size = Vector2(250.0, 38.0)
 		for item_index in range(host_option.item_count):
 			option.add_item(host_option.get_item_text(item_index))
 			option.set_item_metadata(option.item_count - 1, host_option.get_item_metadata(item_index))
 		option.select(host_option.selected)
-		if option.selected >= 0 and not str(option.get_item_metadata(option.selected)).is_empty():
-			mapped_count += 1
 		option.item_selected.connect(_on_mapping_selected.bind(source_bone, option))
 		row.add_child(option)
 		bridge_mapping_controls[source_bone] = option
 
-	mapping_count_label.text = "%d mapped / %d animated" % [mapped_count, source_bones.size()]
+	var suffix := ""
+	if visible_count != source_bones.size():
+		suffix = " · %d shown" % visible_count
+	mapping_count_label.text = "%d mapped / %d animated%s" % [mapped_count, source_bones.size(), suffix]
 
 
 func _on_mapping_selected(_index: int, source_bone: String, bridge_option: OptionButton) -> void:
@@ -374,6 +498,9 @@ func _set_host_mapping(source_bone: String, target_value: String) -> void:
 func _highlight_source_bone(source_bone: String) -> void:
 	if source_preview != null:
 		source_preview.call("select_bone", source_bone)
+	if selected_source_label != null:
+		selected_source_label.text = _short_bone_name(source_bone)
+		selected_source_label.tooltip_text = source_bone
 
 
 func _reset_auto_mapping() -> void:
@@ -429,7 +556,7 @@ func _refresh_target_preview() -> void:
 	if source_preview != null:
 		source_time = float(source_preview.call("get_time"))
 	_sync_target_to_source_time(source_time)
-	_set_local_status("LIVE: source Skeleton3D and Juno are synchronized. Mapping changes rebuild the target automatically.", false)
+	_set_local_status("LIVE: source and Juno synchronized. Change any mapping to compare the result immediately.", false)
 
 
 func _on_source_pose_updated(time_seconds: float) -> void:
@@ -486,22 +613,23 @@ func _update_mode_label() -> void:
 		return
 	if _last_source_path.is_empty():
 		mode_label.text = "RETARGET PATH: waiting for source"
+		mode_label.add_theme_color_override("font_color", Color(0.70, 0.74, 0.74))
 		return
 
 	var profile := str(_source_info.get("retarget_profile", "generic"))
 	var has_skeleton := bool(_source_info.get("has_skeleton", false))
 	var auto_match := _mapping_matches_auto()
 	if profile == "mixamo" and has_skeleton and auto_match:
-		mode_label.text = "RETARGET PATH: V8 REST→POSE semantic solver · full Skeleton3D · AUTO mapping"
+		mode_label.text = "V8 REST→POSE · full Skeleton3D · AUTO semantic mapping"
 		mode_label.add_theme_color_override("font_color", Color(0.48, 1.0, 0.62))
 	elif profile == "mixamo" and has_skeleton:
-		mode_label.text = "RETARGET PATH: MANUAL mapping · current adapter falls back to generic track conversion when V8 auto semantics are overridden"
+		mode_label.text = "MANUAL mapping · current adapter uses generic track conversion when V8 auto semantics are overridden"
 		mode_label.add_theme_color_override("font_color", Color(1.0, 0.72, 0.25))
 	elif has_skeleton:
-		mode_label.text = "RETARGET PATH: generic Skeleton3D · visible here, but a canonical humanoid characterizer is still required for V8-quality transfer"
+		mode_label.text = "Generic Skeleton3D · source is visible; canonical humanoid characterization is still needed for V8-quality transfer"
 		mode_label.add_theme_color_override("font_color", Color(0.75, 0.86, 1.0))
 	else:
-		mode_label.text = "RETARGET PATH: track-only fallback · source exposes no Skeleton3D"
+		mode_label.text = "Track-only fallback · source exposes no Skeleton3D"
 		mode_label.add_theme_color_override("font_color", Color(1.0, 0.42, 0.35))
 
 
