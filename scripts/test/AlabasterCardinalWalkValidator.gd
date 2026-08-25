@@ -48,6 +48,7 @@ func _run() -> void:
 		"set_facing_from_vector",
 		"seek_animation_frame",
 		"get_cardinal_stance_debug",
+		"get_bone_visual_state",
 	]:
 		if not rig.has_method(str(required_method)):
 			_fail("Target rig is missing cardinal-walk regression method: %s" % str(required_method))
@@ -69,6 +70,7 @@ func _run() -> void:
 	var max_applied_shift := 0.0
 	var max_raw_intrusion := 0.0
 	var worst_debug: Dictionary = {}
+	var first_inactive_debug: Dictionary = {}
 	for frame in range(frame_count):
 		rig.call("seek_animation_frame", frame)
 		var debug_value: Variant = rig.call("get_cardinal_stance_debug")
@@ -77,6 +79,8 @@ func _run() -> void:
 			return
 		var debug := debug_value as Dictionary
 		if not bool(debug.get("active", false)):
+			if first_inactive_debug.is_empty():
+				first_inactive_debug = debug.duplicate(true)
 			continue
 		active_frames += 1
 		var min_half_stance := float(debug.get("min_half_stance", 0.0))
@@ -101,7 +105,15 @@ func _run() -> void:
 			return
 
 	if active_frames < frame_count - 1:
-		_fail("Cardinal stance guard was not active through the SOUTH walk cycle: active=%d/%d." % [active_frames, frame_count])
+		var pose_debug := {
+			"hipL": rig.call("get_bone_visual_state", "hipL"),
+			"hipR": rig.call("get_bone_visual_state", "hipR"),
+			"footL": rig.call("get_bone_visual_state", "footL"),
+			"footR": rig.call("get_bone_visual_state", "footR"),
+			"profile": rig.get("skin_profile_id"),
+			"current_animation": rig.get("current_animation"),
+		}
+		_fail("Cardinal stance guard was not active through the SOUTH walk cycle: active=%d/%d first=%s poses=%s." % [active_frames, frame_count, str(first_inactive_debug), str(pose_debug)])
 		return
 	if corrected_frames <= 0:
 		_fail("SOUTH Walking never triggered the centerline guard; the recorded foot-crossing regression is not covered.")
