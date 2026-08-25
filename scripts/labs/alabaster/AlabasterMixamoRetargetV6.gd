@@ -2,10 +2,11 @@ extends RefCounted
 class_name AlabasterMixamoRetargetV6
 
 # Compatibility entry point kept so existing Bone Studio/source-adapter
-# references remain stable. The active implementation is V14: V10's proven
+# references remain stable. The active implementation is V15: V10's proven
 # forward/foot REST calibration, V11 arm stabilization, V12/V13 Juno 2D
-# projection polish, plus real lower-limb loop continuity on nodeXfm bones.
-const V14 := preload("res://scripts/labs/alabaster/AlabasterMixamoRetargetV14.gd")
+# projection polish, V14 lower-limb loop closure, plus adaptive quaternion foot
+# continuity that removes localized contact/recovery kicks without clip names.
+const V15 := preload("res://scripts/labs/alabaster/AlabasterMixamoRetargetV15.gd")
 
 
 static func convert_scene(
@@ -17,4 +18,4 @@ static func convert_scene(
 	translation_scale: float,
 	settings: Dictionary
 ) -> Dictionary:
-	return V14.convert_scene(player, skeleton, clip_name, sample_fps, loop, translation_scale, settings)
+	return V15.convert_scene(player, skeleton, clip_name, sample_fps, loop, translation_scale, settings)
