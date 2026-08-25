@@ -41,7 +41,7 @@ func _run() -> void:
 		_fail("Bone Studio exposed no target rig.")
 		return
 	var rig: Object = rig_value as Object
-	for required_method in ["install_runtime_animation", "set_animation", "seek_animation_frame", "get_all_bone_screen_poses"]:
+	for required_method in ["install_runtime_animation", "set_animation", "seek_animation_frame", "get_all_bone_screen_poses", "get_bone_visual_state"]:
 		if not rig.has_method(str(required_method)):
 			_fail("Target rig is missing %s." % str(required_method))
 			return
@@ -57,10 +57,12 @@ func _run() -> void:
 	var runtime_events: Array[Dictionary] = _measure_runtime_motion(rig, frame_count)
 	var key_events: Array[Dictionary] = _measure_key_rotation_steps(result, frame_count)
 	var key_window: Array[Dictionary] = _rotation_window(result, 36, 52)
+	var snap_window: Array[Dictionary] = _measure_raw_vs_snapped_window(rig, 39.0, 44.0, 0.25)
 
 	print("ALABASTER_WALK_RUNTIME_JERK_TOP %s" % str(runtime_events.slice(0, mini(runtime_events.size(), 12))))
 	print("ALABASTER_WALK_KEY_ROTATION_TOP %s" % str(key_events.slice(0, mini(key_events.size(), 12))))
 	print("ALABASTER_WALK_KEY_WINDOW_36_52 %s" % str(key_window))
+	print("ALABASTER_WALK_RAW_VS_SNAPPED_39_44 %s" % str(snap_window))
 	print("ALABASTER_WALK_CONTINUITY_DIAGNOSTIC_OK frames=%d" % frame_count)
 	studio.queue_free()
 	await process_frame
@@ -107,6 +109,56 @@ func _measure_runtime_motion(rig: Object, frame_count: int) -> Array[Dictionary]
 		return float(a.get("accel", 0.0)) > float(b.get("accel", 0.0))
 	)
 	return events
+
+
+func _measure_raw_vs_snapped_window(rig: Object, start_frame: float, end_frame: float, step_size: float) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	var raw_prev: Dictionary = {}
+	var raw_step_prev: Dictionary = {}
+	var snapped_prev: Dictionary = {}
+	var snapped_step_prev: Dictionary = {}
+	var sample: float = start_frame
+	while sample <= end_frame + 0.0001:
+		rig.call("seek_animation_frame", sample)
+		for bone_name in ["footR", "toeR", "footL", "toeL"]:
+			var state_value: Variant = rig.call("get_bone_visual_state", bone_name)
+			if not state_value is Dictionary:
+				continue
+			var state: Dictionary = state_value as Dictionary
+			var raw_value: Variant = state.get("root_pos", Vector3.ZERO)
+			var snapped_value: Variant = state.get("g_self", Vector3.ZERO)
+			if not raw_value is Vector3 or not snapped_value is Vector3:
+				continue
+			var raw: Vector3 = raw_value as Vector3
+			var snapped: Vector3 = snapped_value as Vector3
+			var raw_step := Vector3.ZERO
+			var raw_accel := 0.0
+			var snapped_step := Vector3.ZERO
+			var snapped_accel := 0.0
+			if raw_prev.has(bone_name):
+				raw_step = raw - (raw_prev[bone_name] as Vector3)
+				if raw_step_prev.has(bone_name):
+					raw_accel = (raw_step - (raw_step_prev[bone_name] as Vector3)).length()
+				raw_step_prev[bone_name] = raw_step
+			if snapped_prev.has(bone_name):
+				snapped_step = snapped - (snapped_prev[bone_name] as Vector3)
+				if snapped_step_prev.has(bone_name):
+					snapped_accel = (snapped_step - (snapped_step_prev[bone_name] as Vector3)).length()
+				snapped_step_prev[bone_name] = snapped_step
+			rows.append({
+				"frame": snappedf(sample, 0.001),
+				"bone": bone_name,
+				"raw": raw,
+				"raw_step": raw_step.length(),
+				"raw_accel": raw_accel,
+				"snap": snapped,
+				"snap_step": snapped_step.length(),
+				"snap_accel": snapped_accel,
+			})
+			raw_prev[bone_name] = raw
+			snapped_prev[bone_name] = snapped
+		sample += step_size
+	return rows
 
 
 func _measure_key_rotation_steps(result: Dictionary, frame_count: int) -> Array[Dictionary]:
