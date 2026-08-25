@@ -125,9 +125,28 @@ func _run() -> void:
 		_fail("Juno target rig did not expose authored rest vectors.")
 		return
 
-	# Regression from the recorded walk: V9 could preserve the skeleton while
-	# still choosing the wrong forward hemisphere and leaving ankle twist free.
-	# V10 must derive both from REST geometry before sampling the clip.
+	# The polished Show bones switch must hide the ONE interactive overlay instead
+	# of leaving a second skeleton visible. Keep the Control alive so orbit/pan
+	# input still works while bones are hidden.
+	var overlay_value: Variant = studio.get("_juno_overlay")
+	if not overlay_value is Control:
+		_fail("Juno interactive bone overlay was not attached.")
+		return
+	var overlay := overlay_value as Control
+	studio.call("_on_bones_toggled", false)
+	await process_frame
+	if overlay.modulate.a > 0.01 or not overlay.visible:
+		_fail("Show bones OFF did not hide the interactive overlay while keeping its input surface alive.")
+		return
+	studio.call("_on_bones_toggled", true)
+	await process_frame
+	if overlay.modulate.a < 0.99:
+		_fail("Show bones ON did not restore the interactive overlay.")
+		return
+
+	# Regression from the recorded walk: V10 owns source/target forward and foot
+	# plane calibration, V11 stabilizes only the arm chains, and V12 adds only a
+	# tiny Juno-specific 2D presentation pass. These layers must remain additive.
 	if not FileAccess.file_exists(WALKING_SOURCE):
 		_fail("Walking regression source is missing: %s" % WALKING_SOURCE)
 		return
@@ -151,11 +170,36 @@ func _run() -> void:
 	if str(meta.get("limb_transfer_mode", "")) != "target_rest_swing":
 		_fail("Walking retarget did not use the target-rest production solver.")
 		return
-	if not str(meta.get("retarget_profile", "")).contains("V10"):
-		_fail("Walking retarget did not report the V10 REST-calibrated profile.")
+	if not str(meta.get("retarget_profile", "")).contains("V12"):
+		_fail("Walking retarget did not report the V12 Juno presentation profile.")
 		return
+	# V12 is deliberately layered on top of the proven V10 REST solve. The base
+	# calibration version must therefore remain 10 while presentation becomes 12.
 	if int(meta.get("rest_calibration_version", 0)) != 10:
-		_fail("Walking retarget did not persist V10 REST calibration metadata.")
+		_fail("Walking retarget lost the V10 REST calibration metadata.")
+		return
+	if int(meta.get("presentation_calibration_version", 0)) != 12:
+		_fail("Walking retarget did not persist V12 presentation metadata.")
+		return
+	if not bool(meta.get("v11_non_presentation_bones_preserved", false)):
+		_fail("V12 did not certify preservation of V11 non-presentation bones.")
+		return
+	var patch_targets_value: Variant = meta.get("presentation_patch_targets", [])
+	if not patch_targets_value is Array:
+		_fail("V12 did not report its presentation patch targets.")
+		return
+	var patch_targets := patch_targets_value as Array
+	for required_patch_target in ["top", "toeL", "toeR"]:
+		if not patch_targets.has(required_patch_target):
+			_fail("V12 presentation target list is missing %s." % required_patch_target)
+			return
+	var torso_bias := float(meta.get("torso_back_bias_degrees", 99.0))
+	if torso_bias <= 0.0 or torso_bias > 2.0:
+		_fail("V12 torso bias is not the requested tiny correction: %.2f degrees." % torso_bias)
+		return
+	var toe_pitch_keep := float(meta.get("toe_pitch_keep", -1.0))
+	if toe_pitch_keep < 0.65 or toe_pitch_keep > 0.90:
+		_fail("V12 toe pitch neutralization is outside the gentle presentation range: %.3f." % toe_pitch_keep)
 		return
 
 	# The committed Mixamo Walking.fbx and Juno use opposite semantic handedness.
@@ -165,8 +209,8 @@ func _run() -> void:
 		_fail("Walking forward calibration lost the required handedness reflection (det=%.3f)." % bridge_determinant)
 		return
 
-	# Feet and terminal toes must use the two-vector plane solve. A one-vector
-	# shortest swing leaves axial twist undefined and can point the foot backward.
+	# Feet and terminal toes must still originate from V10's two-vector plane
+	# solve. V12 only relaxes the visible toe pitch/roll after this correct solve.
 	var plane_counts_value: Variant = meta.get("plane_solved_counts", {})
 	if not plane_counts_value is Dictionary:
 		_fail("Walking retarget did not report limb-plane calibration coverage.")
@@ -174,7 +218,7 @@ func _run() -> void:
 	var plane_counts := plane_counts_value as Dictionary
 	for foot_target in ["footL", "toeL", "footR", "toeR"]:
 		if int(plane_counts.get(foot_target, 0)) <= 0:
-			_fail("Walking V10 did not resolve %s with a two-vector REST plane." % foot_target)
+			_fail("Walking base solver did not resolve %s with a two-vector REST plane." % foot_target)
 			return
 
 	var valid_targets := {}
@@ -184,7 +228,7 @@ func _run() -> void:
 			valid_targets[str(bone_value)] = true
 	var transforms_value: Variant = result.get("transforms", [])
 	if not transforms_value is Array or (transforms_value as Array).is_empty():
-		_fail("Walking V10 retarget contains no transform frames.")
+		_fail("Walking V12 retarget contains no transform frames.")
 		return
 	for frame_value in transforms_value as Array:
 		if not frame_value is Dictionary:
@@ -195,13 +239,13 @@ func _run() -> void:
 		for target_value in (node_xfm_value as Dictionary).keys():
 			var target := str(target_value)
 			if target.begins_with("@fold:"):
-				_fail("Walking V10 leaked pseudo target into runtime nodeXfm: %s" % target)
+				_fail("Walking V12 leaked pseudo target into runtime nodeXfm: %s" % target)
 				return
 			if not valid_targets.has(target):
-				_fail("Walking V10 emitted unknown Juno target: %s" % target)
+				_fail("Walking V12 emitted unknown Juno target: %s" % target)
 				return
 
-	print("ALABASTER_BONE_BRIDGE_VALIDATION_OK tabs=%d walking_frames=%d juno_bones=%d punching_segments=%d bridge_det=%.3f foot_plane=%d/%d" % [
+	print("ALABASTER_BONE_BRIDGE_VALIDATION_OK tabs=%d walking_frames=%d juno_bones=%d punching_segments=%d bridge_det=%.3f foot_plane=%d/%d torso_bias=%.2f toe_keep=%.2f" % [
 		tabs.get_child_count(),
 		(transforms_value as Array).size(),
 		valid_targets.size(),
@@ -209,6 +253,8 @@ func _run() -> void:
 		bridge_determinant,
 		int(plane_counts.get("footL", 0)),
 		int(plane_counts.get("footR", 0)),
+		torso_bias,
+		toe_pitch_keep,
 	])
 	studio.queue_free()
 	await process_frame
