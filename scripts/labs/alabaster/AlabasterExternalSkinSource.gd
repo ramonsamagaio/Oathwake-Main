@@ -6,14 +6,17 @@ class_name AlabasterExternalSkinSource
 # filesystem location. JSON lives under data/, authored PNG atlases under assets/.
 
 const PROFILE_JSON_PATHS := {
+	"monster_humanoid_01": "res://data/labs/alabaster/characters/monster_humanoid_01.json",
 	"male_dummy": "res://data/labs/alabaster/characters/dummy.json",
 	"male_temp": "res://data/labs/alabaster/characters/male-temp-01.json",
 }
 const PROFILE_FIGURES := {
+	"monster_humanoid_01": "Monster-Humanoid-01",
 	"male_dummy": "Male-Dummy",
 	"male_temp": "Male-Temp-01",
 }
 const PROFILE_ATLAS_PATHS := {
+	"monster_humanoid_01": "res://assets/sprites/characters/alabaster/monster_humanoid_01.png",
 	"male_dummy": "res://assets/sprites/characters/alabaster/dummy.png",
 	"male_temp": "res://assets/sprites/characters/alabaster/male-temp01.png",
 }
@@ -25,6 +28,7 @@ const REQUIRED_NODES := [
 	"shoulderR", "armR", "handR",
 ]
 const REQUIRED_ANIMATIONS := {
+	"monster_humanoid_01": ["walk", "run", "punch"],
 	"male_dummy": ["walk", "run", "punch", "laying"],
 	"male_temp": ["walk", "run", "punch", "laying", "damage"],
 }
