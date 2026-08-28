@@ -4,18 +4,31 @@ class_name AlabasterMechanicLabProfiles
 const JunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 const PlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
 const DefaultSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterDefaultPlayableSkinRig.gd")
+const MonsterRigScript := preload("res://scripts/monsters/OathwakeMonsterRig.gd")
 const ProfileLibrary := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
 
 const PROFILE_DEFAULT := "default"
 const PROFILE_JUNO := "juno"
 const PROFILE_DUMMY := "male_dummy"
 const PROFILE_MALE := "male_temp"
+const PROFILE_GOLEM_STONE := "golem_stone"
+const PROFILE_GOLEM_JADE := "golem_jade"
 const PROFILE_LABELS := {
 	PROFILE_DEFAULT: "DEFAULT",
 	PROFILE_JUNO: "JUNO",
 	PROFILE_DUMMY: "DUMMY",
 	PROFILE_MALE: "MALE",
+	PROFILE_GOLEM_STONE: "GOLEM PEDRA",
+	PROFILE_GOLEM_JADE: "GOLEM JADE",
 }
+const PROFILE_ORDER := [
+	PROFILE_DEFAULT,
+	PROFILE_DUMMY,
+	PROFILE_MALE,
+	PROFILE_JUNO,
+	PROFILE_GOLEM_STONE,
+	PROFILE_GOLEM_JADE,
+]
 
 var _active_profile := PROFILE_DEFAULT
 var _profile_buttons: Dictionary = {}
@@ -41,7 +54,7 @@ func _build_profile_switcher() -> void:
 	var panel := PanelContainer.new()
 	panel.name = "CharacterProfileSwitcher"
 	panel.position = Vector2(SCREEN_SIZE.x - 540.0, 22.0)
-	panel.custom_minimum_size = Vector2(510.0, 142.0)
+	panel.custom_minimum_size = Vector2(510.0, 190.0)
 	panel.z_index = 1000
 	add_child(panel)
 
@@ -53,21 +66,25 @@ func _build_profile_switcher() -> void:
 	caption.add_theme_font_size_override("font_size", 13)
 	box.add_child(caption)
 
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_END
-	box.add_child(row)
+	# Six complete runtimes fit cleanly as two rows instead of overflowing the
+	# original four-button strip. Golems are the exact OathwakeMonsterRig profiles
+	# used by their dedicated lab, not approximated playable-skin copies.
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_END
+	box.add_child(grid)
 	var group := ButtonGroup.new()
 	group.allow_unpress = false
-	for profile_id in [PROFILE_DEFAULT, PROFILE_DUMMY, PROFILE_MALE, PROFILE_JUNO]:
+	for profile_id in PROFILE_ORDER:
 		var button := Button.new()
 		button.text = str(PROFILE_LABELS[profile_id])
 		button.toggle_mode = true
 		button.button_group = group
 		button.focus_mode = Control.FOCUS_NONE
-		button.custom_minimum_size = Vector2(112.0, 34.0)
-		button.tooltip_text = "Switch the complete source figure. Mechanic Lab and gameplay share the same bone runtime."
+		button.custom_minimum_size = Vector2(150.0, 34.0)
+		button.tooltip_text = "Switch the complete source figure. Mechanic Lab keeps each figure on its native runtime."
 		button.pressed.connect(_on_profile_pressed.bind(profile_id))
-		row.add_child(button)
+		grid.add_child(button)
 		_profile_buttons[profile_id] = button
 	_update_profile_buttons()
 
@@ -98,7 +115,7 @@ func _build_profile_switcher() -> void:
 	_update_opacity_label()
 
 	var note := Label.new()
-	note.text = "DEFAULT is the Oathwake body fork • F1 skeleton • opacity inspects bones"
+	note.text = "DEFAULT/JUNO playable rigs • GOLEM profiles use Claude's native monster rig • F1 skeleton"
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	note.add_theme_font_size_override("font_size", 11)
 	note.modulate = Color(0.72, 0.78, 0.88)
@@ -127,7 +144,7 @@ func _update_opacity_label() -> void:
 
 
 func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
-	if profile_id not in [PROFILE_DEFAULT, PROFILE_JUNO, PROFILE_DUMMY, PROFILE_MALE]:
+	if profile_id not in PROFILE_ORDER:
 		return
 	_manual_active = false
 	_auto_showcase = false
@@ -156,6 +173,16 @@ func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
 		player.add_child(rig)
 		if rig.has_method("initialize_skin") and not bool(rig.call("initialize_skin")):
 			push_error("AlabasterMechanicLabProfiles: could not initialize DEFAULT")
+	elif _is_monster_profile(profile_id):
+		# Reuse Claude's exact monster runtime and profile data. Configure before
+		# add_child so _ready() initializes the requested atlas on the first pass.
+		var monster_rig = MonsterRigScript.new()
+		monster_rig.call("configure_profile", profile_id)
+		rig = monster_rig
+		rig.name = "%sRig" % str(PROFILE_LABELS[profile_id]).capitalize().replace(" ", "")
+		player.add_child(rig)
+		if rig.has_method("initialize_monster") and not bool(rig.call("initialize_monster")):
+			push_error("AlabasterMechanicLabProfiles: could not initialize monster profile %s" % profile_id)
 	else:
 		# Same playable skin rig instantiated by AlabasterPlayerVisualController.
 		var skin_rig = PlayableSkinRigScript.new()
@@ -167,7 +194,9 @@ func _replace_rig(profile_id: String, refresh_ui: bool) -> void:
 			push_error("AlabasterMechanicLabProfiles: could not initialize profile %s" % profile_id)
 
 	_install_profile_custom_animations(profile_id)
-	rig.scale = Vector2(2.5, 2.5)
+	# Match the scale used by the dedicated monster lab so the golem can be
+	# inspected at the size Claude authored it for.
+	rig.scale = Vector2(4.0, 4.0) if _is_monster_profile(profile_id) else Vector2(2.5, 2.5)
 	if rig.has_method("set_debug_enabled"):
 		rig.call("set_debug_enabled", _debug_enabled)
 	_apply_sprite_opacity()
@@ -217,6 +246,10 @@ func _physics_process(delta: float) -> void:
 func _set_profile_idle() -> void:
 	if rig == null:
 		return
+	if _is_monster_profile(_active_profile):
+		if rig.has_method("has_animation") and bool(rig.call("has_animation", "walk")):
+			rig.call("set_animation", "walk")
+		return
 	if rig.has_method("has_animation") and bool(rig.call("has_animation", "idle")):
 		rig.call("set_animation", "idle")
 	elif rig.has_method("set_rest_pose"):
@@ -242,10 +275,18 @@ func _update_status() -> void:
 	super._update_status()
 	if status_label == null:
 		return
-	var runtime_label := "GAME BONES SYSTEM" if _active_profile == PROFILE_JUNO else "GAME PLAYABLE SKIN RIG"
+	var runtime_label := "GAME PLAYABLE SKIN RIG"
+	if _active_profile == PROFILE_JUNO:
+		runtime_label = "GAME BONES SYSTEM"
+	elif _is_monster_profile(_active_profile):
+		runtime_label = "OATHWAKE MONSTER RIG"
 	status_label.text = "figure=%s   runtime=%s   opacity=%d%%   %s" % [
 		str(PROFILE_LABELS.get(_active_profile, _active_profile)),
 		runtime_label,
 		roundi(_sprite_opacity * 100.0),
 		status_label.text,
 	]
+
+
+func _is_monster_profile(profile_id: String) -> bool:
+	return profile_id == PROFILE_GOLEM_STONE or profile_id == PROFILE_GOLEM_JADE
