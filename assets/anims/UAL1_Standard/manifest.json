@@ -1,0 +1,308 @@
+{
+	"clip_count": 43,
+	"clips": [
+		{
+			"file": "res://assets/anims/UAL1_Standard/A_TPose.tres",
+			"length": 2.5,
+			"loop_mode": 0,
+			"name": "A_TPose",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Crouch_Fwd_Loop.tres",
+			"length": 2.0,
+			"loop_mode": 1,
+			"name": "Crouch_Fwd_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Crouch_Idle_Loop.tres",
+			"length": 2.93333339691162,
+			"loop_mode": 1,
+			"name": "Crouch_Idle_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Dance_Loop.tres",
+			"length": 1.0,
+			"loop_mode": 1,
+			"name": "Dance_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Death01.tres",
+			"length": 2.40000009536743,
+			"loop_mode": 0,
+			"name": "Death01",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Driving_Loop.tres",
+			"length": 1.66666662693024,
+			"loop_mode": 1,
+			"name": "Driving_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Fixing_Kneeling.tres",
+			"length": 5.19999980926514,
+			"loop_mode": 0,
+			"name": "Fixing_Kneeling",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Hit_Chest.tres",
+			"length": 0.333333343267441,
+			"loop_mode": 0,
+			"name": "Hit_Chest",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Hit_Head.tres",
+			"length": 0.433333337306976,
+			"loop_mode": 0,
+			"name": "Hit_Head",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Idle_Loop.tres",
+			"length": 2.5,
+			"loop_mode": 1,
+			"name": "Idle_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Idle_Talking_Loop.tres",
+			"length": 2.93333339691162,
+			"loop_mode": 1,
+			"name": "Idle_Talking_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Idle_Torch_Loop.tres",
+			"length": 1.26666665077209,
+			"loop_mode": 1,
+			"name": "Idle_Torch_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Interact.tres",
+			"length": 2.0,
+			"loop_mode": 0,
+			"name": "Interact",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Jog_Fwd_Loop.tres",
+			"length": 0.933333337306976,
+			"loop_mode": 1,
+			"name": "Jog_Fwd_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Jump_Land.tres",
+			"length": 1.26666665077209,
+			"loop_mode": 0,
+			"name": "Jump_Land",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Jump_Loop.tres",
+			"length": 2.5,
+			"loop_mode": 1,
+			"name": "Jump_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Jump_Start.tres",
+			"length": 1.33333337306976,
+			"loop_mode": 0,
+			"name": "Jump_Start",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/PickUp_Table.tres",
+			"length": 0.833333313465118,
+			"loop_mode": 0,
+			"name": "PickUp_Table",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Pistol_Aim_Down.tres",
+			"length": 0.16666667163372,
+			"loop_mode": 0,
+			"name": "Pistol_Aim_Down",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Pistol_Aim_Neutral.tres",
+			"length": 0.16666667163372,
+			"loop_mode": 0,
+			"name": "Pistol_Aim_Neutral",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Pistol_Aim_Up.tres",
+			"length": 0.16666667163372,
+			"loop_mode": 0,
+			"name": "Pistol_Aim_Up",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Pistol_Idle_Loop.tres",
+			"length": 1.66666662693024,
+			"loop_mode": 1,
+			"name": "Pistol_Idle_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Pistol_Reload.tres",
+			"length": 1.66666662693024,
+			"loop_mode": 0,
+			"name": "Pistol_Reload",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Pistol_Shoot.tres",
+			"length": 0.633333325386047,
+			"loop_mode": 0,
+			"name": "Pistol_Shoot",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Punch_Cross.tres",
+			"length": 1.0,
+			"loop_mode": 0,
+			"name": "Punch_Cross",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Punch_Jab.tres",
+			"length": 0.866666674613953,
+			"loop_mode": 0,
+			"name": "Punch_Jab",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Push_Loop.tres",
+			"length": 2.66666674613953,
+			"loop_mode": 1,
+			"name": "Push_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Roll.tres",
+			"length": 1.46666669845581,
+			"loop_mode": 0,
+			"name": "Roll",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Sitting_Enter.tres",
+			"length": 1.29999995231628,
+			"loop_mode": 0,
+			"name": "Sitting_Enter",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Sitting_Exit.tres",
+			"length": 1.03333330154419,
+			"loop_mode": 0,
+			"name": "Sitting_Exit",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Sitting_Idle_Loop.tres",
+			"length": 1.66666662693024,
+			"loop_mode": 1,
+			"name": "Sitting_Idle_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Sitting_Talking_Loop.tres",
+			"length": 2.93333339691162,
+			"loop_mode": 1,
+			"name": "Sitting_Talking_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Spell_Simple_Enter.tres",
+			"length": 0.533333361148834,
+			"loop_mode": 0,
+			"name": "Spell_Simple_Enter",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Spell_Simple_Exit.tres",
+			"length": 0.433333337306976,
+			"loop_mode": 0,
+			"name": "Spell_Simple_Exit",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Spell_Simple_Idle_Loop.tres",
+			"length": 2.09999990463257,
+			"loop_mode": 1,
+			"name": "Spell_Simple_Idle_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Spell_Simple_Shoot.tres",
+			"length": 0.5,
+			"loop_mode": 0,
+			"name": "Spell_Simple_Shoot",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Sprint_Loop.tres",
+			"length": 0.666666686534882,
+			"loop_mode": 1,
+			"name": "Sprint_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Swim_Fwd_Loop.tres",
+			"length": 1.33333337306976,
+			"loop_mode": 1,
+			"name": "Swim_Fwd_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Swim_Idle_Loop.tres",
+			"length": 3.33333325386047,
+			"loop_mode": 1,
+			"name": "Swim_Idle_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Sword_Attack.tres",
+			"length": 1.53333330154419,
+			"loop_mode": 0,
+			"name": "Sword_Attack",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Sword_Idle.tres",
+			"length": 1.66666662693024,
+			"loop_mode": 0,
+			"name": "Sword_Idle",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Walk_Formal_Loop.tres",
+			"length": 1.33333337306976,
+			"loop_mode": 1,
+			"name": "Walk_Formal_Loop",
+			"tracks": 195
+		},
+		{
+			"file": "res://assets/anims/UAL1_Standard/Walk_Loop.tres",
+			"length": 1.33333337306976,
+			"loop_mode": 1,
+			"name": "Walk_Loop",
+			"tracks": 195
+		}
+	],
+	"format": "Godot AnimationLibrary resource per source clip",
+	"source": "res://assets/anims/UAL1_Standard.glb"
+}
