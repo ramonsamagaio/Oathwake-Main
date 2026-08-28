@@ -54,7 +54,7 @@ static func inspect_scene(source_path: String) -> Dictionary:
 	if clips.is_empty():
 		return {
 			"ok": false,
-			"error": "Godot loaded %s, but it contains no animation clips. Check the FBX Import dock and Reimport with animations enabled." % kind,
+			"error": "Godot loaded %s, but it contains no animation clips. Check the source import settings and verify animations are enabled." % kind,
 			"resource_kind": kind,
 		}
 	return {
@@ -165,10 +165,19 @@ static func _open_source(source_path: String) -> Dictionary:
 	if source_path.strip_edges().is_empty():
 		return {"ok": false, "error": "No source animation file selected."}
 
-	if source_path.get_extension().to_lower() == "fbx":
+	var extension := source_path.get_extension().to_lower()
+	if extension == "fbx":
 		var raw_fbx := _open_runtime_fbx_scene(source_path)
 		if bool(raw_fbx.get("ok", false)):
 			return raw_fbx
+	elif extension == "glb" or extension == "gltf":
+		# Do not depend on Godot's editor import cache for bundled source packs.
+		# .godot/imported hashes are machine/import-state specific and can be stale
+		# on another workstation or CI runner. Parsing the raw glTF is deterministic
+		# and preserves the Skeleton3D required by the semantic retargeter.
+		var raw_gltf := _open_runtime_gltf_scene(source_path)
+		if bool(raw_gltf.get("ok", false)):
+			return raw_gltf
 
 	if not ResourceLoader.exists(source_path):
 		return {
@@ -237,8 +246,40 @@ static func _open_runtime_fbx_scene(source_path: String) -> Dictionary:
 	}
 
 
+static func _open_runtime_gltf_scene(source_path: String) -> Dictionary:
+	if not ClassDB.class_exists("GLTFDocument") or not ClassDB.class_exists("GLTFState"):
+		return {"ok": false, "error": "This Godot build does not expose GLTFDocument/GLTFState."}
+	if not FileAccess.file_exists(source_path):
+		return {"ok": false, "error": "Raw GLB/GLTF file is missing: %s" % source_path}
+
+	var document := GLTFDocument.new()
+	var state := GLTFState.new()
+	var filesystem_path := ProjectSettings.globalize_path(source_path)
+	var error := document.append_from_file(filesystem_path, state)
+	if error != OK:
+		return {"ok": false, "error": "GLTFDocument could not parse %s error=%s" % [source_path, error_string(error)]}
+
+	var root := document.generate_scene(state, 30.0, false, false)
+	if root == null:
+		return {"ok": false, "error": "GLTFDocument parsed the file but could not generate a scene: %s" % source_path}
+	var player := LegacyImporter.find_animation_player(root)
+	var skeleton := _find_skeleton3d(root)
+	if player == null:
+		root.free()
+		return {"ok": false, "error": "Raw GLB/GLTF scene is missing AnimationPlayer: %s" % source_path}
+
+	print("ALABASTER_GLTF_SCENE_OK path=%s clips=%d bones=%d" % [source_path, player.get_animation_list().size(), skeleton.get_bone_count() if skeleton != null else 0])
+	return {
+		"ok": true,
+		"kind": "gltf_runtime_scene",
+		"root": root,
+		"player": player,
+		"skeleton": skeleton,
+	}
+
+
 static func _is_scene_kind(kind: String) -> bool:
-	return kind == "packed_scene" or kind == "fbx_runtime_scene"
+	return kind == "packed_scene" or kind == "fbx_runtime_scene" or kind == "gltf_runtime_scene"
 
 
 static func _find_skeleton3d(node: Node) -> Skeleton3D:
