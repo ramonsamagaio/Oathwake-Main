@@ -1,13 +1,18 @@
-name: Diagnose Alabaster UAL1 Package
+name: Diagnose and Unpack Alabaster UAL1 Package
 
 on:
   push:
     paths:
       - "assets/anims/UAL1_Standard.glb"
       - "assets/anims/UAL1_Standard.glb.import"
+      - "scripts/labs/alabaster/AlabasterBoneAnimationSourceAdapter.gd"
       - "scripts/test/AlabasterUAL1Diagnostic.gd"
+      - "scripts/test/AlabasterUAL1Unpack.gd"
       - ".github/workflows/alabaster-ual1-diagnostic.yml"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   inspect-ual1:
@@ -42,10 +47,38 @@ jobs:
           set +e
           ./godot --headless --path . --script res://scripts/test/AlabasterUAL1Diagnostic.gd > ual1-diagnostic.log 2>&1
           status=$?
-          grep -E "ALABASTER_UAL1_(INSPECT|CLIPS_JSON|TRACK_BONES_JSON|SKELETON_BONES_JSON|CLIP|DIAGNOSTIC_OK)" ual1-diagnostic.log || true
+          grep -E "ALABASTER_(GLTF_SCENE_OK|UAL1_(INSPECT|CLIPS_JSON|TRACK_BONES_JSON|SKELETON_BONES_JSON|CLIP|DIAGNOSTIC_OK))" ual1-diagnostic.log || true
           if [ "$status" -ne 0 ]; then
             echo "--- diagnostic tail ---"
             tail -180 ual1-diagnostic.log
             exit "$status"
           fi
           grep -F "ALABASTER_UAL1_DIAGNOSTIC_OK" ual1-diagnostic.log
+
+      - name: Unpack UAL1 clips into AnimationLibrary resources
+        shell: bash
+        run: |
+          set +e
+          ./godot --headless --path . --script res://scripts/test/AlabasterUAL1Unpack.gd > ual1-unpack.log 2>&1
+          status=$?
+          grep -E "ALABASTER_UAL1_UNPACK_(CLIP|OK)" ual1-unpack.log || true
+          if [ "$status" -ne 0 ]; then
+            echo "--- unpack tail ---"
+            tail -180 ual1-unpack.log
+            exit "$status"
+          fi
+          grep -F "ALABASTER_UAL1_UNPACK_OK" ual1-unpack.log
+
+      - name: Commit unpacked animation resources
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/anims/UAL1_Standard
+          if git diff --cached --quiet; then
+            echo "UAL1 unpack output already up to date."
+            exit 0
+          fi
+          git commit -m "chore(anims): unpack UAL1 standard clips"
+          git push
