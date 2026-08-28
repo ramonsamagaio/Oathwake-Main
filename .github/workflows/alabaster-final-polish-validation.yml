@@ -9,7 +9,8 @@ on:
       - "scripts/monsters/OathwakeMonsterRig.gd"
       - "scripts/test/AlabasterLayerHierarchyValidator.gd"
       - "scripts/test/AlabasterMechanicGolemValidator.gd"
-      - "scripts/test/AlabasterMechanicValidator.gd"
+      - "scripts/test/AlabasterCardinalWalkValidator.gd"
+      - "scripts/test/AlabasterBoneBridgeValidator.gd"
       - "scripts/test/AlabasterMonsterTemplateValidator.gd"
       - ".github/workflows/alabaster-final-polish-validation.yml"
   workflow_dispatch:
@@ -17,7 +18,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -41,20 +42,11 @@ jobs:
             exit 1
           }
 
-      - name: Validate Mechanic Lab baseline
-        shell: bash
-        run: |
-          ./godot --headless --path . --script res://scripts/test/AlabasterMechanicValidator.gd > mechanic.log 2>&1 || {
-            tail -180 mechanic.log
-            exit 1
-          }
-          grep -F "ALABASTER_MECHANIC_VALIDATION_OK" mechanic.log
-
       - name: Validate Claude golems in Mechanic Lab
         shell: bash
         run: |
           ./godot --headless --path . --script res://scripts/test/AlabasterMechanicGolemValidator.gd > mechanic-golems.log 2>&1 || {
-            tail -220 mechanic-golems.log
+            tail -240 mechanic-golems.log
             exit 1
           }
           grep -E "ALABASTER_MECHANIC_GOLEM(S|_PROFILE)_OK" mechanic-golems.log
@@ -63,16 +55,34 @@ jobs:
         shell: bash
         run: |
           ./godot --headless --path . --script res://scripts/test/AlabasterLayerHierarchyValidator.gd > layer-hierarchy.log 2>&1 || {
-            tail -240 layer-hierarchy.log
+            tail -260 layer-hierarchy.log
             exit 1
           }
           grep -F "ALABASTER_LAYER_HIERARCHY_OK" layer-hierarchy.log
+
+      - name: Validate cardinal locomotion regression
+        shell: bash
+        run: |
+          ./godot --headless --path . --script res://scripts/test/AlabasterCardinalWalkValidator.gd > cardinal-walk.log 2>&1 || {
+            tail -280 cardinal-walk.log
+            exit 1
+          }
+          grep -F "ALABASTER_CARDINAL_WALK_VALIDATION_OK" cardinal-walk.log
+
+      - name: Validate Bone Bridge and Mixamo regression
+        shell: bash
+        run: |
+          ./godot --headless --path . --script res://scripts/test/AlabasterBoneBridgeValidator.gd > bone-bridge.log 2>&1 || {
+            tail -320 bone-bridge.log
+            exit 1
+          }
+          grep -F "ALABASTER_BONE_BRIDGE_VALIDATION_OK" bone-bridge.log
 
       - name: Validate monster template
         shell: bash
         run: |
           ./godot --headless --path . --script res://scripts/test/AlabasterMonsterTemplateValidator.gd > monster-template.log 2>&1 || {
-            tail -220 monster-template.log
+            tail -240 monster-template.log
             exit 1
           }
           grep -E "ALABASTER_MONSTER.*OK" monster-template.log | tail -20
