@@ -1,0 +1,51 @@
+name: Diagnose Alabaster UAL1 Package
+
+on:
+  push:
+    paths:
+      - "assets/anims/UAL1_Standard.glb"
+      - "assets/anims/UAL1_Standard.glb.import"
+      - "scripts/test/AlabasterUAL1Diagnostic.gd"
+      - ".github/workflows/alabaster-ual1-diagnostic.yml"
+  workflow_dispatch:
+
+jobs:
+  inspect-ual1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.6.3
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip" \
+            --output godot.zip >/dev/null 2>&1
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+
+      - name: Import project resources
+        shell: bash
+        run: |
+          ./godot --headless --editor --path . --quit-after 1 > ual1-import.log 2>&1 || {
+            tail -160 ual1-import.log
+            exit 1
+          }
+
+      - name: Inspect UAL1 animation package
+        shell: bash
+        run: |
+          set +e
+          ./godot --headless --path . --script res://scripts/test/AlabasterUAL1Diagnostic.gd > ual1-diagnostic.log 2>&1
+          status=$?
+          grep -E "ALABASTER_UAL1_(INSPECT|CLIPS_JSON|TRACK_BONES_JSON|SKELETON_BONES_JSON|CLIP|DIAGNOSTIC_OK)" ual1-diagnostic.log || true
+          if [ "$status" -ne 0 ]; then
+            echo "--- diagnostic tail ---"
+            tail -180 ual1-diagnostic.log
+            exit "$status"
+          fi
+          grep -F "ALABASTER_UAL1_DIAGNOSTIC_OK" ual1-diagnostic.log
