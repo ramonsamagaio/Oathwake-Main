@@ -1,4 +1,4 @@
-extends "res://scripts/labs/alabaster/AlabasterRigRuntimeTunable.gd"
+extends "res://scripts/labs/alabaster/AlabasterRigRuntimeLayerGuard.gd"
 class_name BonesSystem
 
 # Production facade for the Oathwake bone-driven renderer.
