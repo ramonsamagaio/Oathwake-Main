@@ -51,23 +51,19 @@ func _run() -> void:
 	if option == null or option.item_count != 43:
 		_fail("UAL1 Bone Studio clip catalog expected 43, got %d" % (option.item_count if option != null else -1))
 		return
-
-	for clip_name in ["Walk_Loop", "Jog_Fwd_Loop", "Punch_Jab"]:
-		var found := false
-		for index in range(option.item_count):
-			if option.get_item_text(index) == clip_name:
-				option.select(index)
-				found = true
-				break
-		if not found:
-			_fail("UAL1 clip missing from Bone Studio: %s" % clip_name)
-			return
-		var loop_toggle := studio.get("source_loop_toggle") as CheckButton
+	var loop_toggle := studio.get("source_loop_toggle") as CheckButton
+	var succeeded := 0
+	var total_keys := 0
+	var min_det := 999.0
+	var max_det := -999.0
+	for index in range(option.item_count):
+		option.select(index)
+		var clip_name := option.get_item_text(index)
 		if loop_toggle != null:
-			loop_toggle.button_pressed = clip_name != "Punch_Jab"
+			loop_toggle.button_pressed = clip_name.ends_with("_Loop")
 		var result_value: Variant = studio.call("_build_import_animation")
 		if not result_value is Dictionary or (result_value as Dictionary).is_empty():
-			_fail("UAL1 V16 retarget failed for %s" % clip_name)
+			_fail("UAL1 V16 retarget failed for %s (%d/43)" % [clip_name, index + 1])
 			return
 		var result := result_value as Dictionary
 		var meta_value: Variant = result.get("import_meta", {})
@@ -76,7 +72,7 @@ func _run() -> void:
 			return
 		var meta := meta_value as Dictionary
 		if str(meta.get("source_profile", "")) != "ual_unreal":
-			_fail("UAL1 %s did not pass through semantic adapter: %s" % [clip_name, str(meta)])
+			_fail("UAL1 %s did not pass through semantic adapter" % clip_name)
 			return
 		if int(meta.get("rotation_codec_version", 0)) != 16:
 			_fail("UAL1 %s did not inherit runtime codec V16" % clip_name)
@@ -84,22 +80,31 @@ func _run() -> void:
 		if int(meta.get("rest_calibration_version", 0)) != 10:
 			_fail("UAL1 %s did not inherit REST/handedness calibration V10" % clip_name)
 			return
-		if float(meta.get("source_to_target_determinant", 0.0)) == 0.0:
-			_fail("UAL1 %s did not report a valid source/target basis determinant" % clip_name)
+		var determinant := float(meta.get("source_to_target_determinant", 0.0))
+		if determinant >= -0.5:
+			_fail("UAL1 %s lost Claude's reflected handedness bridge det=%.3f" % [clip_name, determinant])
 			return
 		var transforms_value: Variant = result.get("transforms", [])
 		if not transforms_value is Array or (transforms_value as Array).is_empty():
 			_fail("UAL1 %s generated no Juno transforms" % clip_name)
 			return
-		print("ALABASTER_UAL_CLIP_OK clip=%s frames=%d keys=%d det=%.3f codec=%d" % [
-			clip_name,
-			int(result.get("frameCnt", 0)),
-			(transforms_value as Array).size(),
-			float(meta.get("source_to_target_determinant", 0.0)),
-			int(meta.get("rotation_codec_version", 0)),
+		var keys := (transforms_value as Array).size()
+		if int(result.get("frameCnt", 0)) <= 0 or keys <= 0:
+			_fail("UAL1 %s generated invalid frame/key count" % clip_name)
+			return
+		succeeded += 1
+		total_keys += keys
+		min_det = minf(min_det, determinant)
+		max_det = maxf(max_det, determinant)
+		print("ALABASTER_UAL_CLIP_OK clip=%s index=%d/43 frames=%d keys=%d det=%.3f codec=16 loop=%s" % [
+			clip_name, index + 1, int(result.get("frameCnt", 0)), keys, determinant,
+			str(bool(result.get("repeat", false))),
 		])
 
-	print("ALABASTER_UAL_V16_VALIDATION_OK clips=43 probes=3")
+	if succeeded != 43:
+		_fail("UAL1 expected 43 successful retargets, got %d" % succeeded)
+		return
+	print("ALABASTER_UAL_V16_VALIDATION_OK clips=%d total_keys=%d det_range=%.3f..%.3f" % [succeeded, total_keys, min_det, max_det])
 	studio.queue_free()
 	await process_frame
 	quit(0)
