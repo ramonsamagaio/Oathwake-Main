@@ -1,0 +1,43 @@
+name: Validate Alabaster UAL V16 Retarget
+
+on:
+  push:
+    paths:
+      - "scripts/labs/alabaster/AlabasterMixamoRetargetProfile.gd"
+      - "scripts/labs/alabaster/AlabasterMixamoRetargetV6.gd"
+      - "scripts/labs/alabaster/AlabasterUALRetargetAdapter.gd"
+      - "scripts/test/AlabasterUALV16Validator.gd"
+      - ".github/workflows/alabaster-ual-v16-validation.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Godot 4.6.3
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip" \
+            --output godot.zip >/dev/null 2>&1
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+      - name: Import project resources
+        shell: bash
+        run: |
+          ./godot --headless --editor --path . --quit-after 1 > ual-import.log 2>&1 || {
+            tail -220 ual-import.log
+            exit 1
+          }
+      - name: Validate UAL V16 retarget
+        shell: bash
+        run: |
+          ./godot --headless --path . --script res://scripts/test/AlabasterUALV16Validator.gd > ual-v16.log 2>&1 || {
+            tail -320 ual-v16.log
+            exit 1
+          }
+          grep -F "ALABASTER_UAL_V16_VALIDATION_OK" ual-v16.log
+          grep -F "ALABASTER_UAL_CLIP_OK" ual-v16.log
