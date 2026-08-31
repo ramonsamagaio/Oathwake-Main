@@ -6,6 +6,7 @@ on:
       - fix/alabaster-final-retarget-polish
     paths:
       - 'scripts/test/AlabasterJunoBaseIntegrationValidator.gd'
+      - 'scripts/test/AlabasterJunoBaseIntegrationValidatorV2.gd'
       - 'scripts/labs/alabaster/AlabasterJunoBaseProfile.gd'
       - 'scripts/labs/alabaster/AlabasterJunoBaseRig.gd'
       - 'scripts/labs/alabaster/AlabasterBoneStudioJunoBaseLiveTuning.gd'
@@ -45,7 +46,7 @@ jobs:
       - name: Validate JunoBase integration
         shell: bash
         run: |
-          ./godot --headless --path . --script res://scripts/test/AlabasterJunoBaseIntegrationValidator.gd > /tmp/junobase-validation.log 2>&1 || {
+          ./godot --headless --path . --script res://scripts/test/AlabasterJunoBaseIntegrationValidatorV2.gd > /tmp/junobase-validation.log 2>&1 || {
             tail -500 /tmp/junobase-validation.log
             exit 1
           }
