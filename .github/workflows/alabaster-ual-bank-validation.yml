@@ -1,0 +1,36 @@
+name: Validate Alabaster UAL1 Persisted Bank
+
+on:
+  push:
+    paths:
+      - "data/labs/alabaster/custom_bone_animations.json"
+      - "scripts/test/AlabasterUALBankValidator.gd"
+      - ".github/workflows/alabaster-ual-bank-validation.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Godot 4.6.3
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip" \
+            --output godot.zip >/dev/null 2>&1
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+      - name: Import resources
+        shell: bash
+        run: ./godot --headless --editor --path . --quit-after 1 > /tmp/ual-bank-import.log 2>&1
+      - name: Validate persisted UAL1 bank in Mechanic Lab
+        shell: bash
+        run: |
+          ./godot --headless --path . --script res://scripts/test/AlabasterUALBankValidator.gd > /tmp/ual-bank.log 2>&1 || {
+            tail -320 /tmp/ual-bank.log
+            exit 1
+          }
+          grep -F "ALABASTER_UAL_BANK_VALIDATION_OK" /tmp/ual-bank.log
