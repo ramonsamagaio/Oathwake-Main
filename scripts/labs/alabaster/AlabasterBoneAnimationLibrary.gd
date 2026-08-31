@@ -4,12 +4,14 @@ class_name AlabasterBoneAnimationLibrary
 const CUSTOM_BANK_PATH := "res://data/labs/alabaster/custom_bone_animations.json"
 const JunoGameplayBank := preload("res://scripts/labs/alabaster/AlabasterJunoGameplayBank.gd")
 const RepoSkinSource := preload("res://scripts/labs/alabaster/AlabasterExternalSkinSource.gd")
+const JunoBaseProfile := preload("res://scripts/labs/alabaster/AlabasterJunoBaseProfile.gd")
 const CORE_ANIMATIONS := ["idle", "walk", "run", "atkSwordN1", "guard", "damage", "dead", "dash"]
 const PROFILE_DEFAULT := "default"
 const PROFILE_JUNO := "juno"
+const PROFILE_JUNO_BASE := "juno_base"
 const PROFILE_DUMMY := "male_dummy"
 const PROFILE_MALE := "male_temp"
-const VALID_PROFILES := [PROFILE_DEFAULT, PROFILE_JUNO, PROFILE_DUMMY, PROFILE_MALE]
+const VALID_PROFILES := [PROFILE_DEFAULT, PROFILE_JUNO, PROFILE_JUNO_BASE, PROFILE_DUMMY, PROFILE_MALE]
 const NATIVE_PREFIX := "native__"
 const LEGACY_RETARGET_ALIASES := {
 	"juno_idle_retarget": "idle",
@@ -45,6 +47,11 @@ static func load_builtin_animations(profile_id: String = PROFILE_JUNO) -> Dictio
 			# Same repository-local bank used by the playable runtime. No Steam/local
 			# source and no separate editor-only decoder path.
 			return JunoGameplayBank.load_gameplay_bank()
+		PROFILE_JUNO_BASE:
+			# JunoBase is a true Juno runtime clone with a deliberately smaller public
+			# animation/sprite contract. Keep its source bank independent from Juno's
+			# custom namespace so editing the future main character never mutates Juno.
+			return JunoBaseProfile.filter_animation_bank(JunoGameplayBank.load_gameplay_bank())
 		PROFILE_DEFAULT:
 			# DEFAULT begins as an exact authored clone of Male-Dummy but owns a
 			# separate profile/custom-animation namespace from this point forward.
