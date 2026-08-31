@@ -1,0 +1,61 @@
+name: Generate Alabaster JunoBase Sprite Audit
+
+on:
+  push:
+    branches:
+      - fix/alabaster-final-retarget-polish
+    paths:
+      - 'scripts/test/AlabasterJunoBaseSpriteAudit.gd'
+      - 'scripts/systems/bones/**'
+      - 'scripts/labs/alabaster/**'
+      - 'data/labs/alabaster/juno_atlas_*.part'
+      - '.github/workflows/alabaster-junobase-sprite-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/alabaster-final-retarget-polish
+
+      - name: Download Godot 4.6.3
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip" \
+            --output godot.zip >/dev/null 2>&1
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+
+      - name: Import resources
+        shell: bash
+        run: ./godot --headless --editor --path . --quit-after 1 > /tmp/junobase-import.log 2>&1
+
+      - name: Audit Juno core sprite cells
+        shell: bash
+        run: |
+          ./godot --headless --path . --script res://scripts/test/AlabasterJunoBaseSpriteAudit.gd > /tmp/junobase-audit.log 2>&1 || {
+            tail -400 /tmp/junobase-audit.log
+            exit 1
+          }
+          grep -F "ALABASTER_JUNO_BASE_AUDIT_OK" /tmp/junobase-audit.log
+          grep -F "ALABASTER_JUNO_BASE_NODE" /tmp/junobase-audit.log || true
+
+      - name: Commit generated JunoBase audit assets
+        shell: bash
+        run: |
+          git add data/labs/alabaster/juno_base_sprite_audit.json data/labs/alabaster/juno_base_core_atlas.png
+          if git diff --cached --quiet; then
+            echo "JunoBase audit already up to date"
+            exit 0
+          fi
+          git config user.name "oathwake-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git commit -m "feat(alabaster): generate JunoBase core sprite sheet"
+          git push origin HEAD:fix/alabaster-final-retarget-polish
