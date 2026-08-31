@@ -10,54 +10,84 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
-	var packed := load(STUDIO_SCENE) as PackedScene
+	var packed: PackedScene = load(STUDIO_SCENE) as PackedScene
 	if packed == null:
 		_fail("Bone Studio scene failed to load")
 		return
-	var studio := packed.instantiate()
+	var studio: Node = packed.instantiate()
 	root.add_child(studio)
 	for _i in range(8):
 		await process_frame
 	studio.call("_on_source_selected", UAL_SOURCE)
 	for _i in range(4):
 		await process_frame
-	var option := studio.get("source_clip_option") as OptionButton
-	var loop_toggle := studio.get("source_loop_toggle") as CheckButton
+	var option: OptionButton = studio.get("source_clip_option") as OptionButton
+	# Bone Studio's real conversion path reads `import_loop.button_pressed`.
+	# Do not guess a UI alias here: setting the exact control makes one-shots stay
+	# one-shot and looping locomotion receive V14's loop-continuity pass.
+	var loop_toggle: BaseButton = studio.get("import_loop") as BaseButton
 	if option == null or option.item_count != 43:
 		_fail("expected 43 UAL1 clips, got %d" % (option.item_count if option != null else -1))
 		return
+	if loop_toggle == null:
+		_fail("Bone Studio import_loop control is unavailable")
+		return
 
-	var opened := SourceAdapter.open_preview_source(UAL_SOURCE)
-	var source_player := opened.get("player") as AnimationPlayer
+	var opened: Dictionary = SourceAdapter.open_preview_source(UAL_SOURCE)
+	var source_player: AnimationPlayer = opened.get("player") as AnimationPlayer
 	if not bool(opened.get("ok", false)) or source_player == null:
 		_fail("could not open raw UAL1 source for loop metadata")
 		return
 
-	var payload := _load_existing_bank()
+	var payload: Dictionary = _load_existing_bank()
 	var animations_value: Variant = payload.get("animations", {})
-	var animations := (animations_value as Dictionary).duplicate(true) if animations_value is Dictionary else {}
-	for old_name in animations.keys():
-		if str(old_name).begins_with(PREFIX):
-			animations.erase(old_name)
+	var animations: Dictionary = (animations_value as Dictionary).duplicate(true) if animations_value is Dictionary else {}
+	var old_names: Array = animations.keys()
+	for old_name_value in old_names:
+		var old_name: String = str(old_name_value)
+		if old_name.begins_with(PREFIX):
+			animations.erase(old_name_value)
 
 	var baked := 0
 	var total_keys := 0
+	var loop_count := 0
+	var one_shot_count := 0
 	for index in range(option.item_count):
 		option.select(index)
-		var clip_name := option.get_item_text(index)
-		var source_anim := source_player.get_animation(clip_name) if source_player.has_animation(clip_name) else null
-		var should_loop := source_anim != null and source_anim.loop_mode != Animation.LOOP_NONE
-		if loop_toggle != null:
-			loop_toggle.button_pressed = should_loop
+		var clip_name: String = option.get_item_text(index)
+		var source_anim: Animation = source_player.get_animation(clip_name) if source_player.has_animation(clip_name) else null
+		if source_anim == null:
+			SourceAdapter.close_preview_source(opened)
+			_fail("raw UAL1 source lost clip %s" % clip_name)
+			return
+		var should_loop: bool = source_anim.loop_mode != Animation.LOOP_NONE
+		loop_toggle.button_pressed = should_loop
+		if should_loop:
+			loop_count += 1
+		else:
+			one_shot_count += 1
+
 		var result_value: Variant = studio.call("_build_import_animation")
 		if not result_value is Dictionary or (result_value as Dictionary).is_empty():
 			SourceAdapter.close_preview_source(opened)
 			_fail("retarget failed while baking %s" % clip_name)
 			return
-		var stored := (result_value as Dictionary).duplicate(true)
+		var stored: Dictionary = (result_value as Dictionary).duplicate(true)
+		if bool(stored.get("repeat", not should_loop)) != should_loop:
+			SourceAdapter.close_preview_source(opened)
+			_fail("loop contract mismatch for %s source=%s result=%s" % [clip_name, str(should_loop), str(stored.get("repeat", null))])
+			return
 		stored["category"] = "UAL1"
 		var meta_value: Variant = stored.get("import_meta", {})
-		var import_meta := (meta_value as Dictionary).duplicate(true) if meta_value is Dictionary else {}
+		var import_meta: Dictionary = (meta_value as Dictionary).duplicate(true) if meta_value is Dictionary else {}
+		if int(import_meta.get("rotation_codec_version", 0)) != 16:
+			SourceAdapter.close_preview_source(opened)
+			_fail("V16 codec missing while baking %s" % clip_name)
+			return
+		if float(import_meta.get("source_to_target_determinant", 0.0)) >= -0.5:
+			SourceAdapter.close_preview_source(opened)
+			_fail("reflected handedness bridge missing while baking %s" % clip_name)
+			return
 		import_meta["source_pack"] = "UAL1_Standard"
 		import_meta["source_clip"] = clip_name
 		import_meta["baked_for_bonelab"] = true
@@ -70,7 +100,7 @@ func _run() -> void:
 			"type": "ual1_v16_baked",
 			"non_destructive": true,
 		}
-		var baked_name := PREFIX + clip_name
+		var baked_name: String = PREFIX + clip_name
 		animations[baked_name] = stored
 		baked += 1
 		var transforms_value: Variant = stored.get("transforms", [])
@@ -82,13 +112,16 @@ func _run() -> void:
 	if baked != 43:
 		_fail("expected 43 baked clips, got %d" % baked)
 		return
+	if loop_count <= 0 or one_shot_count <= 0:
+		_fail("UAL1 loop metadata collapsed: loops=%d one_shots=%d" % [loop_count, one_shot_count])
+		return
 	payload["version"] = 2
 	payload["format"] = "alabaster_bone_animation_bank"
 	payload["animations"] = animations
 	if not _write_bank(payload):
 		_fail("could not write %s" % BANK_PATH)
 		return
-	print("ALABASTER_UAL_BATCH_BAKE_OK clips=%d total_keys=%d bank_total=%d" % [baked, total_keys, animations.size()])
+	print("ALABASTER_UAL_BATCH_BAKE_OK clips=%d loops=%d one_shots=%d total_keys=%d bank_total=%d" % [baked, loop_count, one_shot_count, total_keys, animations.size()])
 	studio.queue_free()
 	await process_frame
 	quit(0)
@@ -96,13 +129,13 @@ func _run() -> void:
 func _load_existing_bank() -> Dictionary:
 	if not FileAccess.file_exists(BANK_PATH):
 		return {"version": 2, "format": "alabaster_bone_animation_bank", "animations": {}}
-	var parsed := JSON.parse_string(FileAccess.get_file_as_string(BANK_PATH))
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(BANK_PATH))
 	if parsed is Dictionary:
 		return (parsed as Dictionary).duplicate(true)
 	return {"version": 2, "format": "alabaster_bone_animation_bank", "animations": {}}
 
 func _write_bank(payload: Dictionary) -> bool:
-	var file := FileAccess.open(BANK_PATH, FileAccess.WRITE)
+	var file: FileAccess = FileAccess.open(BANK_PATH, FileAccess.WRITE)
 	if file == null:
 		return false
 	file.store_string(JSON.stringify(payload, "\t"))
