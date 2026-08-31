@@ -3,8 +3,38 @@ class_name AlabasterMixamoRetargetProfile
 
 const FOLD_PREFIX := "@fold:"
 
-# Mixamo and Alabaster do NOT have anatomical 1:1 bone names.
-#
+# Mixamo and the UAL/Unreal mannequin use different bone names, but both describe
+# the same humanoid semantics consumed by the proven Juno V16 solver. UAL aliases
+# are normalized to the canonical Mixamo semantic vocabulary BEFORE AUTO_MAP is
+# evaluated. This deliberately reuses Claude's REST/handedness/foot-plane/runtime
+# codec path instead of introducing a second lower-fidelity retargeter.
+const UAL_ALIASES := {
+	"pelvis": "hips",
+	"spine_01": "spine",
+	"spine_02": "spine1",
+	"spine_03": "spine2",
+	"neck_01": "neck",
+	"head": "head",
+	"clavicle_l": "leftshoulder",
+	"upperarm_l": "leftarm",
+	"lowerarm_l": "leftforearm",
+	"hand_l": "lefthand",
+	"index_01_l": "lefthandindex1",
+	"clavicle_r": "rightshoulder",
+	"upperarm_r": "rightarm",
+	"lowerarm_r": "rightforearm",
+	"hand_r": "righthand",
+	"index_01_r": "righthandindex1",
+	"thigh_l": "leftupleg",
+	"calf_l": "leftleg",
+	"foot_l": "leftfoot",
+	"ball_l": "lefttoebase",
+	"thigh_r": "rightupleg",
+	"calf_r": "rightleg",
+	"foot_r": "rightfoot",
+	"ball_r": "righttoebase",
+}
+
 # Default/Dummy semantics discovered from the actual node.position hierarchy:
 #   shoulderL/R = attachment pivot, not upper arm
 #   armL/R      = upper arm
@@ -13,11 +43,6 @@ const FOLD_PREFIX := "@fold:"
 #   legL/R      = thigh
 #   footL/R     = shin endpoint / foot sprite
 #   toeL/R      = foot/toe segment
-#
-# AUTO FOLD means the source bone contributes to the semantic solve but does not
-# independently overwrite another Alabaster bone. V4 intentionally keeps the
-# shoulder and hip attachment pivots stabilized to torso/pelvis; the main limb
-# motion begins at armL/R and legL/R.
 const AUTO_MAP := {
 	"root": "root",
 	"hips": "root",
@@ -59,8 +84,6 @@ const AUTO_MAP := {
 	"righttoeend": "",
 }
 
-# Lower-fidelity track-only fallback for resources that expose no Skeleton3D.
-# Raw FBX/GLB should use the Anatomical V4 converter instead.
 const TARGET_CHAINS := {
 	"root": ["hips"],
 	"top": ["spine", "spine1", "spine2"],
@@ -80,7 +103,10 @@ const TARGET_CHAINS := {
 }
 
 static func normalize(value: String) -> String:
-	return value.to_lower().replace("mixamorig:", "").replace("mixamorig_", "").replace("mixamorig", "").replace(" ", "").replace("-", "").replace("_", "")
+	var clean := value.to_lower().replace("mixamorig:", "").replace("mixamorig_", "").replace("mixamorig", "").replace(" ", "").replace("-", "")
+	if UAL_ALIASES.has(clean):
+		return str(UAL_ALIASES[clean])
+	return clean.replace("_", "")
 
 static func detect(source_bones: Array[String]) -> bool:
 	var names := {}
@@ -88,6 +114,15 @@ static func detect(source_bones: Array[String]) -> bool:
 		names[normalize(bone_name)] = true
 	for required in ["hips", "spine", "leftarm", "rightarm", "leftupleg", "rightupleg"]:
 		if not names.has(required):
+			return false
+	return true
+
+static func detect_ual(source_bones: Array[String]) -> bool:
+	var raw := {}
+	for bone_name in source_bones:
+		raw[str(bone_name).to_lower().replace(" ", "").replace("-", "")] = true
+	for required in ["pelvis", "spine_01", "upperarm_l", "upperarm_r", "thigh_l", "thigh_r"]:
+		if not raw.has(required):
 			return false
 	return true
 
