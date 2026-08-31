@@ -1,0 +1,52 @@
+name: Bake Alabaster UAL1 V16 Bank
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/test/AlabasterUALBatchBake.gd"
+      - ".github/workflows/alabaster-ual-v16-bake.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/alabaster-final-retarget-polish
+      - name: Download Godot 4.6.3
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip" \
+            --output godot.zip >/dev/null 2>&1
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+      - name: Import resources
+        shell: bash
+        run: ./godot --headless --editor --path . --quit-after 1 > /tmp/ual-bake-import.log 2>&1
+      - name: Bake all UAL1 clips through V16
+        shell: bash
+        run: |
+          ./godot --headless --path . --script res://scripts/test/AlabasterUALBatchBake.gd > /tmp/ual-bake.log 2>&1 || {
+            tail -400 /tmp/ual-bake.log
+            exit 1
+          }
+          grep -F "ALABASTER_UAL_BATCH_BAKE_OK" /tmp/ual-bake.log
+      - name: Commit baked animation bank
+        shell: bash
+        run: |
+          if git diff --quiet -- data/labs/alabaster/custom_bone_animations.json; then
+            echo "UAL1 bank already up to date"
+            exit 0
+          fi
+          git config user.name "oathwake-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/labs/alabaster/custom_bone_animations.json
+          git commit -m "feat(alabaster): bake 43 UAL1 clips through V16"
+          git push origin HEAD:fix/alabaster-final-retarget-polish
