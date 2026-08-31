@@ -1,0 +1,53 @@
+name: Validate Alabaster JunoBase
+
+on:
+  push:
+    branches:
+      - fix/alabaster-final-retarget-polish
+    paths:
+      - 'scripts/test/AlabasterJunoBaseIntegrationValidator.gd'
+      - 'scripts/labs/alabaster/AlabasterJunoBaseProfile.gd'
+      - 'scripts/labs/alabaster/AlabasterJunoBaseRig.gd'
+      - 'scripts/labs/alabaster/AlabasterBoneStudioJunoBaseLiveTuning.gd'
+      - 'scripts/labs/alabaster/AlabasterBoneStudioSharedProfiles.gd'
+      - 'scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd'
+      - 'scripts/labs/alabaster/AlabasterMechanicLabJunoBase.gd'
+      - 'scenes/labs/alabaster/AlabasterMechanicLab.tscn'
+      - 'data/labs/alabaster/juno_base_sprite_audit.json'
+      - 'data/labs/alabaster/juno_base_core_atlas.png'
+      - '.github/workflows/alabaster-junobase-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Godot 4.6.3
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip" \
+            --output godot.zip >/dev/null 2>&1
+          unzip -q godot.zip
+          mv Godot_v4.6.3-stable_linux.x86_64 godot
+          chmod +x godot
+
+      - name: Import project resources
+        shell: bash
+        run: |
+          ./godot --headless --editor --path . --quit-after 1 > /tmp/junobase-import.log 2>&1 || {
+            tail -400 /tmp/junobase-import.log
+            exit 1
+          }
+
+      - name: Validate JunoBase integration
+        shell: bash
+        run: |
+          ./godot --headless --path . --script res://scripts/test/AlabasterJunoBaseIntegrationValidator.gd > /tmp/junobase-validation.log 2>&1 || {
+            tail -500 /tmp/junobase-validation.log
+            exit 1
+          }
+          cat /tmp/junobase-validation.log | grep -E 'ALABASTER_(JUNO_BASE|LIVE_GREEN_MASK)'
+          grep -F "ALABASTER_JUNO_BASE_INTEGRATION_OK" /tmp/junobase-validation.log
