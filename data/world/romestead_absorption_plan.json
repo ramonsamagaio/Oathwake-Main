@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "source": "Google Drive Romestead raw/extracted asset study",
+  "goal": "Curate useful Romestead terrain grammars into Oathwake without importing every visual family or turning the procedural world into texture noise.",
+  "principles": [
+    "Prefer one strong terrain grammar per gameplay purpose instead of many random skins.",
+    "Use 16x16 terrain/autotile resolution underneath the 32x32 construction grid.",
+    "Roads are semantic world structure, not decorative random patches: connect meaningful destinations first, then render the path.",
+    "Keep biome transitions readable. Detail density should increase near POIs and settlement edges, not uniformly across the map.",
+    "Romestead sheets are visual/technical references. Oathwake-facing art should be curated/reworked to preserve its cleaner art direction."
+  ],
+  "drive_inventory_summary": {
+    "extracted_tile_textures": 29,
+    "extracted_autotile_textures": 214,
+    "road_related_sheets_found": 43,
+    "roads2_tiled_contract": {
+      "tile_px": [16, 16],
+      "tile_count": 624,
+      "columns": 24,
+      "wang_sets": 2,
+      "source_sheet": "roads_test2.png"
+    }
+  },
+  "priority_now": [
+    {
+      "system": "rural_dirt_roads",
+      "source_candidates": [
+        {"name": "dirt_road.png", "size_px": [96, 96]},
+        {"name": "roads_test2.png", "size_px": [384, 416]},
+        {"name": "new_roads_1.png", "size_px": [160, 160]}
+      ],
+      "recommended_source": "dirt_road.png for the first Oathwake rural road skin; roads2/Wang data as topology reference",
+      "implementation": "Generate a coarse road graph between world spawn, settlement/town center and selected POIs. Rasterize centerlines to the 16 px terrain grid, autotile the road mask, suppress harvestable props on the road, reduce vegetation on shoulders and add sparse edge details.",
+      "width": {
+        "main_road_terrain_tiles": 3,
+        "main_road_px": 48,
+        "trail_terrain_tiles": 2,
+        "trail_px": 32
+      },
+      "placement_cost_bias": {
+        "avoid_water": "very_high",
+        "avoid_cliffs": "very_high",
+        "avoid_deep_forest": "medium",
+        "prefer_meadow": "high",
+        "prefer_forest_light": "medium"
+      },
+      "gameplay_value": "Navigation readability, natural guidance to POIs, settlement plausibility and visual scale. Roads should subtly accelerate exploration later if movement modifiers are desired."
+    },
+    {
+      "system": "forest_trails",
+      "source_candidates": [
+        {"name": "forest_path_short_grass_autumn.png", "size_px": [96, 96], "repo_status": "already_present"},
+        {"name": "forest_path_tall_grass_autumn.png", "size_px": [96, 96], "repo_status": "drive_only_or_not_yet_integrated"}
+      ],
+      "implementation": "Use narrower 32 px trails as branches from main roads into forest POIs. Prefer short-grass path in transition forest and tall-grass path in deeper forest."
+    },
+    {
+      "system": "ground_microvariation",
+      "source_candidates": [
+        {"name": "dirt_tileset.png", "size_px": [64, 112]},
+        {"name": "soil_damp_tileset.png"},
+        {"name": "soil_dry_tileset.png"},
+        {"name": "clay_tileset.png"},
+        {"name": "clay_desert_tileset.png"}
+      ],
+      "implementation": "Use low-frequency masks inside biomes for small coherent patches. Damp soil belongs near water/swamp; dry soil/clay belongs near exposed dry zones and heavily travelled POIs. Never random-speckle every tile."
+    },
+    {
+      "system": "buildable_floor_reference",
+      "source_candidates": [
+        {"name": "ghost_town_floors.png", "size_px": [128, 256]},
+        {"name": "farmtiles.png", "size_px": [256, 256]},
+        {"name": "interior_tile_type.png", "size_px": [256, 256]}
+      ],
+      "implementation": "Use these as composition/palette references for Oathwake floor materials. Player-built basic floor remains four seamless 16x16 variants per material, composed into each 32x32 build cell."
+    }
+  ],
+  "priority_next": [
+    {
+      "system": "fences_and_settlement_edges",
+      "source_candidates": [
+        {"name": "fencing.png", "size_px": [80, 48]},
+        {"name": "logfencing.png"},
+        {"name": "logfencing_burnt.png"}
+      ],
+      "use": "Procedural farm/settlement boundaries and authored POIs. Generate coherent runs around fields or lots, never isolated random fence fragments."
+    },
+    {
+      "system": "bridges",
+      "source_candidates": [
+        {"name": "bridge.png", "size_px": [80, 80]}
+      ],
+      "use": "When the semantic road graph crosses a narrow water channel, try a bridge candidate before rerouting. Bridge placement must claim a navigation/collision corridor and clear reeds/rocks around approaches."
+    },
+    {
+      "system": "ruin_microbiomes",
+      "source_candidates": [
+        {"name": "ruinedwalls.png", "size_px": [256, 128]},
+        {"name": "ghost_town_walls.png", "size_px": [128, 128]},
+        {"name": "ghost_town_city_wall.png", "size_px": [16, 80]},
+        {"name": "ghost_town_city_wall_tower.png", "size_px": [16, 96]},
+        {"name": "ghost_town_floors.png", "size_px": [128, 256]}
+      ],
+      "use": "Generate small coherent ruin POIs with floor footprint first, then perimeter wall fragments, then props/loot. Do not reuse these as the player-build wall kit."
+    },
+    {
+      "system": "settlement_paths",
+      "source_candidates": [
+        {"name": "flagstone_path.png", "size_px": [64, 144]},
+        {"name": "rockpath_tileset.png", "size_px": [64, 144]},
+        {"name": "cobblestone_road_tileset.png", "size_px": [64, 160]},
+        {"name": "cobblestone_town_road_tileset.png", "size_px": [64, 160]}
+      ],
+      "use": "Reserve hard-surface roads for settlements, ruins and major authored POIs so they communicate human occupation at a glance."
+    }
+  ],
+  "later_or_biome_specific": [
+    {
+      "family": "basalt_and_magma_walls_floors",
+      "reason": "Strong visual identity. Useful for a volcanic/dungeon biome, but too dominant for the current Romestead-like overworld baseline."
+    },
+    {
+      "family": "mediterranean_tilesets",
+      "reason": "Good settlement kit candidate, but should enter as a coherent settlement art package rather than random world variation."
+    },
+    {
+      "family": "brick_concrete_marble_roads",
+      "reason": "Keep for civilization/late-game regions. Too urban for the current natural overworld if mixed indiscriminately."
+    }
+  ],
+  "explicitly_not_player_build_wall": [
+    "tree_wall.png",
+    "ghost_town_city_wall.png",
+    "ghost_town_walls.png",
+    "ruinedwalls.png"
+  ],
+  "procedural_world_pipeline_target": [
+    "1. Generate biome/terrain fields.",
+    "2. Choose semantic destinations: spawn, settlements, landmarks, dungeons/POIs.",
+    "3. Generate main road graph with terrain-aware costs.",
+    "4. Generate secondary trails branching into forest/resource POIs.",
+    "5. Rasterize roads/trails to 16 px masks and autotile them.",
+    "6. Generate cliffs/water barriers and resolve bridges/crossings where valid.",
+    "7. Spawn vegetation/resources with exclusion and density falloff around roads/buildings.",
+    "8. Add coherent microvariation patches and roadside detail, not global random noise.",
+    "9. Place fences/ruins/settlement dressing from POI grammars.",
+    "10. Run streaming/culling exactly as the current Romestead procedural runtime does for functional resources."
+  ]
+}
