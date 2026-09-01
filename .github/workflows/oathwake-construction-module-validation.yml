@@ -7,11 +7,14 @@ on:
     paths:
       - 'data/world/construction_module.json'
       - 'data/buildings.json'
+      - 'data/player_tuning.json'
+      - 'data/characters.json'
       - 'scenes/Player.tscn'
       - 'scripts/BuildSystem.gd'
       - 'scripts/buildings/Building.gd'
       - 'scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd'
       - 'scripts/test/OathwakeConstructionModuleValidator.gd'
+      - 'scripts/test/OathwakeCharacterScaleProbe.gd'
       - 'assets/sprites/world/procedural/**'
       - 'assets/sprites/tilesets/PROPS_FARM/house_medieval_01_512x512.png'
       - '.github/workflows/oathwake-construction-module-validation.yml'
@@ -42,6 +45,15 @@ jobs:
             tail -400 /tmp/oathwake-construction-import.log
             exit 1
           }
+      - name: Measure live player scale
+        shell: bash
+        run: |
+          ./godot --headless --path . --script res://scripts/test/OathwakeCharacterScaleProbe.gd > /tmp/oathwake-character-scale.log 2>&1 || {
+            cat /tmp/oathwake-character-scale.log
+            exit 1
+          }
+          cat /tmp/oathwake-character-scale.log
+          grep -F 'OATHWAKE_CHARACTER_SCALE_PROBE_OK' /tmp/oathwake-character-scale.log
       - name: Validate construction module
         shell: bash
         run: |
