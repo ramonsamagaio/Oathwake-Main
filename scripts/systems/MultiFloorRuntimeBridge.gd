@@ -2,6 +2,7 @@ extends Node
 
 const MANAGER_PATH := "/root/MultiFloorBuildManager"
 const REQUIRED_STABLE_FRAMES := 6
+const EDIT_SAVE_DEBOUNCE_SEC := 0.35
 
 var _stable_context_frames := 0
 var _bootstrap_pending := false
@@ -87,10 +88,17 @@ func _connect_manager_signals(manager: Node) -> void:
 
 
 func _on_floor_changed(_previous_floor: int, _current_floor: int) -> void:
-	_queue_full_save_sync()
+	# MultiFloorBuildManager has already captured and persisted its lightweight
+	# floor state before this signal. A second full Main/GameSession save here was
+	# doing disk IO and world serialization in the exact frame the player stepped
+	# on a stair, producing the very large hitch seen in gameplay.
+	pass
 
 
 func _on_floor_data_changed(_floor_index: int) -> void:
+	# Building edits still need to reach the complete save document, but they do
+	# not need to block the edit frame. Coalesce bursts and save after the scene
+	# has had time to settle.
 	_queue_full_save_sync()
 
 
@@ -102,6 +110,7 @@ func _queue_full_save_sync() -> void:
 
 
 func _synchronize_complete_save() -> void:
+	await get_tree().create_timer(EDIT_SAVE_DEBOUNCE_SEC, true, false, true).timeout
 	var manager := get_node_or_null(MANAGER_PATH)
 	if manager == null or not bool(manager.get("_initialized")):
 		_save_sync_pending = false

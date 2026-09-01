@@ -14,63 +14,68 @@ props_path = NodePath("Props")
 vegetation_path = NodePath("WindVegetation")
 resources_path = NodePath("../Resources")
 
+; Terrain owns the bottom of CanvasItem's z range. WorldDepthRuntime keeps
+; actors/resources at -4000..4000, so even the far north of the 512x320 world
+; can never push an entity behind a floor layer again.
 [node name="Ground" type="TileMapLayer" parent="."]
-z_index = -10
+z_index = -4096
 
 [node name="DirtTerrain0" type="TileMapLayer" parent="."]
-z_index = -9
+z_index = -4095
 
 [node name="DirtTerrain1" type="TileMapLayer" parent="."]
-z_index = -9
+z_index = -4095
 
 [node name="DirtTerrain2" type="TileMapLayer" parent="."]
-z_index = -9
+z_index = -4095
 
 [node name="GreenTerrain0" type="TileMapLayer" parent="."]
-z_index = -8
+z_index = -4094
 
 [node name="GreenTerrain1" type="TileMapLayer" parent="."]
-z_index = -8
+z_index = -4094
 
 [node name="GreenTerrain2" type="TileMapLayer" parent="."]
-z_index = -8
+z_index = -4094
 
 [node name="ForestLight0" type="TileMapLayer" parent="."]
-z_index = -7
+z_index = -4093
 
 [node name="ForestLight1" type="TileMapLayer" parent="."]
-z_index = -7
+z_index = -4093
 
 [node name="ForestLight2" type="TileMapLayer" parent="."]
-z_index = -7
+z_index = -4093
 
 [node name="ForestDeep0" type="TileMapLayer" parent="."]
-z_index = -6
+z_index = -4092
 
 [node name="ForestDeep1" type="TileMapLayer" parent="."]
-z_index = -6
+z_index = -4092
 
 [node name="ForestDeep2" type="TileMapLayer" parent="."]
-z_index = -6
+z_index = -4092
 
 [node name="ForestPath" type="TileMapLayer" parent="."]
-z_index = -5
+z_index = -4091
 
 [node name="BaseDetails" type="TileMapLayer" parent="."]
-z_index = -7
+z_index = -4090
 
 [node name="DirtDetails" type="TileMapLayer" parent="."]
-z_index = -7
+z_index = -4090
 
 [node name="GreenDetails" type="TileMapLayer" parent="."]
-z_index = -7
+z_index = -4090
 
 [node name="TinyLeaves" type="TileMapLayer" parent="."]
-z_index = -4
+z_index = -4089
 
 [node name="TinyFlowers" type="TileMapLayer" parent="."]
-z_index = -4
+z_index = -4089
 
+; Tall structures remain in the world-depth space because the player must be
+; able to pass visually in front of/behind them.
 [node name="ForestBarrierBottom" type="TileMapLayer" parent="."]
 z_index = 1
 y_sort_enabled = true
@@ -101,7 +106,7 @@ y_sort_enabled = true
 
 [node name="PlainsCliffCollision" type="TileMapLayer" parent="."]
 self_modulate = Color(1, 1, 1, 0)
-z_index = -20
+z_index = -4096
 
 [node name="WindVegetation" type="Node2D" parent="."]
 y_sort_enabled = true

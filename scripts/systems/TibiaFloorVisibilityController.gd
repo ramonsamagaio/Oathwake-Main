@@ -19,6 +19,12 @@ var _components: Array[Dictionary] = []
 var _displayed_floor := -1
 var _dirty := true
 
+# Floor changes used to destroy and instantiate every roof/building visual in
+# the transition frame. Keep immutable visual snapshots per upper floor and
+# invalidate only the floor whose construction data actually changed.
+var _floor_cache: Dictionary = {}
+var _dirty_floors: Dictionary = {}
+
 
 func _ready() -> void:
 	process_priority = 850
@@ -57,6 +63,7 @@ func _resolve_context() -> void:
 	var world := _build_layer.get_parent() if _build_layer != null else null
 	if world == null:
 		return
+	var previous_root := _visual_root
 	_visual_root = world.get_node_or_null("TibiaUpperFloorCover") as Node2D
 	if _visual_root == null:
 		_visual_root = Node2D.new()
@@ -64,6 +71,12 @@ func _resolve_context() -> void:
 		_visual_root.z_index = ROOF_Z_INDEX
 		_visual_root.y_sort_enabled = false
 		world.add_child(_visual_root)
+	if previous_root != null and previous_root != _visual_root:
+		_floor_cache.clear()
+		_dirty_floors.clear()
+		_components.clear()
+		_displayed_floor = -1
+		_dirty = true
 
 
 func _connect_floor_signals() -> void:
@@ -80,11 +93,15 @@ func _connect_floor_signals() -> void:
 
 
 func _on_floor_changed(_previous_floor: int, _current_floor: int) -> void:
+	# Switching floors is now a visibility/cache swap. No visual tree is rebuilt
+	# unless that target floor's construction data has actually changed.
 	_dirty = true
 
 
-func _on_floor_data_changed(_floor_index: int) -> void:
-	_dirty = true
+func _on_floor_data_changed(floor_index: int) -> void:
+	_dirty_floors[floor_index] = true
+	if floor_index == _displayed_floor:
+		_dirty = true
 
 
 func _has_context() -> bool:
@@ -99,43 +116,98 @@ func _rebuild_if_needed(force: bool) -> void:
 	if not _has_context() or (not force and not _dirty):
 		return
 	_dirty = false
-	_displayed_floor = int(_floor_manager.call("get_current_floor")) + 1
-	_clear_visuals()
+	var target_floor := int(_floor_manager.call("get_current_floor")) + 1
+	var needs_build := force or not _floor_cache.has(target_floor) or _dirty_floors.has(target_floor)
+	if needs_build:
+		_rebuild_floor_cache(target_floor)
+	_activate_floor(target_floor)
 
-	var surfaces: Array = _floor_manager.call("get_floor_surfaces", _displayed_floor)
-	var buildings: Array = _floor_manager.call("get_floor_buildings", _displayed_floor)
+
+func _rebuild_floor_cache(floor_index: int) -> void:
+	var previous_value: Variant = _floor_cache.get(floor_index, {})
+	if previous_value is Dictionary:
+		var previous_root := (previous_value as Dictionary).get("root") as Node2D
+		if previous_root != null and is_instance_valid(previous_root):
+			previous_root.queue_free()
+
+	var floor_root := Node2D.new()
+	floor_root.name = "UpperFloor_%d" % floor_index
+	floor_root.visible = false
+	_visual_root.add_child(floor_root)
+
+	var floor_components: Array[Dictionary] = []
+	var surfaces: Array = _floor_manager.call("get_floor_surfaces", floor_index)
+	var buildings: Array = _floor_manager.call("get_floor_buildings", floor_index)
 	var occupied := _collect_occupied_cells(surfaces, buildings)
-	if occupied.is_empty():
+	if not occupied.is_empty():
+		var surface_cells: Dictionary = {}
+		for surface_variant in surfaces:
+			if surface_variant is Dictionary:
+				surface_cells[_entry_cell(surface_variant)] = true
+		var buildings_by_cell: Dictionary = {}
+		for building_variant in buildings:
+			if not building_variant is Dictionary:
+				continue
+			var building_entry: Dictionary = building_variant
+			var building_cell := _entry_cell(building_entry)
+			if not buildings_by_cell.has(building_cell):
+				buildings_by_cell[building_cell] = []
+			(buildings_by_cell[building_cell] as Array).append(building_entry)
+
+		var partitions := _partition_connected_cells(occupied)
+		for partition_variant in partitions:
+			var cells: Array = partition_variant
+			var component_root := Node2D.new()
+			component_root.name = "UpperFloorComponent_%d" % floor_components.size()
+			component_root.z_index = floor_components.size()
+			component_root.modulate.a = 1.0
+			floor_root.add_child(component_root)
+			for cell_variant in cells:
+				var cell := Vector2i(cell_variant)
+				if surface_cells.has(cell):
+					_create_surface_visual(component_root, cell)
+				var cell_buildings: Array = buildings_by_cell.get(cell, []) as Array
+				for entry_variant in cell_buildings:
+					if entry_variant is Dictionary:
+						_create_building_visual(component_root, entry_variant)
+			floor_components.append({
+				"root": component_root,
+				"cells": cells,
+				"alpha": 1.0,
+			})
+
+	_floor_cache[floor_index] = {
+		"root": floor_root,
+		"components": floor_components,
+	}
+	_dirty_floors.erase(floor_index)
+
+
+func _activate_floor(floor_index: int) -> void:
+	for cached_floor_variant in _floor_cache.keys():
+		var cache_value: Variant = _floor_cache.get(cached_floor_variant, {})
+		if cache_value is Dictionary:
+			var cache_root := (cache_value as Dictionary).get("root") as Node2D
+			if cache_root != null and is_instance_valid(cache_root):
+				cache_root.visible = int(cached_floor_variant) == floor_index
+
+	_displayed_floor = floor_index
+	var active_value: Variant = _floor_cache.get(floor_index, {})
+	if not active_value is Dictionary:
+		_components.clear()
 		_visual_root.visible = false
 		return
-
-	_visual_root.visible = true
-	var partitions := _partition_connected_cells(occupied)
-	for partition_variant in partitions:
-		var cells: Array = partition_variant
-		var component_root := Node2D.new()
-		component_root.name = "UpperFloorComponent_%d" % _components.size()
-		component_root.z_index = _components.size()
-		component_root.modulate.a = 1.0
-		_visual_root.add_child(component_root)
-		for cell in cells:
-			if _array_has_cell(surfaces, cell):
-				_create_surface_visual(component_root, cell)
-		for entry_variant in buildings:
-			if entry_variant is Dictionary:
-				var entry: Dictionary = entry_variant
-				if cells.has(_entry_cell(entry)):
-					_create_building_visual(component_root, entry)
-		_components.append({
-			"root": component_root,
-			"cells": cells,
-			"alpha": 1.0,
-		})
+	var active: Dictionary = active_value
+	var components_value: Variant = active.get("components", [])
+	_components = components_value if components_value is Array else []
+	_visual_root.visible = not _components.is_empty()
 	_update_component_visibility(fade_seconds)
 
 
 func _clear_visuals() -> void:
 	_components.clear()
+	_floor_cache.clear()
+	_dirty_floors.clear()
 	if _visual_root == null:
 		return
 	for child in _visual_root.get_children():
@@ -165,10 +237,14 @@ func _partition_connected_cells(cells: Array) -> Array:
 	while not remaining.is_empty():
 		var seed := Vector2i(remaining.keys()[0])
 		var queue: Array[Vector2i] = [seed]
+		var queue_cursor := 0
 		var component: Array[Vector2i] = []
 		remaining.erase(seed)
-		while not queue.is_empty():
-			var current: Vector2i = queue.pop_front()
+		# pop_front() shifts the full Array on every cell. A cursor makes the flood
+		# fill linear and matters on large player-built floors.
+		while queue_cursor < queue.size():
+			var current: Vector2i = queue[queue_cursor]
+			queue_cursor += 1
 			component.append(current)
 			for direction_variant in CARDINAL_DIRECTIONS:
 				var direction: Vector2i = Vector2i(direction_variant)

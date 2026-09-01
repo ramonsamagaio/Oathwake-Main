@@ -1,5 +1,7 @@
 extends StaticBody2D
 
+const BuildingPlaceholderVisualScript = preload("res://scripts/buildings/BuildingPlaceholderVisual.gd")
+
 @export var building_id: String = "wall"
 @export var display_name: String = ""
 @export var interaction_range: float = 56.0
@@ -7,7 +9,7 @@ extends StaticBody2D
 var building_data := {}
 var workstation_id := ""
 var content_sprite: Sprite2D
-var fallback_visual: ColorRect
+var fallback_visual: Node2D
 var collision_shape: CollisionShape2D
 
 func _ready() -> void:
@@ -86,21 +88,15 @@ func _apply_visuals() -> void:
 
 func _apply_fallback_visual() -> void:
 	if content_sprite != null: content_sprite.visible = false
-	if fallback_visual == null: fallback_visual = get_node_or_null("FallbackVisual") as ColorRect
+	if fallback_visual == null: fallback_visual = get_node_or_null("FallbackVisual") as Node2D
 	if fallback_visual == null:
-		fallback_visual = ColorRect.new(); fallback_visual.name = "FallbackVisual"; fallback_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE; add_child(fallback_visual); move_child(fallback_visual, 0)
-	var is_wall := str(building_data.get("building_type", "")) == "wall"
-	fallback_visual.size = Vector2(32, 88) if is_wall else Vector2(28, 24)
-	fallback_visual.position = Vector2(-fallback_visual.size.x * 0.5, -fallback_visual.size.y)
-	fallback_visual.color = _get_fallback_color()
+		fallback_visual = BuildingPlaceholderVisualScript.new()
+		fallback_visual.name = "FallbackVisual"
+		add_child(fallback_visual)
+		move_child(fallback_visual, 0)
+	if fallback_visual.has_method("configure"):
+		fallback_visual.call("configure", building_id, building_data)
 	fallback_visual.visible = true
-
-func _get_fallback_color() -> Color:
-	match str(building_data.get("building_type", "")):
-		"wall": return Color(0.50, 0.32, 0.18, 1.0)
-		"bed": return Color(0.42, 0.34, 0.62, 1.0)
-		"workstation": return Color(0.44, 0.28, 0.14, 1.0)
-		_: return Color(0.55, 0.34, 0.12, 1.0)
 
 func _apply_collision() -> void:
 	var collision = building_data.get("collision", {})
