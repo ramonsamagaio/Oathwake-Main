@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "status": "design_target",
+  "version": 2,
+  "status": "implementation_target",
   "reference_character": {
     "runtime_profile": "juno",
     "visual_scale": 1.0,
@@ -8,8 +8,23 @@
     "max_single_idle_pose_px": [25.7, 61.1],
     "all_idle_facings_envelope_px": [33.2, 63.2],
     "ground_collision_diameter_px": 24,
-    "design_height_reference_px": 64,
-    "measurement_source": "scripts/test/OathwakeCharacterScaleProbe.gd"
+    "design_height_reference_px": 61,
+    "anthropometric_reference_cm": 171,
+    "pixel_scale_cm_per_px": 2.826,
+    "measurement_source": "scripts/test/OathwakeCharacterScaleProbe.gd",
+    "scale_rule": "Treat the 60.5 px Juno south idle as an approximately 171 cm adult reference. Architectural vertical dimensions are derived from real-world ratios, not from the 32 px construction footprint."
+  },
+  "real_world_architecture": {
+    "reference_adult_cm": 171,
+    "standard_door_height_cm": 203.2,
+    "standard_habitable_ceiling_cm": 243.8,
+    "door_to_person_ratio": 1.188,
+    "ceiling_to_person_ratio": 1.426,
+    "door_to_ceiling_ratio": 0.833,
+    "target_door_visual_height_px": 72,
+    "target_wall_visual_height_px": 88,
+    "headwall_above_door_px": 16,
+    "notes": "72 px door follows the approximately 2.03 m residential door / 1.71 m adult ratio. 88 px wall follows an approximately 2.44 m habitable ceiling reference while leaving about 16 px of header/wall above the door."
   },
   "grids": {
     "terrain_subtile_px": [16, 16],
@@ -21,97 +36,20 @@
       "build_footprint_px": [32, 32],
       "authoring_subtile_px": [16, 16],
       "minimum_authored_variants": 4,
-      "recommended_sheet_px": [32, 32],
-      "notes": "Four seamless 16x16 variants in a 2x2 sheet. Runtime fills each 32x32 build cell with four deterministic subtiles, so repetition is broken without extra painting work."
+      "recommended_sheet_px": [32, 32]
     },
-    "wall_horizontal": {
-      "build_footprint_px": [32, 32],
-      "sprite_canvas_px": [32, 64],
-      "anchor": "bottom_center",
-      "collision_px": [32, 32],
-      "connect_axis": "east_west",
-      "notes": "Base raised wall skin. 64 px visual height matches the approximately 61 px Juno standing silhouette. Renderer tiles/stretches the middle across contiguous runs instead of placing visible blocks cell by cell."
-    },
-    "wall_vertical": {
-      "build_footprint_px": [32, 32],
-      "sprite_canvas_px": [32, 64],
-      "anchor": "bottom_center",
-      "collision_px": [32, 32],
-      "connect_axis": "north_south",
-      "notes": "Separate authored perspective/light treatment. Do not rotate the horizontal art for final-quality visuals."
-    },
-    "wall_joint_post": {
-      "sprite_canvas_px": [16, 64],
-      "anchor": "bottom_center",
-      "notes": "One reusable post/joint hides corners, T junctions, crosses and exposed run ends. It is placed by code, not selected by the player."
-    },
-    "wall_window_horizontal": {
-      "build_footprint_px": [32, 32],
-      "sprite_canvas_px": [32, 64],
-      "anchor": "bottom_center",
-      "collision_px": [32, 32],
-      "window_opening_px": [16, 20],
-      "placement_rule": "straight_segment_only"
-    },
-    "wall_window_vertical": {
-      "build_footprint_px": [32, 32],
-      "sprite_canvas_px": [32, 64],
-      "anchor": "bottom_center",
-      "collision_px": [32, 32],
-      "window_opening_px": [10, 20],
-      "placement_rule": "straight_segment_only"
-    },
-    "wall_doorway_horizontal": {
-      "build_footprint_px": [32, 32],
-      "sprite_canvas_px": [32, 64],
-      "anchor": "bottom_center",
-      "clear_visual_opening_px": [28, 56],
-      "clear_collision_width_px": 32,
-      "placement_rule": "straight_segment_only"
-    },
-    "wall_doorway_vertical": {
-      "build_footprint_px": [32, 32],
-      "sprite_canvas_px": [32, 64],
-      "anchor": "bottom_center",
-      "clear_visual_opening_px": [28, 56],
-      "clear_collision_width_px": 32,
-      "placement_rule": "straight_segment_only"
-    },
-    "door_leaf_horizontal": {
-      "placement_footprint_px": [32, 32],
-      "sprite_canvas_px": [32, 60],
-      "visible_leaf_px": [28, 56],
-      "closed_collision_px": [12, 30],
-      "open_collision": "disabled",
-      "anchor": "bottom_center"
-    },
-    "door_leaf_vertical": {
-      "placement_footprint_px": [32, 32],
-      "sprite_canvas_px": [32, 60],
-      "visible_leaf_px": [28, 56],
-      "closed_collision_px": [12, 30],
-      "open_collision": "disabled",
-      "anchor": "bottom_center"
-    },
-    "stairs_north_south": {
-      "build_footprint_cells": [1, 2],
-      "build_footprint_px": [32, 64],
-      "sprite_canvas_px": [32, 64],
-      "minimum_clear_width_px": 32,
-      "notes": "A one-cell-wide, two-cell-long flight is wide enough for the 25.5 px Juno silhouette without making stairs consume an entire room."
-    },
-    "stairs_east_west": {
-      "build_footprint_cells": [2, 1],
-      "build_footprint_px": [64, 32],
-      "sprite_canvas_px": [64, 32],
-      "minimum_clear_width_px": 32,
-      "notes": "Authored separately for lighting/perspective even though the gameplay footprint is a 90-degree rotation of the north/south flight."
-    },
-    "door_threshold_optional": {
-      "sprite_canvas_px": [32, 16],
-      "anchor": "bottom_center",
-      "notes": "Optional polish layer. No collision. Bridges indoor floor and exterior terrain visually."
-    }
+    "wall_horizontal": {"build_footprint_px": [32, 32], "sprite_canvas_px": [32, 88], "anchor": "bottom_center", "collision_px": [32, 32], "connect_axis": "east_west"},
+    "wall_vertical": {"build_footprint_px": [32, 32], "sprite_canvas_px": [32, 88], "anchor": "bottom_center", "collision_px": [32, 32], "connect_axis": "north_south"},
+    "wall_joint_post": {"sprite_canvas_px": [16, 88], "anchor": "bottom_center"},
+    "wall_window_horizontal": {"build_footprint_px": [32, 32], "sprite_canvas_px": [32, 88], "anchor": "bottom_center", "collision_px": [32, 32], "window_opening_px": [16, 24], "placement_rule": "straight_segment_only"},
+    "wall_window_vertical": {"build_footprint_px": [32, 32], "sprite_canvas_px": [32, 88], "anchor": "bottom_center", "collision_px": [32, 32], "window_opening_px": [10, 24], "placement_rule": "straight_segment_only"},
+    "wall_doorway_horizontal": {"build_footprint_px": [32, 32], "sprite_canvas_px": [32, 88], "anchor": "bottom_center", "clear_visual_opening_px": [28, 72], "clear_collision_width_px": 32, "placement_rule": "straight_segment_only"},
+    "wall_doorway_vertical": {"build_footprint_px": [32, 32], "sprite_canvas_px": [32, 88], "anchor": "bottom_center", "clear_visual_opening_px": [28, 72], "clear_collision_width_px": 32, "placement_rule": "straight_segment_only"},
+    "door_leaf_horizontal": {"placement_footprint_px": [32, 32], "sprite_canvas_px": [32, 72], "visible_leaf_px": [28, 72], "closed_collision_px": [12, 30], "open_collision": "disabled", "anchor": "bottom_center"},
+    "door_leaf_vertical": {"placement_footprint_px": [32, 32], "sprite_canvas_px": [32, 72], "visible_leaf_px": [28, 72], "closed_collision_px": [12, 30], "open_collision": "disabled", "anchor": "bottom_center"},
+    "stairs_north_south": {"build_footprint_cells": [1, 2], "build_footprint_px": [32, 64], "sprite_canvas_px": [32, 64], "minimum_clear_width_px": 32},
+    "stairs_east_west": {"build_footprint_cells": [2, 1], "build_footprint_px": [64, 32], "sprite_canvas_px": [64, 32], "minimum_clear_width_px": 32},
+    "door_threshold_optional": {"sprite_canvas_px": [32, 16], "anchor": "bottom_center"}
   },
   "wall_network": {
     "gameplay_item": "wall",
@@ -123,64 +61,34 @@
       "horizontal": "Merge contiguous east-west wall-family cells into one repeated/tiled horizontal strip.",
       "vertical": "Merge contiguous north-south wall-family cells into one repeated/tiled vertical strip.",
       "junctions": "Overlay wall_joint_post where horizontal and vertical runs meet and at visually exposed endpoints.",
-      "special_segments": "Window and doorway cells split the run locally and insert their orientation-specific 32x64 module."
+      "special_segments": "Window and doorway cells split the run locally and insert their orientation-specific module."
     },
     "special_segment_rules": {
-      "window": "Must belong to a straight wall axis. Corner/T/cross placement is rejected or normalized back to a regular wall.",
-      "doorway": "Must belong to a straight wall axis. Door leaf is an attachment/runtime component of the doorway, not free-floating architecture.",
-      "door": "Opening state changes leaf collision/navigation only. The structural doorway remains part of the wall network."
+      "window": "Must belong to a straight wall axis.",
+      "doorway": "Must belong to a straight wall axis. Door leaf is attached to the doorway.",
+      "door": "Opening state changes leaf collision/navigation only. The structural doorway remains part of room topology."
     },
     "artist_burden": {
       "required_wall_family_sprites": 9,
-      "required_names": [
-        "wall_horizontal",
-        "wall_vertical",
-        "wall_joint_post",
-        "wall_window_horizontal",
-        "wall_window_vertical",
-        "wall_doorway_horizontal",
-        "wall_doorway_vertical",
-        "door_leaf_horizontal",
-        "door_leaf_vertical"
-      ],
-      "not_required": [
-        "corner_NE",
-        "corner_NW",
-        "corner_SE",
-        "corner_SW",
-        "T_N",
-        "T_E",
-        "T_S",
-        "T_W",
-        "cross",
-        "horizontal_end_left",
-        "horizontal_end_right",
-        "vertical_end_top",
-        "vertical_end_bottom"
-      ]
+      "required_names": ["wall_horizontal", "wall_vertical", "wall_joint_post", "wall_window_horizontal", "wall_window_vertical", "wall_doorway_horizontal", "wall_doorway_vertical", "door_leaf_horizontal", "door_leaf_vertical"],
+      "not_required": ["corner_NE", "corner_NW", "corner_SE", "corner_SW", "T_N", "T_E", "T_S", "T_W", "cross", "horizontal_end_left", "horizontal_end_right", "vertical_end_top", "vertical_end_bottom"]
     }
   },
   "interior_readability": {
     "room_detection": "flood_fill_inside_closed_wall_network",
+    "construction_only_cutaway": true,
     "south_wall_cutaway": true,
     "cutaway_target_alpha": 0.18,
     "cutaway_base_height_px": 16,
-    "rule": "When the player is inside a detected room, wall segments between the camera and player fade or collapse to a 16 px base silhouette. Full collision remains unchanged.",
-    "future_roof": "Roof should be generated from detected room coverage rather than placed tile by tile. Roof hides/fades as one room group."
+    "rule": "Only player-built walls between camera and player are faded when the player is inside a detected construction room. Existing authored roof/occlusion systems remain untouched.",
+    "future_roof": "Roof coverage continues to be room-group based and may reuse the existing roof disappearance system."
   },
   "runtime_implications": [
     "Save orientation, material skin, wall-family subtype and attachment state per construction cell.",
-    "Rebuild only dirty wall runs after placement/removal instead of rebuilding all walls.",
-    "Door state must update collision and navigation occupancy.",
-    "Closed wall loops create semantic indoor regions used by weather occlusion, wildlife spawn exclusion, interior lighting and future roof generation.",
-    "Upper-floor surfaces continue using the existing MultiFloorBuildManager, but stairs migrate from one cell to an oriented 1x2/2x1 footprint.",
-    "Build preview shows the final auto-connected appearance and inferred orientation before payment/placement."
-  ],
-  "romestead_visual_references": {
-    "building1_png": [256, 256],
-    "ghost_town_house_tiles_png": [224, 224],
-    "ghost_town_walls_png": [128, 128],
-    "ghost_town_floors_png": [128, 256],
-    "design_takeaway": "Romestead architecture is strongly modular. Oathwake keeps that compositional principle but reduces the number of authored combinations by moving topology assembly into code."
-  }
+    "Rebuild only dirty wall runs after placement/removal.",
+    "Door state updates collision/navigation but does not break semantic room enclosure.",
+    "Closed wall loops create semantic indoor regions.",
+    "Construction cutaway is additive to existing authored-world roof/occlusion logic and is restricted to player-built structures.",
+    "Upper-floor surfaces continue using MultiFloorBuildManager while stairs migrate to oriented 1x2/2x1 footprints."
+  ]
 }
