@@ -31,7 +31,7 @@ func _process(_delta: float) -> void:
 		_try_attach()
 
 func _try_attach() -> void:
-	var world := get_tree().get_first_node_in_group("procedural_resource_world")
+	var world: Node = get_tree().get_first_node_in_group("procedural_resource_world")
 	if world == null or world == _attached_world:
 		return
 	_attached_world = world
@@ -58,8 +58,6 @@ func _build_water() -> void:
 	_water_layer = _make_source_layer("ProceduralWater", -8, WATER_TEXTURE_PATH, true)
 	if _water_layer == null:
 		return
-	# Romestead's extracted water.png is a grayscale water/noise source. Tinting
-	# it here preserves its native texture character while keeping Oathwake's hue.
 	_water_layer.modulate = Color(0.34, 0.68, 0.78, 0.94)
 	_attached_world.add_child(_water_layer)
 	var size := Vector2i(_attached_world.get("world_size_tiles"))
@@ -98,7 +96,6 @@ func _build_semantic_roads() -> void:
 	var lake_vector := lake_grid - town_grid
 	var lake_edge_grid := lake_grid - lake_vector.normalized() * float(size.x) * (WATER_RADIUS_FACTOR + 0.035)
 	var lake_edge_cell := _grid_to_world_cell(lake_edge_grid, start)
-
 	_paint_costed_route(spawn_cell, town_cell, ROAD_MAIN_WIDTH_TILES)
 	_paint_costed_route(town_cell, forest_cell, ROAD_MAIN_WIDTH_TILES)
 	_paint_costed_route(town_cell, lake_edge_cell, ROAD_TRAIL_WIDTH_TILES)
@@ -137,7 +134,7 @@ func _find_costed_path(from_cell: Vector2i, to_cell: Vector2i) -> Array[Vector2i
 		return []
 	if astar.is_point_solid(from_cell) or astar.is_point_solid(to_cell):
 		return []
-	var raw := astar.get_id_path(from_cell, to_cell)
+	var raw: PackedVector2Array = astar.get_id_path(from_cell, to_cell)
 	var result: Array[Vector2i] = []
 	for point in raw:
 		result.append(Vector2i(point))
@@ -161,11 +158,8 @@ func _road_weight_for_biome(biome: int) -> float:
 			return 1.5
 
 func _paint_road_cross_section(center: Vector2i, width_tiles: int) -> void:
-	# Main roads are 3x16=48 px. Trails are two native tiles = 32 px.
 	var offsets: Array[Vector2i] = [Vector2i.ZERO]
 	if width_tiles >= 2:
-		# Alternate the second tile by parity so the trail stays two tiles wide
-		# without requiring half-cell coordinates.
 		offsets.append(Vector2i.RIGHT if posmod(center.x + center.y, 2) == 0 else Vector2i.DOWN)
 	if width_tiles >= 3:
 		offsets.append(Vector2i.LEFT)
@@ -174,16 +168,14 @@ func _paint_road_cross_section(center: Vector2i, width_tiles: int) -> void:
 		if _water_cells.has(cell):
 			continue
 		_road_cells[cell] = true
-		# dirt_road_source.png is 96x96 = 6x6 native 16 px slots. Prefer its
-		# authored center/edge cells deterministically; transparent slots are avoided.
-		var variant_pool := [Vector2i(0,0), Vector2i(1,0), Vector2i(2,0), Vector2i(0,1), Vector2i(1,1), Vector2i(2,1)]
+		var variant_pool: Array[Vector2i] = [Vector2i(0,0), Vector2i(1,0), Vector2i(2,0), Vector2i(0,1), Vector2i(1,1), Vector2i(2,1)]
 		var index := posmod(_cell_seed(cell, 0xD17A), variant_pool.size())
 		_road_layer.set_cell(cell, 0, variant_pool[index], 0)
 
 func _make_source_layer(name_value: String, z_value: int, texture_path: String, collision: bool) -> TileMapLayer:
-	var texture := load(texture_path) as Texture2D
+	var texture := _load_png_texture(texture_path)
 	if texture == null:
-		push_warning("ProceduralWorldAugment missing texture: %s" % texture_path)
+		push_warning("ProceduralWorldAugment missing or invalid PNG texture: %s" % texture_path)
 		return null
 	var layer := TileMapLayer.new()
 	layer.name = name_value
@@ -198,8 +190,8 @@ func _make_source_layer(name_value: String, z_value: int, texture_path: String, 
 	atlas.texture = texture
 	atlas.texture_region_size = Vector2i(TILE_SIZE, TILE_SIZE)
 	tile_set.add_source(atlas, 0)
-	var columns := texture.get_width() / TILE_SIZE
-	var rows := texture.get_height() / TILE_SIZE
+	var columns: int = texture.get_width() / TILE_SIZE
+	var rows: int = texture.get_height() / TILE_SIZE
 	for y in range(rows):
 		for x in range(columns):
 			var coord := Vector2i(x, y)
@@ -211,8 +203,19 @@ func _make_source_layer(name_value: String, z_value: int, texture_path: String, 
 	layer.tile_set = tile_set
 	return layer
 
+func _load_png_texture(path: String) -> Texture2D:
+	if not FileAccess.file_exists(path):
+		return null
+	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(path)
+	if bytes.is_empty():
+		return null
+	var image := Image.new()
+	if image.load_png_from_buffer(bytes) != OK:
+		return null
+	return ImageTexture.create_from_image(image)
+
 func _prune_generated_entities() -> void:
-	var resources := _attached_world.get_node_or_null("../Resources")
+	var resources: Node = _attached_world.get_node_or_null("../Resources")
 	if resources == null:
 		resources = _attached_world.get_node_or_null("Resources")
 	if resources != null:
@@ -222,7 +225,7 @@ func _prune_generated_entities() -> void:
 			var cell := _world_to_cell((child as Node2D).global_position)
 			if _water_cells.has(cell) or _is_near_road(cell, 1):
 				child.queue_free()
-	var wildlife := _attached_world.get_node_or_null("../Enemies")
+	var wildlife: Node = _attached_world.get_node_or_null("../Enemies")
 	if wildlife == null:
 		wildlife = _attached_world.get_node_or_null("Enemies")
 	if wildlife != null:
@@ -238,8 +241,11 @@ func _is_near_road(cell: Vector2i, clearance: int) -> bool:
 	return false
 
 func _world_to_cell(world_position: Vector2) -> Vector2i:
-	var local := _attached_world.to_local(world_position)
-	return Vector2i(roundi(local.x / TILE_SIZE), roundi(local.y / TILE_SIZE))
+	var world_node := _attached_world as Node2D
+	if world_node == null:
+		return Vector2i.ZERO
+	var local_position: Vector2 = world_node.to_local(world_position)
+	return Vector2i(roundi(local_position.x / TILE_SIZE), roundi(local_position.y / TILE_SIZE))
 
 func _grid_to_world_cell(grid: Vector2, start: Vector2i) -> Vector2i:
 	return start + Vector2i(roundi(grid.x), roundi(grid.y))
