@@ -1,5 +1,8 @@
 extends "res://scripts/buildings/BuildingLightingSuite.gd"
 
+const CLOSED_DOOR_VISUAL_SIZE := Vector2(28, 72)
+const OPEN_DOOR_VISUAL_SIZE := Vector2(30, 8)
+
 var is_open := false
 
 func _ready() -> void:
@@ -31,8 +34,8 @@ func _apply_door_state() -> void:
 	if fallback_visual != null:
 		var color_key := "open_color" if is_open else "closed_color"
 		fallback_visual.color = Color.from_string(str(building_data.get(color_key, "#3C7650FF" if is_open else "#6B4028FF")), Color(0.24, 0.46, 0.31, 1.0) if is_open else Color(0.42, 0.25, 0.16, 1.0))
-		fallback_visual.size = Vector2(10, 30) if not is_open else Vector2(30, 8)
-		fallback_visual.position = -fallback_visual.size * Vector2(0.5, 0.78)
+		fallback_visual.size = OPEN_DOOR_VISUAL_SIZE if is_open else CLOSED_DOOR_VISUAL_SIZE
+		fallback_visual.position = Vector2(-fallback_visual.size.x * 0.5, -fallback_visual.size.y) if not is_open else Vector2(-fallback_visual.size.x * 0.5, -8.0)
 	if collision_shape != null:
 		collision_shape.disabled = is_open
 	set_meta("door_open", is_open)
