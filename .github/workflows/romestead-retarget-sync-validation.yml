@@ -16,6 +16,7 @@ on:
       - 'scripts/buildings/**'
       - 'scripts/labs/alabaster/AlabasterJunoBase*.gd'
       - 'scripts/test/OathwakeProceduralWorldAugmentValidator.gd'
+      - 'scripts/test/OathwakeSessionIsolationValidator.gd'
       - 'scripts/test/AlabasterJunoBase*.gd'
       - 'assets/sprites/characters/JUNOBASE.png'
       - 'data/labs/alabaster/juno_base_**'
@@ -58,6 +59,15 @@ jobs:
             --script res://scripts/test/OathwakeProceduralWorldAugmentValidator.gd \
             2>&1 | tee /tmp/world-augment.log
           grep -F "OATHWAKE_WORLD_AUGMENT_OK" /tmp/world-augment.log
+
+      - name: Validate new-game world isolation
+        shell: bash
+        run: |
+          /tmp/godot/Godot_v4.6.3-stable_linux.x86_64 \
+            --headless --path "$GITHUB_WORKSPACE" \
+            --script res://scripts/test/OathwakeSessionIsolationValidator.gd \
+            2>&1 | tee /tmp/session-isolation.log
+          grep -F "OATHWAKE_SESSION_ISOLATION_OK" /tmp/session-isolation.log
 
       - name: Validate JunoBase compact character sheet
         shell: bash
