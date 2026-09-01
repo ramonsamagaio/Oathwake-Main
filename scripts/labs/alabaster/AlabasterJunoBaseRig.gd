@@ -3,7 +3,7 @@ class_name AlabasterJunoBaseRig
 
 const Profile := preload("res://scripts/labs/alabaster/AlabasterJunoBaseProfile.gd")
 const CORE_ATLAS_PATH := "res://data/labs/alabaster/juno_base_core_atlas.png"
-const COMPACT_ATLAS_PATH := "res://data/labs/alabaster/juno_base_compact_atlas.png"
+const COMPACT_ATLAS_PATH := "res://assets/sprites/characters/JUNOBASE.png"
 const COMPACT_MAP_PATH := "res://data/labs/alabaster/juno_base_compact_map.json"
 
 var _juno_base_core_atlas_active := false
