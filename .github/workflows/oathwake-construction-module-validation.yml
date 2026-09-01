@@ -5,6 +5,7 @@ on:
     branches:
       - fix/alabaster-final-retarget-polish
     paths:
+      - 'project.godot'
       - 'data/world/construction_module.json'
       - 'data/world/construction_art_contract.json'
       - 'data/world/romestead_absorption_plan.json'
@@ -14,12 +15,17 @@ on:
       - 'scenes/Player.tscn'
       - 'scripts/BuildSystem.gd'
       - 'scripts/buildings/Building.gd'
+      - 'scripts/buildings/Door.gd'
       - 'scripts/buildings/ConstructionWallTopology.gd'
+      - 'scripts/systems/ConstructionCutawayManager.gd'
+      - 'scripts/systems/ProceduralWorldAugment.gd'
       - 'scripts/labs/romestead_systems/RomesteadBiomeWorld2D.gd'
       - 'scripts/test/OathwakeConstructionModuleValidator.gd'
       - 'scripts/test/OathwakeConstructionDesignValidator.gd'
       - 'scripts/test/OathwakeCharacterScaleProbe.gd'
+      - 'scripts/test/OathwakeProceduralWorldAugmentValidator.gd'
       - 'assets/sprites/world/procedural/**'
+      - 'assets/sprites/world/romestead_reference/**'
       - 'assets/sprites/tilesets/PROPS_FARM/house_medieval_01_512x512.png'
       - '.github/workflows/oathwake-construction-module-validation.yml'
   workflow_dispatch:
@@ -76,3 +82,12 @@ jobs:
           }
           cat /tmp/oathwake-build-design.log
           grep -F 'OATHWAKE_BUILD_DESIGN_OK' /tmp/oathwake-build-design.log
+      - name: Validate water, biome spacing and semantic roads
+        shell: bash
+        run: |
+          ./godot --headless --path . --script res://scripts/test/OathwakeProceduralWorldAugmentValidator.gd > /tmp/oathwake-world-augment.log 2>&1 || {
+            cat /tmp/oathwake-world-augment.log
+            exit 1
+          }
+          cat /tmp/oathwake-world-augment.log
+          grep -F 'OATHWAKE_WORLD_AUGMENT_OK' /tmp/oathwake-world-augment.log
