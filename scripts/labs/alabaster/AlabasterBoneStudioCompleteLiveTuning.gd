@@ -22,5 +22,3 @@ func _sync_host_editor_selector(profile_id: String) -> void:
 	# state and retained profile id through the host's dedicated helper.
 	if host.has_method("_sync_editor_preview_selector"):
 		host.call("_sync_editor_preview_selector", profile_id)
-	if "_editor_preview_profile_id" in host:
-		host.set("_editor_preview_profile_id", profile_id)
