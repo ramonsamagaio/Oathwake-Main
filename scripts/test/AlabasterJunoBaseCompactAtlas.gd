@@ -1,7 +1,7 @@
 extends SceneTree
 
 const AUDIT_PATH := "res://data/labs/alabaster/juno_base_sprite_audit.json"
-const SOURCE_ATLAS_PATH := "res://data/labs/alabaster/source/images/MainChar_v001.png"
+const SOURCE_ATLAS_PATH := "res://data/labs/alabaster/juno_base_core_atlas.png"
 const COMPACT_ATLAS_PATH := "res://data/labs/alabaster/juno_base_compact_atlas.png"
 const COMPACT_MAP_PATH := "res://data/labs/alabaster/juno_base_compact_map.json"
 const SOURCE_WIDTH := 672
@@ -41,10 +41,13 @@ func _run() -> void:
 		return
 	cells.sort_custom(_sort_pack_cell)
 
+	# The committed core atlas is already pixel-exact against Juno's source atlas,
+	# but keeps the original 672x240 coordinates with unused cells transparent.
+	# Packing from it makes CI self-contained while preserving every authored pixel.
 	var source_image := Image.new()
 	var source_error := source_image.load(SOURCE_ATLAS_PATH)
 	if source_error != OK or source_image.is_empty():
-		_fail("could not load source atlas: %s" % error_string(source_error))
+		_fail("could not load committed core atlas: %s" % error_string(source_error))
 		return
 	source_image.convert(Image.FORMAT_RGBA8)
 
@@ -134,6 +137,7 @@ func _run() -> void:
 		"packed_size": [packed_width, packed_height],
 		"cell_count": map_entries.size(),
 		"padding": 0,
+		"pixel_scale": 1.0,
 		"source_area": source_area,
 		"packed_area": packed_area,
 		"area_ratio": float(packed_area) / maxf(float(source_area), 1.0),
