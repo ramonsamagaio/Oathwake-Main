@@ -1,5 +1,6 @@
 ## Keeps the active player/world pair in memory for the new parallel save flow.
-## TODO(migration): connect the legacy Main and SaveSlotSelect flow in a later, compatible step.
+## The legacy SaveSlotManager is synchronized at the session boundary because
+## some gameplay systems still persist auxiliary per-slot state through it.
 extends Node
 
 const SavePathsScript := preload("res://scripts/save/SavePaths.gd")
@@ -25,6 +26,7 @@ func start_new_session(slot_id: String, player_name := "Player", world_name := "
 		return false
 
 	active_slot_id = slot_id
+	_sync_legacy_active_slot()
 	active_player_id = _create_unique_player_id(player_name)
 	active_world_id = _create_id("world", slot_id)
 	player_data = _player_save.create_default_data(active_player_id, player_name)
@@ -54,6 +56,7 @@ func load_session(slot_id: String) -> bool:
 
 	var session_data: Dictionary = session_result.get("data", {})
 	active_slot_id = str(session_data.get("slot_id", slot_id))
+	_sync_legacy_active_slot()
 	active_player_id = str(session_data.get("player_id", ""))
 	active_world_id = str(session_data.get("world_id", ""))
 	if active_player_id.is_empty() or active_world_id.is_empty():
@@ -156,6 +159,7 @@ func _save_session() -> bool:
 	if active_slot_id.is_empty() or active_player_id.is_empty() or active_world_id.is_empty():
 		push_error("GameSession has no complete active session to save.")
 		return false
+	_sync_legacy_active_slot()
 	var session_data := _session_save.create_default_data(active_slot_id, active_player_id, active_world_id)
 	session_data["last_played_at"] = Time.get_datetime_string_from_system()
 	var save_error := _session_save.save_session(session_data)
@@ -163,6 +167,16 @@ func _save_session() -> bool:
 		push_error(save_error)
 		return false
 	return true
+
+
+func _sync_legacy_active_slot() -> void:
+	# MultiFloor/legacy auxiliary systems still ask SaveSlotManager for their
+	# path. Without this bridge a brand-new slot silently falls back to slot_1,
+	# which made a new character inherit the first character's structures/world
+	# state even though GameSession had correctly created a new procedural world.
+	var legacy_slot_manager := get_node_or_null("/root/SaveSlotManager")
+	if legacy_slot_manager != null and legacy_slot_manager.has_method("set_active_slot"):
+		legacy_slot_manager.call("set_active_slot", active_slot_id)
 
 
 func _ensure_current_map_data() -> void:
