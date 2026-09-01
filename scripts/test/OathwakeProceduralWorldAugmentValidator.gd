@@ -10,10 +10,10 @@ func _initialize() -> void:
 	_expect(FileAccess.file_exists(AUGMENT_PATH), "missing procedural augment", failures)
 	_expect(FileAccess.file_exists(WATER_PATH), "missing extracted Romestead water source", failures)
 	_expect(FileAccess.file_exists(ROAD_PATH), "missing curated Romestead dirt road source", failures)
-	var water := load(WATER_PATH) as Texture2D
-	var road := load(ROAD_PATH) as Texture2D
-	_expect(water != null and water.get_size() == Vector2(256, 256), "Romestead water source must remain 256x256", failures)
-	_expect(road != null and road.get_size() == Vector2(96, 96), "Romestead dirt-road source must remain 96x96", failures)
+	var water := _load_png(WATER_PATH)
+	var road := _load_png(ROAD_PATH)
+	_expect(water != null and water.get_size() == Vector2i(256, 256), "Romestead water source must remain 256x256", failures)
+	_expect(road != null and road.get_size() == Vector2i(96, 96), "Romestead dirt-road source must remain 96x96", failures)
 	var augment := FileAccess.get_file_as_string(AUGMENT_PATH)
 	_expect(augment.contains("WATER_SAFE_RADIUS_TILES := 52.0"), "spawn-water safety radius drifted", failures)
 	_expect(augment.contains("WATER_RADIUS_FACTOR := 0.085"), "lake radius factor drifted", failures)
@@ -21,6 +21,7 @@ func _initialize() -> void:
 	_expect(augment.contains("ROAD_TRAIL_WIDTH_TILES := 2"), "trail must remain 32 px", failures)
 	_expect(augment.contains("AStarGrid2D"), "roads must use terrain-cost pathfinding", failures)
 	_expect(augment.contains("_forest_barriers") and augment.contains("_plains_cliffs"), "road costs must account for native barriers and cliffs", failures)
+	_expect(augment.contains("_load_png_texture"), "runtime must not depend on imported PNG cache for water/roads", failures)
 	var native := FileAccess.get_file_as_string(ROMESTEAD_WORLD_PATH)
 	_expect(native.contains("radius := Vector2(world_size_tiles) * 0.375"), "Romestead key-biome ring scale drifted", failures)
 	_expect(native.contains("if absf(corners[lake_index].x) < 0.33"), "Romestead lake keypoint constraint missing", failures)
@@ -33,6 +34,17 @@ func _initialize() -> void:
 	for failure in failures:
 		push_error("OATHWAKE_WORLD_AUGMENT_FAIL %s" % failure)
 	quit(1)
+
+func _load_png(path: String) -> Image:
+	if not FileAccess.file_exists(path):
+		return null
+	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(path)
+	if bytes.is_empty():
+		return null
+	var image := Image.new()
+	if image.load_png_from_buffer(bytes) != OK:
+		return null
+	return image
 
 func _expect(condition: bool, message: String, failures: Array[String]) -> void:
 	if not condition:
