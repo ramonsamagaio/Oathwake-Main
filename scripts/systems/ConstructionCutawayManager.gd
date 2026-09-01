@@ -39,7 +39,7 @@ func _find_named_node(root: Node, wanted: String) -> Node:
 	if root.name == wanted:
 		return root
 	for child in root.get_children():
-		var found := _find_named_node(child, wanted)
+		var found: Node = _find_named_node(child as Node, wanted)
 		if found != null:
 			return found
 	return null
@@ -53,8 +53,8 @@ func _apply_room_cutaway() -> void:
 	for value in entries:
 		if not value is Dictionary:
 			continue
-		var entry := value as Dictionary
-		var kind := str(entry.get("type", ""))
+		var entry: Dictionary = value as Dictionary
+		var kind: String = str(entry.get("type", ""))
 		if not STRUCTURAL_TYPES.has(kind):
 			continue
 		var cell := Vector2i(int(entry.get("x", 0)), int(entry.get("y", 0)))
@@ -71,9 +71,7 @@ func _apply_room_cutaway() -> void:
 
 	var desired: Dictionary = {}
 	for cell_value in structural.keys():
-		var cell := cell_value as Vector2i
-		# Camera is top-down. Positive Y is foreground/south, so walls on and below
-		# the player's row are the ones most likely to cover the character.
+		var cell: Vector2i = cell_value as Vector2i
 		if cell.y >= player_cell.y:
 			desired[cell] = true
 	_apply_alpha_map(desired)
@@ -86,12 +84,15 @@ func _is_inside_closed_room(player_cell: Vector2i, structural: Dictionary) -> bo
 	var min_y := player_cell.y
 	var max_y := player_cell.y
 	for cell_value in structural.keys():
-		var cell := cell_value as Vector2i
+		var cell: Vector2i = cell_value as Vector2i
 		min_x = mini(min_x, cell.x)
 		max_x = maxi(max_x, cell.x)
 		min_y = mini(min_y, cell.y)
 		max_y = maxi(max_y, cell.y)
-	min_x -= 2; max_x += 2; min_y -= 2; max_y += 2
+	min_x -= 2
+	max_x += 2
+	min_y -= 2
+	max_y += 2
 	if player_cell.x < min_x or player_cell.x > max_x or player_cell.y < min_y or player_cell.y > max_y:
 		return false
 
@@ -99,24 +100,25 @@ func _is_inside_closed_room(player_cell: Vector2i, structural: Dictionary) -> bo
 	var queue: Array[Vector2i] = [outside]
 	var visited: Dictionary = {outside: true}
 	while not queue.is_empty():
-		var current := queue.pop_front()
+		var current: Vector2i = queue.pop_front()
 		if current == player_cell:
 			return false
-		for direction in CARDINAL:
-			var next := current + direction
-			if next.x < min_x or next.x > max_x or next.y < min_y or next.y > max_y:
+		for direction_value in CARDINAL:
+			var direction: Vector2i = direction_value as Vector2i
+			var next_cell: Vector2i = current + direction
+			if next_cell.x < min_x or next_cell.x > max_x or next_cell.y < min_y or next_cell.y > max_y:
 				continue
-			if structural.has(next) or visited.has(next):
+			if structural.has(next_cell) or visited.has(next_cell):
 				continue
-			visited[next] = true
-			queue.append(next)
+			visited[next_cell] = true
+			queue.append(next_cell)
 	return true
 
 func _apply_alpha_map(desired: Dictionary) -> void:
 	var scene_map: Variant = _build_system.get("building_scene_by_cell")
 	if not scene_map is Dictionary:
 		return
-	var by_cell := scene_map as Dictionary
+	var by_cell: Dictionary = scene_map as Dictionary
 	for key_value in by_cell.keys():
 		var cell := _parse_cell_key(str(key_value))
 		var node := by_cell[key_value] as CanvasItem
