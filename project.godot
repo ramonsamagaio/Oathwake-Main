@@ -4,7 +4,7 @@
 ;
 ; Format:
 ;   [section] ; section goes between []
-;   param=value ; assign values to parameters
+;   param=value
 
 config_version=5
 
@@ -27,6 +27,8 @@ TibiaFloorVisibilityController="*res://scripts/systems/TibiaFloorVisibilityContr
 GroundFloorSurfaceManager="*res://scripts/systems/GroundFloorSurfaceManager.gd"
 MultiFloorInputRouter="*res://scripts/systems/MultiFloorInputRouter.gd"
 BuildingInteractionManager="*res://scripts/systems/BuildingInteractionManager.gd"
+ConstructionCutawayManager="*res://scripts/systems/ConstructionCutawayManager.gd"
+ProceduralWorldAugment="*res://scripts/systems/ProceduralWorldAugment.gd"
 TerrainAuthoringPlaytestBootstrap="*res://scripts/systems/TerrainAuthoringPlaytestBootstrap.gd"
 UIInteractionPolish="*res://scripts/ui/UIInteractionPolish.gd"
 BuildMenuOverlay="*res://scripts/ui/BuildMenuOverlay.gd"
