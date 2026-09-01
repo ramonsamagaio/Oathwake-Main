@@ -12,7 +12,6 @@ const WATER_SAFE_RADIUS_TILES := 52.0
 const WATER_RADIUS_FACTOR := 0.085
 const ROAD_MAIN_WIDTH_TILES := 3
 const ROAD_TRAIL_WIDTH_TILES := 2
-const WATER_TEXTURE_PATH := "res://assets/sprites/world/procedural/terrain/romestead_water.png"
 const ROAD_TEXTURE_PATH := "res://assets/sprites/world/romestead_reference/dirt_road_source.png"
 const CARDINAL := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
 
@@ -55,10 +54,9 @@ func _augment_world() -> void:
 	_update_layers()
 
 func _build_water() -> void:
-	_water_layer = _make_source_layer("ProceduralWater", -8, WATER_TEXTURE_PATH, true)
+	_water_layer = _make_water_layer("ProceduralWater", -8, true)
 	if _water_layer == null:
 		return
-	_water_layer.modulate = Color(0.34, 0.68, 0.78, 0.94)
 	_attached_world.add_child(_water_layer)
 	var size := Vector2i(_attached_world.get("world_size_tiles"))
 	var start := Vector2i(-size.x / 2, -size.y / 2)
@@ -77,7 +75,7 @@ func _build_water() -> void:
 			var cell := start + Vector2i(x, y)
 			_water_cells[cell] = true
 			biomes[cell] = WATER_BIOME
-			var variant := _texture_variant(cell, 16, 16, 0xA71E)
+			var variant := _texture_variant(cell, 4, 4, 0xA71E)
 			_water_layer.set_cell(cell, 0, variant, 0)
 	_attached_world.set("_biomes", biomes)
 
@@ -172,11 +170,34 @@ func _paint_road_cross_section(center: Vector2i, width_tiles: int) -> void:
 		var index := posmod(_cell_seed(cell, 0xD17A), variant_pool.size())
 		_road_layer.set_cell(cell, 0, variant_pool[index], 0)
 
+func _make_water_layer(name_value: String, z_value: int, collision: bool) -> TileMapLayer:
+	# The Drive audit found Romestead's water.png to be a 256x256 grayscale
+	# procedural water/noise source rather than a discrete terrain atlas. We copy
+	# that principle here instead of shipping its raw art: a deterministic clean
+	# 4x4 family of 16 px water variants, tinted for Oathwake and safe for repainting.
+	var image := Image.create(TILE_SIZE * 4, TILE_SIZE * 4, false, Image.FORMAT_RGBA8)
+	for tile_y in range(4):
+		for tile_x in range(4):
+			for py in range(TILE_SIZE):
+				for px in range(TILE_SIZE):
+					var gx := tile_x * TILE_SIZE + px
+					var gy := tile_y * TILE_SIZE + py
+					var wave := sin(float(px + tile_x * 3) * 0.72 + float(py) * 0.19) * 0.5 + 0.5
+					var grain := _static_hash01(gx, gy, tile_x * 31 + tile_y * 47)
+					var value := clampf(wave * 0.22 + grain * 0.14, 0.0, 0.34)
+					var color := Color(0.17 + value * 0.22, 0.37 + value * 0.28, 0.46 + value * 0.34, 0.96)
+					image.set_pixel(gx, gy, color)
+	var texture := ImageTexture.create_from_image(image)
+	return _make_layer_from_texture(name_value, z_value, texture, collision)
+
 func _make_source_layer(name_value: String, z_value: int, texture_path: String, collision: bool) -> TileMapLayer:
 	var texture := _load_png_texture(texture_path)
 	if texture == null:
 		push_warning("ProceduralWorldAugment missing or invalid PNG texture: %s" % texture_path)
 		return null
+	return _make_layer_from_texture(name_value, z_value, texture, collision)
+
+func _make_layer_from_texture(name_value: String, z_value: int, texture: Texture2D, collision: bool) -> TileMapLayer:
 	var layer := TileMapLayer.new()
 	layer.name = name_value
 	layer.z_index = z_value
@@ -280,8 +301,11 @@ func _cell_seed(cell: Vector2i, salt: int) -> int:
 	mixed ^= cell.y * 19349663
 	return absi(mixed)
 
+func _static_hash01(x: int, y: int, salt: int) -> float:
+	var mixed := x * 374761393 + y * 668265263 + salt * 69069
+	mixed = (mixed ^ (mixed >> 13)) * 1274126177
+	mixed = mixed ^ (mixed >> 16)
+	return float(posmod(mixed, 10000)) / 9999.0
+
 func _hash_noise(x: int, y: int, seed: int) -> float:
-	var n := x * 374761393 + y * 668265263 + seed * 69069
-	n = (n ^ (n >> 13)) * 1274126177
-	n = n ^ (n >> 16)
-	return float(posmod(n, 10000)) / 9999.0 - 0.5
+	return _static_hash01(x, y, seed) - 0.5
