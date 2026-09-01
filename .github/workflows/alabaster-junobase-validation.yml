@@ -7,14 +7,17 @@ on:
     paths:
       - 'scripts/test/AlabasterJunoBaseIntegrationValidator.gd'
       - 'scripts/test/AlabasterJunoBaseIntegrationValidatorV2.gd'
+      - 'scripts/test/AlabasterJunoBaseIntegrationValidatorV3.gd'
       - 'scripts/test/AlabasterJunoBaseCompactAtlas.gd'
       - 'scripts/labs/alabaster/AlabasterJunoBaseProfile.gd'
       - 'scripts/labs/alabaster/AlabasterJunoBaseRig.gd'
       - 'scripts/labs/alabaster/AlabasterBoneStudioJunoBaseLiveTuning.gd'
+      - 'scripts/labs/alabaster/AlabasterBoneStudioCompleteLiveTuning.gd'
       - 'scripts/labs/alabaster/AlabasterBoneStudioSharedProfiles.gd'
       - 'scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd'
       - 'scripts/labs/alabaster/AlabasterMechanicLabJunoBase.gd'
       - 'scenes/labs/alabaster/AlabasterMechanicLab.tscn'
+      - 'scenes/labs/alabaster/AlabasterBoneStudio.tscn'
       - 'data/labs/alabaster/juno_base_sprite_audit.json'
       - 'data/labs/alabaster/juno_base_core_atlas.png'
       - 'data/labs/alabaster/juno_base_compact_atlas.png'
@@ -74,9 +77,9 @@ jobs:
       - name: Validate JunoBase integration
         shell: bash
         run: |
-          ./godot --headless --path . --script res://scripts/test/AlabasterJunoBaseIntegrationValidatorV2.gd > /tmp/junobase-validation.log 2>&1 || {
+          ./godot --headless --path . --script res://scripts/test/AlabasterJunoBaseIntegrationValidatorV3.gd > /tmp/junobase-validation.log 2>&1 || {
             tail -500 /tmp/junobase-validation.log
             exit 1
           }
-          cat /tmp/junobase-validation.log | grep -E 'ALABASTER_(JUNO_BASE|LIVE_GREEN_MASK)'
+          cat /tmp/junobase-validation.log | grep -E 'ALABASTER_(JUNO_BASE|LIVE_GREEN_MASK|BONE_STUDIO_FIGURE_PREVIEWS)'
           grep -F "ALABASTER_JUNO_BASE_INTEGRATION_OK" /tmp/junobase-validation.log
