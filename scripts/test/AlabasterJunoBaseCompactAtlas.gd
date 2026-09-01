@@ -2,7 +2,7 @@ extends SceneTree
 
 const AUDIT_PATH := "res://data/labs/alabaster/juno_base_sprite_audit.json"
 const SOURCE_ATLAS_PATH := "res://data/labs/alabaster/juno_base_core_atlas.png"
-const COMPACT_ATLAS_PATH := "res://data/labs/alabaster/juno_base_compact_atlas.png"
+const COMPACT_ATLAS_PATH := "res://assets/sprites/characters/JUNOBASE.png"
 const COMPACT_MAP_PATH := "res://data/labs/alabaster/juno_base_compact_map.json"
 const SOURCE_WIDTH := 672
 const WIDTH_STEP := 8
