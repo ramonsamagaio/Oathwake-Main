@@ -264,8 +264,6 @@
 			"interactable"
 		],
 		"workstation_id": "",
-		"closed_color": "#6B4028FF",
-		"open_color": "#3C7650FF",
 		"interaction_range": 64.0,
 		"shadow": {
 			"enabled": true,

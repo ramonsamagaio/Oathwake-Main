@@ -57,12 +57,24 @@ var _cycle_elapsed := 0.0
 var _storm_timer := 2.0
 var _lightning := 0.0
 var _publish_elapsed := STATE_PUBLISH_INTERVAL
+# --- Ciclo dirigido por data/weather.json (seção Weather do Content Editor) ---
+# Antes: ordem fixa em WEATHER_ORDER, todo clima com a mesma duração
+# (auto_cycle_seconds) e a mesma transição (TRANSITION_SECONDS). Agora cada
+# clima tem peso no sorteio, duração min/max própria e transição própria.
+const WEATHER_CONFIG_PATH := "res://data/weather.json"
+var _weather_config: Dictionary = {}
+var _cycle_target_seconds := 0.0
+var _transition_seconds := TRANSITION_SECONDS
+var _weather_rng := RandomNumberGenerator.new()
 
 @onready var _environment := get_node_or_null(environment_path)
 @onready var _visuals := get_node_or_null(visuals_path)
 
 
 func _ready() -> void:
+	_weather_rng.randomize()
+	_load_weather_config()
+	_cycle_target_seconds = _roll_duration(initial_weather)
 	current_weather = initial_weather if PROFILES.has(initial_weather) else "clear"
 	target_weather = current_weather
 	_current_state = (PROFILES[current_weather] as Dictionary).duplicate(true)
@@ -77,30 +89,29 @@ func _process(delta: float) -> void:
 	_publish_elapsed += delta
 	if auto_cycle:
 		_cycle_elapsed += delta
-		if _cycle_elapsed >= auto_cycle_seconds:
+		if _cycle_elapsed >= _cycle_target_seconds:
 			_cycle_elapsed = 0.0
-			var next_index := (WEATHER_ORDER.find(target_weather) + 1) % WEATHER_ORDER.size()
-			set_weather(WEATHER_ORDER[next_index])
+			set_weather(_pick_next_weather())
 
 	var transition_finished := false
-	if _transition_elapsed < TRANSITION_SECONDS:
-		_transition_elapsed = minf(_transition_elapsed + delta, TRANSITION_SECONDS)
-		var linear_t := _transition_elapsed / TRANSITION_SECONDS
+	if _transition_elapsed < _transition_seconds:
+		_transition_elapsed = minf(_transition_elapsed + delta, _transition_seconds)
+		var linear_t := _transition_elapsed / maxf(_transition_seconds, 0.001)
 		var smooth_t := linear_t * linear_t * (3.0 - 2.0 * linear_t)
 		_current_state = _blend_profiles(_from_state, _target_state, smooth_t)
-		if _transition_elapsed >= TRANSITION_SECONDS:
+		if _transition_elapsed >= _transition_seconds:
 			current_weather = target_weather
 			transition_finished = true
 			weather_changed.emit(current_weather)
 
 	_update_lightning(delta)
 	_current_state["lightning"] = _lightning
-	var dynamic_state := _transition_elapsed < TRANSITION_SECONDS or target_weather == "storm"
+	var dynamic_state := _transition_elapsed < _transition_seconds or target_weather == "storm"
 	if transition_finished or (dynamic_state and _publish_elapsed >= STATE_PUBLISH_INTERVAL):
 		_publish_state()
 		_publish_elapsed = 0.0
 
-	if not auto_cycle and _transition_elapsed >= TRANSITION_SECONDS and target_weather != "storm":
+	if not auto_cycle and _transition_elapsed >= _transition_seconds and target_weather != "storm":
 		# Guarantee that the exact target profile is published before the process
 		# callback sleeps. Intermediate transition states may be sampled at 12 Hz.
 		if not transition_finished and _publish_elapsed > 0.0:
@@ -109,12 +120,76 @@ func _process(delta: float) -> void:
 		set_process(false)
 
 
+func _load_weather_config() -> void:
+	_weather_config = {}
+	if not FileAccess.file_exists(WEATHER_CONFIG_PATH):
+		return
+	var file := FileAccess.open(WEATHER_CONFIG_PATH, FileAccess.READ)
+	if file == null:
+		return
+	var json := JSON.new()
+	if json.parse(file.get_as_text()) != OK or not json.data is Dictionary:
+		push_warning("weather.json inválido; ciclo volta para a ordem fixa.")
+		return
+	for weather_id in (json.data as Dictionary).keys():
+		# Registro que não casa com um PROFILES é ignorado: sem isso um id
+		# digitado errado no editor sortearia um clima que não existe.
+		if PROFILES.has(str(weather_id)) and (json.data as Dictionary)[weather_id] is Dictionary:
+			_weather_config[str(weather_id)] = (json.data as Dictionary)[weather_id]
+
+
+func _roll_duration(weather_id: String) -> float:
+	var entry_value: Variant = _weather_config.get(weather_id, null)
+	if not entry_value is Dictionary:
+		return auto_cycle_seconds
+	var entry: Dictionary = entry_value
+	var minimum := float(entry.get("min_seconds", auto_cycle_seconds))
+	var maximum := float(entry.get("max_seconds", minimum))
+	if maximum < minimum:
+		maximum = minimum
+	return _weather_rng.randf_range(minimum, maximum)
+
+
+func _transition_for(weather_id: String) -> float:
+	var entry_value: Variant = _weather_config.get(weather_id, null)
+	if not entry_value is Dictionary:
+		return TRANSITION_SECONDS
+	return maxf(float((entry_value as Dictionary).get("transition_seconds", TRANSITION_SECONDS)), 0.05)
+
+
+func _pick_next_weather() -> String:
+	## Sorteio ponderado. Peso 0 tira o clima do ciclo sem apagar o registro.
+	## Sem config utilizável, cai na ordem fixa antiga.
+	var candidates: Array[String] = []
+	var weights: Array[float] = []
+	var total := 0.0
+	for weather_id in _weather_config.keys():
+		if str(weather_id) == target_weather:
+			continue
+		var weight := maxf(float((_weather_config[weather_id] as Dictionary).get("weight", 0.0)), 0.0)
+		if weight <= 0.0:
+			continue
+		candidates.append(str(weather_id))
+		weights.append(weight)
+		total += weight
+	if candidates.is_empty() or total <= 0.0:
+		return WEATHER_ORDER[(WEATHER_ORDER.find(target_weather) + 1) % WEATHER_ORDER.size()]
+	var roll := _weather_rng.randf() * total
+	for index in range(candidates.size()):
+		roll -= weights[index]
+		if roll <= 0.0:
+			return candidates[index]
+	return candidates[candidates.size() - 1]
+
+
 func set_weather(weather_id: String) -> void:
 	if not PROFILES.has(weather_id) or weather_id == target_weather:
 		return
 	_from_state = _current_state.duplicate(true)
 	_target_state = (PROFILES[weather_id] as Dictionary).duplicate(true)
 	target_weather = weather_id
+	_transition_seconds = _transition_for(weather_id)
+	_cycle_target_seconds = _roll_duration(weather_id)
 	_transition_elapsed = 0.0
 	_cycle_elapsed = 0.0
 	_publish_elapsed = STATE_PUBLISH_INTERVAL
@@ -125,11 +200,11 @@ func set_weather(weather_id: String) -> void:
 func toggle_auto_cycle() -> void:
 	auto_cycle = not auto_cycle
 	_cycle_elapsed = 0.0
-	set_process(auto_cycle or _transition_elapsed < TRANSITION_SECONDS or target_weather == "storm")
+	set_process(auto_cycle or _transition_elapsed < _transition_seconds or target_weather == "storm")
 
 
 func get_transition_progress() -> float:
-	return clampf(_transition_elapsed / TRANSITION_SECONDS, 0.0, 1.0)
+	return clampf(_transition_elapsed / maxf(_transition_seconds, 0.001), 0.0, 1.0)
 
 
 func _blend_profiles(from: Dictionary, to: Dictionary, weight: float) -> Dictionary:

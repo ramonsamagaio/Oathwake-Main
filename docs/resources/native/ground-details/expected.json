@@ -1,0 +1,22 @@
+[
+  {
+    "name": "flora_tiny_ground_leaves",
+    "size": [
+      144,
+      32
+    ],
+    "rgba_sha256": "b5959b59cc69af39bd96bbb7052cff3ab74c9c6b83defa63238ed3a41b049f1e",
+    "native_pixel_edits": 918,
+    "colors": 8
+  },
+  {
+    "name": "flora_tiny_flowers",
+    "size": [
+      32,
+      32
+    ],
+    "rgba_sha256": "5d4a80b6031ba3b60710e2b796d9d6a67ca31199b14e353565bdae065719553c",
+    "native_pixel_edits": 164,
+    "colors": 11
+  }
+]

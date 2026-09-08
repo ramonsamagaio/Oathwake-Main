@@ -1,0 +1,8010 @@
+{
+	"axe_adamantite": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Axe Adamantite",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/tools/image-gen-9(1).png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"campfire": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Campfire",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/campfire1.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"coal": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Coal",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/ores/coal.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"fiber": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Fiber",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/plant_fiber.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"green_gel": {
+		"category": "item",
+		"display_name": "green_gel",
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/green_gel.png"
+	},
+	"hand": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Hand",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/hand.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"herb": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Herb",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/herb.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"iron_ore": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Iron Ore",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/ores/iron_ore.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"node_berries": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Node Berries",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/resources/BERRIES.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"node_fiber": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Node Fiber",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/resources/FIBER.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"node_herb": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Node Herb",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/resources/HERBS.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"node_stonr": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Node Stone",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/resources/STONE.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"player_base": {
+		"category": "character",
+		"columns": 8.0,
+		"display_name": "Player Base",
+		"frame_height": 64.0,
+		"frame_size": {
+			"h": 64.0,
+			"w": 64.0
+		},
+		"frame_width": 64.0,
+		"region": {
+			"h": 64.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 8.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/characters/player_base/player_base_body_sheet.png",
+		"total_frames": 64.0,
+		"type": "sprite_sheet"
+	},
+	"player_templar": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Player_templar",
+		"frame_height": 64,
+		"frame_size": {
+			"h": 64,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 64,
+			"w": 64,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 6,
+		"tags": [],
+		"texture_path": "res://assets/sprites/characters/player_templar/player_templar.png",
+		"total_frames": 36,
+		"type": "sprite_sheet"
+	},
+	"stone": {
+		"category": "item",
+		"display_name": "stone",
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/stone.png"
+	},
+	"test_template_air_spin": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Test Template • Air Spin",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Air Spin/player air spin 48x48.png",
+		"total_frames": 6,
+		"type": "sprite_sheet"
+	},
+	"test_template_climb_back": {
+		"category": "character",
+		"columns": 4,
+		"display_name": "Test Template • Climb Back",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Climb (facing back of player)/player climb-back 48x48.png",
+		"total_frames": 4,
+		"type": "sprite_sheet"
+	},
+	"test_template_climb_side": {
+		"category": "character",
+		"columns": 4,
+		"display_name": "Test Template • Climb Side",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Climb (facing side of player)/Player Side-Climb 48x48.png",
+		"total_frames": 4,
+		"type": "sprite_sheet"
+	},
+	"test_template_crouch_idle": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Crouch Idle",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Crouch-Idle/Player Crouch-Idle 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_crouch_walk": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Crouch Walk",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Crouch-Walk/player crouch-walk 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_dash": {
+		"category": "character",
+		"columns": 9,
+		"display_name": "Test Template • Dash",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Dash/dash.png",
+		"total_frames": 9,
+		"type": "sprite_sheet"
+	},
+	"test_template_death": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Death",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Death/Player Death 64x64.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_hurt": {
+		"category": "character",
+		"columns": 4,
+		"display_name": "Test Template • Hurt",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Hurt-Damaged/Player Hurt 48x48.png",
+		"total_frames": 4,
+		"type": "sprite_sheet"
+	},
+	"test_template_idle": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Idle",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Idle/Player Idle 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_jump": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Test Template • Jump",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Jump/player new jump 48x48.png",
+		"total_frames": 6,
+		"type": "sprite_sheet"
+	},
+	"test_template_katana_attack_sheathe": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Katana Attack Sheathe",
+		"frame_height": 64,
+		"frame_size": {
+			"h": 64,
+			"w": 80
+		},
+		"frame_width": 80,
+		"region": {
+			"h": 64,
+			"w": 80,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Katana Attack-Sheathe/player katana attack-sheathe 80x64.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_katana_continuous_attack": {
+		"category": "character",
+		"columns": 9,
+		"display_name": "Test Template • Katana Continuous Attack",
+		"frame_height": 64,
+		"frame_size": {
+			"h": 64,
+			"w": 80
+		},
+		"frame_width": 80,
+		"region": {
+			"h": 64,
+			"w": 80,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Katana Continuous Attack/player katana continuous attack 80x64.png",
+		"total_frames": 9,
+		"type": "sprite_sheet"
+	},
+	"test_template_katana_run": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Katana Run",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Katana Run/player katana run 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_katana_walk": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Katana Walk",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Katana walk/katana walk.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_land": {
+		"category": "character",
+		"columns": 9,
+		"display_name": "Test Template • Land",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Land/player land 48x48.png",
+		"total_frames": 9,
+		"type": "sprite_sheet"
+	},
+	"test_template_ledge_climb": {
+		"category": "character",
+		"columns": 5,
+		"display_name": "Test Template • Ledge Grab Climb",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Ledge Grab-Climb/player ledge climb 48x48.png",
+		"total_frames": 5,
+		"type": "sprite_sheet"
+	},
+	"test_template_pull": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Test Template • Pull",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Pull/Player Pull 48x48.png",
+		"total_frames": 6,
+		"type": "sprite_sheet"
+	},
+	"test_template_punch": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Punch",
+		"frame_height": 64,
+		"frame_size": {
+			"h": 64,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 64,
+			"w": 64,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Punch/Player Punch 64x64.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_punch_cross": {
+		"category": "character",
+		"columns": 7,
+		"display_name": "Test Template • Punch Cross",
+		"frame_height": 64,
+		"frame_size": {
+			"h": 64,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 64,
+			"w": 64,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Punch Cross/Player Punch Cross 64x64.png",
+		"total_frames": 7,
+		"type": "sprite_sheet"
+	},
+	"test_template_punch_jab": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Punch Jab",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Punch Jab/Player Jab 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_push": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Push",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Push/player push 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_push_idle": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Push Pull Idle",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/PushPull (idle state)/player push idle 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_roll": {
+		"category": "character",
+		"columns": 7,
+		"display_name": "Test Template • Roll",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Roll/Player Roll 48x48.png",
+		"total_frames": 7,
+		"type": "sprite_sheet"
+	},
+	"test_template_run": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Run",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Run/player run 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_run_aim": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Running Aim",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Shooting (running and aiming)/Player Running Aiming 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_run_shoot": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Running Shoot",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Shooting (running and aiming)/Player Running Shooting 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_shoot_two_handed": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Shoot Two Handed",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Shooting (two-handed)/player shoot 2H 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_slide": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Slide",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Slide/Player Slide 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_sword_attack": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Test Template • Sword Attack",
+		"frame_height": 64,
+		"frame_size": {
+			"h": 64,
+			"w": 64
+		},
+		"frame_width": 64,
+		"region": {
+			"h": 64,
+			"w": 64,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Sword Attack/player sword atk 64x64.png",
+		"total_frames": 6,
+		"type": "sprite_sheet"
+	},
+	"test_template_sword_idle": {
+		"category": "character",
+		"columns": 10,
+		"display_name": "Test Template • Sword Idle",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Sword Idle/Player Sword Idle 48x48.png",
+		"total_frames": 10,
+		"type": "sprite_sheet"
+	},
+	"test_template_sword_run": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Sword Run",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Sword Run/Player Sword Run 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_sword_stab": {
+		"category": "character",
+		"columns": 7,
+		"display_name": "Test Template • Sword Stab",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 96
+		},
+		"frame_width": 96,
+		"region": {
+			"h": 48,
+			"w": 96,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Sword Stab/Player Sword Stab 96x48.png",
+		"total_frames": 7,
+		"type": "sprite_sheet"
+	},
+	"test_template_walk": {
+		"category": "character",
+		"columns": 8,
+		"display_name": "Test Template • Walk",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Walk/PlayerWalk 48x48.png",
+		"total_frames": 8,
+		"type": "sprite_sheet"
+	},
+	"test_template_wall_land_left": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Test Template • Wall Land Left",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Wall Land/Player Wall Land (left) 48x48.png",
+		"total_frames": 6,
+		"type": "sprite_sheet"
+	},
+	"test_template_wall_land_right": {
+		"category": "character",
+		"columns": 6,
+		"display_name": "Test Template • Wall Land Right",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Wall Land/player wall land 48x48.png",
+		"total_frames": 6,
+		"type": "sprite_sheet"
+	},
+	"test_template_wall_slide_left": {
+		"category": "character",
+		"columns": 3,
+		"display_name": "Test Template • Wall Slide Left",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Wall Slide/player wall slide (left) 48x48.png",
+		"total_frames": 3,
+		"type": "sprite_sheet"
+	},
+	"test_template_wall_slide_right": {
+		"category": "character",
+		"columns": 3,
+		"display_name": "Test Template • Wall Slide Right",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": false,
+		"rows": 1,
+		"tags": [
+			"test-character",
+			"side-view",
+			"multi-sheet"
+		],
+		"texture_path": "res://assets/sprites/characters/2D-Pixel-Art-Character-Template/Wall Slide/player wall slide 48x48.png",
+		"total_frames": 3,
+		"type": "sprite_sheet"
+	},
+	"tile_dirt": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Dirt Tile",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/dirt_64x64.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"tile_forest": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Forest Tile",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/forest_64x64.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"tile_grass": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Grass Tile",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/tilesets/GRASS_TILE.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"tile_sand": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Sand Tile",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/sand_64x64.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"tile_stone": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Stone Tile",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/stone_64x64.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"tree0": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Tree0",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/resources/TREE.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"tree1": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Tree1",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/tree1.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"wood": {
+		"category": "item",
+		"display_name": "wood",
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/wood_log_bundle.png"
+	},
+	"wooden_axe": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Wooden Axe",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/wooden_axe.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"wooden_pickaxe": {
+		"category": "item",
+		"columns": 1.0,
+		"display_name": "Wooden Pickaxe",
+		"frame_height": 32.0,
+		"frame_size": {
+			"h": 32.0,
+			"w": 32.0
+		},
+		"frame_width": 32.0,
+		"region": {
+			"h": 32.0,
+			"w": 32.0,
+			"x": 0.0,
+			"y": 0.0
+		},
+		"region_enabled": false,
+		"rows": 1.0,
+		"tags": [],
+		"texture_path": "res://assets/sprites/items/testes/wooden_pickaxe.png",
+		"total_frames": 1.0,
+		"type": "single_sprite"
+	},
+	"romestead_trunk_a": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Trunk A",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_stump.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_trunk_b": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Trunk B",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 32,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_stump.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_olive_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Olive Trunk",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_olive_tree_stump.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_2": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree2 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 0,
+			"y": 0,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_3": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree3 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 128,
+			"y": 0,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_4": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree4 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 256,
+			"y": 0,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_5": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree5 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 384,
+			"y": 0,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_6": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree6 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 512,
+			"y": 0,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_7": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree7 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 640,
+			"y": 0,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_8": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree8 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 768,
+			"y": 0,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_9": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree9 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 896,
+			"y": 0,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_10": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree10 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 0,
+			"y": 112,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_11": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree11 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 128,
+			"y": 112,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_12": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree12 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 256,
+			"y": 112,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_13": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree13 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 384,
+			"y": 112,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_14": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree14 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 512,
+			"y": 112,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_15": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree15 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 640,
+			"y": 112,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_16": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree16 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 768,
+			"y": 112,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_1": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 1",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_2": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 2",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 48,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_3": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 3",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 96,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_4": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 4",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 144,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_5": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 5",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 192,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_1": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 1",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_2": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 2",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 32,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_3": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 3",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 64,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_4": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 4",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 96,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_1": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 1",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_2": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 2",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 32,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_3": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 3",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 64,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_4": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 4",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 96,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_5": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 5",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 128,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_6": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 6",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 160,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_7": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 7",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 192,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_1": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 1",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 0,
+			"y": 224
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_2": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 2",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 16,
+			"y": 224
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_3": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 3",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 32,
+			"y": 224
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_4": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 4",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 48,
+			"y": 224
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_17": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree17 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 896,
+			"y": 112,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_18": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree18 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 0,
+			"y": 224,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_19": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree19 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 128,
+			"y": 224,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_20": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree20 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 256,
+			"y": 224,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_21": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree21 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 384,
+			"y": 224,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_22": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree22 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 512,
+			"y": 224,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_23": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree23 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 640,
+			"y": 224,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_24": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree24 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 768,
+			"y": 224,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_25": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree25 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 896,
+			"y": 224,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_26": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree26 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 0,
+			"y": 336,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_27": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree27 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 128,
+			"y": 336,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_28": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree28 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 256,
+			"y": 336,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_29": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree29 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 384,
+			"y": 336,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_30": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree30 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 512,
+			"y": 336,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_31": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree31 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 640,
+			"y": 336,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_32": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree32 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 768,
+			"y": 336,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_33": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree33 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 896,
+			"y": 336,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_34": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree34 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 0,
+			"y": 448,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_35": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree35 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 128,
+			"y": 448,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_36": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree36 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 256,
+			"y": 448,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_37": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree37 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 384,
+			"y": 448,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_38": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree38 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 512,
+			"y": 448,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_39": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree39 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 640,
+			"y": 448,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_tree_canopy_40": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Oathwake tree40 crown",
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"region": {
+			"x": 768,
+			"y": 448,
+			"w": 128,
+			"h": 112
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_6": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 6",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 0,
+			"y": 48
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_7": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 7",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 48,
+			"y": 48
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_8": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 8",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 96,
+			"y": 48
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_9": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 9",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 144,
+			"y": 48
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_rock_10": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Rock 10",
+		"frame_height": 48,
+		"frame_size": {
+			"h": 48,
+			"w": 48
+		},
+		"frame_width": 48,
+		"region": {
+			"h": 48,
+			"w": 48,
+			"x": 192,
+			"y": 48
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 24,
+			"y": 48
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_5": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 5",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_6": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 6",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 32,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_7": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 7",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 64,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_stone_8": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Stone 8",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 96,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_8": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 8",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 32,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_9": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 9",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 64,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_10": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 10",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 128,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_11": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 11",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 160,
+			"y": 0
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_12": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 12",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_13": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 13",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 64,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_14": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 14",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 96,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_15": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 15",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 160,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_16": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 16",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 192,
+			"y": 32
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_17": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 17",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 0,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_18": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 18",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 32,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_19": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 19",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 96,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_20": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 20",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 128,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_bush_21": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Bush 21",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 32
+		},
+		"frame_width": 32,
+		"region": {
+			"h": 32,
+			"w": 32,
+			"x": 192,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_5": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 5",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 0,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_6": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 6",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 16,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_7": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 7",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 32,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_8": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 8",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 48,
+			"y": 64
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_9": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 9",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 0,
+			"y": 96
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_10": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 10",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 16,
+			"y": 96
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_11": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 11",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 32,
+			"y": 96
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_12": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 12",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 48,
+			"y": 96
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_13": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 13",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 0,
+			"y": 128
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_14": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 14",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 16,
+			"y": 128
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_15": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 15",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 32,
+			"y": 128
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_16": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 16",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 48,
+			"y": 128
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_17": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 17",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 0,
+			"y": 160
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_18": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 18",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 16,
+			"y": 160
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_19": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 19",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 32,
+			"y": 160
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_20": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 20",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 48,
+			"y": 160
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_21": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 21",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 0,
+			"y": 192
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_22": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 22",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 16,
+			"y": 192
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_23": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 23",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 32,
+			"y": 192
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_wheat_24": {
+		"category": "resource",
+		"columns": 1,
+		"display_name": "Romestead Wheat 24",
+		"frame_height": 32,
+		"frame_size": {
+			"h": 32,
+			"w": 16
+		},
+		"frame_width": 16,
+		"region": {
+			"h": 32,
+			"w": 16,
+			"x": 48,
+			"y": 192
+		},
+		"region_enabled": true,
+		"rows": 1,
+		"tags": [
+			"romestead",
+			"editable_png"
+		],
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"total_frames": 1,
+		"type": "single_sprite",
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"romestead_apple_canopy": {
+		"category": "resource",
+		"display_name": "Oathwake tree41 crown",
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 896,
+			"y": 448,
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto",
+		"tags": [
+			"oathwake",
+			"editable_png"
+		]
+	},
+	"romestead_apple_stump": {
+		"category": "resource",
+		"display_name": "Romestead Apple Tree Trunk",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_apple_tree_stump.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 64,
+			"y": 0,
+			"w": 64,
+			"h": 80
+		},
+		"frame_width": 64,
+		"frame_height": 80,
+		"frame_size": {
+			"w": 64,
+			"h": 80
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 32,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto",
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"romestead_stone_pine_canopy": {
+		"category": "resource",
+		"display_name": "Oathwake tree42 crown",
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_crowns.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 560,
+			"w": 128,
+			"h": 112
+		},
+		"frame_width": 128,
+		"frame_height": 112,
+		"frame_size": {
+			"w": 128,
+			"h": 112
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 64,
+			"y": 112
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto",
+		"tags": [
+			"oathwake",
+			"editable_png"
+		]
+	},
+	"romestead_stone_pine_stump": {
+		"category": "resource",
+		"display_name": "Romestead Stone Pine Trunk",
+		"texture_path": "res://assets/sprites/world/procedural/trees/flora_stone_pine_stump.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 0,
+			"w": 80,
+			"h": 80
+		},
+		"frame_width": 80,
+		"frame_height": 80,
+		"frame_size": {
+			"w": 80,
+			"h": 80
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 40,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto",
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"romestead_purple_bush": {
+		"category": "resource",
+		"display_name": "Romestead Purple Bush",
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/desert_purplebush.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 0,
+			"w": 16,
+			"h": 32
+		},
+		"frame_width": 16,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 16,
+			"h": 32
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 8,
+			"y": 32
+		},
+		"shadow_profile_id": "auto",
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"romestead_forest_bush": {
+		"category": "resource",
+		"display_name": "Romestead Forest Bush",
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_small_bush1.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 48,
+			"y": 0,
+			"w": 16,
+			"h": 16
+		},
+		"frame_width": 16,
+		"frame_height": 16,
+		"frame_size": {
+			"w": 16,
+			"h": 16
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 8,
+			"y": 16
+		},
+		"shadow_profile_id": "auto",
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"romestead_mushroom_red": {
+		"category": "resource",
+		"display_name": "Romestead Red Mushroom",
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_mushrooms.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 0,
+			"w": 16,
+			"h": 16
+		},
+		"frame_width": 16,
+		"frame_height": 16,
+		"frame_size": {
+			"w": 16,
+			"h": 16
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 8,
+			"y": 16
+		},
+		"shadow_profile_id": "auto",
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"romestead_mushroom_brown": {
+		"category": "resource",
+		"display_name": "Romestead Brown Mushroom",
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_mushrooms.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 32,
+			"y": 0,
+			"w": 16,
+			"h": 16
+		},
+		"frame_width": 16,
+		"frame_height": 16,
+		"frame_size": {
+			"w": 16,
+			"h": 16
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 8,
+			"y": 16
+		},
+		"shadow_profile_id": "auto",
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"romestead_mushroom_yellow": {
+		"category": "resource",
+		"display_name": "Romestead Yellow Mushroom",
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_mushrooms.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 64,
+			"y": 0,
+			"w": 16,
+			"h": 16
+		},
+		"frame_width": 16,
+		"frame_height": 16,
+		"frame_size": {
+			"w": 16,
+			"h": 16
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 8,
+			"y": 16
+		},
+		"shadow_profile_id": "auto",
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"romestead_bellflower": {
+		"category": "resource",
+		"display_name": "Romestead Bellflowers",
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_bellflowers.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 32,
+			"y": 64,
+			"w": 16,
+			"h": 16
+		},
+		"frame_width": 16,
+		"frame_height": 16,
+		"frame_size": {
+			"w": 16,
+			"h": 16
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 8,
+			"y": 16
+		},
+		"shadow_profile_id": "auto",
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"romestead_lily": {
+		"category": "resource",
+		"display_name": "Romestead Lilies",
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_lilies.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 48,
+			"y": 0,
+			"w": 32,
+			"h": 32
+		},
+		"frame_width": 32,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 32,
+			"h": 32
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 16,
+			"y": 32
+		},
+		"shadow_profile_id": "auto",
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"romestead_copper_ore": {
+		"category": "resource",
+		"display_name": "Romestead Copper Ore",
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/resources_copper_ore.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 0,
+			"w": 16,
+			"h": 16
+		},
+		"frame_width": 16,
+		"frame_height": 16,
+		"frame_size": {
+			"w": 16,
+			"h": 16
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 8,
+			"y": 16
+		},
+		"shadow_profile_id": "auto",
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"romestead_mossy_boulder": {
+		"category": "resource",
+		"display_name": "Romestead Mossy Boulder",
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/poi_mossy_boulder_large.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 0,
+			"w": 64,
+			"h": 80
+		},
+		"frame_width": 64,
+		"frame_height": 80,
+		"frame_size": {
+			"w": 64,
+			"h": 80
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 32,
+			"y": 80
+		},
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto",
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"romestead_tiny_leaf": {
+		"category": "terrain_detail",
+		"display_name": "Romestead Tiny Ground Leaf",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_tiny_ground_leaves.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 0,
+			"w": 16,
+			"h": 16
+		},
+		"frame_width": 16,
+		"frame_height": 16,
+		"frame_size": {
+			"w": 16,
+			"h": 16
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 8,
+			"y": 16
+		},
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"romestead_tiny_flower": {
+		"category": "terrain_detail",
+		"display_name": "Romestead Tiny Flower",
+		"texture_path": "res://assets/sprites/world/procedural/plants/flora_tiny_flowers.png",
+		"type": "single_sprite",
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 0,
+			"w": 16,
+			"h": 16
+		},
+		"frame_width": 16,
+		"frame_height": 16,
+		"frame_size": {
+			"w": 16,
+			"h": 16
+		},
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"anchor": {
+			"x": 8,
+			"y": 16
+		},
+		"tags": [
+			"romestead",
+			"editable_png"
+		]
+	},
+	"oathwake_tree2_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree2 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree2_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree2 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 64,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree3_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree3 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 128,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree3_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree3 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 192,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree4_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree4 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 256,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree4_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree4 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 320,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree5_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree5 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 384,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree5_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree5 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 448,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree6_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree6 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 512,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree6_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree6 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 576,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree7_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree7 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 640,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree7_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree7 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 704,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree8_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree8 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 768,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree8_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree8 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 832,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree9_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree9 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 896,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree9_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree9 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 960,
+			"y": 0,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree10_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree10 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree10_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree10 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 64,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree11_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree11 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 128,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree11_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree11 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 192,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree12_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree12 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 256,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree12_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree12 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 320,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree13_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree13 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 384,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree13_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree13 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 448,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree14_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree14 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 512,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree14_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree14 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 576,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree15_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree15 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 640,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree15_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree15 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 704,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree16_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree16 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 768,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree16_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree16 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 832,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree17_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree17 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 896,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree17_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree17 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 960,
+			"y": 32,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree18_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree18 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree18_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree18 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 64,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree19_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree19 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 128,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree19_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree19 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 192,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree20_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree20 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 256,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree20_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree20 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 320,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree21_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree21 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 384,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree21_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree21 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 448,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree22_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree22 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 512,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree22_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree22 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 576,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree23_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree23 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 640,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree23_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree23 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 704,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree24_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree24 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 768,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree24_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree24 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 832,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree25_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree25 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 896,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree25_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree25 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 960,
+			"y": 64,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree26_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree26 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree26_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree26 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 64,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree27_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree27 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 128,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree27_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree27 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 192,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree28_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree28 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 256,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree28_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree28 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 320,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree29_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree29 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 384,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree29_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree29 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 448,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree30_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree30 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 512,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree30_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree30 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 576,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree31_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree31 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 640,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree31_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree31 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 704,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree32_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree32 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 768,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree32_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree32 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 832,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree33_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree33 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 896,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree33_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree33 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 960,
+			"y": 96,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree34_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree34 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree34_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree34 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 64,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree35_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree35 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 128,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree35_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree35 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 192,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree36_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree36 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 256,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree36_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree36 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 320,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree37_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree37 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 384,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree37_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree37 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 448,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree38_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree38 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 512,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree38_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree38 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 576,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree39_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree39 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 640,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree39_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree39 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 704,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree40_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree40 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 768,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree40_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree40 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 832,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree41_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree41 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 896,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree41_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree41 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 960,
+			"y": 128,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree42_trunk": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree42 living base",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 0,
+			"y": 160,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	},
+	"oathwake_tree42_stump": {
+		"category": "resource",
+		"columns": 1,
+		"rows": 1,
+		"total_frames": 1,
+		"display_name": "Oathwake tree42 cut stump",
+		"type": "single_sprite",
+		"frame_width": 64,
+		"frame_height": 32,
+		"frame_size": {
+			"w": 64,
+			"h": 32
+		},
+		"region_enabled": true,
+		"region": {
+			"x": 64,
+			"y": 160,
+			"w": 64,
+			"h": 32
+		},
+		"texture_path": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/tree_trunks.png",
+		"anchor": {
+			"x": 32,
+			"y": 32
+		},
+		"tags": [
+			"oathwake",
+			"editable_png"
+		],
+		"fade_when_player_behind": true,
+		"shadow_profile_id": "auto"
+	}
+}

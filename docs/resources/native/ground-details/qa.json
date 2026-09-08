@@ -1,0 +1,254 @@
+{
+  "assets": [
+    {
+      "file": "flora_tiny_ground_leaves.png",
+      "size": [
+        144,
+        32
+      ],
+      "rgba_sha256": "b5959b59cc69af39bd96bbb7052cff3ab74c9c6b83defa63238ed3a41b049f1e",
+      "colors": 8,
+      "opaque_pixels": 918,
+      "frames": [
+        {
+          "name": "broad_rosette",
+          "cell": [
+            0,
+            0
+          ],
+          "active": true,
+          "opaque_pixels": 60,
+          "components": 1
+        },
+        {
+          "name": "round_clover",
+          "cell": [
+            1,
+            0
+          ],
+          "active": true,
+          "opaque_pixels": 64,
+          "components": 1
+        },
+        {
+          "name": "fern_spray",
+          "cell": [
+            2,
+            0
+          ],
+          "active": true,
+          "opaque_pixels": 77,
+          "components": 1
+        },
+        {
+          "name": "low_fan",
+          "cell": [
+            3,
+            0
+          ],
+          "active": true,
+          "opaque_pixels": 65,
+          "components": 1
+        },
+        {
+          "name": "two_leaves",
+          "cell": [
+            4,
+            0
+          ],
+          "active": true,
+          "opaque_pixels": 29,
+          "components": 1
+        },
+        {
+          "name": "sprout",
+          "cell": [
+            5,
+            0
+          ],
+          "active": true,
+          "opaque_pixels": 34,
+          "components": 1
+        },
+        {
+          "name": "paired_round",
+          "cell": [
+            6,
+            0
+          ],
+          "active": true,
+          "opaque_pixels": 32,
+          "components": 1
+        },
+        {
+          "name": "small_blades",
+          "cell": [
+            7,
+            0
+          ],
+          "active": true,
+          "opaque_pixels": 25,
+          "components": 1
+        },
+        {
+          "name": "reserve_leaf_fall",
+          "cell": [
+            8,
+            0
+          ],
+          "active": false,
+          "opaque_pixels": 34,
+          "components": 1
+        },
+        {
+          "name": "woodland_rosette",
+          "cell": [
+            0,
+            1
+          ],
+          "active": true,
+          "opaque_pixels": 69,
+          "components": 1
+        },
+        {
+          "name": "wood_sorrel",
+          "cell": [
+            1,
+            1
+          ],
+          "active": true,
+          "opaque_pixels": 76,
+          "components": 1
+        },
+        {
+          "name": "shade_fern",
+          "cell": [
+            2,
+            1
+          ],
+          "active": true,
+          "opaque_pixels": 82,
+          "components": 1
+        },
+        {
+          "name": "long_blades",
+          "cell": [
+            3,
+            1
+          ],
+          "active": true,
+          "opaque_pixels": 68,
+          "components": 1
+        },
+        {
+          "name": "woodland_pair",
+          "cell": [
+            4,
+            1
+          ],
+          "active": true,
+          "opaque_pixels": 34,
+          "components": 1
+        },
+        {
+          "name": "shade_sprout",
+          "cell": [
+            5,
+            1
+          ],
+          "active": true,
+          "opaque_pixels": 31,
+          "components": 1
+        },
+        {
+          "name": "folded_leaf",
+          "cell": [
+            6,
+            1
+          ],
+          "active": true,
+          "opaque_pixels": 40,
+          "components": 1
+        },
+        {
+          "name": "wood_grass",
+          "cell": [
+            7,
+            1
+          ],
+          "active": true,
+          "opaque_pixels": 39,
+          "components": 1
+        },
+        {
+          "name": "reserve_dry_fern",
+          "cell": [
+            8,
+            1
+          ],
+          "active": false,
+          "opaque_pixels": 59,
+          "components": 1
+        }
+      ],
+      "pixelorama_roundtrip": true
+    },
+    {
+      "file": "flora_tiny_flowers.png",
+      "size": [
+        32,
+        32
+      ],
+      "rgba_sha256": "5d4a80b6031ba3b60710e2b796d9d6a67ca31199b14e353565bdae065719553c",
+      "colors": 11,
+      "opaque_pixels": 164,
+      "frames": [
+        {
+          "name": "ivory_star",
+          "cell": [
+            0,
+            0
+          ],
+          "active": true,
+          "opaque_pixels": 35,
+          "components": 1
+        },
+        {
+          "name": "ochre_buds",
+          "cell": [
+            1,
+            0
+          ],
+          "active": true,
+          "opaque_pixels": 38,
+          "components": 1
+        },
+        {
+          "name": "woodland_ivory",
+          "cell": [
+            0,
+            1
+          ],
+          "active": true,
+          "opaque_pixels": 44,
+          "components": 1
+        },
+        {
+          "name": "woodland_violet",
+          "cell": [
+            1,
+            1
+          ],
+          "active": true,
+          "opaque_pixels": 47,
+          "components": 1
+        }
+      ],
+      "pixelorama_roundtrip": true
+    }
+  ],
+  "active_frames": 20,
+  "reserve_frames": 2,
+  "alpha": "binary",
+  "authorship": "Explicit 16x16 pixel maps via Pixelorama; no source resampling."
+}

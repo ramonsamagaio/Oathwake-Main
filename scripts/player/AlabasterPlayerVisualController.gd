@@ -4,6 +4,8 @@ class_name AlabasterPlayerVisualController
 const JunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 const PlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
 const DefaultSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterDefaultPlayableSkinRig.gd")
+const WayfarerRigScript := preload("res://scripts/labs/alabaster/WayfarerRig.gd")
+const MooncloakRigScript := preload("res://scripts/labs/alabaster/MooncloakRig.gd")
 const SharedActions := preload("res://scripts/labs/alabaster/AlabasterSharedActions.gd")
 const BoneAnimationLibrary := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
 const REST_POSE := "__rest__"
@@ -46,7 +48,11 @@ func configure(owner: Node2D, character_data: Dictionary, visual_position: Vecto
 	])
 
 	var uses_playable_skin := profile_id in ["default", "male_dummy", "male_temp"]
-	if profile_id == "default":
+	if profile_id == "wayfarer":
+		rig = WayfarerRigScript.new() as Node2D
+	elif profile_id == "mooncloak":
+		rig = MooncloakRigScript.new() as Node2D
+	elif profile_id == "default":
 		var default_rig = DefaultSkinRigScript.new()
 		if default_rig == null:
 			return false

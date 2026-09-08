@@ -5,8 +5,9 @@
 [node name="RomesteadProceduralGameWorld" type="Node2D"]
 script = ExtResource("1_world")
 world_seed = 74291
-world_size_tiles = Vector2i(512, 320)
+world_size_tiles = Vector2i(768, 480)
 tile_size = 16
+use_oathwake_tilesets = true
 ground_path = NodePath("Ground")
 green_overlay_path = NodePath("GreenTerrain0")
 dirt_overlay_path = NodePath("DirtTerrain0")
@@ -15,7 +16,7 @@ vegetation_path = NodePath("WindVegetation")
 resources_path = NodePath("../Resources")
 
 ; Terrain owns the bottom of CanvasItem's z range. WorldDepthRuntime keeps
-; actors/resources at -4000..4000, so even the far north of the 512x320 world
+; actors/resources at -4000..4000, so even the far north of the 768x480 world
 ; can never push an entity behind a floor layer again.
 [node name="Ground" type="TileMapLayer" parent="."]
 z_index = -4096
@@ -67,6 +68,22 @@ z_index = -4090
 
 [node name="GreenDetails" type="TileMapLayer" parent="."]
 z_index = -4090
+
+; Litoral. A areia desenha por cima de toda a grama, com o mesmo autotile de
+; máscara dos outros terrenos. WaterCollision é invisível e existe só para
+; segurar o jogador na beira da água.
+[node name="Shore0" type="TileMapLayer" parent="."]
+z_index = -4090
+
+[node name="Shore1" type="TileMapLayer" parent="."]
+z_index = -4090
+
+[node name="Shore2" type="TileMapLayer" parent="."]
+z_index = -4090
+
+[node name="WaterCollision" type="TileMapLayer" parent="."]
+self_modulate = Color(1, 1, 1, 0)
+z_index = -4096
 
 [node name="TinyLeaves" type="TileMapLayer" parent="."]
 z_index = -4089

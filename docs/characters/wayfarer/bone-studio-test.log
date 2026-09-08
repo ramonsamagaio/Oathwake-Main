@@ -1,0 +1,121 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+Vulkan 1.4.312 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070 Laptop GPU
+
+ContentDB loaded successfully
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_CUSTOM_BANK_OK animations=44
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_BONE_STUDIO: Bone Studio ready. Choose a Godot-imported FBX/GLB/GLTF/TSCN scene to begin.
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_CUSTOM_BANK_OK animations=44
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_JUNO_SHARED_BANK source=SOURCE_JSON animations=419
+ALABASTER_REPO_FIGURE_OK profile=male_dummy figure=Male-Dummy path=res://data/labs/alabaster/characters/dummy.json nodes=20 anims=8 animations=["headless", "jumping-jack", "laying", "punch", "run", "sitting", "test", "walk"]
+ALABASTER_REPO_FIGURE_OK profile=male_temp figure=Male-Temp-01 path=res://data/labs/alabaster/characters/male-temp-01.json nodes=20 anims=13 animations=["damage", "jumping-jack", "laying", "layingBed", "punch", "run", "sitting", "sittingL1", "sittingL2", "sittingR1", "sittingR2", "test", "walk"]
+ALABASTER_SKIN_INIT_BEGIN profile=default figure=Default inside_tree=true
+ALABASTER_DEFAULT_ARM_FIT sides=2 applied=true policy=dummy_lengths_juno_attachments
+ALABASTER_DEFAULT_WALK_TUNED_V3 root_keys=11 pelvis_keys=11 top_keys=11 pelvis_x=0.15 yaw=0.35 pitch=0.40 roll=0.25
+ALABASTER_JUNO_SHARED_RETARGET profile=default source=SOURCE_JSON source_anims=419 installed=419 native_saved=8 missing_expected=[] coverage=0.813 core=20/20
+ALABASTER_SKIN_INIT_FIGURE profile=default source=DEFAULT_CLONE_OF_MALE_DUMMY path= nodes=26 anims=435
+ALABASTER_DEFAULT_ATLAS_OK path=res://assets/sprites/characters/alabaster/default.png size=672x120 chroma_pixels=60009
+ALABASTER_SKIN_INIT_ATLAS profile=default source=REPO_DEFAULT_PNG path= size=672x120
+ALABASTER_SKIN_INIT_SPRITES profile=default pieces=19
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=25
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=25
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=25
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=native__run frameCnt=16 loopStart=2 tracks=18
+ALABASTER_SKIN_READY profile=default figure=Default data_source=DEFAULT_CLONE_OF_MALE_DUMMY texture_source=REPO_DEFAULT_PNG atlas=672x120 nodes=26 pieces=19 visible=19 anims=435 ready=true
+ALABASTER_LIVE_TUNING: Previewing JUNO/idle on default. Source remains read-only.
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_CUSTOM_BANK_OK animations=44
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_LIVE_TUNING: Previewing JUNO/idle on default. Source remains read-only.
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_CUSTOM_BANK_OK animations=44
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_LIVE_TUNING: Previewing JUNO/idle on JUNO. Source remains read-only.
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_CUSTOM_BANK_OK animations=44
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_BONE_STUDIO: Editor preview body: WAYFARER.
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_CUSTOM_BANK_OK animations=44
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_BONE_STUDIO: Editor preview body: JUNO BASE.
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_CUSTOM_BANK_OK animations=44
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_BONE_STUDIO: Editor preview body: WAYFARER.
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_CUSTOM_BANK_OK animations=44
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_LIVE_TUNING: Previewing JUNO/idle on wayfarer. Source remains read-only.
+ALABASTER_SKIN_INIT_BEGIN profile=default figure=Default inside_tree=true
+ALABASTER_DEFAULT_ARM_FIT sides=2 applied=true policy=dummy_lengths_juno_attachments
+ALABASTER_DEFAULT_WALK_TUNED_V3 root_keys=11 pelvis_keys=11 top_keys=11 pelvis_x=0.15 yaw=0.35 pitch=0.40 roll=0.25
+ALABASTER_JUNO_SHARED_RETARGET profile=default source=SOURCE_JSON source_anims=419 installed=419 native_saved=8 missing_expected=[] coverage=0.813 core=20/20
+ALABASTER_SKIN_INIT_FIGURE profile=default source=DEFAULT_CLONE_OF_MALE_DUMMY path= nodes=26 anims=435
+ALABASTER_DEFAULT_ATLAS_OK path=res://assets/sprites/characters/alabaster/default.png size=672x120 chroma_pixels=60009
+ALABASTER_SKIN_INIT_ATLAS profile=default source=REPO_DEFAULT_PNG path= size=672x120
+ALABASTER_SKIN_INIT_SPRITES profile=default pieces=19
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=25
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=25
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=25
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=native__run frameCnt=16 loopStart=2 tracks=18
+ALABASTER_SKIN_READY profile=default figure=Default data_source=DEFAULT_CLONE_OF_MALE_DUMMY texture_source=REPO_DEFAULT_PNG atlas=672x120 nodes=26 pieces=19 visible=19 anims=435 ready=true
+ALABASTER_LIVE_TUNING: Previewing JUNO/idle on default. Source remains read-only.
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_CUSTOM_BANK_OK animations=44
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_LIVE_TUNING: Previewing JUNO/idle on JUNO. Source remains read-only.
+ALABASTER_SOURCE_JSON_OK animations=419 source=res://data/labs/alabaster/characters/juno-figure.json
+ALABASTER_ANIMATION_BANK_OK source=SOURCE_JSON animations=419
+ALABASTER_CUSTOM_BANK_OK animations=44
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=walk frameCnt=30 loopStart=6 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=run frameCnt=17 loopStart=3 tracks=28
+ALABASTER_LOOP_BOUNDARY_REPAIRED animation=guard frameCnt=38 loopStart=14 tracks=28
+ALABASTER_LIVE_TUNING: Previewing JUNO/idle on wayfarer. Source remains read-only.
+WAYFARER_BONE_STUDIO_VALIDATION {"failures":[],"profiles":["juno","juno_base","male_dummy","default","wayfarer"],"selected":"wayfarer","wayfarer_builtin_count":16}

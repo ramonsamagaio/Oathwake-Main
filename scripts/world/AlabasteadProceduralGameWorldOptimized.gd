@@ -87,6 +87,10 @@ func generate_world(new_seed: int = world_seed) -> void:
 	# Runtime scheduling streams additional 16x16 chunks as the player moves.
 	stage_started = Time.get_ticks_msec()
 	_terrain_generation_ready = true
+	# generate_world() aqui substitui o da base inteiro, então o backdrop de
+	# oceano tem que ser garantido neste caminho também — senão a borda do mapa
+	# volta a mostrar o vazio.
+	_ensure_ocean_backdrop()
 	stream_terrain_for_bounds(_compute_active_bounds().grow(INITIAL_TERRAIN_MARGIN_PIXELS), 1024)
 	for layer: TileMapLayer in _all_tile_layers():
 		layer.update_internals()
@@ -191,6 +195,14 @@ func _render_terrain_chunk(chunk: Vector2i) -> void:
 		for x: int in range(start_x, finish_x):
 			var cell := Vector2i(x, y)
 			var terrain_type: int = int(_terrain_types.get(cell, TERRAIN_BASE))
+			if terrain_type == TERRAIN_WATER:
+				# Água não pinta chão: o OceanBackdrop aparece por baixo.
+				_draw_water_cell(cell)
+				# A areia tem que avancar POR CIMA da agua. Sem esta chamada a
+				# costa termina no limite exato do tile de areia e vira um
+				# degrau de 90 graus contra o shader.
+				_draw_shore(cell)
+				continue
 			_ground.set_cell(cell, 0, Vector2i(2, 1), 0)
 			_draw_native_autotile(cell, TERRAIN_DIRT, _dirt_layers)
 			_draw_native_autotile(cell, TERRAIN_GREEN, _green_layers)
@@ -199,6 +211,7 @@ func _render_terrain_chunk(chunk: Vector2i) -> void:
 			_draw_forest_path(cell, terrain_type)
 			_draw_plains_cliff(cell)
 			_draw_forest_barrier(cell)
+			_draw_shore(cell)
 			_draw_native_detail(cell, terrain_type)
 	_rendered_terrain_chunks[chunk] = true
 

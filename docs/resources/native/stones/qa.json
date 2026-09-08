@@ -1,0 +1,299 @@
+{
+  "records": [
+    {
+      "resource": "rock1",
+      "sprite": "romestead_rock_1",
+      "atlas": "oathwake-rocks",
+      "region": [
+        0,
+        0,
+        48,
+        48
+      ],
+      "pixels": 923,
+      "colors": 6
+    },
+    {
+      "resource": "rock2",
+      "sprite": "romestead_rock_2",
+      "atlas": "oathwake-rocks",
+      "region": [
+        48,
+        0,
+        48,
+        48
+      ],
+      "pixels": 872,
+      "colors": 6
+    },
+    {
+      "resource": "rock3",
+      "sprite": "romestead_rock_3",
+      "atlas": "oathwake-rocks",
+      "region": [
+        96,
+        0,
+        48,
+        48
+      ],
+      "pixels": 1008,
+      "colors": 6
+    },
+    {
+      "resource": "rock4",
+      "sprite": "romestead_rock_4",
+      "atlas": "oathwake-rocks",
+      "region": [
+        144,
+        0,
+        48,
+        48
+      ],
+      "pixels": 831,
+      "colors": 6
+    },
+    {
+      "resource": "rock5",
+      "sprite": "romestead_rock_5",
+      "atlas": "oathwake-rocks",
+      "region": [
+        192,
+        0,
+        48,
+        48
+      ],
+      "pixels": 782,
+      "colors": 6
+    },
+    {
+      "resource": "rock6",
+      "sprite": "romestead_rock_6",
+      "atlas": "oathwake-rocks",
+      "region": [
+        0,
+        48,
+        48,
+        48
+      ],
+      "pixels": 954,
+      "colors": 6
+    },
+    {
+      "resource": "rock7",
+      "sprite": "romestead_rock_7",
+      "atlas": "oathwake-rocks",
+      "region": [
+        48,
+        48,
+        48,
+        48
+      ],
+      "pixels": 905,
+      "colors": 6
+    },
+    {
+      "resource": "rock8",
+      "sprite": "romestead_rock_8",
+      "atlas": "oathwake-rocks",
+      "region": [
+        96,
+        48,
+        48,
+        48
+      ],
+      "pixels": 803,
+      "colors": 6
+    },
+    {
+      "resource": "rock9",
+      "sprite": "romestead_rock_9",
+      "atlas": "oathwake-rocks",
+      "region": [
+        144,
+        48,
+        48,
+        48
+      ],
+      "pixels": 840,
+      "colors": 6
+    },
+    {
+      "resource": "rock10",
+      "sprite": "romestead_rock_10",
+      "atlas": "oathwake-rocks",
+      "region": [
+        192,
+        48,
+        48,
+        48
+      ],
+      "pixels": 869,
+      "colors": 6
+    },
+    {
+      "resource": "stone1",
+      "sprite": "romestead_stone_1",
+      "atlas": "oathwake-stones",
+      "region": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "pixels": 308,
+      "colors": 6
+    },
+    {
+      "resource": "stone2",
+      "sprite": "romestead_stone_2",
+      "atlas": "oathwake-stones",
+      "region": [
+        32,
+        0,
+        32,
+        32
+      ],
+      "pixels": 310,
+      "colors": 6
+    },
+    {
+      "resource": "stone3",
+      "sprite": "romestead_stone_3",
+      "atlas": "oathwake-stones",
+      "region": [
+        64,
+        0,
+        32,
+        32
+      ],
+      "pixels": 301,
+      "colors": 6
+    },
+    {
+      "resource": "stone4",
+      "sprite": "romestead_stone_4",
+      "atlas": "oathwake-stones",
+      "region": [
+        96,
+        0,
+        32,
+        32
+      ],
+      "pixels": 301,
+      "colors": 6
+    },
+    {
+      "resource": "stone5",
+      "sprite": "romestead_stone_5",
+      "atlas": "oathwake-stones",
+      "region": [
+        0,
+        32,
+        32,
+        32
+      ],
+      "pixels": 289,
+      "colors": 6
+    },
+    {
+      "resource": "stone6",
+      "sprite": "romestead_stone_6",
+      "atlas": "oathwake-stones",
+      "region": [
+        32,
+        32,
+        32,
+        32
+      ],
+      "pixels": 279,
+      "colors": 6
+    },
+    {
+      "resource": "stone7",
+      "sprite": "romestead_stone_7",
+      "atlas": "oathwake-stones",
+      "region": [
+        64,
+        32,
+        32,
+        32
+      ],
+      "pixels": 282,
+      "colors": 6
+    },
+    {
+      "resource": "stone8",
+      "sprite": "romestead_stone_8",
+      "atlas": "oathwake-stones",
+      "region": [
+        96,
+        32,
+        32,
+        32
+      ],
+      "pixels": 297,
+      "colors": 6
+    },
+    {
+      "resource": "copper_ore_node",
+      "sprite": "romestead_copper_ore",
+      "atlas": "oathwake-copper",
+      "region": [
+        0,
+        0,
+        16,
+        16
+      ],
+      "pixels": 129,
+      "colors": 10
+    },
+    {
+      "resource": "mossy_rock1",
+      "sprite": "romestead_mossy_boulder",
+      "atlas": "oathwake-mossy-boulder",
+      "region": [
+        0,
+        0,
+        64,
+        80
+      ],
+      "pixels": 2355,
+      "colors": 9
+    }
+  ],
+  "authorship": "Explicit native silhouettes, planes and cracks in Pixelorama",
+  "alpha": "binary",
+  "components_per_sprite": 1,
+  "gameplay_unchanged": true,
+  "atlases": {
+    "oathwake-rocks": {
+      "size": [
+        240,
+        96
+      ],
+      "rgba_sha256": "28be0557e16f4cc48f1a64c9b1b3b283d23b206cd9e84b6d650cc882b930f074"
+    },
+    "oathwake-stones": {
+      "size": [
+        128,
+        64
+      ],
+      "rgba_sha256": "662619aa2234425fd3fc93a19ee25169674a470b1ff9c2881367eb3e4709a973"
+    },
+    "oathwake-copper": {
+      "size": [
+        16,
+        16
+      ],
+      "rgba_sha256": "35770804b02f9dbc691b22e5e11d3ec9124dabbd2717db59635e71acdf273eb7"
+    },
+    "oathwake-mossy-boulder": {
+      "size": [
+        64,
+        80
+      ],
+      "rgba_sha256": "c50b1270ed49b8fe945d7806bfad21d7dc5b8d3379af894db62da1eab4e2b412"
+    }
+  },
+  "published": true
+}

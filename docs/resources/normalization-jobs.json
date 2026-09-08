@@ -1,0 +1,2074 @@
+{
+	"trees": [
+		{
+			"resource": "tree2",
+			"sprite": "romestead_tree_canopy_2",
+			"index": 0,
+			"seed": 0,
+			"max_size": [
+				48,
+				74
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_tree1.png",
+			"source_region": {
+				"h": 80,
+				"w": 48,
+				"x": 0,
+				"y": 0
+			}
+		},
+		{
+			"resource": "tree3",
+			"sprite": "romestead_tree_canopy_3",
+			"index": 1,
+			"seed": 1,
+			"max_size": [
+				48,
+				74
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_tree1.png",
+			"source_region": {
+				"h": 80,
+				"w": 48,
+				"x": 48,
+				"y": 0
+			}
+		},
+		{
+			"resource": "tree4",
+			"sprite": "romestead_tree_canopy_4",
+			"index": 2,
+			"seed": 2,
+			"max_size": [
+				63,
+				96
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_tree2.png",
+			"source_region": {
+				"h": 96,
+				"w": 64,
+				"x": 0,
+				"y": 0
+			}
+		},
+		{
+			"resource": "tree5",
+			"sprite": "romestead_tree_canopy_5",
+			"index": 3,
+			"seed": 10,
+			"max_size": [
+				62,
+				97
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_tree2.png",
+			"source_region": {
+				"h": 96,
+				"w": 64,
+				"x": 64,
+				"y": 0
+			}
+		},
+		{
+			"resource": "tree6",
+			"sprite": "romestead_tree_canopy_6",
+			"index": 4,
+			"seed": 11,
+			"max_size": [
+				60,
+				97
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_tree2.png",
+			"source_region": {
+				"h": 96,
+				"w": 64,
+				"x": 128,
+				"y": 0
+			}
+		},
+		{
+			"resource": "tree7",
+			"sprite": "romestead_tree_canopy_7",
+			"index": 5,
+			"seed": 2,
+			"max_size": [
+				63,
+				96
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_tree2.png",
+			"source_region": {
+				"h": 96,
+				"w": 64,
+				"x": 0,
+				"y": 96
+			}
+		},
+		{
+			"resource": "tree8",
+			"sprite": "romestead_tree_canopy_8",
+			"index": 6,
+			"seed": 0,
+			"max_size": [
+				62,
+				97
+			],
+			"mirror": true,
+			"source": "res://assets/sprites/world/procedural/trees/flora_tree2.png",
+			"source_region": {
+				"h": 96,
+				"w": 64,
+				"x": 64,
+				"y": 96
+			}
+		},
+		{
+			"resource": "tree9",
+			"sprite": "romestead_tree_canopy_9",
+			"index": 7,
+			"seed": 1,
+			"max_size": [
+				60,
+				97
+			],
+			"mirror": true,
+			"source": "res://assets/sprites/world/procedural/trees/flora_tree2.png",
+			"source_region": {
+				"h": 96,
+				"w": 64,
+				"x": 128,
+				"y": 96
+			}
+		},
+		{
+			"resource": "tree10",
+			"sprite": "romestead_tree_canopy_10",
+			"index": 8,
+			"seed": 3,
+			"max_size": [
+				50,
+				69
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_olive_tree_large.png",
+			"source_region": {
+				"h": 80,
+				"w": 64,
+				"x": 0,
+				"y": 0
+			}
+		},
+		{
+			"resource": "tree11",
+			"sprite": "romestead_tree_canopy_11",
+			"index": 9,
+			"seed": 3,
+			"max_size": [
+				50,
+				69
+			],
+			"mirror": true,
+			"source": "res://assets/sprites/world/procedural/trees/flora_olive_tree_large.png",
+			"source_region": {
+				"h": 80,
+				"w": 64,
+				"x": 64,
+				"y": 0
+			}
+		},
+		{
+			"resource": "tree12",
+			"sprite": "romestead_tree_canopy_12",
+			"index": 10,
+			"seed": 4,
+			"max_size": [
+				27,
+				98
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_tall_cypress.png",
+			"source_region": {
+				"h": 96,
+				"w": 32,
+				"x": 0,
+				"y": 0
+			}
+		},
+		{
+			"resource": "tree13",
+			"sprite": "romestead_tree_canopy_13",
+			"index": 11,
+			"seed": 4,
+			"max_size": [
+				23,
+				75
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 0,
+				"y": 0
+			}
+		},
+		{
+			"resource": "tree14",
+			"sprite": "romestead_tree_canopy_14",
+			"index": 12,
+			"seed": 4,
+			"max_size": [
+				18,
+				60
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 32,
+				"y": 0
+			}
+		},
+		{
+			"resource": "tree15",
+			"sprite": "romestead_tree_canopy_15",
+			"index": 13,
+			"seed": 4,
+			"max_size": [
+				18,
+				53
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 64,
+				"y": 0
+			}
+		},
+		{
+			"resource": "tree16",
+			"sprite": "romestead_tree_canopy_16",
+			"index": 14,
+			"seed": 4,
+			"max_size": [
+				18,
+				46
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 96,
+				"y": 0
+			}
+		},
+		{
+			"resource": "tree17",
+			"sprite": "romestead_tree_canopy_17",
+			"index": 15,
+			"seed": 4,
+			"max_size": [
+				23,
+				75
+			],
+			"mirror": true,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 0,
+				"y": 80
+			}
+		},
+		{
+			"resource": "tree18",
+			"sprite": "romestead_tree_canopy_18",
+			"index": 16,
+			"seed": 4,
+			"max_size": [
+				18,
+				60
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 32,
+				"y": 80
+			}
+		},
+		{
+			"resource": "tree19",
+			"sprite": "romestead_tree_canopy_19",
+			"index": 17,
+			"seed": 4,
+			"max_size": [
+				18,
+				53
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 64,
+				"y": 80
+			}
+		},
+		{
+			"resource": "tree20",
+			"sprite": "romestead_tree_canopy_20",
+			"index": 18,
+			"seed": 6,
+			"max_size": [
+				18,
+				46
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 96,
+				"y": 80
+			}
+		},
+		{
+			"resource": "tree21",
+			"sprite": "romestead_tree_canopy_21",
+			"index": 19,
+			"seed": 6,
+			"max_size": [
+				23,
+				75
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 0,
+				"y": 160
+			}
+		},
+		{
+			"resource": "tree22",
+			"sprite": "romestead_tree_canopy_22",
+			"index": 20,
+			"seed": 6,
+			"max_size": [
+				18,
+				60
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 32,
+				"y": 160
+			}
+		},
+		{
+			"resource": "tree23",
+			"sprite": "romestead_tree_canopy_23",
+			"index": 21,
+			"seed": 6,
+			"max_size": [
+				18,
+				53
+			],
+			"mirror": true,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 64,
+				"y": 160
+			}
+		},
+		{
+			"resource": "tree24",
+			"sprite": "romestead_tree_canopy_24",
+			"index": 22,
+			"seed": 6,
+			"max_size": [
+				18,
+				46
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 96,
+				"y": 160
+			}
+		},
+		{
+			"resource": "tree25",
+			"sprite": "romestead_tree_canopy_25",
+			"index": 23,
+			"seed": 6,
+			"max_size": [
+				23,
+				75
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 0,
+				"y": 240
+			}
+		},
+		{
+			"resource": "tree26",
+			"sprite": "romestead_tree_canopy_26",
+			"index": 24,
+			"seed": 6,
+			"max_size": [
+				18,
+				60
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 32,
+				"y": 240
+			}
+		},
+		{
+			"resource": "tree27",
+			"sprite": "romestead_tree_canopy_27",
+			"index": 25,
+			"seed": 5,
+			"max_size": [
+				18,
+				53
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 64,
+				"y": 240
+			}
+		},
+		{
+			"resource": "tree28",
+			"sprite": "romestead_tree_canopy_28",
+			"index": 26,
+			"seed": 5,
+			"max_size": [
+				18,
+				46
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 96,
+				"y": 240
+			}
+		},
+		{
+			"resource": "tree29",
+			"sprite": "romestead_tree_canopy_29",
+			"index": 27,
+			"seed": 5,
+			"max_size": [
+				23,
+				75
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 0,
+				"y": 320
+			}
+		},
+		{
+			"resource": "tree30",
+			"sprite": "romestead_tree_canopy_30",
+			"index": 28,
+			"seed": 5,
+			"max_size": [
+				18,
+				60
+			],
+			"mirror": true,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 32,
+				"y": 320
+			}
+		},
+		{
+			"resource": "tree31",
+			"sprite": "romestead_tree_canopy_31",
+			"index": 29,
+			"seed": 5,
+			"max_size": [
+				18,
+				53
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 64,
+				"y": 320
+			}
+		},
+		{
+			"resource": "tree32",
+			"sprite": "romestead_tree_canopy_32",
+			"index": 30,
+			"seed": 5,
+			"max_size": [
+				18,
+				46
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 96,
+				"y": 320
+			}
+		},
+		{
+			"resource": "tree33",
+			"sprite": "romestead_tree_canopy_33",
+			"index": 31,
+			"seed": 5,
+			"max_size": [
+				23,
+				75
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 0,
+				"y": 400
+			}
+		},
+		{
+			"resource": "tree34",
+			"sprite": "romestead_tree_canopy_34",
+			"index": 32,
+			"seed": 7,
+			"max_size": [
+				18,
+				60
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 32,
+				"y": 400
+			}
+		},
+		{
+			"resource": "tree35",
+			"sprite": "romestead_tree_canopy_35",
+			"index": 33,
+			"seed": 7,
+			"max_size": [
+				18,
+				53
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 64,
+				"y": 400
+			}
+		},
+		{
+			"resource": "tree36",
+			"sprite": "romestead_tree_canopy_36",
+			"index": 34,
+			"seed": 7,
+			"max_size": [
+				18,
+				46
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 96,
+				"y": 400
+			}
+		},
+		{
+			"resource": "tree37",
+			"sprite": "romestead_tree_canopy_37",
+			"index": 35,
+			"seed": 7,
+			"max_size": [
+				23,
+				75
+			],
+			"mirror": true,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 0,
+				"y": 480
+			}
+		},
+		{
+			"resource": "tree38",
+			"sprite": "romestead_tree_canopy_38",
+			"index": 36,
+			"seed": 7,
+			"max_size": [
+				18,
+				60
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 32,
+				"y": 480
+			}
+		},
+		{
+			"resource": "tree39",
+			"sprite": "romestead_tree_canopy_39",
+			"index": 37,
+			"seed": 7,
+			"max_size": [
+				18,
+				53
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 64,
+				"y": 480
+			}
+		},
+		{
+			"resource": "tree40",
+			"sprite": "romestead_tree_canopy_40",
+			"index": 38,
+			"seed": 7,
+			"max_size": [
+				18,
+				46
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_skinny_tree.png",
+			"source_region": {
+				"h": 80,
+				"w": 32,
+				"x": 96,
+				"y": 480
+			}
+		},
+		{
+			"resource": "tree41",
+			"sprite": "romestead_apple_canopy",
+			"index": 39,
+			"seed": 8,
+			"max_size": [
+				61,
+				75
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_apple_tree_large.png",
+			"source_region": {
+				"x": 64,
+				"y": 0,
+				"w": 64,
+				"h": 80
+			}
+		},
+		{
+			"resource": "tree42",
+			"sprite": "romestead_stone_pine_canopy",
+			"index": 40,
+			"seed": 9,
+			"max_size": [
+				66,
+				76
+			],
+			"mirror": false,
+			"source": "res://assets/sprites/world/procedural/trees/flora_stone_pine_large.png",
+			"source_region": {
+				"x": 0,
+				"y": 0,
+				"w": 80,
+				"h": 80
+			}
+		}
+	],
+	"sheets": {
+		"terrain_round_rocks_big.png": {
+			"source": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_big.png",
+			"size": [
+				240,
+				144
+			],
+			"cells": [
+				{
+					"sprite": "romestead_rock_1",
+					"rect": [
+						0,
+						0,
+						48,
+						48
+					],
+					"seed": 0,
+					"max_size": [
+						37,
+						36
+					],
+					"baseline": 48,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_rock_2",
+					"rect": [
+						48,
+						0,
+						48,
+						48
+					],
+					"seed": 1,
+					"max_size": [
+						37,
+						32
+					],
+					"baseline": 48,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_rock_3",
+					"rect": [
+						96,
+						0,
+						48,
+						48
+					],
+					"seed": 2,
+					"max_size": [
+						33,
+						30
+					],
+					"baseline": 48,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_rock_4",
+					"rect": [
+						144,
+						0,
+						48,
+						48
+					],
+					"seed": 3,
+					"max_size": [
+						33,
+						32
+					],
+					"baseline": 47,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_rock_5",
+					"rect": [
+						192,
+						0,
+						48,
+						48
+					],
+					"seed": 4,
+					"max_size": [
+						37,
+						34
+					],
+					"baseline": 48,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_rock_6",
+					"rect": [
+						0,
+						48,
+						48,
+						48
+					],
+					"seed": 5,
+					"max_size": [
+						35,
+						34
+					],
+					"baseline": 46,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_rock_7",
+					"rect": [
+						48,
+						48,
+						48,
+						48
+					],
+					"seed": 0,
+					"max_size": [
+						35,
+						30
+					],
+					"baseline": 46,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_rock_8",
+					"rect": [
+						96,
+						48,
+						48,
+						48
+					],
+					"seed": 1,
+					"max_size": [
+						31,
+						28
+					],
+					"baseline": 46,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_rock_9",
+					"rect": [
+						144,
+						48,
+						48,
+						48
+					],
+					"seed": 2,
+					"max_size": [
+						31,
+						30
+					],
+					"baseline": 45,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_rock_10",
+					"rect": [
+						192,
+						48,
+						48,
+						48
+					],
+					"seed": 3,
+					"max_size": [
+						35,
+						32
+					],
+					"baseline": 46,
+					"mirror": true
+				}
+			]
+		},
+		"terrain_round_rocks_small.png": {
+			"source": "res://assets/sprites/world/procedural/rocks/terrain_round_rocks_small.png",
+			"size": [
+				128,
+				96
+			],
+			"cells": [
+				{
+					"sprite": "romestead_stone_1",
+					"rect": [
+						0,
+						0,
+						32,
+						32
+					],
+					"seed": 0,
+					"max_size": [
+						24,
+						26
+					],
+					"baseline": 31,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_stone_2",
+					"rect": [
+						32,
+						0,
+						32,
+						32
+					],
+					"seed": 1,
+					"max_size": [
+						24,
+						24
+					],
+					"baseline": 31,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_stone_3",
+					"rect": [
+						64,
+						0,
+						32,
+						32
+					],
+					"seed": 2,
+					"max_size": [
+						25,
+						24
+					],
+					"baseline": 31,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_stone_4",
+					"rect": [
+						96,
+						0,
+						32,
+						32
+					],
+					"seed": 3,
+					"max_size": [
+						24,
+						23
+					],
+					"baseline": 31,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_stone_5",
+					"rect": [
+						0,
+						32,
+						32,
+						32
+					],
+					"seed": 4,
+					"max_size": [
+						22,
+						25
+					],
+					"baseline": 30,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_stone_6",
+					"rect": [
+						32,
+						32,
+						32,
+						32
+					],
+					"seed": 0,
+					"max_size": [
+						22,
+						23
+					],
+					"baseline": 30,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_stone_7",
+					"rect": [
+						64,
+						32,
+						32,
+						32
+					],
+					"seed": 1,
+					"max_size": [
+						23,
+						23
+					],
+					"baseline": 30,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_stone_8",
+					"rect": [
+						96,
+						32,
+						32,
+						32
+					],
+					"seed": 2,
+					"max_size": [
+						22,
+						22
+					],
+					"baseline": 30,
+					"mirror": true
+				}
+			]
+		},
+		"flora_big_bushes1.png": {
+			"source": "res://assets/sprites/world/procedural/plants/flora_big_bushes1.png",
+			"size": [
+				352,
+				96
+			],
+			"cells": [
+				{
+					"sprite": "romestead_bush_1",
+					"rect": [
+						0,
+						0,
+						32,
+						32
+					],
+					"seed": 6,
+					"max_size": [
+						24,
+						23
+					],
+					"baseline": 29,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_bush_2",
+					"rect": [
+						32,
+						32,
+						32,
+						32
+					],
+					"seed": 7,
+					"max_size": [
+						22,
+						28
+					],
+					"baseline": 29,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_bush_3",
+					"rect": [
+						64,
+						64,
+						32,
+						32
+					],
+					"seed": 8,
+					"max_size": [
+						22,
+						28
+					],
+					"baseline": 29,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_bush_4",
+					"rect": [
+						96,
+						0,
+						32,
+						32
+					],
+					"seed": 9,
+					"max_size": [
+						22,
+						27
+					],
+					"baseline": 28,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_bush_5",
+					"rect": [
+						128,
+						32,
+						32,
+						32
+					],
+					"seed": 10,
+					"max_size": [
+						22,
+						28
+					],
+					"baseline": 29,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_bush_6",
+					"rect": [
+						160,
+						64,
+						32,
+						32
+					],
+					"seed": 11,
+					"max_size": [
+						22,
+						28
+					],
+					"baseline": 29,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_bush_7",
+					"rect": [
+						192,
+						0,
+						32,
+						32
+					],
+					"seed": 6,
+					"max_size": [
+						22,
+						27
+					],
+					"baseline": 28,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_bush_8",
+					"rect": [
+						32,
+						0,
+						32,
+						32
+					],
+					"seed": 7,
+					"max_size": [
+						22,
+						27
+					],
+					"baseline": 28,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_bush_9",
+					"rect": [
+						64,
+						0,
+						32,
+						32
+					],
+					"seed": 8,
+					"max_size": [
+						22,
+						27
+					],
+					"baseline": 28,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_bush_10",
+					"rect": [
+						128,
+						0,
+						32,
+						32
+					],
+					"seed": 9,
+					"max_size": [
+						22,
+						27
+					],
+					"baseline": 28,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_bush_11",
+					"rect": [
+						160,
+						0,
+						32,
+						32
+					],
+					"seed": 10,
+					"max_size": [
+						22,
+						27
+					],
+					"baseline": 28,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_bush_12",
+					"rect": [
+						0,
+						32,
+						32,
+						32
+					],
+					"seed": 11,
+					"max_size": [
+						24,
+						23
+					],
+					"baseline": 29,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_bush_13",
+					"rect": [
+						64,
+						32,
+						32,
+						32
+					],
+					"seed": 6,
+					"max_size": [
+						22,
+						28
+					],
+					"baseline": 29,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_bush_14",
+					"rect": [
+						96,
+						32,
+						32,
+						32
+					],
+					"seed": 7,
+					"max_size": [
+						22,
+						28
+					],
+					"baseline": 29,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_bush_15",
+					"rect": [
+						160,
+						32,
+						32,
+						32
+					],
+					"seed": 8,
+					"max_size": [
+						22,
+						28
+					],
+					"baseline": 29,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_bush_16",
+					"rect": [
+						192,
+						32,
+						32,
+						32
+					],
+					"seed": 9,
+					"max_size": [
+						22,
+						28
+					],
+					"baseline": 29,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_bush_17",
+					"rect": [
+						0,
+						64,
+						32,
+						32
+					],
+					"seed": 10,
+					"max_size": [
+						24,
+						23
+					],
+					"baseline": 29,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_bush_18",
+					"rect": [
+						32,
+						64,
+						32,
+						32
+					],
+					"seed": 11,
+					"max_size": [
+						22,
+						28
+					],
+					"baseline": 29,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_bush_19",
+					"rect": [
+						96,
+						64,
+						32,
+						32
+					],
+					"seed": 6,
+					"max_size": [
+						22,
+						28
+					],
+					"baseline": 29,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_bush_20",
+					"rect": [
+						128,
+						64,
+						32,
+						32
+					],
+					"seed": 7,
+					"max_size": [
+						22,
+						28
+					],
+					"baseline": 29,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_bush_21",
+					"rect": [
+						192,
+						64,
+						32,
+						32
+					],
+					"seed": 8,
+					"max_size": [
+						22,
+						28
+					],
+					"baseline": 29,
+					"mirror": false
+				}
+			]
+		},
+		"flora_wheat_animated.png": {
+			"source": "res://assets/sprites/world/procedural/plants/flora_wheat_animated.png",
+			"size": [
+				64,
+				256
+			],
+			"cells": [
+				{
+					"sprite": "romestead_wheat_1",
+					"rect": [
+						0,
+						224,
+						16,
+						32
+					],
+					"seed": 12,
+					"max_size": [
+						13,
+						12
+					],
+					"baseline": 30,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_wheat_2",
+					"rect": [
+						16,
+						224,
+						16,
+						32
+					],
+					"seed": 13,
+					"max_size": [
+						13,
+						12
+					],
+					"baseline": 30,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_wheat_3",
+					"rect": [
+						32,
+						224,
+						16,
+						32
+					],
+					"seed": 14,
+					"max_size": [
+						13,
+						12
+					],
+					"baseline": 30,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_wheat_4",
+					"rect": [
+						48,
+						224,
+						16,
+						32
+					],
+					"seed": 15,
+					"max_size": [
+						13,
+						12
+					],
+					"baseline": 30,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_wheat_5",
+					"rect": [
+						0,
+						64,
+						16,
+						32
+					],
+					"seed": 12,
+					"max_size": [
+						16,
+						23
+					],
+					"baseline": 31,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_wheat_6",
+					"rect": [
+						16,
+						64,
+						16,
+						32
+					],
+					"seed": 13,
+					"max_size": [
+						15,
+						23
+					],
+					"baseline": 31,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_wheat_7",
+					"rect": [
+						32,
+						64,
+						16,
+						32
+					],
+					"seed": 14,
+					"max_size": [
+						15,
+						23
+					],
+					"baseline": 31,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_wheat_8",
+					"rect": [
+						48,
+						64,
+						16,
+						32
+					],
+					"seed": 15,
+					"max_size": [
+						16,
+						23
+					],
+					"baseline": 31,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_wheat_9",
+					"rect": [
+						0,
+						96,
+						16,
+						32
+					],
+					"seed": 12,
+					"max_size": [
+						16,
+						27
+					],
+					"baseline": 31,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_wheat_10",
+					"rect": [
+						16,
+						96,
+						16,
+						32
+					],
+					"seed": 13,
+					"max_size": [
+						16,
+						27
+					],
+					"baseline": 31,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_wheat_11",
+					"rect": [
+						32,
+						96,
+						16,
+						32
+					],
+					"seed": 14,
+					"max_size": [
+						16,
+						27
+					],
+					"baseline": 31,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_wheat_12",
+					"rect": [
+						48,
+						96,
+						16,
+						32
+					],
+					"seed": 15,
+					"max_size": [
+						16,
+						27
+					],
+					"baseline": 31,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_wheat_13",
+					"rect": [
+						0,
+						128,
+						16,
+						32
+					],
+					"seed": 12,
+					"max_size": [
+						16,
+						29
+					],
+					"baseline": 31,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_wheat_14",
+					"rect": [
+						16,
+						128,
+						16,
+						32
+					],
+					"seed": 13,
+					"max_size": [
+						16,
+						29
+					],
+					"baseline": 31,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_wheat_15",
+					"rect": [
+						32,
+						128,
+						16,
+						32
+					],
+					"seed": 14,
+					"max_size": [
+						16,
+						29
+					],
+					"baseline": 31,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_wheat_16",
+					"rect": [
+						48,
+						128,
+						16,
+						32
+					],
+					"seed": 15,
+					"max_size": [
+						16,
+						29
+					],
+					"baseline": 31,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_wheat_17",
+					"rect": [
+						0,
+						160,
+						16,
+						32
+					],
+					"seed": 12,
+					"max_size": [
+						16,
+						30
+					],
+					"baseline": 31,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_wheat_18",
+					"rect": [
+						16,
+						160,
+						16,
+						32
+					],
+					"seed": 13,
+					"max_size": [
+						16,
+						30
+					],
+					"baseline": 31,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_wheat_19",
+					"rect": [
+						32,
+						160,
+						16,
+						32
+					],
+					"seed": 14,
+					"max_size": [
+						16,
+						30
+					],
+					"baseline": 31,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_wheat_20",
+					"rect": [
+						48,
+						160,
+						16,
+						32
+					],
+					"seed": 15,
+					"max_size": [
+						16,
+						30
+					],
+					"baseline": 31,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_wheat_21",
+					"rect": [
+						0,
+						192,
+						16,
+						32
+					],
+					"seed": 12,
+					"max_size": [
+						16,
+						31
+					],
+					"baseline": 31,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_wheat_22",
+					"rect": [
+						16,
+						192,
+						16,
+						32
+					],
+					"seed": 13,
+					"max_size": [
+						16,
+						31
+					],
+					"baseline": 31,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_wheat_23",
+					"rect": [
+						32,
+						192,
+						16,
+						32
+					],
+					"seed": 14,
+					"max_size": [
+						16,
+						31
+					],
+					"baseline": 31,
+					"mirror": false
+				},
+				{
+					"sprite": "romestead_wheat_24",
+					"rect": [
+						48,
+						192,
+						16,
+						32
+					],
+					"seed": 15,
+					"max_size": [
+						16,
+						31
+					],
+					"baseline": 31,
+					"mirror": true
+				}
+			]
+		},
+		"desert_purplebush.png": {
+			"source": "res://assets/sprites/world/procedural/plants/desert_purplebush.png",
+			"size": [
+				48,
+				96
+			],
+			"cells": [
+				{
+					"sprite": "romestead_purple_bush",
+					"rect": [
+						0,
+						0,
+						16,
+						32
+					],
+					"seed": 22,
+					"max_size": [
+						5,
+						23
+					],
+					"baseline": 28,
+					"mirror": true
+				}
+			]
+		},
+		"flora_small_bush1.png": {
+			"source": "res://assets/sprites/world/procedural/plants/flora_small_bush1.png",
+			"size": [
+				176,
+				16
+			],
+			"cells": [
+				{
+					"sprite": "romestead_forest_bush",
+					"rect": [
+						48,
+						0,
+						16,
+						16
+					],
+					"seed": 23,
+					"max_size": [
+						16,
+						15
+					],
+					"baseline": 16,
+					"mirror": true
+				}
+			]
+		},
+		"flora_mushrooms.png": {
+			"source": "res://assets/sprites/world/procedural/plants/flora_mushrooms.png",
+			"size": [
+				96,
+				16
+			],
+			"cells": [
+				{
+					"sprite": "romestead_mushroom_red",
+					"rect": [
+						0,
+						0,
+						16,
+						16
+					],
+					"seed": 18,
+					"max_size": [
+						13,
+						16
+					],
+					"baseline": 16,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_mushroom_brown",
+					"rect": [
+						32,
+						0,
+						16,
+						16
+					],
+					"seed": 19,
+					"max_size": [
+						12,
+						14
+					],
+					"baseline": 16,
+					"mirror": true
+				},
+				{
+					"sprite": "romestead_mushroom_yellow",
+					"rect": [
+						64,
+						0,
+						16,
+						16
+					],
+					"seed": 20,
+					"max_size": [
+						14,
+						14
+					],
+					"baseline": 16,
+					"mirror": true
+				}
+			]
+		},
+		"flora_bellflowers.png": {
+			"source": "res://assets/sprites/world/procedural/plants/flora_bellflowers.png",
+			"size": [
+				64,
+				160
+			],
+			"cells": [
+				{
+					"sprite": "romestead_bellflower",
+					"rect": [
+						32,
+						64,
+						16,
+						16
+					],
+					"seed": 16,
+					"max_size": [
+						10,
+						4
+					],
+					"baseline": 16,
+					"mirror": true
+				}
+			]
+		},
+		"flora_lilies.png": {
+			"source": "res://assets/sprites/world/procedural/plants/flora_lilies.png",
+			"size": [
+				96,
+				128
+			],
+			"cells": [
+				{
+					"sprite": "romestead_lily",
+					"rect": [
+						48,
+						0,
+						32,
+						32
+					],
+					"seed": 17,
+					"max_size": [
+						31,
+						28
+					],
+					"baseline": 32,
+					"mirror": true
+				}
+			]
+		},
+		"resources_copper_ore.png": {
+			"source": "res://assets/sprites/world/procedural/rocks/resources_copper_ore.png",
+			"size": [
+				32,
+				64
+			],
+			"cells": [
+				{
+					"sprite": "romestead_copper_ore",
+					"rect": [
+						0,
+						0,
+						16,
+						16
+					],
+					"seed": 21,
+					"max_size": [
+						16,
+						14
+					],
+					"baseline": 16,
+					"mirror": true
+				}
+			]
+		},
+		"poi_mossy_boulder_large.png": {
+			"source": "res://assets/sprites/world/procedural/rocks/poi_mossy_boulder_large.png",
+			"size": [
+				64,
+				80
+			],
+			"cells": [
+				{
+					"sprite": "romestead_mossy_boulder",
+					"rect": [
+						0,
+						0,
+						64,
+						80
+					],
+					"seed": 5,
+					"max_size": [
+						58,
+						69
+					],
+					"baseline": 78,
+					"mirror": true
+				}
+			]
+		}
+	},
+	"provenance": {
+		"flora": "exec-ea333424-0fb5-40d2-b7cc-f45e06a89ba9.png",
+		"trees": "exec-15b7e957-b847-428c-af46-06f5b6f2dce0.png",
+		"resources": "exec-9c72b02f-4b1c-48cd-bde8-c9d802c736c2.png"
+	},
+	"sprite_paths": {
+		"romestead_rock_1": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"romestead_rock_2": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"romestead_rock_3": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"romestead_rock_4": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"romestead_rock_5": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"romestead_stone_1": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"romestead_stone_2": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"romestead_stone_3": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"romestead_stone_4": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"romestead_bush_1": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_2": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_3": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_4": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_5": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_6": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_7": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_wheat_1": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_2": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_3": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_4": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_rock_6": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"romestead_rock_7": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"romestead_rock_8": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"romestead_rock_9": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"romestead_rock_10": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_big.png",
+		"romestead_stone_5": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"romestead_stone_6": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"romestead_stone_7": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"romestead_stone_8": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/terrain_round_rocks_small.png",
+		"romestead_bush_8": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_9": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_10": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_11": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_12": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_13": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_14": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_15": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_16": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_17": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_18": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_19": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_20": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_bush_21": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_big_bushes1.png",
+		"romestead_wheat_5": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_6": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_7": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_8": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_9": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_10": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_11": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_12": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_13": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_14": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_15": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_16": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_17": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_18": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_19": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_20": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_21": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_22": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_23": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_wheat_24": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_wheat_animated.png",
+		"romestead_purple_bush": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/desert_purplebush.png",
+		"romestead_forest_bush": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_small_bush1.png",
+		"romestead_mushroom_red": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_mushrooms.png",
+		"romestead_mushroom_brown": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_mushrooms.png",
+		"romestead_mushroom_yellow": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_mushrooms.png",
+		"romestead_bellflower": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_bellflowers.png",
+		"romestead_lily": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/flora_lilies.png",
+		"romestead_copper_ore": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/resources_copper_ore.png",
+		"romestead_mossy_boulder": "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/resources/poi_mossy_boulder_large.png"
+	}
+}

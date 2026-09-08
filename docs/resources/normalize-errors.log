@@ -1,0 +1,56 @@
+WARNING: Loaded resource as image file, this will not work on export: 'res://docs/resources/generated/flora.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:17)
+WARNING: Loaded resource as image file, this will not work on export: 'res://docs/resources/generated/trees.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:28)
+WARNING: Loaded resource as image file, this will not work on export: 'res://docs/resources/generated/resources.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:33)
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/sprites/world/procedural/rocks/terrain_round_rocks_big.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:63)
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/sprites/world/procedural/rocks/terrain_round_rocks_small.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:63)
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/sprites/world/procedural/plants/flora_big_bushes1.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:63)
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/sprites/world/procedural/plants/flora_wheat_animated.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:63)
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/sprites/world/procedural/plants/desert_purplebush.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:63)
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/sprites/world/procedural/plants/flora_small_bush1.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:63)
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/sprites/world/procedural/plants/flora_mushrooms.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:63)
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/sprites/world/procedural/plants/flora_bellflowers.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:63)
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/sprites/world/procedural/plants/flora_lilies.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:63)
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/sprites/world/procedural/rocks/resources_copper_ore.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:63)
+WARNING: Loaded resource as image file, this will not work on export: 'res://assets/sprites/world/procedural/rocks/poi_mossy_boulder_large.png'. Instead, import the image file as an Image resource and load it normally as a resource.
+   at: load_from_file (core/io/image.cpp:2766)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/normalize_oathwake_resources.gd:63)

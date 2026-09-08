@@ -1,0 +1,153 @@
+{
+  "sheet_count": 18,
+  "passed": true,
+  "assets": [
+    {
+      "file": "plainsgrass2.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 8512,
+      "alpha_pixels_changed": 574,
+      "colors": 16
+    },
+    {
+      "file": "plainsgrass3.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 8512,
+      "alpha_pixels_changed": 574,
+      "colors": 16
+    },
+    {
+      "file": "short_grass.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 8512,
+      "alpha_pixels_changed": 416,
+      "colors": 17
+    },
+    {
+      "file": "plainsgrass1.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 8512,
+      "alpha_pixels_changed": 600,
+      "colors": 16
+    },
+    {
+      "file": "tall_grass.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 8512,
+      "alpha_pixels_changed": 376,
+      "colors": 17
+    },
+    {
+      "file": "forest_path_short_grass_autumn.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 0,
+      "alpha_pixels_changed": 0,
+      "colors": 5
+    },
+    {
+      "file": "plains_3D_cliffs.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 0,
+      "alpha_pixels_changed": 0,
+      "colors": 12
+    },
+    {
+      "file": "forest_unbreakable_bushes_bottom_.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 0,
+      "alpha_pixels_changed": 0,
+      "colors": 3
+    },
+    {
+      "file": "forest_unbreakable_bushes_top_.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 0,
+      "alpha_pixels_changed": 0,
+      "colors": 4
+    },
+    {
+      "file": "tree_wall.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 0,
+      "alpha_pixels_changed": 0,
+      "colors": 5
+    },
+    {
+      "file": "canopy_.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 0,
+      "alpha_pixels_changed": 0,
+      "colors": 3
+    },
+    {
+      "file": "plainsgrass2_details.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 0,
+      "alpha_pixels_changed": 119,
+      "colors": 4
+    },
+    {
+      "file": "plainsgrass3_details.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 0,
+      "alpha_pixels_changed": 119,
+      "colors": 4
+    },
+    {
+      "file": "shortgrass_details.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 0,
+      "alpha_pixels_changed": 145,
+      "colors": 4
+    },
+    {
+      "file": "flora_tiny_flowers.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 0,
+      "alpha_pixels_changed": 104,
+      "colors": 12
+    },
+    {
+      "file": "flora_tiny_ground_leaves.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 0,
+      "alpha_pixels_changed": 762,
+      "colors": 9
+    },
+    {
+      "file": "flora_ground_plants.png",
+      "rgba_roundtrip": true,
+      "original_unchanged": true,
+      "boundary_alpha_pixels_checked": 0,
+      "alpha_pixels_changed": 3644,
+      "colors": 22
+    }
+  ],
+  "road": {
+    "rgba_roundtrip": true,
+    "frames": 2048,
+    "neighbor_masks": 512,
+    "color_variants": 4,
+    "variant_alpha_identical": false,
+    "variant_join_guard_identical": true,
+    "connected_layouts": 20,
+    "convex_and_concave_corners": true,
+    "pinholes": 0
+  }
+}

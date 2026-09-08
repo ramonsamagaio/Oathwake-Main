@@ -1,0 +1,144 @@
+{
+  "passed": true,
+  "sheets": [
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\flora_ground_plants.png",
+      "size": [
+        192,
+        64
+      ],
+      "expected_rgba_sha256": "cb90df7b31b2cf3b515c5c3ec6af569159627e95c5915e789f786de2f776cc74",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\tree_crowns.png",
+      "size": [
+        1024,
+        672
+      ],
+      "expected_rgba_sha256": "0f86a966ceb373a96f17239874882919d205fc93815fdb33ed0ec6880d0dc849",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\tree_trunks.png",
+      "size": [
+        1024,
+        192
+      ],
+      "expected_rgba_sha256": "3baa7bbf34912cf533fbf6ebc3b0146077367917898706f56e01262035e2766e",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\terrain_round_rocks_big.png",
+      "size": [
+        240,
+        144
+      ],
+      "expected_rgba_sha256": "e87feea8f39faf3c1291c13cf9f47674b117669111fed2f9903118834e9b8832",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\terrain_round_rocks_small.png",
+      "size": [
+        128,
+        96
+      ],
+      "expected_rgba_sha256": "ecedee369888465da1a007289797fa5fa65ff75b330b06a53c63b84f102bce07",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\flora_big_bushes1.png",
+      "size": [
+        352,
+        96
+      ],
+      "expected_rgba_sha256": "c709599e71ef99a85bac1ce67aee5307e013f73abfd26dd758e9f793fd51b5a5",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\flora_wheat_animated.png",
+      "size": [
+        64,
+        256
+      ],
+      "expected_rgba_sha256": "d53337e73f002149c1e800f2c64bb3033f508d12c0be9a0b696c65e5663ae62e",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\desert_purplebush.png",
+      "size": [
+        48,
+        96
+      ],
+      "expected_rgba_sha256": "0083de23393beb5d338f6427aee3d310d07211b8a4a21d7ebb902f21c1c50b9d",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\flora_small_bush1.png",
+      "size": [
+        176,
+        16
+      ],
+      "expected_rgba_sha256": "c208031b95b440c5b9150a3b66ea1b5cc1fd65cea163672d0566304e08f6b87d",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\flora_mushrooms.png",
+      "size": [
+        96,
+        16
+      ],
+      "expected_rgba_sha256": "33db1ce8ff9cc3e20ac4bde97df7676ade1e5271025085c7f7efa8456965ba06",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\flora_bellflowers.png",
+      "size": [
+        64,
+        160
+      ],
+      "expected_rgba_sha256": "5e6ea79a243716da968d8a00f844b802ac2056f03f2eef8890a169aaecd53d13",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\flora_lilies.png",
+      "size": [
+        96,
+        128
+      ],
+      "expected_rgba_sha256": "b00af4c2721c940b55952409d154cb95d3f7e04eab91a02ef5057e34b9a4e8fa",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\resources_copper_ore.png",
+      "size": [
+        32,
+        64
+      ],
+      "expected_rgba_sha256": "8f79ac2fc5bd34f6ed33c42ebe67c764d802b6faa47ada7a6f666dcf772f9075",
+      "roundtrip": true
+    },
+    {
+      "file": "assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\resources\\poi_mossy_boulder_large.png",
+      "size": [
+        64,
+        80
+      ],
+      "expected_rgba_sha256": "e7abf4bb0bc57fe4a05d6ea9a8c5b6f99aaa8d6d7231d7c79217250c7e29976c",
+      "roundtrip": true
+    }
+  ],
+  "tree_pairs": 41,
+  "other_resource_sprites": 72,
+  "decorative_variants": 12,
+  "assembly_exact": true,
+  "gameplay_unchanged": true,
+  "originals_preserved": true,
+  "rgba_alpha": "binary, transparent RGB zero",
+  "runtime": {
+    "failures": [],
+    "fall_tween_checked": true,
+    "other_resources": 72,
+    "tree_pairs": 41
+  }
+}

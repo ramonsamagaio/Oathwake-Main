@@ -1,0 +1,1676 @@
+{
+	"adamantite_axe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.76,
+			"attack_power": 68,
+			"attack_variance": 0.16,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.07,
+			"crit_damage_bonus": 0.25,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 24,
+				"tree": 68
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.15,
+				"int": 0.0,
+				"luk": 0.05,
+				"str": 0.55,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.07,
+		"crit_power": 1.75,
+		"description": "",
+		"display_name": "Adamantite Axe",
+		"durability": 700,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"material_family": "misc",
+		"repair_cost_multiplier": 0.9,
+		"sprite_id": "axe_adamantite",
+		"stack_size": 1,
+		"stats_bonus": {
+			"agi": 0,
+			"dex": 0,
+			"int": 0,
+			"luk": 0,
+			"str": 0,
+			"vit": 0,
+			"wis": 0
+		},
+		"tags": [],
+		"tier": 7,
+		"tool_damage": 68,
+		"tool_speed": 0.76,
+		"tool_tier": 7,
+		"tool_type": "axe"
+	},
+	"adamantite_ingot": {
+		"description": "A tier 7 ingot used for crafting and progression.",
+		"display_name": "Adamantite Ingot",
+		"item_type": "material",
+		"material_family": "ingot",
+		"stack_size": 99.0,
+		"tags": [
+			"ingot",
+			"smithing",
+			"tier_7"
+		],
+		"tier": 7.0
+	},
+	"adamantite_ore": {
+		"description": "A tier 7 ore used for crafting and progression.",
+		"display_name": "Adamantite Ore",
+		"item_type": "material",
+		"material_family": "ore",
+		"stack_size": 99.0,
+		"tags": [
+			"ore",
+			"mining",
+			"tier_7"
+		],
+		"tier": 7.0
+	},
+	"adamantite_pickaxe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.76,
+			"attack_power": 68.0,
+			"attack_variance": 0.16,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.066,
+			"crit_damage_bonus": 0.25,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 68.0,
+				"tree": 24.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.25,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.45,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.066,
+		"crit_power": 1.75,
+		"display_name": "Adamantite Pickaxe",
+		"durability": 700.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.9,
+		"stack_size": 1.0,
+		"tier": 7.0,
+		"tool_damage": 68.0,
+		"tool_speed": 0.76,
+		"tool_tier": 7.0,
+		"tool_type": "pickaxe"
+	},
+	"angelic_catalyst": {
+		"description": "A tier 7 catalyst used for crafting and progression.",
+		"display_name": "Angelic Catalyst",
+		"item_type": "material",
+		"material_family": "catalyst",
+		"stack_size": 99.0,
+		"tags": [
+			"catalyst",
+			"holy",
+			"tier_7"
+		],
+		"tier": 7.0
+	},
+	"arcane_catalyst": {
+		"description": "A tier 6 catalyst used for crafting and progression.",
+		"display_name": "Arcane Catalyst",
+		"item_type": "material",
+		"material_family": "catalyst",
+		"stack_size": 99.0,
+		"tags": [
+			"catalyst",
+			"alchemy",
+			"tier_6"
+		],
+		"tier": 6.0
+	},
+	"ash_chest": {
+		"building_type": "storage",
+		"description": "A tier 3 storage chest made from ash wood.",
+		"display_name": "Ash Chest",
+		"item_type": "building",
+		"stack_size": 99.0,
+		"storage_slots": 28.0,
+		"tags": [
+			"building",
+			"storage",
+			"tier_3"
+		],
+		"tier": 3.0
+	},
+	"ash_wood": {
+		"description": "A tier 3 wood used for crafting and progression.",
+		"display_name": "Ash Wood",
+		"item_type": "material",
+		"material_family": "wood",
+		"stack_size": 99.0,
+		"tags": [
+			"wood",
+			"lumbering",
+			"tier_3"
+		],
+		"tier": 3.0
+	},
+	"axe": {
+		"alias_for": "wood_axe",
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 1.0,
+			"attack_power": 8.0,
+			"attack_variance": 0.18,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.01,
+			"crit_damage_bonus": 0.02,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 3.0,
+				"tree": 8.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.15,
+				"int": 0.0,
+				"luk": 0.05,
+				"str": 0.55,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.01,
+		"crit_power": 1.52,
+		"description": "A simple axe for chopping trees and fighting weak monsters.",
+		"display_name": "Wooden Axe",
+		"durability": 90.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"material_family": "misc",
+		"repair_cost_multiplier": 0.45,
+		"sprite_id": "wooden_axe",
+		"stack_size": 1.0,
+		"stats_bonus": {
+			"agi": 0.0,
+			"dex": 0.0,
+			"int": 0.0,
+			"luk": 0.0,
+			"str": 0.0,
+			"vit": 0.0,
+			"wis": 0.0
+		},
+		"tags": [],
+		"tier": 1.0,
+		"tool_damage": 8.0,
+		"tool_speed": 1.0,
+		"tool_tier": 1.0,
+		"tool_type": "axe"
+	},
+	"basic_gem": {
+		"description": "A tier 2 gem used for crafting and progression.",
+		"display_name": "Basic Gem",
+		"item_type": "material",
+		"material_family": "gem",
+		"stack_size": 99.0,
+		"tags": [
+			"gem",
+			"mining",
+			"tier_2"
+		],
+		"tier": 2.0
+	},
+	"basic_herb": {
+		"description": "A tier 1 herb used for crafting and progression.",
+		"display_name": "Basic Herb",
+		"item_type": "material",
+		"material_family": "herb",
+		"sprite_id": "herb",
+		"stack_size": 99.0,
+		"tags": [
+			"herb",
+			"alchemy",
+			"tier_1"
+		],
+		"tier": 1.0
+	},
+	"berry": {
+		"description": "A tier 1 food used for crafting and progression.",
+		"display_name": "Berry",
+		"item_type": "material",
+		"material_family": "food",
+		"stack_size": 99.0,
+		"tags": [
+			"food",
+			"foraging",
+			"tier_1"
+		],
+		"tier": 1.0
+	},
+	"bronze_axe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.92,
+			"attack_power": 17.0,
+			"attack_variance": 0.18,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.026,
+			"crit_damage_bonus": 0.08,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 6.0,
+				"tree": 17.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.15,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.55,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.026,
+		"crit_power": 1.58,
+		"display_name": "Bronze Axe",
+		"durability": 190.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.55,
+		"stack_size": 1.0,
+		"tier": 3.0,
+		"tool_damage": 17.0,
+		"tool_speed": 0.92,
+		"tool_tier": 3.0,
+		"tool_type": "axe"
+	},
+	"bronze_ingot": {
+		"description": "A tier 3 ingot used for crafting and progression.",
+		"display_name": "Bronze Ingot",
+		"item_type": "material",
+		"material_family": "ingot",
+		"stack_size": 99.0,
+		"tags": [
+			"ingot",
+			"smithing",
+			"tier_3"
+		],
+		"tier": 3.0
+	},
+	"bronze_pickaxe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.92,
+			"attack_power": 17.0,
+			"attack_variance": 0.18,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.026,
+			"crit_damage_bonus": 0.08,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 17.0,
+				"tree": 6.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.25,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.45,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.026,
+		"crit_power": 1.58,
+		"display_name": "Bronze Pickaxe",
+		"durability": 190.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.55,
+		"stack_size": 1.0,
+		"tier": 3.0,
+		"tool_damage": 17.0,
+		"tool_speed": 0.92,
+		"tool_tier": 3.0,
+		"tool_type": "pickaxe"
+	},
+	"bronze_sword": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.88,
+			"attack_power": 22.0,
+			"attack_variance": 0.14,
+			"can_hit_monsters": true,
+			"can_hit_resources": false,
+			"crit_chance_bonus": 0.041,
+			"crit_damage_bonus": 0.16,
+			"damage_type": "physical",
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.25,
+				"int": 0.0,
+				"luk": 0.1,
+				"str": 0.65,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"display_name": "Bronze Sword",
+		"durability": 200.0,
+		"equipment_slot": "weapon",
+		"item_type": "weapon",
+		"repair_cost_multiplier": 0.55,
+		"stack_size": 1.0,
+		"tier": 3.0
+	},
+	"chest": {
+		"building_type": "storage",
+		"description": "A basic storage chest.",
+		"display_name": "Chest",
+		"item_type": "building",
+		"stack_size": 99.0,
+		"storage_slots": 20.0,
+		"tags": [
+			"building",
+			"storage"
+		],
+		"tier": 1.0
+	},
+	"clay": {
+		"description": "A tier 2 misc used for crafting and progression.",
+		"display_name": "Clay",
+		"item_type": "material",
+		"material_family": "misc",
+		"stack_size": 99.0,
+		"tags": [
+			"clay",
+			"crafting",
+			"tier_2"
+		],
+		"tier": 2.0
+	},
+	"cloth_armor": {
+		"can_repair": true,
+		"defense": 3.0,
+		"display_name": "Cloth Armor",
+		"durability": 80.0,
+		"equipment_slot": "armor",
+		"item_type": "armor",
+		"magic_defense": 1.0,
+		"max_hp_bonus": 5.0,
+		"repair_cost_multiplier": 0.45,
+		"stack_size": 1.0,
+		"tier": 1.0
+	},
+	"coal": {
+		"description": "A tier 2 ore used for crafting and progression.",
+		"display_name": "Coal",
+		"item_type": "material",
+		"material_family": "ore",
+		"sprite_id": "coal",
+		"stack_size": 99.0,
+		"tags": [
+			"ore",
+			"fuel",
+			"mining",
+			"tier_2"
+		],
+		"tier": 2.0
+	},
+	"copper_ingot": {
+		"description": "A tier 3 ingot used for crafting and progression.",
+		"display_name": "Copper Ingot",
+		"item_type": "material",
+		"material_family": "ingot",
+		"stack_size": 99.0,
+		"tags": [
+			"ingot",
+			"smithing",
+			"tier_3"
+		],
+		"tier": 3.0
+	},
+	"copper_ore": {
+		"description": "A tier 3 ore used for crafting and progression.",
+		"display_name": "Copper Ore",
+		"item_type": "material",
+		"material_family": "ore",
+		"stack_size": 99.0,
+		"tags": [
+			"ore",
+			"mining",
+			"tier_3"
+		],
+		"tier": 3.0
+	},
+	"crystal": {
+		"description": "A tier 6 gem used for crafting and progression.",
+		"display_name": "Crystal",
+		"item_type": "material",
+		"material_family": "gem",
+		"stack_size": 99.0,
+		"tags": [
+			"gem",
+			"mining",
+			"tier_6"
+		],
+		"tier": 6.0
+	},
+	"demonic_catalyst": {
+		"description": "A tier 7 catalyst used for crafting and progression.",
+		"display_name": "Demonic Catalyst",
+		"item_type": "material",
+		"material_family": "catalyst",
+		"stack_size": 99.0,
+		"tags": [
+			"catalyst",
+			"profaned",
+			"tier_7"
+		],
+		"tier": 7.0
+	},
+	"demonic_weave": {
+		"description": "A tier 7 cloth used for crafting and progression.",
+		"display_name": "Demonic Weave",
+		"item_type": "material",
+		"material_family": "cloth",
+		"stack_size": 99.0,
+		"tags": [
+			"cloth",
+			"profaned",
+			"tier_7"
+		],
+		"tier": 7.0
+	},
+	"divine_fragment": {
+		"description": "A tier 7 catalyst used for crafting and progression.",
+		"display_name": "Divine Fragment",
+		"item_type": "material",
+		"material_family": "catalyst",
+		"stack_size": 99.0,
+		"tags": [
+			"catalyst",
+			"holy",
+			"tier_7"
+		],
+		"tier": 7.0
+	},
+	"ebony_chest": {
+		"building_type": "storage",
+		"description": "A tier 6 storage chest made from ebony wood.",
+		"display_name": "Ebony Chest",
+		"item_type": "building",
+		"stack_size": 99.0,
+		"storage_slots": 42.0,
+		"tags": [
+			"building",
+			"storage",
+			"tier_6"
+		],
+		"tier": 6.0
+	},
+	"ebony_wood": {
+		"description": "A tier 6 wood used for crafting and progression.",
+		"display_name": "Ebony Wood",
+		"item_type": "material",
+		"material_family": "wood",
+		"stack_size": 99.0,
+		"tags": [
+			"wood",
+			"lumbering",
+			"tier_6"
+		],
+		"tier": 6.0
+	},
+	"fiber": {
+		"description": "A tier 1 fiber used for crafting and progression.",
+		"display_name": "Fiber",
+		"item_type": "material",
+		"material_family": "fiber",
+		"sprite_id": "fiber",
+		"stack_size": 99,
+		"tags": [
+			"fiber",
+			"cloth",
+			"tier_1"
+		],
+		"tier": 1
+	},
+	"fiber_cloth": {
+		"description": "A tier 1 cloth used for crafting and progression.",
+		"display_name": "Fiber Cloth",
+		"item_type": "material",
+		"material_family": "cloth",
+		"stack_size": 99.0,
+		"tags": [
+			"cloth",
+			"fiber",
+			"tier_1"
+		],
+		"tier": 1.0
+	},
+	"fire_herb": {
+		"description": "A tier 4 herb used for crafting and progression.",
+		"display_name": "Fire Herb",
+		"item_type": "material",
+		"material_family": "herb",
+		"stack_size": 99.0,
+		"tags": [
+			"herb",
+			"alchemy",
+			"tier_4"
+		],
+		"tier": 4.0
+	},
+	"gel": {
+		"description": "Sticky material dropped by Slimes.",
+		"display_name": "Gel",
+		"item_type": "material",
+		"material_family": "monster_part",
+		"sprite_id": "green_gel",
+		"stack_size": 99.0,
+		"tags": [
+			"monster_part",
+			"tier_1"
+		],
+		"tier": 1.0
+	},
+	"gold_ore": {
+		"description": "A tier 4 ore used for crafting and progression.",
+		"display_name": "Gold Ore",
+		"item_type": "material",
+		"material_family": "ore",
+		"stack_size": 99.0,
+		"tags": [
+			"ore",
+			"mining",
+			"tier_4"
+		],
+		"tier": 4.0
+	},
+	"hands": {
+		"can_repair": false,
+		"combat": {
+			"attack_cooldown_modifier": 1.0,
+			"attack_power": 2.0,
+			"attack_variance": 0.1,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.0,
+			"crit_damage_bonus": 0.0,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 1.0,
+				"tree": 2.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.1,
+				"int": 0.0,
+				"luk": 0.05,
+				"str": 0.5,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.0,
+		"crit_power": 1.5,
+		"description": "Bare hands. Useful in a pinch.",
+		"display_name": "Hands",
+		"durability": 0.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"material_family": "misc",
+		"repair_cost_multiplier": 0.5,
+		"sprite_id": "hand",
+		"stack_size": 1.0,
+		"stats_bonus": {
+			"agi": 0.0,
+			"dex": 0.0,
+			"int": 0.0,
+			"luk": 0.0,
+			"str": 0.0,
+			"vit": 0.0,
+			"wis": 0.0
+		},
+		"tags": [],
+		"tier": 1.0,
+		"tool_damage": 2.0,
+		"tool_speed": 1.0,
+		"tool_tier": 1.0,
+		"tool_type": "hands"
+	},
+	"iron_axe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.88,
+			"attack_power": 24.0,
+			"attack_variance": 0.16,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.036,
+			"crit_damage_bonus": 0.12,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 8.0,
+				"tree": 24.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.15,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.55,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.036,
+		"crit_power": 1.62,
+		"display_name": "Iron Axe",
+		"durability": 265.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.6,
+		"stack_size": 1.0,
+		"tier": 4.0,
+		"tool_damage": 24.0,
+		"tool_speed": 0.88,
+		"tool_tier": 4.0,
+		"tool_type": "axe"
+	},
+	"iron_ingot": {
+		"description": "A tier 4 ingot used for crafting and progression.",
+		"display_name": "Iron Ingot",
+		"item_type": "material",
+		"material_family": "ingot",
+		"stack_size": 99.0,
+		"tags": [
+			"ingot",
+			"smithing",
+			"tier_4"
+		],
+		"tier": 4.0
+	},
+	"iron_ore": {
+		"description": "A tier 4 ore used for crafting and progression.",
+		"display_name": "Iron Ore",
+		"item_type": "material",
+		"material_family": "ore",
+		"sprite_id": "iron_ore",
+		"stack_size": 999.0,
+		"tags": [
+			"ore",
+			"mining",
+			"tier_4"
+		],
+		"tier": 4.0
+	},
+	"iron_pickaxe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.88,
+			"attack_power": 24.0,
+			"attack_variance": 0.16,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.036,
+			"crit_damage_bonus": 0.12,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 24.0,
+				"tree": 8.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.25,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.45,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.036,
+		"crit_power": 1.62,
+		"display_name": "Iron Pickaxe",
+		"durability": 265.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.6,
+		"stack_size": 1.0,
+		"tier": 4.0,
+		"tool_damage": 24.0,
+		"tool_speed": 0.88,
+		"tool_tier": 4.0,
+		"tool_type": "pickaxe"
+	},
+	"iron_sword": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.84,
+			"attack_power": 31.0,
+			"attack_variance": 0.14,
+			"can_hit_monsters": true,
+			"can_hit_resources": false,
+			"crit_chance_bonus": 0.051,
+			"crit_damage_bonus": 0.2,
+			"damage_type": "physical",
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.25,
+				"int": 0.0,
+				"luk": 0.1,
+				"str": 0.65,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"display_name": "Iron Sword",
+		"durability": 278.0,
+		"equipment_slot": "weapon",
+		"item_type": "weapon",
+		"repair_cost_multiplier": 0.6,
+		"stack_size": 1.0,
+		"tier": 4.0
+	},
+	"ironwood": {
+		"description": "A tier 7 wood used for crafting and progression.",
+		"display_name": "Ironwood",
+		"item_type": "material",
+		"material_family": "wood",
+		"stack_size": 99.0,
+		"tags": [
+			"wood",
+			"lumbering",
+			"tier_7"
+		],
+		"tier": 7.0
+	},
+	"ironwood_chest": {
+		"building_type": "storage",
+		"description": "A tier 7 storage chest made from ironwood.",
+		"display_name": "Ironwood Chest",
+		"item_type": "building",
+		"stack_size": 99.0,
+		"storage_slots": 48.0,
+		"tags": [
+			"building",
+			"storage",
+			"tier_7"
+		],
+		"tier": 7.0
+	},
+	"leather_armor": {
+		"can_repair": true,
+		"defense": 6.0,
+		"display_name": "Leather Armor",
+		"durability": 150.0,
+		"equipment_slot": "armor",
+		"item_type": "armor",
+		"magic_defense": 2.0,
+		"max_hp_bonus": 12.0,
+		"repair_cost_multiplier": 0.5,
+		"stack_size": 1.0,
+		"tier": 2.0
+	},
+	"linen": {
+		"description": "A tier 2 cloth used for crafting and progression.",
+		"display_name": "Linen",
+		"item_type": "material",
+		"material_family": "cloth",
+		"stack_size": 99.0,
+		"tags": [
+			"cloth",
+			"tier_2"
+		],
+		"tier": 2.0
+	},
+	"linen_armor": {
+		"can_repair": true,
+		"defense": 5.0,
+		"display_name": "Linen Armor",
+		"durability": 120.0,
+		"equipment_slot": "armor",
+		"item_type": "armor",
+		"magic_defense": 2.0,
+		"max_hp_bonus": 10.0,
+		"repair_cost_multiplier": 0.5,
+		"stack_size": 1.0,
+		"tier": 2.0
+	},
+	"lucky_charm": {
+		"can_repair": true,
+		"crit_chance_bonus": 0.025,
+		"crit_damage_bonus": 0.1,
+		"display_name": "Lucky Charm",
+		"durability": 70.0,
+		"equipment_slot": "accessory",
+		"flee_bonus": 1.0,
+		"hit_bonus": 2.0,
+		"item_type": "accessory",
+		"repair_cost_multiplier": 0.45,
+		"stack_size": 1.0,
+		"tier": 1.0
+	},
+	"maple_chest": {
+		"building_type": "storage",
+		"description": "A tier 4 storage chest made from maple wood.",
+		"display_name": "Maple Chest",
+		"item_type": "building",
+		"stack_size": 99.0,
+		"storage_slots": 32.0,
+		"tags": [
+			"building",
+			"storage",
+			"tier_4"
+		],
+		"tier": 4.0
+	},
+	"maple_wood": {
+		"description": "A tier 4 wood used for crafting and progression.",
+		"display_name": "Maple Wood",
+		"item_type": "material",
+		"material_family": "wood",
+		"stack_size": 99.0,
+		"tags": [
+			"wood",
+			"lumbering",
+			"tier_4"
+		],
+		"tier": 4.0
+	},
+	"mooncloth": {
+		"description": "A tier 6 cloth used for crafting and progression.",
+		"display_name": "Mooncloth",
+		"item_type": "material",
+		"material_family": "cloth",
+		"stack_size": 99.0,
+		"tags": [
+			"cloth",
+			"tier_6"
+		],
+		"tier": 6.0
+	},
+	"moonstone": {
+		"description": "A tier 6 gem used for crafting and progression.",
+		"display_name": "Moonstone",
+		"item_type": "material",
+		"material_family": "gem",
+		"stack_size": 99.0,
+		"tags": [
+			"gem",
+			"mining",
+			"tier_6"
+		],
+		"tier": 6.0
+	},
+	"oak_chest": {
+		"building_type": "storage",
+		"description": "A sturdier storage chest made from oak.",
+		"display_name": "Oak Chest",
+		"item_type": "building",
+		"stack_size": 99.0,
+		"storage_slots": 24.0,
+		"tags": [
+			"building",
+			"storage",
+			"tier_2"
+		],
+		"tier": 2.0
+	},
+	"oak_wood": {
+		"description": "A tier 2 wood used for crafting and progression.",
+		"display_name": "Oak Wood",
+		"item_type": "material",
+		"material_family": "wood",
+		"stack_size": 99.0,
+		"tags": [
+			"wood",
+			"lumbering",
+			"tier_2"
+		],
+		"tier": 2.0
+	},
+	"obsidian": {
+		"description": "A tier 5 gem used for crafting and progression.",
+		"display_name": "Obsidian",
+		"item_type": "material",
+		"material_family": "gem",
+		"stack_size": 99.0,
+		"tags": [
+			"gem",
+			"mining",
+			"tier_5"
+		],
+		"tier": 5.0
+	},
+	"pickaxe": {
+		"alias_for": "wood_pickaxe",
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 1.0,
+			"attack_power": 8.0,
+			"attack_variance": 0.18,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.01,
+			"crit_damage_bonus": 0.02,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 8.0,
+				"tree": 3.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.25,
+				"int": 0.0,
+				"luk": 0.05,
+				"str": 0.45,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.01,
+		"crit_power": 1.52,
+		"description": "A simple pickaxe for breaking rocks and fighting weak monsters.",
+		"display_name": "Wooden Pickaxe",
+		"durability": 90.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"material_family": "misc",
+		"repair_cost_multiplier": 0.45,
+		"sprite_id": "wooden_pickaxe",
+		"stack_size": 1.0,
+		"stats_bonus": {
+			"agi": 0.0,
+			"dex": 0.0,
+			"int": 0.0,
+			"luk": 0.0,
+			"str": 0.0,
+			"vit": 0.0,
+			"wis": 0.0
+		},
+		"tags": [],
+		"tier": 1.0,
+		"tool_damage": 8.0,
+		"tool_speed": 1.0,
+		"tool_tier": 1.0,
+		"tool_type": "pickaxe"
+	},
+	"profaned_crystal": {
+		"description": "A tier 7 catalyst used for crafting and progression.",
+		"display_name": "Profaned Crystal",
+		"item_type": "material",
+		"material_family": "catalyst",
+		"stack_size": 99.0,
+		"tags": [
+			"catalyst",
+			"profaned",
+			"tier_7"
+		],
+		"tier": 7.0
+	},
+	"rare_cooking_ingredient": {
+		"description": "A tier 5 food used for crafting and progression.",
+		"display_name": "Rare Cooking Ingredient",
+		"item_type": "material",
+		"material_family": "food",
+		"stack_size": 99.0,
+		"tags": [
+			"food",
+			"cooking",
+			"tier_5"
+		],
+		"tier": 5.0
+	},
+	"refined_iron": {
+		"description": "A tier 5 ingot used for crafting and progression.",
+		"display_name": "Refined Iron",
+		"item_type": "material",
+		"material_family": "ingot",
+		"stack_size": 99.0,
+		"tags": [
+			"ingot",
+			"smithing",
+			"tier_5"
+		],
+		"tier": 5.0
+	},
+	"reinforced_cloth": {
+		"description": "A tier 3 cloth used for crafting and progression.",
+		"display_name": "Reinforced Cloth",
+		"item_type": "material",
+		"material_family": "cloth",
+		"stack_size": 99.0,
+		"tags": [
+			"cloth",
+			"tier_3"
+		],
+		"tier": 3.0
+	},
+	"resin": {
+		"description": "A tier 3 misc used for crafting and progression.",
+		"display_name": "Resin",
+		"item_type": "material",
+		"material_family": "misc",
+		"stack_size": 99.0,
+		"tags": [
+			"wood",
+			"crafting",
+			"tier_3"
+		],
+		"tier": 3.0
+	},
+	"runic_cloth": {
+		"description": "A tier 5 cloth used for crafting and progression.",
+		"display_name": "Runic Cloth",
+		"item_type": "material",
+		"material_family": "cloth",
+		"stack_size": 99.0,
+		"tags": [
+			"cloth",
+			"tier_5"
+		],
+		"tier": 5.0
+	},
+	"sacred_herb": {
+		"description": "A tier 6 herb used for crafting and progression.",
+		"display_name": "Sacred Herb",
+		"item_type": "material",
+		"material_family": "herb",
+		"stack_size": 99.0,
+		"tags": [
+			"herb",
+			"alchemy",
+			"tier_6"
+		],
+		"tier": 6.0
+	},
+	"seraphic_weave": {
+		"description": "A tier 7 cloth used for crafting and progression.",
+		"display_name": "Seraphic Weave",
+		"item_type": "material",
+		"material_family": "cloth",
+		"stack_size": 99.0,
+		"tags": [
+			"cloth",
+			"holy",
+			"tier_7"
+		],
+		"tier": 7.0
+	},
+	"silkweave": {
+		"description": "A tier 4 cloth used for crafting and progression.",
+		"display_name": "Silkweave",
+		"item_type": "material",
+		"material_family": "cloth",
+		"stack_size": 99.0,
+		"tags": [
+			"cloth",
+			"tier_4"
+		],
+		"tier": 4.0
+	},
+	"silver_ore": {
+		"description": "A tier 4 ore used for crafting and progression.",
+		"display_name": "Silver Ore",
+		"item_type": "material",
+		"material_family": "ore",
+		"stack_size": 99.0,
+		"tags": [
+			"ore",
+			"mining",
+			"tier_4"
+		],
+		"tier": 4.0
+	},
+	"steel_axe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.84,
+			"attack_power": 34.0,
+			"attack_variance": 0.16,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.046,
+			"crit_damage_bonus": 0.16,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 12.0,
+				"tree": 34.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.15,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.55,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.046,
+		"crit_power": 1.66,
+		"display_name": "Steel Axe",
+		"durability": 370.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.68,
+		"stack_size": 1.0,
+		"tier": 5.0,
+		"tool_damage": 34.0,
+		"tool_speed": 0.84,
+		"tool_tier": 5.0,
+		"tool_type": "axe"
+	},
+	"steel_ingot": {
+		"description": "A tier 5 ingot used for crafting and progression.",
+		"display_name": "Steel Ingot",
+		"item_type": "material",
+		"material_family": "ingot",
+		"stack_size": 99.0,
+		"tags": [
+			"ingot",
+			"smithing",
+			"tier_5"
+		],
+		"tier": 5.0
+	},
+	"steel_pickaxe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.84,
+			"attack_power": 34.0,
+			"attack_variance": 0.16,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.046,
+			"crit_damage_bonus": 0.16,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 34.0,
+				"tree": 12.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.25,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.45,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.046,
+		"crit_power": 1.66,
+		"display_name": "Steel Pickaxe",
+		"durability": 370.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.68,
+		"stack_size": 1.0,
+		"tier": 5.0,
+		"tool_damage": 34.0,
+		"tool_speed": 0.84,
+		"tool_tier": 5.0,
+		"tool_type": "pickaxe"
+	},
+	"stone": {
+		"description": "Basic material gathered from rocks.",
+		"display_name": "Stone",
+		"item_type": "material",
+		"material_family": "misc",
+		"sprite_id": "stone",
+		"stack_size": 999.0,
+		"tags": [
+			"stone",
+			"mining",
+			"tier_2"
+		],
+		"tier": 2.0
+	},
+	"stone_axe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.96,
+			"attack_power": 12.0,
+			"attack_variance": 0.18,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.018,
+			"crit_damage_bonus": 0.05,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 4.0,
+				"tree": 12.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.15,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.55,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.018,
+		"crit_power": 1.55,
+		"display_name": "Stone Axe",
+		"durability": 135.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.5,
+		"stack_size": 1.0,
+		"tier": 2.0,
+		"tool_damage": 12.0,
+		"tool_speed": 0.96,
+		"tool_tier": 2.0,
+		"tool_type": "axe"
+	},
+	"stone_loose": {
+		"description": "A tier 1 misc used for crafting and progression.",
+		"display_name": "Loose Stone",
+		"item_type": "material",
+		"material_family": "misc",
+		"stack_size": 99.0,
+		"tags": [
+			"stone",
+			"foraging",
+			"tier_1"
+		],
+		"tier": 1.0
+	},
+	"stone_pickaxe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.96,
+			"attack_power": 12.0,
+			"attack_variance": 0.18,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.018,
+			"crit_damage_bonus": 0.05,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 12.0,
+				"tree": 4.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.25,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.45,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.018,
+		"crit_power": 1.55,
+		"display_name": "Stone Pickaxe",
+		"durability": 135.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.5,
+		"stack_size": 1.0,
+		"tier": 2.0,
+		"tool_damage": 12.0,
+		"tool_speed": 0.96,
+		"tool_tier": 2.0,
+		"tool_type": "pickaxe"
+	},
+	"stone_sword": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.92,
+			"attack_power": 16.0,
+			"attack_variance": 0.16,
+			"can_hit_monsters": true,
+			"can_hit_resources": false,
+			"crit_chance_bonus": 0.025,
+			"crit_damage_bonus": 0.08,
+			"damage_type": "physical",
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.25,
+				"int": 0.0,
+				"luk": 0.08,
+				"str": 0.6,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"display_name": "Stone Sword",
+		"durability": 140.0,
+		"equipment_slot": "weapon",
+		"item_type": "weapon",
+		"repair_cost_multiplier": 0.5,
+		"stack_size": 1.0,
+		"tier": 2.0
+	},
+	"tin_ore": {
+		"description": "A tier 3 ore used for crafting and progression.",
+		"display_name": "Tin Ore",
+		"item_type": "material",
+		"material_family": "ore",
+		"stack_size": 99.0,
+		"tags": [
+			"ore",
+			"mining",
+			"tier_3"
+		],
+		"tier": 3.0
+	},
+	"titanium_axe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.8,
+			"attack_power": 48.0,
+			"attack_variance": 0.16,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.056,
+			"crit_damage_bonus": 0.2,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 17.0,
+				"tree": 48.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.15,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.55,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.056,
+		"crit_power": 1.7,
+		"display_name": "Titanium Axe",
+		"durability": 510.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.78,
+		"stack_size": 1.0,
+		"tier": 6.0,
+		"tool_damage": 48.0,
+		"tool_speed": 0.8,
+		"tool_tier": 6.0,
+		"tool_type": "axe"
+	},
+	"titanium_ingot": {
+		"description": "A tier 6 ingot used for crafting and progression.",
+		"display_name": "Titanium Ingot",
+		"item_type": "material",
+		"material_family": "ingot",
+		"stack_size": 99.0,
+		"tags": [
+			"ingot",
+			"smithing",
+			"tier_6"
+		],
+		"tier": 6.0
+	},
+	"titanium_ore": {
+		"description": "A tier 6 ore used for crafting and progression.",
+		"display_name": "Titanium Ore",
+		"item_type": "material",
+		"material_family": "ore",
+		"stack_size": 99.0,
+		"tags": [
+			"ore",
+			"mining",
+			"tier_6"
+		],
+		"tier": 6.0
+	},
+	"titanium_pickaxe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 0.8,
+			"attack_power": 48.0,
+			"attack_variance": 0.16,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.056,
+			"crit_damage_bonus": 0.2,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 48.0,
+				"tree": 17.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.25,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.45,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.056,
+		"crit_power": 1.7,
+		"display_name": "Titanium Pickaxe",
+		"durability": 510.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.78,
+		"stack_size": 1.0,
+		"tier": 6.0,
+		"tool_damage": 48.0,
+		"tool_speed": 0.8,
+		"tool_tier": 6.0,
+		"tool_type": "pickaxe"
+	},
+	"tungsten_ingot": {
+		"description": "A tier 6 ingot used for crafting and progression.",
+		"display_name": "Tungsten Ingot",
+		"item_type": "material",
+		"material_family": "ingot",
+		"stack_size": 99.0,
+		"tags": [
+			"ingot",
+			"smithing",
+			"tier_6"
+		],
+		"tier": 6.0
+	},
+	"tungsten_ore": {
+		"description": "A tier 6 ore used for crafting and progression.",
+		"display_name": "Tungsten Ore",
+		"item_type": "material",
+		"material_family": "ore",
+		"stack_size": 99.0,
+		"tags": [
+			"ore",
+			"mining",
+			"tier_6"
+		],
+		"tier": 6.0
+	},
+	"walnut_chest": {
+		"building_type": "storage",
+		"description": "A tier 5 storage chest made from walnut wood.",
+		"display_name": "Walnut Chest",
+		"item_type": "building",
+		"stack_size": 99.0,
+		"storage_slots": 36.0,
+		"tags": [
+			"building",
+			"storage",
+			"tier_5"
+		],
+		"tier": 5.0
+	},
+	"walnut_wood": {
+		"description": "A tier 5 wood used for crafting and progression.",
+		"display_name": "Walnut Wood",
+		"item_type": "material",
+		"material_family": "wood",
+		"stack_size": 99.0,
+		"tags": [
+			"wood",
+			"lumbering",
+			"tier_5"
+		],
+		"tier": 5.0
+	},
+	"wild_herb": {
+		"description": "A tier 3 herb used for crafting and progression.",
+		"display_name": "Wild Herb",
+		"item_type": "material",
+		"material_family": "herb",
+		"stack_size": 99.0,
+		"tags": [
+			"herb",
+			"alchemy",
+			"tier_3"
+		],
+		"tier": 3.0
+	},
+	"wood": {
+		"description": "Basic material gathered from trees.",
+		"display_name": "Wood",
+		"item_type": "material",
+		"material_family": "wood",
+		"sprite_id": "wood",
+		"stack_size": 999.0,
+		"tags": [
+			"wood",
+			"lumbering",
+			"tier_1"
+		],
+		"tier": 1.0
+	},
+	"wood_axe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 1.0,
+			"attack_power": 8.0,
+			"attack_variance": 0.18,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.01,
+			"crit_damage_bonus": 0.02,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 3.0,
+				"tree": 8.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.15,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.55,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.01,
+		"crit_power": 1.52,
+		"display_name": "Wood Axe",
+		"durability": 90.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.45,
+		"stack_size": 1.0,
+		"tier": 1.0,
+		"tool_damage": 8.0,
+		"tool_speed": 1.0,
+		"tool_tier": 1.0,
+		"tool_type": "axe"
+	},
+	"wood_pickaxe": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 1.0,
+			"attack_power": 8.0,
+			"attack_variance": 0.18,
+			"can_hit_monsters": true,
+			"can_hit_resources": true,
+			"crit_chance_bonus": 0.01,
+			"crit_damage_bonus": 0.02,
+			"damage_type": "physical",
+			"resource_damage": {
+				"rock": 8.0,
+				"tree": 3.0
+			},
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.25,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.45,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"crit_chance": 0.01,
+		"crit_power": 1.52,
+		"display_name": "Wood Pickaxe",
+		"durability": 90.0,
+		"equipment_slot": "tool",
+		"item_type": "tool",
+		"repair_cost_multiplier": 0.45,
+		"stack_size": 1.0,
+		"tier": 1.0,
+		"tool_damage": 8.0,
+		"tool_speed": 1.0,
+		"tool_tier": 1.0,
+		"tool_type": "pickaxe"
+	},
+	"wooden_sword": {
+		"can_repair": true,
+		"combat": {
+			"attack_cooldown_modifier": 1.0,
+			"attack_power": 10.0,
+			"attack_variance": 0.18,
+			"can_hit_monsters": true,
+			"can_hit_resources": false,
+			"crit_chance_bonus": 0.012,
+			"crit_damage_bonus": 0.04,
+			"damage_type": "physical",
+			"stat_scaling": {
+				"agi": 0.0,
+				"dex": 0.2,
+				"int": 0.0,
+				"luk": 0.06,
+				"str": 0.55,
+				"vit": 0.0,
+				"wis": 0.0
+			}
+		},
+		"display_name": "Wooden Sword",
+		"durability": 90.0,
+		"equipment_slot": "weapon",
+		"item_type": "weapon",
+		"repair_cost_multiplier": 0.45,
+		"stack_size": 1.0,
+		"tier": 1.0
+	}
+}

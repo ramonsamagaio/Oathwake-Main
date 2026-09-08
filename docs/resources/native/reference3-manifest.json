@@ -1,0 +1,58 @@
+{
+  "source": "C:\\Users\\ramon\\AppData\\Local\\Temp\\codex-clipboard-ce7943f7-f160-434e-be16-1bc78a15f2c0.png",
+  "method": "1:1 source-guided native tracing, palette mapping and pixel cleanup; no resampling",
+  "source_to_canvas_offset": [
+    -8,
+    0
+  ],
+  "cut_y": 137,
+  "ground_anchor": [
+    64,
+    175
+  ],
+  "status": "visual review pending; not installed in game",
+  "colour_specks_corrected": 376,
+  "alpha_components": 1,
+  "assets": [
+    {
+      "name": "reference3-oak",
+      "size": [
+        128,
+        192
+      ],
+      "rgba_sha256": "bd4eb09e354c03366aba8fdbc2a66dc31485869983d85cc3b22a3b865ebdc24b",
+      "native_pixel_edits": 10242,
+      "colors": 17
+    },
+    {
+      "name": "reference3-oak-crown",
+      "size": [
+        128,
+        192
+      ],
+      "rgba_sha256": "fa8a05a8239f2251523a4970f1380bcf9d0b6fde6e69ece6206780f0689e1d49",
+      "native_pixel_edits": 8131,
+      "colors": 15
+    },
+    {
+      "name": "reference3-oak-trunk",
+      "size": [
+        128,
+        192
+      ],
+      "rgba_sha256": "d242782bc4ed016702052ff5e4532de56ee7692993200092a33255e1ed08af32",
+      "native_pixel_edits": 2111,
+      "colors": 17
+    },
+    {
+      "name": "reference3-oak-parts",
+      "size": [
+        416,
+        208
+      ],
+      "rgba_sha256": "a7bea1e2130cb0e341983db4d06fcb98921199f71a63d97594ad4ed6b693fb3d",
+      "native_pixel_edits": 20484,
+      "colors": 17
+    }
+  ]
+}

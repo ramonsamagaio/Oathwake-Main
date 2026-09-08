@@ -27,6 +27,9 @@ const CARDINAL_DIRECTIONS := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector
 @export var stair_auto_trigger_distance := 22.0
 @export var stair_use_cooldown_seconds := 0.8
 @export var keep_ground_visible_above_ground := true
+## Liga o log de custo por etapa da troca de andar (ms). Deixe desligado em
+## gameplay normal; ligue para medir uma regressão antes de otimizar no escuro.
+@export var log_floor_change_timings := false
 
 var current_floor := 0
 var floor_buildings: Dictionary = {}
@@ -52,6 +55,22 @@ var _stair_use_cooldown := 0.0
 var _connected_save_button: Button
 var _connected_load_button: Button
 
+# --- PERF: estado de suporte às otimizações de troca de andar ---
+const FLOOR_SAVE_DEBOUNCE_SEC := 0.35
+var _save_queued := false
+var _save_document_cache: Dictionary = {}
+var _save_document_cache_path := ""
+var _last_capture_frame := -1
+# Ghosts dos andares inferiores: um Node2D cacheado por andar em vez de
+# reinstanciar toda cena de prédio de todos os andares abaixo a cada troca.
+var _lower_ghost_cache: Dictionary = {}
+var _lower_ghost_dirty: Dictionary = {}
+# Lista achatada de CollisionObject2D por raiz de mundo, para não percorrer
+# recursivamente Resources/Enemies/NPCs inteiros a cada troca de andar.
+var _collision_cache: Dictionary = {}
+# -1 = ainda não aplicado, 0 = último passe foi "fora do térreo", 1 = térreo.
+var _world_state_on_ground := -1
+
 
 func _ready() -> void:
 	process_priority = 1000
@@ -68,6 +87,11 @@ func _bootstrap() -> void:
 		push_warning("MultiFloorBuildManager could not find the active BuildSystem yet.")
 		return
 
+	_clear_lower_ghost_cache()
+	_world_state_on_ground = -1
+	invalidate_collision_cache()
+	invalidate_save_document_cache()
+	invalidate_floor_capture()
 	_load_state_from_active_slot()
 	if not floor_buildings.has(_floor_key(0)):
 		_set_floor_buildings(0, _capture_active_buildings())
@@ -76,7 +100,7 @@ func _bootstrap() -> void:
 
 	_load_floor_into_build_system(current_floor)
 	_rebuild_floor_visuals()
-	_apply_world_floor_state()
+	_apply_world_floor_state(true)
 	_ensure_player_has_valid_position()
 	_connect_manual_save_controls()
 	_last_valid_player_position = _player.global_position if _player != null else Vector2.ZERO
@@ -155,19 +179,45 @@ func try_change_floor(target_floor: int, landing_cell := INVALID_CELL) -> bool:
 		return false
 
 	var previous_floor := current_floor
+	var stage_usec := Time.get_ticks_usec()
+	var timings: Dictionary = {}
+
 	_capture_current_floor()
+	if log_floor_change_timings:
+		timings["1_capture"] = (Time.get_ticks_usec() - stage_usec) / 1000.0
+		stage_usec = Time.get_ticks_usec()
+
 	current_floor = target_floor
 	_load_floor_into_build_system(current_floor)
+	if log_floor_change_timings:
+		timings["2_build_system"] = (Time.get_ticks_usec() - stage_usec) / 1000.0
+		stage_usec = Time.get_ticks_usec()
+
 	_rebuild_floor_visuals()
+	if log_floor_change_timings:
+		timings["3_visuals"] = (Time.get_ticks_usec() - stage_usec) / 1000.0
+		stage_usec = Time.get_ticks_usec()
+
 	_apply_world_floor_state()
+	if log_floor_change_timings:
+		timings["4_world_state"] = (Time.get_ticks_usec() - stage_usec) / 1000.0
+		stage_usec = Time.get_ticks_usec()
 
 	if _player != null and landing_cell != INVALID_CELL:
 		_player.global_position = _cell_to_global_position(landing_cell)
 	_ensure_player_has_valid_position()
 	_last_valid_player_position = _player.global_position if _player != null else Vector2.ZERO
 	_stair_use_cooldown = stair_use_cooldown_seconds
-	_save_state_to_active_slot()
+	# O save completo (ler JSON do disco + parse + duplicate + stringify +
+	# escrever) acontecia no mesmo frame do degrau. Agora é debounced.
+	_queue_save_state()
 	floor_changed.emit(previous_floor, current_floor)
+	if log_floor_change_timings:
+		timings["5_save_emit"] = (Time.get_ticks_usec() - stage_usec) / 1000.0
+		var total := 0.0
+		for value in timings.values():
+			total += float(value)
+		print("[floor %d -> %d] total %.2f ms | %s" % [previous_floor, current_floor, total, timings])
 	return true
 
 
@@ -232,12 +282,12 @@ func get_floor_surfaces(floor_index: int) -> Array:
 
 
 func get_all_floor_data() -> Dictionary:
-	_capture_current_floor()
+	_capture_current_floor(true)
 	return {"buildings": floor_buildings.duplicate(true), "surfaces": floor_surfaces.duplicate(true)}
 
 
 func save_now() -> void:
-	_capture_current_floor()
+	_capture_current_floor(true)
 	_save_state_to_active_slot()
 
 
@@ -287,7 +337,7 @@ func _try_place_building() -> bool:
 			_restore_failed_campfire_item_payment()
 		return false
 
-	_capture_current_floor()
+	_capture_current_floor(true)
 	if building_type == BUILD_TYPE_STAIRS_UP:
 		_create_stair_link(current_floor, tile_position)
 	_rebuild_floor_visuals()
@@ -312,7 +362,7 @@ func _try_remove_at_cursor() -> bool:
 			return false
 		if building_type == BUILD_TYPE_CAMPFIRE:
 			_convert_campfire_refund_to_item()
-		_capture_current_floor()
+		_capture_current_floor(true)
 		if building_type == BUILD_TYPE_STAIRS_UP:
 			_remove_stair_link(current_floor, tile_position)
 		_rebuild_floor_visuals()
@@ -416,9 +466,21 @@ func _call_build_system_can_place(tile_position: Vector2i, building_type: String
 	return can_place
 
 
-func _capture_current_floor() -> void:
-	if _build_system != null and is_instance_valid(_build_system):
-		_set_floor_buildings(current_floor, _capture_active_buildings())
+func _capture_current_floor(force := false) -> void:
+	if _build_system == null or not is_instance_valid(_build_system):
+		return
+	# get_built_buildings() varre o tilemap inteiro e faz duplicate(true) do
+	# resultado. Uma troca de andar chamava isso 2-3x no mesmo frame
+	# (try_use_nearby_stairs -> try_change_floor -> getters públicos).
+	var frame := Engine.get_process_frames()
+	if not force and frame == _last_capture_frame:
+		return
+	_last_capture_frame = frame
+	_set_floor_buildings(current_floor, _capture_active_buildings())
+
+
+func invalidate_floor_capture() -> void:
+	_last_capture_frame = -1
 
 
 func _capture_active_buildings() -> Array:
@@ -443,7 +505,14 @@ func _split_legacy_floor_entries(floor_index: int, entries: Array) -> Array:
 
 
 func _load_floor_into_build_system(floor_index: int) -> void:
-	if _build_system != null and _build_system.has_method("load_built_buildings"):
+	if _build_system == null:
+		return
+	# Andares residentes: o BuildSystem guarda o container de cada andar e só
+	# troca qual está na árvore. Voltar ao térreo passa a custar o mesmo que
+	# subir, mesmo com o térreo tendo muito mais prédios que os andares de cima.
+	if _build_system.has_method("activate_floor_buildings"):
+		_build_system.call("activate_floor_buildings", floor_index, _get_floor_buildings(floor_index))
+	elif _build_system.has_method("load_built_buildings"):
 		_build_system.call("load_built_buildings", _get_floor_buildings(floor_index))
 
 
@@ -619,6 +688,7 @@ func _get_floor_buildings(floor_index: int) -> Array:
 
 func _set_floor_buildings(floor_index: int, buildings: Array) -> void:
 	floor_buildings[_floor_key(floor_index)] = buildings.duplicate(true)
+	_invalidate_lower_ghost_floor(floor_index)
 
 
 func _get_floor_surfaces(floor_index: int) -> Array:
@@ -628,6 +698,7 @@ func _get_floor_surfaces(floor_index: int) -> Array:
 
 func _set_floor_surfaces(floor_index: int, surfaces: Array) -> void:
 	floor_surfaces[_floor_key(floor_index)] = surfaces.duplicate(true)
+	_invalidate_lower_ghost_floor(floor_index)
 
 
 func _has_surface(floor_index: int, tile_position: Vector2i) -> bool:
@@ -760,20 +831,69 @@ func _rebuild_surface_visuals() -> void:
 
 
 func _rebuild_lower_floor_visuals() -> void:
-	_clear_children(_lower_floor_visual_root)
+	# Antes: _clear_children() em tudo e, para CADA andar abaixo do atual, um
+	# load()+instantiate() de cena completa por prédio, todo frame de troca.
+	# Num prédio de 3 andares com 200 peças isso era ~600 instanciações de cena
+	# no frame do degrau. Agora cada andar vira um Node2D cacheado e a troca é
+	# apenas um toggle de visible.
 	if _lower_floor_visual_root == null:
 		return
 	_lower_floor_visual_root.visible = current_floor > 0
 	if current_floor <= 0:
+		_hide_all_lower_ghost_floors()
 		return
 	for floor_index in range(current_floor):
-		if floor_index > 0:
-			for surface_variant in _get_floor_surfaces(floor_index):
-				if surface_variant is Dictionary:
-					_create_surface_polygon(_lower_floor_visual_root, _entry_cell(surface_variant), LOWER_FLOOR_SURFACE_COLOR)
-		for building_variant in _get_floor_buildings(floor_index):
-			if building_variant is Dictionary:
-				_create_lower_building_ghost(building_variant)
+		_ensure_lower_ghost_floor(floor_index)
+	for cached_key in _lower_ghost_cache.keys():
+		var cached_root := _lower_ghost_cache.get(cached_key) as Node2D
+		if cached_root != null and is_instance_valid(cached_root):
+			cached_root.visible = int(cached_key) < current_floor
+
+
+func _hide_all_lower_ghost_floors() -> void:
+	for cached_key in _lower_ghost_cache.keys():
+		var cached_root := _lower_ghost_cache.get(cached_key) as Node2D
+		if cached_root != null and is_instance_valid(cached_root):
+			cached_root.visible = false
+
+
+func _ensure_lower_ghost_floor(floor_index: int) -> void:
+	var cached := _lower_ghost_cache.get(floor_index) as Node2D
+	var is_dirty := bool(_lower_ghost_dirty.get(floor_index, false))
+	if cached != null and is_instance_valid(cached) and not is_dirty:
+		return
+	if cached != null and is_instance_valid(cached):
+		cached.queue_free()
+
+	var floor_root := Node2D.new()
+	floor_root.name = "LowerGhostFloor_%d" % floor_index
+	floor_root.y_sort_enabled = true
+	floor_root.visible = false
+	_lower_floor_visual_root.add_child(floor_root)
+
+	if floor_index > 0:
+		for surface_variant in _get_floor_surfaces(floor_index):
+			if surface_variant is Dictionary:
+				_create_surface_polygon(floor_root, _entry_cell(surface_variant), LOWER_FLOOR_SURFACE_COLOR)
+	for building_variant in _get_floor_buildings(floor_index):
+		if building_variant is Dictionary:
+			_create_lower_building_ghost(floor_root, building_variant)
+
+	_lower_ghost_cache[floor_index] = floor_root
+	_lower_ghost_dirty.erase(floor_index)
+
+
+func _invalidate_lower_ghost_floor(floor_index: int) -> void:
+	_lower_ghost_dirty[floor_index] = true
+
+
+func _clear_lower_ghost_cache() -> void:
+	for cached_key in _lower_ghost_cache.keys():
+		var cached_root := _lower_ghost_cache.get(cached_key) as Node2D
+		if cached_root != null and is_instance_valid(cached_root):
+			cached_root.queue_free()
+	_lower_ghost_cache.clear()
+	_lower_ghost_dirty.clear()
 
 
 func _create_surface_polygon(parent: Node2D, cell: Vector2i, color: Color) -> void:
@@ -787,7 +907,7 @@ func _create_surface_polygon(parent: Node2D, cell: Vector2i, color: Color) -> vo
 	visual.global_position = _cell_to_global_position(cell)
 
 
-func _create_lower_building_ghost(entry: Dictionary) -> void:
+func _create_lower_building_ghost(parent: Node2D, entry: Dictionary) -> void:
 	var building_type := str(entry.get("type", ""))
 	if building_type.is_empty():
 		return
@@ -799,9 +919,11 @@ func _create_lower_building_ghost(entry: Dictionary) -> void:
 		return
 	var ghost := (packed as PackedScene).instantiate()
 	ghost.set_meta("multifloor_ghost", true)
-	if _object_has_property(ghost, "building_id"):
+	# _object_has_property() montava a get_property_list() inteira do nó por
+	# ghost. O operador `in` faz a mesma checagem sem alocar a lista.
+	if "building_id" in ghost:
 		ghost.set("building_id", building_type)
-	_lower_floor_visual_root.add_child(ghost)
+	parent.add_child(ghost)
 	if ghost is Node2D:
 		(ghost as Node2D).global_position = _cell_to_global_position(_entry_cell(entry))
 	if ghost.has_method("set_building_id"):
@@ -863,8 +985,13 @@ func _clear_children(root: Node) -> void:
 		child.queue_free()
 
 
-func _apply_world_floor_state() -> void:
+func _apply_world_floor_state(force := false) -> void:
 	var on_ground := current_floor == 0
+	# Ir do 1 pro 2 não muda nada aqui: os dois são "fora do térreo". Sem este
+	# guard, cada degrau repetia o passe inteiro sobre Resources/Enemies/NPCs.
+	if not force and _world_state_on_ground == int(on_ground):
+		return
+	_world_state_on_ground = int(on_ground)
 	if _obstacle_layer != null:
 		_obstacle_layer.visible = on_ground or keep_ground_visible_above_ground
 		_obstacle_layer.set("collision_enabled", on_ground)
@@ -882,16 +1009,59 @@ func _set_world_root_active(root: Node, active: bool) -> void:
 	_set_collision_tree_active(root, active)
 
 
-func _set_collision_tree_active(node: Node, active: bool) -> void:
+func _set_collision_tree_active(root: Node, active: bool) -> void:
+	# Antes: descida recursiva pela árvore inteira de Resources/Enemies/NPCs a
+	# cada troca de andar, com has_meta/set_meta/get_meta por nó. Num mundo
+	# procedural são milhares de nós visitados por degrau. Agora a lista de
+	# CollisionObject2D é achatada e cacheada, com os layers originais guardados
+	# junto — nenhuma chamada de meta no caminho quente.
+	var entries := _get_cached_collision_entries(root)
+	for entry_variant in entries:
+		var entry: Dictionary = entry_variant
+		var collision_object := entry.get("node") as CollisionObject2D
+		if collision_object == null or not is_instance_valid(collision_object):
+			continue
+		collision_object.collision_layer = int(entry.get("layer", 0)) if active else 0
+		collision_object.collision_mask = int(entry.get("mask", 0)) if active else 0
+
+
+func _get_cached_collision_entries(root: Node) -> Array:
+	var cache_id := root.get_instance_id()
+	var cached_value: Variant = _collision_cache.get(cache_id, null)
+	var child_count := root.get_child_count()
+	if cached_value is Dictionary:
+		var cached: Dictionary = cached_value
+		# O mundo cria e destrói recursos em runtime. Reconstruir a lista só
+		# quando a contagem de filhos da raiz muda mantém isso barato e correto
+		# no caso comum (nada nasceu nem morreu desde a última troca).
+		if int(cached.get("child_count", -1)) == child_count:
+			return cached.get("entries", []) as Array
+
+	var entries: Array = []
+	_collect_collision_entries(root, entries)
+	_collision_cache[cache_id] = {"child_count": child_count, "entries": entries}
+	return entries
+
+
+func _collect_collision_entries(node: Node, entries: Array) -> void:
 	if node is CollisionObject2D:
 		var collision_object := node as CollisionObject2D
+		# Só grava o layer original se ele ainda não foi zerado por nós, senão
+		# um recache com o andar ativo em cima gravaria 0 como "original".
 		if not collision_object.has_meta("multifloor_original_layer"):
 			collision_object.set_meta("multifloor_original_layer", collision_object.collision_layer)
 			collision_object.set_meta("multifloor_original_mask", collision_object.collision_mask)
-		collision_object.collision_layer = int(collision_object.get_meta("multifloor_original_layer", 0)) if active else 0
-		collision_object.collision_mask = int(collision_object.get_meta("multifloor_original_mask", 0)) if active else 0
+		entries.append({
+			"node": collision_object,
+			"layer": int(collision_object.get_meta("multifloor_original_layer", 0)),
+			"mask": int(collision_object.get_meta("multifloor_original_mask", 0)),
+		})
 	for child in node.get_children():
-		_set_collision_tree_active(child, active)
+		_collect_collision_entries(child, entries)
+
+
+func invalidate_collision_cache() -> void:
+	_collision_cache.clear()
 
 
 func _is_build_mode_enabled() -> bool:
@@ -957,7 +1127,7 @@ func _reload_after_main_load() -> void:
 		current_floor = 0
 	_load_floor_into_build_system(current_floor)
 	_rebuild_floor_visuals()
-	_apply_world_floor_state()
+	_apply_world_floor_state(true)
 	_ensure_player_has_valid_position()
 	_last_valid_player_position = _player.global_position if _player != null else Vector2.ZERO
 
@@ -1061,6 +1231,8 @@ func _save_state_to_active_slot() -> void:
 	if save_path.is_empty():
 		return
 	var save_data := _read_active_save_data()
+	# Antes: 3 deep copies por gravação (payload + mirror). Agora uma só,
+	# compartilhada — o payload é substituído inteiro a cada save.
 	var payload := {"version": SAVE_VERSION, "current_floor": current_floor, "buildings": floor_buildings.duplicate(true), "surfaces": floor_surfaces.duplicate(true)}
 	save_data[SAVE_KEY] = payload
 	var directory := save_path.get_base_dir()
@@ -1076,15 +1248,44 @@ func _save_state_to_active_slot() -> void:
 
 func _read_active_save_data() -> Dictionary:
 	var save_path := _get_active_save_path()
-	if save_path.is_empty() or not FileAccess.file_exists(save_path):
+	if save_path.is_empty():
 		return {}
+	# O documento de save inteiro era relido e reparseado do disco a cada
+	# gravação. Mantemos o parse em memória e só relemos se o slot mudar.
+	if _save_document_cache_path == save_path and not _save_document_cache.is_empty():
+		return _save_document_cache
+	if not FileAccess.file_exists(save_path):
+		_save_document_cache_path = save_path
+		_save_document_cache = {}
+		return _save_document_cache
 	var file := FileAccess.open(save_path, FileAccess.READ)
 	if file == null:
 		return {}
 	var json := JSON.new()
 	if json.parse(file.get_as_text()) != OK or not json.data is Dictionary:
 		return {}
-	return json.data.duplicate(true)
+	_save_document_cache_path = save_path
+	_save_document_cache = json.data
+	return _save_document_cache
+
+
+func invalidate_save_document_cache() -> void:
+	_save_document_cache.clear()
+	_save_document_cache_path = ""
+
+
+func _queue_save_state() -> void:
+	if _save_queued:
+		return
+	_save_queued = true
+	_flush_queued_save()
+
+
+func _flush_queued_save() -> void:
+	await get_tree().create_timer(FLOOR_SAVE_DEBOUNCE_SEC, true, false, true).timeout
+	_save_queued = false
+	if _initialized:
+		_save_state_to_active_slot()
 
 
 func _get_active_save_path() -> String:
@@ -1106,7 +1307,7 @@ func _mirror_state_to_game_session(payload: Dictionary) -> void:
 	var maps: Dictionary = maps_value if maps_value is Dictionary else {}
 	var map_value: Variant = maps.get(map_id, {})
 	var map_data: Dictionary = map_value if map_value is Dictionary else {}
-	map_data[SAVE_KEY] = payload.duplicate(true)
+	map_data[SAVE_KEY] = payload
 	maps[map_id] = map_data
 	world_data["maps"] = maps
 	game_session.set("world_data", world_data)

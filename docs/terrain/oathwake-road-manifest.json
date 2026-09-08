@@ -1,0 +1,53 @@
+{
+  "file": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets\\oathwake_road.png",
+  "size": [
+    256,
+    2048
+  ],
+  "frames": 2048,
+  "neighbor_masks": 512,
+  "color_variants": 4,
+  "neighbor_order": [
+    [
+      0,
+      -1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      -1,
+      0
+    ],
+    [
+      1,
+      -1
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      -1,
+      1
+    ],
+    [
+      -1,
+      -1
+    ],
+    [
+      0,
+      0
+    ]
+  ],
+  "center_bit": 256,
+  "authorship": "Pixelorama MCP; procedural pixel coordinates",
+  "expected_rgba_sha256": "de94f23a5a6941a9b0ff6108be04adde0ff0db6438d704332c8e5d55e4a20f3a",
+  "revision": "Reference-led clustered borders, native binary alpha",
+  "alpha_variant_policy": "identical_two_pixel_join_guard"
+}

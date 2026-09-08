@@ -1,0 +1,9 @@
+{
+	"active_atlas_matches": true,
+	"failures": [],
+	"fixture": "Arranged comparison using production _spawn_prop; not random world placements.",
+	"frames": 12,
+	"native_scale": true,
+	"production_instances": 36,
+	"terrain_backgrounds": 3
+}

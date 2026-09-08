@@ -1,0 +1,1 @@
+REJECTED BY USER: resized imagegen sheets are not final pixel art. Technical round-trip success did not validate clusters, clean silhouettes or a visually justified crown/trunk split. Resource references restored while native Pixelorama reconstruction is reviewed. Do not rerun normalize_oathwake_resources.gd or publish its outputs.

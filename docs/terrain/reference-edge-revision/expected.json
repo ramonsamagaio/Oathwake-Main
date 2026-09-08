@@ -1,0 +1,52 @@
+[
+  {
+    "name": "plainsgrass2",
+    "size": [
+      64,
+      304
+    ],
+    "rgba_sha256": "d05b62aada73ce0876abe13de7e7d623ac7cc7cccfe4fadf6506d0a342a93fed",
+    "native_pixel_edits": 8824,
+    "colors": 15
+  },
+  {
+    "name": "plainsgrass3",
+    "size": [
+      64,
+      304
+    ],
+    "rgba_sha256": "f7730afdc95dd17955a1a57f842dcffbd348b9f23fc293e3876493a7e726d112",
+    "native_pixel_edits": 8824,
+    "colors": 15
+  },
+  {
+    "name": "short_grass",
+    "size": [
+      64,
+      304
+    ],
+    "rgba_sha256": "1fff886ce019f17d46cbcfbeaa1262881e404bd00acc3526b3d66a26f7bc7eeb",
+    "native_pixel_edits": 9014,
+    "colors": 16
+  },
+  {
+    "name": "plainsgrass1",
+    "size": [
+      64,
+      304
+    ],
+    "rgba_sha256": "ef7b674d5798bf58ae1a9039a9fc68c13dacad545b06d64997b16f4528c9abc8",
+    "native_pixel_edits": 8884,
+    "colors": 15
+  },
+  {
+    "name": "tall_grass",
+    "size": [
+      64,
+      304
+    ],
+    "rgba_sha256": "6ccf7bb3f7be8ce7d8f078a58fe6d5b6e47ffc5330a2518ae557f8c55d68d887",
+    "native_pixel_edits": 10395,
+    "colors": 16
+  }
+]

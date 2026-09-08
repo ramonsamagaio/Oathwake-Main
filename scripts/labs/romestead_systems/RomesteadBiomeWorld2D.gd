@@ -20,6 +20,11 @@ const FOREST_BARRIER_TOP_PATH := TERRAIN_SPRITE_ROOT + "/forest_unbreakable_bush
 const FOREST_TREE_WALL_PATH := TERRAIN_SPRITE_ROOT + "/tree_wall.png"
 const FOREST_CANOPY_PATH := TERRAIN_SPRITE_ROOT + "/canopy_.png"
 const PLAINS_CLIFF_PATH := TERRAIN_SPRITE_ROOT + "/plains_3D_cliffs.png"
+# Litoral: a areia é o autotile autorado que faz a transição terra/água. A água
+# em si não é tile — é o OceanBackdrop, um shader que preenche tudo que não tem
+# chão pintado por cima.
+const SAND_TERRAIN_PATH := "res://assets/world_lab/romestead_native_png/sources/floors/beachtile.png"
+const WATER_SHADER: Shader = preload("res://shaders/world/oathwake_water.gdshader")
 const BASE_DETAILS_PATH := TERRAIN_SPRITE_ROOT + "/plainsgrass2_details.png"
 const GREEN_DETAILS_PATH := TERRAIN_SPRITE_ROOT + "/shortgrass_details.png"
 const DIRT_DETAILS_PATH := TERRAIN_SPRITE_ROOT + "/plainsgrass3_details.png"
@@ -89,6 +94,8 @@ const TERRAIN_DIRT := 1
 const TERRAIN_GREEN := 2
 const TERRAIN_FOREST_LIGHT := 3
 const TERRAIN_FOREST_DEEP := 4
+const TERRAIN_SAND := 5
+const TERRAIN_WATER := 6
 
 const BIOME_WATER := 0
 const BIOME_DIRT := 1
@@ -134,13 +141,64 @@ enum PropKind {
 @export var world_size_tiles := Vector2i(240, 140)
 @export_range(16, 128, 1) var tile_size := 16
 @export var auto_generate := true
+## Visual skin only: same seed, atlas addresses, terrain topology and collisions.
+@export var use_oathwake_tilesets := false
+
+@export_group("Borda do mundo")
+## Largura, em tiles, do anel de água DENTRO do retângulo jogável. É o que impede
+## o jogador de chegar no vazio cinza: a terra acaba em costa, não em corte seco.
+@export_range(0, 96, 1) var border_water_tiles := 20
+## Faixa de areia entre a água e a terra. 0 corta a praia e a grama encosta na água.
+@export_range(0, 32, 1) var border_sand_tiles := 6
+## Quanto o litoral serpenteia. 0 = borda retangular perfeita, 1 = costa bem recortada.
+@export_range(0.0, 1.0, 0.01) var border_irregularity := 0.5
+## Quantos tiles de oceano o backdrop desenha além da borda do mapa.
+@export_range(0, 512, 8) var ocean_backdrop_margin_tiles := 160
+
+@export_group("Água interior")
+## Raio do lago principal, em tiles. Ele nasce no ponto de lago que o gerador já
+## escolhe em _prepare_key_biome_centers(). 0 desliga o lago principal.
+@export_range(0, 240, 1) var main_lake_radius_tiles := 52
+## Quanto a margem do lago principal foge do círculo. 0 = círculo perfeito.
+@export_range(0.0, 1.0, 0.01) var main_lake_irregularity := 0.55
+## Fração do mapa coberta por lagos menores. É calibrada por quantil na geração,
+## então 0.06 significa mesmo ~6% do mapa em água — não é um limiar cru.
+@export_range(0.0, 0.35, 0.005) var pond_coverage := 0.065
+## Tamanho característico dos lagos menores, em tiles. Maior = poucos e grandes.
+@export_range(8, 200, 1) var pond_scale_tiles := 70
+## Quanto os lagos se agrupam na região úmida. 0 = espalhados por igual pelo mapa
+## (vira queijo suíço), 1 = só existem no distrito de lagos. 0.45 dá um distrito
+## claro e ainda deixa lagoas esparsas no resto.
+@export_range(0.0, 1.0, 0.01) var pond_humidity_bias := 0.45
+## Faixa de praia em volta de toda água interior, em tiles.
+@export_range(0, 16, 1) var lake_sand_tiles := 3
+## Raio em volta do spawn onde nenhum lago pode nascer.
+@export_range(0, 240, 1) var spawn_water_clearance_tiles := 40
+
+@export_group("Aglomerados de props")
+## O mapa é dividido em células deste tamanho e cada uma recebe props.
+@export_range(4, 64, 1) var prop_macro_cell_tiles := 16
+## Tentativas de posicionar antes de desistir da célula. Maior = mundo mais cheio.
+@export_range(1.0, 128.0, 1.0) var prop_attempt_base := 16.0
+## Quanto o orçamento de tentativas cresce a cada prop aceito.
+@export_range(0.0, 4.0, 0.01) var prop_attempt_bias := 1.33
+## Espaço mínimo em tiles que cada faixa de prop reserva para si.
+@export_range(0.1, 8.0, 0.05) var prop_size_small := 0.5
+@export_range(0.1, 8.0, 0.05) var prop_size_medium := 1.0
+@export_range(0.1, 8.0, 0.05) var prop_size_large := 1.5
 @export_node_path("TileMapLayer") var ground_path := NodePath("Ground")
 @export_node_path("TileMapLayer") var green_overlay_path := NodePath("GreenTerrain0")
 @export_node_path("TileMapLayer") var dirt_overlay_path := NodePath("DirtTerrain0")
 @export_node_path("Node2D") var props_path := NodePath("Props")
 @export_node_path("Node2D") var vegetation_path := NodePath("WindVegetation")
 
+var _coast_noise := FastNoiseLite.new()
+var _lake_noise := FastNoiseLite.new()
+var _lake_shape_noise := FastNoiseLite.new()
+var _pond_threshold := INF
+var _pond_sand_offset := 0.0
 var _region_noise := FastNoiseLite.new()
+var _ocean_backdrop: Polygon2D
 var _forest_noise := FastNoiseLite.new()
 var _dirt_noise := FastNoiseLite.new()
 var _detail_noise := FastNoiseLite.new()
@@ -209,6 +267,12 @@ var _light_cookie: Texture2D
 	get_node_or_null("PlainsCliff2") as TileMapLayer,
 ]
 @onready var _plains_cliff_collision := get_node_or_null("PlainsCliffCollision") as TileMapLayer
+@onready var _shore_layers: Array[TileMapLayer] = [
+	get_node_or_null("Shore0") as TileMapLayer,
+	get_node_or_null("Shore1") as TileMapLayer,
+	get_node_or_null("Shore2") as TileMapLayer,
+]
+@onready var _water_collision := get_node_or_null("WaterCollision") as TileMapLayer
 @onready var _tiny_leaves := get_node_or_null("TinyLeaves") as TileMapLayer
 @onready var _tiny_flowers := get_node_or_null("TinyFlowers") as TileMapLayer
 @onready var _props := get_node_or_null(props_path) as Node2D
@@ -280,6 +344,14 @@ func generate_world(new_seed: int = world_seed) -> void:
 			var terrain_type := int(_terrain_types[cell])
 			var biome := int(_biomes[cell])
 			biome_counts[biome] = int(biome_counts.get(biome, 0)) + 1
+			if terrain_type == TERRAIN_WATER:
+				# Nenhum chão pintado aqui: é assim que o oceano aparece.
+				_draw_water_cell(cell)
+				# A areia tem que avancar POR CIMA da agua. Sem esta chamada a
+				# costa termina no limite exato do tile de areia e vira um
+				# degrau de 90 graus contra o shader.
+				_draw_shore(cell)
+				continue
 			_ground.set_cell(cell, 0, Vector2i(2, 1), 0)
 			_draw_native_autotile(cell, TERRAIN_DIRT, _dirt_layers)
 			_draw_native_autotile(cell, TERRAIN_GREEN, _green_layers)
@@ -288,17 +360,23 @@ func generate_world(new_seed: int = world_seed) -> void:
 			_draw_forest_path(cell, terrain_type)
 			_draw_plains_cliff(cell)
 			_draw_forest_barrier(cell)
+			_draw_shore(cell)
 			_draw_native_detail(cell, terrain_type)
 			if _entity_spots.has(cell):
 				_scatter_cell(cell, biome, _entity_spots[cell] as Dictionary)
 
 	for layer in _all_tile_layers():
 		layer.update_internals()
+	_ensure_ocean_backdrop()
 	_spawn_light_landmarks()
 	world_generated.emit(world_seed, biome_counts)
 
 
 func set_environment(wetness: float, lightning: float, wind_strength: float, _wind_speed: float, wind_direction: Vector2, hour: float = 15.0, daylight: float = 1.0) -> void:
+	if _ocean_backdrop != null and is_instance_valid(_ocean_backdrop):
+		var ocean_material := _ocean_backdrop.material as ShaderMaterial
+		if ocean_material != null:
+			ocean_material.set_shader_parameter("daylight", daylight)
 	for material in _terrain_materials:
 		material.set_shader_parameter("wetness", wetness)
 		material.set_shader_parameter("lightning_flash", lightning)
@@ -339,7 +417,21 @@ func _all_tile_layers() -> Array[TileMapLayer]:
 	layers.append_array([_forest_path, _base_details, _dirt_details, _green_details, _tiny_leaves, _tiny_flowers, _forest_barrier_bottom, _forest_barrier_top, _forest_tree_wall, _forest_canopy])
 	layers.append_array(_plains_cliff_layers)
 	layers.append(_plains_cliff_collision)
+	# Só entram se a cena as declarar. Cenas antigas (o lab de sistemas) não têm
+	# essas camadas, e _has_required_nodes() reprovaria a geração inteira.
+	if _has_coastline_layers():
+		layers.append_array(_shore_layers)
+		layers.append(_water_collision)
 	return layers
+
+
+func _has_coastline_layers() -> bool:
+	if _water_collision == null or not is_instance_valid(_water_collision):
+		return false
+	for layer in _shore_layers:
+		if layer == null or not is_instance_valid(layer):
+			return false
+	return true
 
 
 func _load_editable_textures() -> void:
@@ -355,6 +447,7 @@ func _load_editable_textures() -> void:
 		"forest_tree_wall": _load_png_texture(FOREST_TREE_WALL_PATH),
 		"forest_canopy": _load_png_texture(FOREST_CANOPY_PATH),
 		"plains_cliff": _load_png_texture(PLAINS_CLIFF_PATH),
+		"sand": _build_shore_texture(),
 		"base_details": _load_png_texture(BASE_DETAILS_PATH),
 		"green_details": _load_png_texture(GREEN_DETAILS_PATH),
 		"dirt_details": _load_png_texture(DIRT_DETAILS_PATH),
@@ -404,6 +497,12 @@ func _prepare_tilesets() -> void:
 	for layer in _plains_cliff_layers:
 		_assign_native_tileset(layer, _textures["plains_cliff"])
 	_assign_native_tileset(_plains_cliff_collision, _textures["plains_cliff"], true)
+	if _has_coastline_layers():
+		for layer in _shore_layers:
+			_assign_native_tileset(layer, _textures["sand"])
+		# Camada invisível só de colisão: é ela que impede o jogador de entrar
+		# na água. Escondida com self_modulate alpha 0, igual PlainsCliffCollision.
+		_assign_native_tileset(_water_collision, _textures["sand"], true)
 	_assign_native_tileset(_base_details, _textures["base_details"])
 	_assign_native_tileset(_green_details, _textures["green_details"])
 	_assign_native_tileset(_dirt_details, _textures["dirt_details"])
@@ -451,7 +550,7 @@ func _build_mask_frame_lookup() -> void:
 		(_mask_frames[mask] as Array).append(frame)
 
 
-func _draw_native_autotile(cell: Vector2i, target_type: int, layers: Array[TileMapLayer]) -> void:
+func _draw_native_autotile(cell: Vector2i, target_type: int, layers: Array[TileMapLayer], frame_limit := 0) -> void:
 	if int(_terrain_types[cell]) == target_type:
 		layers[0].set_cell(cell, 0, _frame_to_coord(6), 0)
 		return
@@ -462,7 +561,7 @@ func _draw_native_autotile(cell: Vector2i, target_type: int, layers: Array[TileM
 	var pieces := _surrounding_mask_to_piece_masks(surrounding_mask)
 	for piece_index in range(mini(pieces.size(), layers.size())):
 		var topology_mask := int(pieces[piece_index])
-		var frame := _frame_for_mask(topology_mask, cell, piece_index, target_type)
+		var frame := _frame_for_mask(topology_mask, cell, piece_index, target_type, frame_limit)
 		if frame >= 0:
 			layers[piece_index].set_cell(cell, 0, _frame_to_coord(frame), 0)
 
@@ -510,12 +609,31 @@ func _surrounding_mask_to_piece_masks(mask: int) -> Array[int]:
 	return result
 
 
-func _frame_for_mask(mask: int, cell: Vector2i, piece_index: int, target_type: int) -> int:
-	var candidates := _mask_frames.get(mask, []) as Array
+func _frame_for_mask(mask: int, cell: Vector2i, piece_index: int, target_type: int, frame_limit := 0) -> int:
+	## frame_limit = número de frames que a folha REALMENTE tem. Folhas menores
+	## que a tabela de máscaras (beachtile 32, arbustos 16) não têm arte para as
+	## máscaras de canto 17/18/20/24, que só existem nos frames 48-51. Sem este
+	## corte o tiler pedia um frame inexistente e o resultado era tile trocado.
+	## Quando a máscara de canto não existe, cai na peça cardinal (mask & 15),
+	## que é a mesma borda sem a variante de canto — degrada, não quebra.
+	var candidates := _limited_candidates(mask, frame_limit)
+	if candidates.is_empty() and frame_limit > 0 and mask > 15:
+		candidates = _limited_candidates(mask & 15, frame_limit)
 	if candidates.is_empty():
 		return -1
 	var variant_seed := _cell_seed(cell) ^ (piece_index * 83492791) ^ (target_type * 297121507)
 	return int(candidates[variant_seed % candidates.size()])
+
+
+func _limited_candidates(mask: int, frame_limit: int) -> Array:
+	var candidates := _mask_frames.get(mask, []) as Array
+	if frame_limit <= 0:
+		return candidates
+	var allowed: Array = []
+	for frame_value in candidates:
+		if int(frame_value) < frame_limit:
+			allowed.append(frame_value)
+	return allowed
 
 
 func _frame_to_coord(frame: int) -> Vector2i:
@@ -572,7 +690,59 @@ func _draw_native_detail(cell: Vector2i, terrain_type: int) -> void:
 		_spawn_prop(Vector2(cell * tile_size) + offset, PropKind.GROUND_PLANT, _cell_seed(cell) ^ 0xB19)
 
 
+const WORLD_GEN_CONFIG_PATH := "res://data/world_gen.json"
+
+
+func _apply_world_gen_config() -> void:
+	## Lê data/world_gen.json (seção World Generation do Content Editor) por cima
+	## dos @export. Arquivo ausente ou campo faltando cai no valor atual, então o
+	## mundo gera igual a hoje mesmo sem o JSON — cenas de lab continuam de pé.
+	if not FileAccess.file_exists(WORLD_GEN_CONFIG_PATH):
+		return
+	var file := FileAccess.open(WORLD_GEN_CONFIG_PATH, FileAccess.READ)
+	if file == null:
+		return
+	var json := JSON.new()
+	if json.parse(file.get_as_text()) != OK or not json.data is Dictionary:
+		push_warning("world_gen.json inválido; usando os valores do nó.")
+		return
+	var document: Dictionary = json.data
+	var record_value: Variant = document.get("default", {})
+	if not record_value is Dictionary:
+		return
+	var config: Dictionary = record_value
+
+	world_size_tiles = Vector2i(
+		int(config.get("world_width_tiles", world_size_tiles.x)),
+		int(config.get("world_height_tiles", world_size_tiles.y))
+	)
+	border_water_tiles = int(config.get("border_water_tiles", border_water_tiles))
+	border_sand_tiles = int(config.get("border_sand_tiles", border_sand_tiles))
+	border_irregularity = float(config.get("border_irregularity", border_irregularity))
+	ocean_backdrop_margin_tiles = int(config.get("ocean_backdrop_margin_tiles", ocean_backdrop_margin_tiles))
+	main_lake_radius_tiles = int(config.get("main_lake_radius_tiles", main_lake_radius_tiles))
+	main_lake_irregularity = float(config.get("main_lake_irregularity", main_lake_irregularity))
+	pond_coverage = float(config.get("pond_coverage", pond_coverage))
+	pond_scale_tiles = int(config.get("pond_scale_tiles", pond_scale_tiles))
+	pond_humidity_bias = float(config.get("pond_humidity_bias", pond_humidity_bias))
+	lake_sand_tiles = int(config.get("lake_sand_tiles", lake_sand_tiles))
+	spawn_water_clearance_tiles = int(config.get("spawn_water_clearance_tiles", spawn_water_clearance_tiles))
+	prop_macro_cell_tiles = int(config.get("prop_macro_cell_tiles", prop_macro_cell_tiles))
+	prop_attempt_base = float(config.get("prop_attempt_base", prop_attempt_base))
+	prop_attempt_bias = float(config.get("prop_attempt_bias", prop_attempt_bias))
+	prop_size_small = float(config.get("prop_size_small", prop_size_small))
+	prop_size_medium = float(config.get("prop_size_medium", prop_size_medium))
+	prop_size_large = float(config.get("prop_size_large", prop_size_large))
+
+
 func _prepare_noise() -> void:
+	# Primeira coisa: o JSON pode trocar world_size_tiles, e as frequências de
+	# ruído logo abaixo são derivadas dele. Aplicar depois daria um mundo com
+	# tamanho novo e ruído calibrado para o tamanho velho.
+	_apply_world_gen_config()
+	_configure_noise(_coast_noise, world_seed + 7717, 0.021, 2)
+	_configure_noise(_lake_noise, world_seed ^ 0x5EA1C, 1.0 / float(maxi(pond_scale_tiles, 4)), 2)
+	_configure_noise(_lake_shape_noise, world_seed ^ 0x1A6E3, 0.030, 2)
 	_configure_noise(_region_noise, world_seed + 101, 0.038, 3)
 	_configure_noise(_forest_noise, world_seed + 307, 0.072, 3)
 	_configure_noise(_dirt_noise, world_seed + 601, 0.050, 3)
@@ -592,6 +762,98 @@ func _prepare_noise() -> void:
 	_configure_noise(_humidity_world_noise, world_seed, 8.0 / float(world_size_tiles.x), 1)
 	_configure_noise(_humidity_world_noise2, world_seed ^ 0xFBB0, 16.0 / float(world_size_tiles.x), 1)
 	_prepare_key_biome_centers()
+	_calibrate_pond_field()
+
+
+func _calibrate_pond_field() -> void:
+	## pond_coverage é uma FRAÇÃO DO MAPA, não um limiar de ruído. Um limiar cru
+	## não teria significado: a distribuição do FBM não é uniforme e muda com a
+	## frequência. Amostrando o campo e pegando o quantil, o número na UI passa a
+	## querer dizer exatamente o que diz.
+	_pond_threshold = INF
+	_pond_sand_offset = 0.0
+	if pond_coverage <= 0.0:
+		return
+
+	var size := Vector2(world_size_tiles)
+	var samples: Array[float] = []
+	var gradient_total := 0.0
+	var gradient_count := 0
+	var step := 4
+	for y in range(0, world_size_tiles.y, step):
+		for x in range(0, world_size_tiles.x, step):
+			# Tem que amostrar o campo JÁ deslocado pela umidade. Calibrar no
+			# ruído cru e classificar no deslocado daria uma cobertura que não
+			# tem nada a ver com o número pedido.
+			var grid := Vector2(float(x), float(y))
+			var value := _pond_field_value(grid, size)
+			samples.append(value)
+			gradient_total += absf(_lake_noise.get_noise_2d(float(x + 1), float(y)) - _lake_noise.get_noise_2d(float(x), float(y)))
+			gradient_count += 1
+	if samples.is_empty():
+		return
+	samples.sort()
+	var index := clampi(int(float(samples.size()) * (1.0 - pond_coverage)), 0, samples.size() - 1)
+	_pond_threshold = samples[index]
+
+	# A margem é pedida em TILES, mas aqui só existe valor de campo. O gradiente
+	# médio por tile converte um pelo outro. É aproximado por local, mas certo na
+	# média — e custa zero por célula depois.
+	if gradient_count > 0 and lake_sand_tiles > 0:
+		_pond_sand_offset = (gradient_total / float(gradient_count)) * float(lake_sand_tiles)
+
+
+func _humidity_at(grid: Vector2, size: Vector2) -> float:
+	## Mesma umidade que classifica o bioma. Os lagos leem daqui em vez de terem
+	## um campo próprio — é isso que faz a água nascer onde o mundo já é úmido,
+	## em vez de aparecer espalhada por cima da geografia.
+	var scale := 1.0 / size.x
+	var lake_distance := grid.distance_to(_lake_center_grid) * scale
+	var desert_distance := grid.distance_to(_desert_center_grid) * scale
+	var terrain_noise := _terrain_world_noise.get_noise_2d(grid.x - 48.0, grid.y - 48.0)
+	var humidity_noise := _humidity_world_noise.get_noise_2d(grid.x - 10027.0, grid.y + 215539.0)
+	var humidity_noise2 := _humidity_world_noise2.get_noise_2d(grid.x - 234837.0, grid.y - 582.0)
+
+	var humidity := 0.5 * (1.0 - lake_distance * 2.0) + humidity_noise2 * 0.05
+	var lake_blend := 1.0 - _quad_in(clampf((lake_distance + humidity_noise * 0.03) / 0.115, 0.0, 1.0))
+	humidity += lerpf(0.24 + humidity_noise2 * 0.24, 1.0, lake_blend)
+	humidity = lerpf(clampf(humidity, 0.0, 10.0), 0.2, 1.0 - _quad_in(clampf(desert_distance / 0.4, 0.0, 1.0)))
+	humidity = lerpf(clampf(humidity, 0.25, 10.0), 0.0, 1.0 - _quad_in(clampf((desert_distance + terrain_noise * 0.03) / 0.13, 0.0, 1.0)))
+	return humidity
+
+
+func _pond_field_value(grid: Vector2, size: Vector2) -> float:
+	## Campo do ruído de lagoa deslocado pela umidade: região seca precisa de um
+	## valor muito mais alto para virar água. Corte seco por umidade deixava 3/4
+	## do mapa sem uma gota; o gradiente concentra um distrito de lagos na região
+	## úmida e ainda deixa lagoas esparsas no resto.
+	var humidity_normalized := clampf((_humidity_at(grid, size) - 0.2) / 0.9, 0.0, 1.0)
+	return _lake_noise.get_noise_2d(grid.x, grid.y) - (1.0 - humidity_normalized) * pond_humidity_bias
+
+
+func _interior_water_state(grid: Vector2, size: Vector2) -> int:
+	## 0 = terra, 1 = areia de margem, 2 = água.
+	if grid.distance_to(size * 0.5) <= float(spawn_water_clearance_tiles):
+		return 0
+
+	# Lago principal: aqui existe distância de verdade ao centro, então a margem
+	# sai exata em tiles em vez de aproximada.
+	if main_lake_radius_tiles > 0:
+		var wobble := _lake_shape_noise.get_noise_2d(grid.x, grid.y) * main_lake_irregularity
+		var radius := float(main_lake_radius_tiles) * (1.0 + wobble)
+		var distance := grid.distance_to(_lake_center_grid)
+		if distance <= radius:
+			return 2
+		if distance <= radius + float(lake_sand_tiles):
+			return 1
+
+	if pond_coverage > 0.0 and is_finite(_pond_threshold):
+		var value := _pond_field_value(grid, size)
+		if value >= _pond_threshold:
+			return 2
+		if value >= _pond_threshold - _pond_sand_offset:
+			return 1
+	return 0
 
 
 func _prepare_key_biome_centers() -> void:
@@ -667,11 +929,8 @@ func _native_tile_at(cell: Vector2i, start: Vector2i) -> Dictionary:
 
 	var terrain_noise := _terrain_world_noise.get_noise_2d(grid.x - 48.0, grid.y - 48.0)
 	var terrain_noise2 := _terrain_world_noise2.get_noise_2d(grid.x + 486.0, grid.y + 234741.0)
-	var humidity_noise := _humidity_world_noise.get_noise_2d(grid.x - 10027.0, grid.y + 215539.0)
-	var humidity_noise2 := _humidity_world_noise2.get_noise_2d(grid.x - 234837.0, grid.y - 582.0)
 	var forest_distance := grid.distance_to(_forest_center_grid) * scale
 	var desert_distance := grid.distance_to(_desert_center_grid) * scale
-	var lake_distance := grid.distance_to(_lake_center_grid) * scale
 	var spawn_distance := grid.distance_to(world_center) * scale
 
 	var terrain_value := 0.4 + 0.4 * (terrain_noise2 + 1.0)
@@ -683,11 +942,7 @@ func _native_tile_at(cell: Vector2i, start: Vector2i) -> Dictionary:
 	var spawn_ring := 1.0 - _quad_in_out(clampf(absf(1.0 - (spawn_distance - 0.028) / 0.024), 0.0, 1.0))
 	terrain_value = lerpf(terrain_value, 1.0 - _quad_in(absf(terrain_noise) * 1.725) * 0.25, spawn_ring)
 
-	var humidity := 0.5 * (1.0 - lake_distance * 2.0) + humidity_noise2 * 0.05
-	var lake_blend := 1.0 - _quad_in(clampf((lake_distance + humidity_noise * 0.03) / 0.115, 0.0, 1.0))
-	humidity += lerpf(0.24 + humidity_noise2 * 0.24, 1.0, lake_blend)
-	humidity = lerpf(clampf(humidity, 0.0, 10.0), 0.2, 1.0 - _quad_in(clampf(desert_distance / 0.4, 0.0, 1.0)))
-	humidity = lerpf(clampf(humidity, 0.25, 10.0), 0.0, 1.0 - _quad_in(clampf((desert_distance + terrain_noise * 0.03) / 0.13, 0.0, 1.0)))
+	var humidity := _humidity_at(grid, size)
 
 	var biome := BIOME_DRY
 	if humidity >= 0.21:
@@ -730,6 +985,32 @@ func _native_tile_at(cell: Vector2i, start: Vector2i) -> Dictionary:
 	# PlainsBiomeTileGenerator creates this non-interactive structure only on
 	# ordinary grass when StructureValues reaches its native 0.8 cutoff.
 	var cliff := biome == BIOME_MEADOW and ground == TERRAIN_GREEN and structure_value >= 0.8
+
+	# --- Litoral: o mapa acaba em costa, não em corte seco ---
+	# edge_distance é a distância em tiles até a borda mais próxima do retângulo
+	# jogável. Fica negativa fora dele, então a área de padding também vira água.
+	var edge_distance := minf(
+		minf(grid.x, size.x - grid.x),
+		minf(grid.y, size.y - grid.y)
+	)
+	if not _has_coastline_layers():
+		return {"biome": biome, "ground": ground, "barrier": barrier, "cliff": cliff, "terrain_value": terrain_value}
+
+	# --- Água interior (lago principal + lagos menores) ---
+	var interior_water := _interior_water_state(grid, size)
+	if interior_water == 2:
+		return {"biome": BIOME_WATER, "ground": TERRAIN_WATER, "barrier": false, "cliff": false, "terrain_value": terrain_value}
+	if interior_water == 1:
+		return {"biome": biome, "ground": TERRAIN_SAND, "barrier": false, "cliff": false, "terrain_value": terrain_value}
+
+	var coast_wave := _coast_noise.get_noise_2d(grid.x, grid.y)
+	var water_edge := float(border_water_tiles) * (1.0 + coast_wave * border_irregularity)
+	var sand_edge := water_edge + float(border_sand_tiles) * (1.0 + coast_wave * border_irregularity * 0.5)
+	if edge_distance <= water_edge:
+		return {"biome": BIOME_WATER, "ground": TERRAIN_WATER, "barrier": false, "cliff": false, "terrain_value": terrain_value}
+	if edge_distance <= sand_edge:
+		return {"biome": biome, "ground": TERRAIN_SAND, "barrier": false, "cliff": false, "terrain_value": terrain_value}
+
 	return {"biome": biome, "ground": ground, "barrier": barrier, "cliff": cliff, "terrain_value": terrain_value}
 
 
@@ -741,14 +1022,104 @@ func _classify_biome(cell: Vector2i, _terrain_type: int) -> int:
 	return int(_biomes.get(cell, BIOME_DRY))
 
 
+const ORTHOGONAL_OFFSETS := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
+const CLIFF_SQUARE := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]
+
+
 func _apply_plains_cliff_second_pass(start: Vector2i, finish: Vector2i) -> void:
-	# WaterTileSecondPass invokes FilterOutSingleTiles for PlainsCliff before
-	# rendering. It mutates in row order, just like the forest pass.
-	for y in range(start.y - 1, finish.y + 1):
-		for x in range(start.x - 1, finish.x + 1):
-			var cell := Vector2i(x, y)
+	## O conjunto de penhascos nasce de DOIS ruidos independentes cruzados
+	## (structure >= 0.8 E a faixa de grama do ground). Esse cruzamento esfarrapa
+	## o blob: sobram saliencias e ilhas de 1 tile de largura. O atlas nao tem
+	## arte de "canto pequeno" -- toda mascara de um bit unico e uma COLUNA
+	## vertical de 1 tile de largura e 3 de altura. Por isso uma saliencia de um
+	## tile aparece no jogo como aquela lasca escura solta no gramado.
+	##
+	## O filtro nativo de mascara zero, sozinho, nao resolve: ele so apaga a
+	## celula totalmente isolada, e num unico passe em ordem de linha.
+	##
+	## Sequencia correta, nesta ordem:
+	##   1. FECHAMENTO  - preenche entalhes e furos de 1 tile abertos pelo corte
+	##                    da faixa de grama, sem inflar a silhueta.
+	##   2. ABERTURA 2x2 - so sobrevive celula que pertence a algum bloco 2x2
+	##                    inteiro de rocha. Por construcao nenhuma feicao de 1
+	##                    tile de largura consegue passar, entao a lasca solta
+	##                    fica impossivel.
+	##   3. MASCARA ZERO ate ponto fixo - apagar uma celula muda a mascara das
+	##                    vizinhas, entao um passe so deixa restos para tras.
+	var region_start := start - Vector2i(7, 7)
+	var region_finish := finish + Vector2i(7, 7)
+	_close_plains_cliffs(region_start, region_finish)
+	_open_plains_cliffs()
+	# Primeiro passe olha o conjunto inteiro; os seguintes so reexaminam a
+	# vizinhanca do que acabou de sair. Sem isso cada iteracao varreria de novo
+	# dezenas de milhares de celulas de graca.
+	var candidates: Array[Vector2i] = []
+	for cell: Vector2i in _plains_cliffs.keys():
+		candidates.append(cell)
+	for _iteration in range(8):
+		var doomed: Array[Vector2i] = []
+		for cell: Vector2i in candidates:
 			if _plains_cliffs.has(cell) and _plains_cliff_mask(cell) == 0:
-				_plains_cliffs.erase(cell)
+				doomed.append(cell)
+		if doomed.is_empty():
+			break
+		var next_seen := {}
+		for cell: Vector2i in doomed:
+			_plains_cliffs.erase(cell)
+		for cell: Vector2i in doomed:
+			for offset: Vector2i in FOREST_MASK_OFFSETS:
+				var neighbour: Vector2i = cell + offset
+				if _plains_cliffs.has(neighbour):
+					next_seen[neighbour] = true
+		candidates = []
+		for cell: Vector2i in next_seen.keys():
+			candidates.append(cell)
+
+
+func _close_plains_cliffs(region_start: Vector2i, region_finish: Vector2i) -> void:
+	## Dilata e depois erode com a vizinhanca-4. Fechamento e idempotente na
+	## silhueta externa: enche entalhe, nao engorda o bloco.
+	var dilated := {}
+	for cell: Vector2i in _plains_cliffs.keys():
+		dilated[cell] = true
+		for offset: Vector2i in ORTHOGONAL_OFFSETS:
+			var neighbour: Vector2i = cell + offset
+			if (
+				neighbour.x < region_start.x or neighbour.x >= region_finish.x
+				or neighbour.y < region_start.y or neighbour.y >= region_finish.y
+			):
+				continue
+			dilated[neighbour] = true
+	var closed := {}
+	for cell: Vector2i in dilated.keys():
+		var solid := true
+		for offset: Vector2i in ORTHOGONAL_OFFSETS:
+			if not dilated.has(cell + offset):
+				solid = false
+				break
+		if solid:
+			closed[cell] = true
+	_plains_cliffs = closed
+
+
+func _open_plains_cliffs() -> void:
+	## Erosao seguida de dilatacao com um quadrado 2x2. O resultado e exatamente
+	## a uniao de todos os blocos 2x2 cheios: qualquer feicao com menos de dois
+	## tiles de largura desaparece.
+	var eroded := {}
+	for cell: Vector2i in _plains_cliffs.keys():
+		var solid := true
+		for offset: Vector2i in CLIFF_SQUARE:
+			if not _plains_cliffs.has(cell + offset):
+				solid = false
+				break
+		if solid:
+			eroded[cell] = true
+	var opened := {}
+	for cell: Vector2i in eroded.keys():
+		for offset: Vector2i in CLIFF_SQUARE:
+			opened[cell + offset] = true
+	_plains_cliffs = opened
 
 
 func _plains_cliff_mask(cell: Vector2i) -> int:
@@ -853,9 +1224,12 @@ func _draw_forest_barrier(cell: Vector2i) -> void:
 	if not _is_forest_structure(cell):
 		return
 	if _forest_barriers.has(cell):
-		var frame := _frame_for_mask(_forest_bush_mask(cell), cell, 0, 91)
+		# posmod(frame, 16) mandava 14 valores de frame para a máscara ERRADA
+		# (ex.: máscara 3 sorteando o frame 16 virava o frame 0, que é máscara 4).
+		# Era tile trocado aleatório nos arbustos. frame_limit resolve na origem.
+		var frame := _frame_for_mask(_forest_bush_mask(cell), cell, 0, 91, 16)
 		if frame >= 0:
-			var coord := _frame_to_coord(posmod(frame, 16))
+			var coord := _frame_to_coord(frame)
 			_forest_barrier_bottom.set_cell(cell, 0, coord, 0)
 			# AutoTilerLayers gives TallBushTopRule Height=16, so this texture
 			# is rendered exactly one native tile above its logical structure.
@@ -880,9 +1254,9 @@ func _draw_forest_barrier(cell: Vector2i) -> void:
 			var offset: Vector2i = FOREST_MASK_OFFSETS[index]
 			if not _is_forest_structure(cell + offset) or not _is_forest_structure(source + offset):
 				canopy_mask &= ~int(FOREST_MASK_FLAGS[index])
-		var canopy_frame := _frame_for_mask(canopy_mask, cell, 0, 103)
+		var canopy_frame := _frame_for_mask(canopy_mask, cell, 0, 103, 16)
 		if canopy_frame >= 0:
-			_forest_canopy.set_cell(cell + Vector2i.UP * 6, 0, _frame_to_coord(posmod(canopy_frame, 16)), 0)
+			_forest_canopy.set_cell(cell + Vector2i.UP * 6, 0, _frame_to_coord(canopy_frame), 0)
 
 
 func _draw_forest_path(_cell: Vector2i, _terrain_type: int) -> void:
@@ -912,8 +1286,8 @@ func _generate_entity_size_spots(start: Vector2i, finish: Vector2i) -> void:
 	_entity_spots.clear()
 	var width := finish.x - start.x
 	var height := finish.y - start.y
-	var macro_columns := ceili(float(width) / 16.0)
-	var macro_rows := ceili(float(height) / 16.0)
+	var macro_columns := ceili(float(width) / float(prop_macro_cell_tiles))
+	var macro_rows := ceili(float(height) / float(prop_macro_cell_tiles))
 	var macro_width := width / macro_columns
 	var macro_height := height / macro_rows
 	var rng := RandomNumberGenerator.new()
@@ -924,7 +1298,7 @@ func _generate_entity_size_spots(start: Vector2i, finish: Vector2i) -> void:
 		for macro_y in range(macro_rows):
 			var accepted := 1.0
 			var attempts := 0
-			while float(attempts) < accepted * 1.33 + 16.0:
+			while float(attempts) < accepted * prop_attempt_bias + prop_attempt_base:
 				attempts += 1
 				var local_position := Vector2(
 					rng.randf_range(float(macro_x), float(macro_x) + 0.99999) * float(macro_width),
@@ -970,11 +1344,11 @@ func _entity_sizes_for_biome(biome: int) -> Array[float]:
 		BIOME_WATER:
 			return []
 		BIOME_FOREST_LIGHT:
-			return [0.5, 0.5, 0.5, 1.0, 1.0, 1.5]
+			return [prop_size_small, prop_size_small, prop_size_small, prop_size_medium, prop_size_medium, prop_size_large]
 		BIOME_FOREST_DEEP:
-			return [0.5, 0.5, 0.5, 1.0, 1.0, 1.5, 1.5]
+			return [prop_size_small, prop_size_small, prop_size_small, prop_size_medium, prop_size_medium, prop_size_large, prop_size_large]
 		_:
-			return [0.5, 0.5, 0.5, 0.5, 1.0, 1.0, 1.5]
+			return [prop_size_small, prop_size_small, prop_size_small, prop_size_small, prop_size_medium, prop_size_medium, prop_size_large]
 
 
 func _scatter_cell(cell: Vector2i, biome: int, spot: Dictionary) -> void:
@@ -1322,6 +1696,73 @@ func _spawn_light_landmarks() -> void:
 		_spawn_prop(position, PropKind.BRAZIER, int(position.x * 17.0 + position.y * 31.0))
 
 
+func is_water_cell(cell: Vector2i) -> bool:
+	return int(_terrain_types.get(cell, TERRAIN_BASE)) == TERRAIN_WATER
+
+
+func _draw_water_cell(cell: Vector2i) -> void:
+	## Água não é tile: é o OceanBackdrop aparecendo onde nenhum chão foi
+	## pintado. Aqui só entra a colisão invisível que segura o jogador.
+	if _water_collision != null and is_instance_valid(_water_collision):
+		_water_collision.set_cell(cell, 0, Vector2i(0, 0), 0)
+
+
+const SAND_ATLAS_FRAMES := 32
+
+
+func _draw_shore(cell: Vector2i) -> void:
+	if not _has_coastline_layers():
+		return
+	if is_water_cell(cell) and not _has_orthogonal_sand(cell):
+		## Só a água que encosta de LADO na areia recebe a franja. Se a água que
+		## toca a areia apenas na diagonal também recebesse, cada degrau da costa
+		## deixaria um pingo de areia solto boiando no mar.
+		return
+	_draw_native_autotile(cell, TERRAIN_SAND, _shore_layers, SAND_ATLAS_FRAMES)
+
+
+func _has_orthogonal_sand(cell: Vector2i) -> bool:
+	for offset: Vector2i in ORTHOGONAL_OFFSETS:
+		if int(_terrain_types.get(cell + offset, TERRAIN_BASE)) == TERRAIN_SAND:
+			return true
+	return false
+
+
+func _ensure_ocean_backdrop() -> void:
+	if not _has_coastline_layers():
+		return
+	if _ocean_backdrop == null or not is_instance_valid(_ocean_backdrop):
+		_ocean_backdrop = get_node_or_null("OceanBackdrop") as Polygon2D
+	if _ocean_backdrop == null:
+		_ocean_backdrop = Polygon2D.new()
+		_ocean_backdrop.name = "OceanBackdrop"
+		add_child(_ocean_backdrop)
+	# z_index de Node2D satura em -4096, que é onde o Ground já está. Ficar como
+	# primeiro filho é o que garante que o oceano desenhe ANTES (atrás) dele.
+	_ocean_backdrop.z_index = -4096
+	_ocean_backdrop.z_as_relative = false
+	move_child(_ocean_backdrop, 0)
+
+	var material := _ocean_backdrop.material as ShaderMaterial
+	if material == null or material.shader != WATER_SHADER:
+		material = ShaderMaterial.new()
+		material.shader = WATER_SHADER
+		_ocean_backdrop.material = material
+	_ocean_backdrop.color = Color(0.129, 0.227, 0.322)
+	_ocean_backdrop.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+	var start := Vector2i(-world_size_tiles.x / 2, -world_size_tiles.y / 2)
+	var margin := float(ocean_backdrop_margin_tiles * tile_size)
+	var top_left := Vector2(start) * float(tile_size) - Vector2(margin, margin)
+	var bottom_right := Vector2(start + world_size_tiles) * float(tile_size) + Vector2(margin, margin)
+	_ocean_backdrop.polygon = PackedVector2Array([
+		top_left,
+		Vector2(bottom_right.x, top_left.y),
+		bottom_right,
+		Vector2(top_left.x, bottom_right.y),
+	])
+
+
 func _clear_generated_content() -> void:
 	for layer in _all_tile_layers():
 		layer.clear()
@@ -1371,7 +1812,34 @@ func _load_svg_texture(resource_path: String) -> Texture2D:
 	return ImageTexture.create_from_image(image)
 
 
+func _build_shore_texture() -> Texture2D:
+	## Carrega beachtile.png direto dos bytes (sem depender de import). Antes esta
+	## função montava uma folha de 13 linhas preenchendo os frames 32..51 com o
+	## tile sólido, porque as máscaras indexam até 51. Isso fazia 16% das peças de
+	## litoral desenharem um quadrado cheio de areia no lugar do canto — era a
+	## borda de lago mal encaixada. Agora quem resolve é o frame_limit no tiler.
+	var source := Image.new()
+	var bytes := FileAccess.get_file_as_bytes(SAND_TERRAIN_PATH)
+	if bytes.is_empty() or source.load_png_from_buffer(bytes) != OK:
+		push_warning("Shore atlas indisponível em %s; litoral vai sair sem areia." % SAND_TERRAIN_PATH)
+		return ImageTexture.new()
+	source.convert(Image.FORMAT_RGBA8)
+	return ImageTexture.create_from_image(source)
+
+
 func _load_png_texture(resource_path: String) -> Texture2D:
+	if use_oathwake_tilesets and (resource_path.begins_with(TERRAIN_SPRITE_ROOT + "/") or resource_path in [TINY_FLOWERS_PATH, TINY_LEAVES_PATH, GROUND_PLANTS_PATH]):
+		var styled_path := TERRAIN_SPRITE_ROOT + "/oathwake_tilesets/" + resource_path.get_file()
+		if FileAccess.file_exists(styled_path):
+			var image := Image.new()
+			if image.load_png_from_buffer(FileAccess.get_file_as_bytes(styled_path)) == OK:
+				return ImageTexture.create_from_image(image)
+		# Exported projects can retain only the imported texture remap, not raw PNG bytes.
+		if ResourceLoader.exists(styled_path, "Texture2D"):
+			var imported_texture := load(styled_path) as Texture2D
+			if imported_texture != null:
+				return imported_texture
+		push_warning("Oathwake terrain skin missing or invalid, using original: " + styled_path)
 	var texture := load(resource_path) as Texture2D
 	if texture == null:
 		push_error("Could not load native PNG lab asset: %s" % resource_path)

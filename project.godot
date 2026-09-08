@@ -4,7 +4,7 @@
 ;
 ; Format:
 ;   [section] ; section goes between []
-;   param=value
+;   param=value ; assign values to parameters
 
 config_version=5
 
@@ -38,6 +38,7 @@ DebugSidePanelRestorer="*res://scripts/ui/DebugSidePanelRestorer.gd"
 PixelVFX="*res://scripts/effects/PixelVFX.gd"
 PixelationPostProcess="*res://scripts/effects/PixelationPostProcess.gd"
 SFXManager="*res://scripts/audio/SFXManager.gd"
+OathwakeFpsProbe="*res://scripts/test/OathwakeFpsProbe.gd"
 
 [display]
 

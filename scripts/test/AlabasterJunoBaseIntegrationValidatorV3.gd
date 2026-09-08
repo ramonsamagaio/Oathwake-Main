@@ -1,7 +1,7 @@
 extends "res://scripts/test/AlabasterJunoBaseIntegrationValidatorV2.gd"
 
 const COMPLETE_BONE_STUDIO_SCENE := "res://scenes/labs/alabaster/AlabasterBoneStudio.tscn"
-const EXPECTED_PREVIEW_PROFILES := ["juno", "juno_base", "male_dummy", "default"]
+const EXPECTED_PREVIEW_PROFILES := ["juno", "juno_base", "male_dummy", "default", "wayfarer", "mooncloak"]
 
 
 func _validate_live_tuning() -> bool:
@@ -29,7 +29,7 @@ func _validate_complete_figure_previews() -> bool:
 		return false
 	var profiles := profiles_value as Array
 	if profiles.size() != EXPECTED_PREVIEW_PROFILES.size():
-		_fail("Bone Studio editor preview expected four figures, got %s" % str(profiles))
+		_fail("Bone Studio editor preview expected five figures, got %s" % str(profiles))
 		return false
 	for expected in EXPECTED_PREVIEW_PROFILES:
 		if not profiles.has(expected):
@@ -117,7 +117,7 @@ func _validate_complete_figure_previews() -> bool:
 		_fail("Live Tuning JunoBase target did not synchronize preview selector")
 		return false
 
-	print("ALABASTER_BONE_STUDIO_FIGURE_PREVIEWS_OK editor=4 live=4 profiles=juno,juno_base,male_dummy,default male_removed=true")
+	print("ALABASTER_BONE_STUDIO_FIGURE_PREVIEWS_OK editor=6 live=6 profiles=juno,juno_base,male_dummy,default,wayfarer,mooncloak male_removed=true")
 	studio.queue_free()
 	await process_frame
 	return true

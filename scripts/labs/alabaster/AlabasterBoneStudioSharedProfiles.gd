@@ -8,12 +8,16 @@ extends "res://scripts/labs/alabaster/AlabasterBoneStudioPro.gd"
 const LIVE_TUNING_PANEL_PATH = "res://scripts/labs/alabaster/AlabasterBoneStudioCompleteLiveTuning.gd"
 const SharedJunoRigScript := preload("res://scripts/systems/bones/BonesSystem.gd")
 const SharedJunoBaseRigScript := preload("res://scripts/labs/alabaster/AlabasterJunoBaseRig.gd")
+const SharedWayfarerRigScript := preload("res://scripts/labs/alabaster/WayfarerRig.gd")
+const SharedMooncloakRigScript := preload("res://scripts/labs/alabaster/MooncloakRig.gd")
 const SharedPlayableSkinRigScript := preload("res://scripts/labs/alabaster/AlabasterPlayableSkinRig.gd")
 const SharedDefaultRigScript := preload("res://scripts/labs/alabaster/AlabasterDefaultPlayableSkinRig.gd")
 const SharedAnimationLibrary := preload("res://scripts/labs/alabaster/AlabasterBoneAnimationLibrary.gd")
 
 const EDITOR_PROFILE_JUNO := "juno"
 const EDITOR_PROFILE_JUNO_BASE := "juno_base"
+const EDITOR_PROFILE_WAYFARER := "wayfarer"
+const EDITOR_PROFILE_MOONCLOAK := "mooncloak"
 const EDITOR_PROFILE_DUMMY := "male_dummy"
 const EDITOR_PROFILE_DEFAULT := "default"
 const EDITOR_PROFILE_ORDER := [
@@ -21,12 +25,16 @@ const EDITOR_PROFILE_ORDER := [
 	EDITOR_PROFILE_JUNO_BASE,
 	EDITOR_PROFILE_DUMMY,
 	EDITOR_PROFILE_DEFAULT,
+	EDITOR_PROFILE_WAYFARER,
+	EDITOR_PROFILE_MOONCLOAK,
 ]
 const EDITOR_PROFILE_LABEL := {
 	EDITOR_PROFILE_JUNO: "JUNO",
 	EDITOR_PROFILE_JUNO_BASE: "JUNO BASE",
 	EDITOR_PROFILE_DUMMY: "DUMMY",
 	EDITOR_PROFILE_DEFAULT: "DEFAULT",
+	EDITOR_PROFILE_WAYFARER: "WAYFARER",
+	EDITOR_PROFILE_MOONCLOAK: "MOONCLOAK",
 }
 
 var _live_tuning_panel: Node = null
@@ -154,6 +162,14 @@ func set_editor_preview_profile(profile_id: String) -> bool:
 
 func _create_editor_preview_rig(profile_id: String) -> Node2D:
 	match profile_id:
+		EDITOR_PROFILE_MOONCLOAK:
+			var mooncloak := SharedMooncloakRigScript.new() as Node2D
+			mooncloak.name = "MooncloakBoneStudioSharedRig"
+			return mooncloak
+		EDITOR_PROFILE_WAYFARER:
+			var wayfarer := SharedWayfarerRigScript.new() as Node2D
+			wayfarer.name = "WayfarerBoneStudioSharedRig"
+			return wayfarer
 		EDITOR_PROFILE_JUNO:
 			var juno := SharedJunoRigScript.new() as Node2D
 			if juno != null:

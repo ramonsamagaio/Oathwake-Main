@@ -1,0 +1,47 @@
+Processing request of type CallToolRequest
+Processing request of type ListToolsRequest
+{"tool": "pixelorama_status", "result": {"meta": null, "content": [{"type": "text", "text": "{\n  \"ready\": false,\n  \"reason\": \"Pixelorama extension heartbeat not found\"\n}", "annotations": null, "meta": null}], "structuredContent": {"ready": false, "reason": "Pixelorama extension heartbeat not found"}, "isError": false}}
+Processing request of type CallToolRequest
+{"tool": "pixelorama_project_info", "result": {"meta": null, "content": [{"type": "text", "text": "Error executing tool pixelorama_project_info: Pixelorama did not answer action 'project_info' within 10.00s", "annotations": null, "meta": null}], "structuredContent": null, "isError": true}}
+  + Exception Group Traceback (most recent call last):
+  |   File "C:\Oathwake\Oathwake-Main\tools\character_pixelorama.py", line 30, in <module>
+  |     asyncio.run(main())
+  |   File "C:\Users\ramon\AppData\Roaming\uv\python\cpython-3.12.11-windows-x86_64-none\Lib\asyncio\runners.py", line 195, in run
+  |     return runner.run(main)
+  |            ^^^^^^^^^^^^^^^^
+  |   File "C:\Users\ramon\AppData\Roaming\uv\python\cpython-3.12.11-windows-x86_64-none\Lib\asyncio\runners.py", line 118, in run
+  |     return self._loop.run_until_complete(task)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\ramon\AppData\Roaming\uv\python\cpython-3.12.11-windows-x86_64-none\Lib\asyncio\base_events.py", line 691, in run_until_complete
+  |     return future.result()
+  |            ^^^^^^^^^^^^^^^
+  |   File "C:\Oathwake\Oathwake-Main\tools\character_pixelorama.py", line 20, in main
+  |     async with stdio_client(params) as (read, write):
+  |                ^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\ramon\AppData\Roaming\uv\python\cpython-3.12.11-windows-x86_64-none\Lib\contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "C:\Users\ramon\OneDrive\Documentos\HERMES\CONFIGS LOCAIS\pixelorama-hermes-bridge\.venv\Lib\site-packages\mcp\client\stdio\__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\ramon\OneDrive\Documentos\HERMES\CONFIGS LOCAIS\pixelorama-hermes-bridge\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 815, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "C:\Users\ramon\OneDrive\Documentos\HERMES\CONFIGS LOCAIS\pixelorama-hermes-bridge\.venv\Lib\site-packages\mcp\client\stdio\__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "C:\Oathwake\Oathwake-Main\tools\character_pixelorama.py", line 21, in main
+    |     async with ClientSession(read, write) as session:
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\ramon\OneDrive\Documentos\HERMES\CONFIGS LOCAIS\pixelorama-hermes-bridge\.venv\Lib\site-packages\mcp\shared\session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "C:\Users\ramon\OneDrive\Documentos\HERMES\CONFIGS LOCAIS\pixelorama-hermes-bridge\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 815, in __aexit__
+    |     raise BaseExceptionGroup(
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "C:\Oathwake\Oathwake-Main\tools\character_pixelorama.py", line 27, in main
+      |     raise RuntimeError('MCP operation failed')
+      | RuntimeError: MCP operation failed
+      +------------------------------------

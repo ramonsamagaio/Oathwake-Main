@@ -1,0 +1,23 @@
+{
+  "name": "oak-grid-reconstruction-review",
+  "size": [
+    352,
+    112
+  ],
+  "rgba_sha256": "35d62eb6787d77f9599b969630a6eced59203b82f8c1e2418336d7825f8b93bb",
+  "native_pixel_edits": 7788,
+  "colors": 12,
+  "status": "visual review pending",
+  "reference_pitch": 4,
+  "cut_y": 74,
+  "actual_native_size": [
+    77,
+    96
+  ],
+  "source_crop": [
+    28,
+    88,
+    336,
+    472
+  ]
+}

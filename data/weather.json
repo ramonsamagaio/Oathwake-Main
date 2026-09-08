@@ -1,0 +1,8 @@
+{
+	"clear": {"display_name": "Limpo", "min_seconds": 180.0, "max_seconds": 420.0, "weight": 4.0, "transition_seconds": 7.0},
+	"windy": {"display_name": "Vento", "min_seconds": 90.0, "max_seconds": 240.0, "weight": 2.5, "transition_seconds": 7.0},
+	"rain": {"display_name": "Chuva", "min_seconds": 120.0, "max_seconds": 300.0, "weight": 2.0, "transition_seconds": 9.0},
+	"storm": {"display_name": "Tempestade", "min_seconds": 60.0, "max_seconds": 150.0, "weight": 0.8, "transition_seconds": 5.0},
+	"snow": {"display_name": "Neve", "min_seconds": 120.0, "max_seconds": 300.0, "weight": 0.6, "transition_seconds": 11.0},
+	"embers": {"display_name": "Brasas", "min_seconds": 60.0, "max_seconds": 180.0, "weight": 0.3, "transition_seconds": 9.0}
+}

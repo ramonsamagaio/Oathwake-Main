@@ -1,5 +1,9 @@
 extends Node
 
+const OathwakePalette := preload("res://scripts/world/terrain/OathwakeTerrainPalette.gd")
+const OathwakeRoadEdges := preload("res://scripts/world/terrain/OathwakeRoadEdges.gd")
+const OATHWAKE_ROAD_PATH := "res://assets/sprites/world/procedural/terrain/oathwake_tilesets/oathwake_road.png"
+
 const TILE_SIZE := 16
 const WATER_BIOME := 0
 const BIOME_DIRT := 1
@@ -50,6 +54,7 @@ var _ground_detail_layer: TileMapLayer
 var _cliff_finish_layer: TileMapLayer
 var _water_cells: Dictionary = {}
 var _road_cells: Dictionary = {}
+var _road_uses_edge_atlas := false
 
 
 func _ready() -> void:
@@ -149,6 +154,9 @@ func _build_semantic_roads() -> void:
 	if _road_layer == null:
 		return
 	_attached_world.add_child(_road_layer)
+	if _road_uses_edge_atlas:
+		OathwakeRoadEdges.paint(_road_layer, _road_cells, _water_cells, _get_dictionary(_attached_world, "_terrain_types"))
+		return
 	for cell_value in _road_cells.keys():
 		var cell := Vector2i(cell_value)
 		var mask := _cardinal_mask(_road_cells, cell)
@@ -386,6 +394,12 @@ func _draw_water_tile(image: Image, mask: int, tile_x: int, tile_y: int) -> void
 
 
 func _make_road_layer(name_value: String, z_value: int) -> TileMapLayer:
+	_road_uses_edge_atlas = false
+	if _attached_world != null and bool(_attached_world.get("use_oathwake_tilesets")):
+		var authored := _attached_world.call("_load_png_texture", OATHWAKE_ROAD_PATH) as Texture2D
+		if authored != null and authored.get_size() == Vector2(256, 2048):
+			_road_uses_edge_atlas = true
+			return _make_layer_from_texture(name_value, z_value, authored, false, false)
 	# Two visual variants for every 4-bit topology mask: 8 columns x 4 rows.
 	var image := Image.create(TILE_SIZE * 8, TILE_SIZE * 4, false, Image.FORMAT_RGBA8)
 	image.fill(Color(0, 0, 0, 0))
@@ -491,10 +505,14 @@ func _draw_ground_detail_tile(image: Image, row: int, variant: int) -> void:
 func _make_cliff_finish_layer(name_value: String, z_value: int) -> TileMapLayer:
 	var image := Image.create(TILE_SIZE * 4, TILE_SIZE, false, Image.FORMAT_RGBA8)
 	image.fill(Color(0, 0, 0, 0))
+	var authored_skin := _attached_world != null and bool(_attached_world.get("use_oathwake_tilesets"))
 	for variant in range(4):
-		for x in range(2, 14):
-			if posmod(x + variant * 3, 5) != 0:
-				_set_tile_pixel(image, variant, 0, x, 1, CLIFF_SHADOW)
+		# The authored cliff silhouette already carries its foot shading. This
+		# fixed row sat below the uneven rock feet as a detached dashed line.
+		if not authored_skin:
+			for x in range(2, 14):
+				if posmod(x + variant * 3, 5) != 0:
+					_set_tile_pixel(image, variant, 0, x, 1, CLIFF_SHADOW)
 		var rock_x := 4 + variant * 2
 		_set_tile_pixel(image, variant, 0, rock_x, 4, CLIFF_STONE)
 		_set_tile_pixel(image, variant, 0, mini(rock_x + 1, 14), 4, CLIFF_STONE_LIGHT)
@@ -503,7 +521,9 @@ func _make_cliff_finish_layer(name_value: String, z_value: int) -> TileMapLayer:
 	return _make_layer_from_texture(name_value, z_value, ImageTexture.create_from_image(image), false)
 
 
-func _make_layer_from_texture(name_value: String, z_value: int, texture: Texture2D, collision: bool) -> TileMapLayer:
+func _make_layer_from_texture(name_value: String, z_value: int, texture: Texture2D, collision: bool, harmonize_palette: bool = true) -> TileMapLayer:
+	if harmonize_palette and _attached_world != null and bool(_attached_world.get("use_oathwake_tilesets")):
+		texture = OathwakePalette.style_generated_texture(texture, name_value)
 	var layer := TileMapLayer.new()
 	layer.name = name_value
 	layer.z_index = z_value

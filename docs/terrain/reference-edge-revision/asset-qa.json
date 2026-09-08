@@ -1,0 +1,66 @@
+{
+  "assets": [
+    {
+      "file": "plainsgrass2.png",
+      "rgba_sha256": "d05b62aada73ce0876abe13de7e7d623ac7cc7cccfe4fadf6506d0a342a93fed",
+      "size": [
+        64,
+        304
+      ],
+      "pixels": 8824,
+      "changed_pixels": 8888
+    },
+    {
+      "file": "plainsgrass3.png",
+      "rgba_sha256": "f7730afdc95dd17955a1a57f842dcffbd348b9f23fc293e3876493a7e726d112",
+      "size": [
+        64,
+        304
+      ],
+      "pixels": 8824,
+      "changed_pixels": 8888
+    },
+    {
+      "file": "short_grass.png",
+      "rgba_sha256": "1fff886ce019f17d46cbcfbeaa1262881e404bd00acc3526b3d66a26f7bc7eeb",
+      "size": [
+        64,
+        304
+      ],
+      "pixels": 9014,
+      "changed_pixels": 9014
+    },
+    {
+      "file": "plainsgrass1.png",
+      "rgba_sha256": "ef7b674d5798bf58ae1a9039a9fc68c13dacad545b06d64997b16f4528c9abc8",
+      "size": [
+        64,
+        304
+      ],
+      "pixels": 8884,
+      "changed_pixels": 8941
+    },
+    {
+      "file": "tall_grass.png",
+      "rgba_sha256": "6ccf7bb3f7be8ce7d8f078a58fe6d5b6e47ffc5330a2518ae557f8c55d68d887",
+      "size": [
+        64,
+        304
+      ],
+      "pixels": 10395,
+      "changed_pixels": 10396
+    },
+    {
+      "file": "oathwake_road.png",
+      "rgba_sha256": "de94f23a5a6941a9b0ff6108be04adde0ff0db6438d704332c8e5d55e4a20f3a",
+      "size": [
+        256,
+        2048
+      ],
+      "pixels": 261216,
+      "changed_pixels": 300544
+    }
+  ],
+  "join_alpha_pixels_checked": 42560,
+  "pixelorama_roundtrip": true
+}

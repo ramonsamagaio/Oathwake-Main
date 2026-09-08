@@ -1,0 +1,78 @@
+{
+	"water": {
+		"display_name": "Água",
+		"allows_monster_spawn": false,
+		"monster_spawns": []
+	},
+	"meadow": {
+		"display_name": "Prado",
+		"allows_monster_spawn": true,
+		"monster_spawns": [
+			{"monster_id": "slime", "weight": 2.5, "max_alive": 5, "hour_start": 0.0, "hour_end": 24.0},
+			{"monster_id": "rabbit", "weight": 2.0, "max_alive": 4, "hour_start": 0.0, "hour_end": 13.0},
+			{"monster_id": "bird", "weight": 1.5, "max_alive": 3, "hour_start": 0.0, "hour_end": 12.0},
+			{"monster_id": "butterfly_blue", "weight": 1.0, "max_alive": 2, "hour_start": 1.0, "hour_end": 11.0},
+			{"monster_id": "butterfly_yellow", "weight": 1.0, "max_alive": 2, "hour_start": 1.0, "hour_end": 11.0},
+			{"monster_id": "butterfly_white", "weight": 1.0, "max_alive": 2, "hour_start": 1.0, "hour_end": 11.0},
+			{"monster_id": "butterfly_pink", "weight": 0.6, "max_alive": 2, "hour_start": 1.0, "hour_end": 11.0},
+			{"monster_id": "butterfly_red", "weight": 0.6, "max_alive": 2, "hour_start": 1.0, "hour_end": 11.0},
+			{"monster_id": "butterfly_grey", "weight": 0.4, "max_alive": 2, "hour_start": 1.0, "hour_end": 11.0},
+			{"monster_id": "skeleton", "weight": 1.2, "max_alive": 3, "hour_start": 13.0, "hour_end": 23.0}
+		]
+	},
+	"forest_light": {
+		"display_name": "Transição de floresta",
+		"allows_monster_spawn": true,
+		"monster_spawns": [
+			{"monster_id": "squirrel", "weight": 2.5, "max_alive": 4, "hour_start": 0.0, "hour_end": 13.0},
+			{"monster_id": "bird", "weight": 2.0, "max_alive": 3, "hour_start": 0.0, "hour_end": 12.0},
+			{"monster_id": "deer_female", "weight": 1.2, "max_alive": 2, "hour_start": 0.0, "hour_end": 14.0},
+			{"monster_id": "slime", "weight": 1.5, "max_alive": 4, "hour_start": 0.0, "hour_end": 24.0},
+			{"monster_id": "skeleton", "weight": 1.5, "max_alive": 3, "hour_start": 12.5, "hour_end": 23.5}
+		]
+	},
+	"forest": {
+		"display_name": "Bosque",
+		"allows_monster_spawn": true,
+		"monster_spawns": [
+			{"monster_id": "deer_female", "weight": 2.2, "max_alive": 3, "hour_start": 0.0, "hour_end": 14.0},
+			{"monster_id": "squirrel", "weight": 2.0, "max_alive": 4, "hour_start": 0.0, "hour_end": 13.0},
+			{"monster_id": "slime", "weight": 1.0, "max_alive": 3, "hour_start": 0.0, "hour_end": 24.0},
+			{"monster_id": "skeleton", "weight": 2.5, "max_alive": 4, "hour_start": 12.0, "hour_end": 24.0}
+		]
+	},
+	"forest_deep": {
+		"display_name": "Floresta fechada",
+		"allows_monster_spawn": true,
+		"monster_spawns": [
+			{"monster_id": "skeleton", "weight": 4.0, "max_alive": 6, "hour_start": 11.0, "hour_end": 24.0},
+			{"monster_id": "skeleton", "weight": 1.0, "max_alive": 6, "hour_start": 0.0, "hour_end": 11.0},
+			{"monster_id": "deer_female", "weight": 0.8, "max_alive": 2, "hour_start": 0.0, "hour_end": 12.0}
+		]
+	},
+	"dry": {
+		"display_name": "Campina dourada",
+		"allows_monster_spawn": true,
+		"monster_spawns": [
+			{"monster_id": "slime", "weight": 1.0, "max_alive": 3, "hour_start": 0.0, "hour_end": 24.0},
+			{"monster_id": "bird", "weight": 1.2, "max_alive": 2, "hour_start": 0.0, "hour_end": 12.0},
+			{"monster_id": "skeleton", "weight": 2.0, "max_alive": 4, "hour_start": 12.0, "hour_end": 24.0}
+		]
+	},
+	"dirt": {
+		"display_name": "Terra seca",
+		"allows_monster_spawn": true,
+		"monster_spawns": [
+			{"monster_id": "slime", "weight": 1.5, "max_alive": 3, "hour_start": 0.0, "hour_end": 24.0},
+			{"monster_id": "skeleton", "weight": 2.0, "max_alive": 4, "hour_start": 12.0, "hour_end": 24.0}
+		]
+	},
+	"swamp": {
+		"display_name": "Pântano",
+		"allows_monster_spawn": true,
+		"monster_spawns": [
+			{"monster_id": "slime", "weight": 3.0, "max_alive": 5, "hour_start": 0.0, "hour_end": 24.0},
+			{"monster_id": "skeleton", "weight": 1.5, "max_alive": 3, "hour_start": 12.0, "hour_end": 24.0}
+		]
+	}
+}

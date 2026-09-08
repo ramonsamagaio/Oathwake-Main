@@ -50,6 +50,17 @@ var resources_root: Node2D
 var build_label: Label
 var buildings_root: Node2D
 
+# --- PERF: andares residentes ---
+# Cada andar guarda seus nós de prédio num container próprio. Trocar de andar
+# tira o container do andar antigo da árvore (o que também remove os corpos do
+# espaço de física numa operação só) e devolve o do andar novo. Nada é
+# destruído nem reinstanciado, então voltar ao térreo custa o mesmo que subir,
+# independente de quantos prédios o térreo tem.
+var _floor_parks: Dictionary = {}
+var _active_park_floor := -1
+var _active_building_parent: Node2D
+var _activating_floor := false
+
 
 func _ready() -> void:
 	add_to_group("build_system")
@@ -68,6 +79,7 @@ func setup(context: Dictionary) -> void:
 		building_scene_by_cell.clear()
 		next_bed_id = 1
 		next_chest_id = 1
+		clear_floor_parks()
 		if not context.has("buildings_root"):
 			buildings_root = null
 	_resolve_legacy_references()
@@ -293,33 +305,321 @@ func get_built_buildings() -> Array:
 	return buildings
 
 
+func activate_floor_buildings(floor_index: int, buildings: Array) -> void:
+	## Torna `floor_index` o andar ativo sem destruir o andar anterior.
+	if build_layer == null:
+		push_warning("BuildSystem cannot activate a floor without a build layer.")
+		return
+	var signature := _floor_signature(buildings)
+	if _active_park_floor == floor_index:
+		var active_park: Variant = _floor_parks.get(floor_index, null)
+		if active_park is Dictionary and str((active_park as Dictionary).get("signature", "")) == signature:
+			return
+
+	if _active_park_floor >= 0 and _active_park_floor != floor_index:
+		_park_active_floor()
+
+	_active_park_floor = floor_index
+	var floor_root := _get_or_create_floor_root(floor_index)
+	if floor_root == null:
+		return
+	# O container do andar alvo pode estar fora da árvore (estacionado). Ele
+	# precisa voltar ANTES de qualquer spawn, senão os prédios novos nascem
+	# soltos em buildings_root e nunca mais são estacionados junto.
+	if floor_root.get_parent() == null and buildings_root != null:
+		buildings_root.add_child(floor_root)
+	_active_building_parent = floor_root
+
+	var park_value: Variant = _floor_parks.get(floor_index, null)
+	if park_value is Dictionary:
+		var park: Dictionary = park_value
+		var park_root := park.get("root") as Node2D
+		if str(park.get("signature", "")) == signature and park_root != null and is_instance_valid(park_root):
+			_restore_park(floor_index, park)
+			return
+
+	# Andar novo, ou com dados alterados desde a última visita: monta pelo diff.
+	# Restaura os dicionários estacionados primeiro para o diff reaproveitar os
+	# nós que sobreviveram, em vez de recriar o andar inteiro.
+	_adopt_park_state(floor_index)
+	_activating_floor = true
+	load_built_buildings(buildings)
+	_activating_floor = false
+	_floor_parks[floor_index] = {
+		"root": floor_root,
+		"signature": signature,
+		"next_bed_id": next_bed_id,
+		"next_chest_id": next_chest_id,
+	}
+
+
+func _adopt_park_state(floor_index: int) -> void:
+	var park_value: Variant = _floor_parks.get(floor_index, null)
+	if park_value is Dictionary:
+		var park: Dictionary = park_value
+		building_scene_by_cell = park.get("scenes", {})
+		building_metadata_by_cell = park.get("metadata", {})
+		for entry_variant in park.get("cells", []) as Array:
+			var entry: Dictionary = entry_variant
+			build_layer.set_cell(entry.get("cell"), int(entry.get("source", SOURCE_ID)), entry.get("atlas"), int(entry.get("alt", 0)))
+	else:
+		building_scene_by_cell = {}
+		building_metadata_by_cell = {}
+
+
+func _restore_park(floor_index: int, park: Dictionary) -> void:
+	building_scene_by_cell = park.get("scenes", {})
+	building_metadata_by_cell = park.get("metadata", {})
+	next_bed_id = int(park.get("next_bed_id", 1))
+	next_chest_id = int(park.get("next_chest_id", 1))
+	for entry_variant in park.get("cells", []) as Array:
+		var entry: Dictionary = entry_variant
+		build_layer.set_cell(entry.get("cell"), int(entry.get("source", SOURCE_ID)), entry.get("atlas"), int(entry.get("alt", 0)))
+	park["parked"] = false
+	_floor_parks[floor_index] = park
+	_update_preview()
+
+
+func _signature_from_active_metadata() -> String:
+	## Mesma assinatura de _floor_signature(), lida direto da metadata ativa —
+	## sem passar por get_built_buildings(), que varre o tilemap inteiro.
+	var parts: PackedStringArray = []
+	for cell_key in building_metadata_by_cell.keys():
+		var metadata: Variant = building_metadata_by_cell[cell_key]
+		if not metadata is Dictionary:
+			continue
+		var cell := _cell_from_key(str(cell_key))
+		parts.append("%s@%d,%d" % [str((metadata as Dictionary).get("type", "")), cell.x, cell.y])
+	parts.sort()
+	return "|".join(parts)
+
+
+func _floor_signature(buildings: Array) -> String:
+	# Precisa aplicar exatamente o mesmo normaliza+filtra que load_built_buildings
+	# usa, senão a assinatura nunca bate com _signature_from_active_metadata()
+	# e todo retorno de andar cairia no rebuild.
+	var parts: PackedStringArray = []
+	for building in buildings:
+		if not building is Dictionary:
+			continue
+		var building_type := _normalize_building_type(str(building.get("type", BUILD_TYPE_WALL)))
+		if not _is_known_building_type(building_type):
+			continue
+		parts.append("%s@%d,%d" % [
+			building_type,
+			int(building.get("x", 0)),
+			int(building.get("y", 0)),
+		])
+	parts.sort()
+	return "|".join(parts)
+
+
+func _get_or_create_floor_root(floor_index: int) -> Node2D:
+	if buildings_root == null:
+		buildings_root = _get_or_create_buildings_root()
+	if buildings_root == null:
+		return null
+	var park_value: Variant = _floor_parks.get(floor_index, null)
+	if park_value is Dictionary:
+		var detached := (park_value as Dictionary).get("root") as Node2D
+		if detached != null and is_instance_valid(detached):
+			return detached
+	var node_name := "Floor_%d" % floor_index
+	var existing := buildings_root.get_node_or_null(node_name) as Node2D
+	if existing != null:
+		return existing
+	var floor_root := Node2D.new()
+	floor_root.name = node_name
+	floor_root.y_sort_enabled = true
+	buildings_root.add_child(floor_root)
+	return floor_root
+
+
+func _park_active_floor() -> void:
+	var floor_index := _active_park_floor
+	if floor_index < 0:
+		return
+	# As células de tilemap deste andar precisam ser capturadas ANTES de trocar
+	# a metadata, porque _get_building_type_at_tile() depende dela.
+	var cells: Array = []
+	for cell in build_layer.get_used_cells():
+		if _get_building_type_at_tile(cell).is_empty():
+			continue
+		cells.append({
+			"cell": cell,
+			"source": build_layer.get_cell_source_id(cell),
+			"atlas": build_layer.get_cell_atlas_coords(cell),
+			"alt": build_layer.get_cell_alternative_tile(cell),
+		})
+	for entry_variant in cells:
+		build_layer.erase_cell((entry_variant as Dictionary).get("cell"))
+
+	var park_value: Variant = _floor_parks.get(floor_index, null)
+	var park: Dictionary = park_value if park_value is Dictionary else {}
+	var floor_root := park.get("root") as Node2D
+	if floor_root == null or not is_instance_valid(floor_root):
+		floor_root = _active_building_parent
+	# Sair da árvore remove os corpos do espaço de física numa operação só:
+	# nada de zerar collision_layer nó a nó.
+	if floor_root != null and is_instance_valid(floor_root) and floor_root.get_parent() != null:
+		floor_root.get_parent().remove_child(floor_root)
+	park["root"] = floor_root
+	park["scenes"] = building_scene_by_cell
+	park["metadata"] = building_metadata_by_cell
+	park["cells"] = cells
+	park["next_bed_id"] = next_bed_id
+	park["next_chest_id"] = next_chest_id
+	park["parked"] = true
+	# A assinatura tem que refletir o estado REAL na hora de estacionar. Se o
+	# jogador construiu algo enquanto estava neste andar, a assinatura antiga
+	# ficaria velha e o retorno cairia no rebuild sem precisar.
+	park["signature"] = _signature_from_active_metadata()
+	_floor_parks[floor_index] = park
+	building_scene_by_cell = {}
+	building_metadata_by_cell = {}
+
+
+func clear_floor_parks() -> void:
+	for floor_index in _floor_parks.keys().duplicate():
+		var park_value: Variant = _floor_parks[floor_index]
+		if not park_value is Dictionary:
+			continue
+		var floor_root := (park_value as Dictionary).get("root") as Node2D
+		if floor_root != null and is_instance_valid(floor_root):
+			if floor_root.get_parent() != null:
+				floor_root.get_parent().remove_child(floor_root)
+			floor_root.queue_free()
+	_floor_parks.clear()
+	_active_park_floor = -1
+	_active_building_parent = null
+
+
+func _exit_tree() -> void:
+	# Containers de andar fora da árvore não são liberados pelo motor.
+	for floor_index in _floor_parks.keys():
+		var park_value: Variant = _floor_parks[floor_index]
+		if not park_value is Dictionary:
+			continue
+		var floor_root := (park_value as Dictionary).get("root") as Node2D
+		if floor_root != null and is_instance_valid(floor_root) and floor_root.get_parent() == null:
+			floor_root.queue_free()
+	_floor_parks.clear()
+
+
 func load_built_buildings(buildings: Array) -> void:
 	if build_layer == null:
 		push_warning("BuildSystem cannot load buildings without a build layer.")
 		return
-	_clear_built_buildings()
-	building_metadata_by_cell.clear()
-	next_bed_id = 1
-	next_chest_id = 1
+	if not _activating_floor:
+		# Chamada direta (troca de mapa, load de save, validadores): os andares
+		# estacionados não valem mais nada.
+		clear_floor_parks()
 
+	# PERF: isto destruia e reinstanciava TODAS as cenas de prédio a cada
+	# chamada. Como a troca de andar chama load_built_buildings() no frame do
+	# degrau, o custo de instanciar o andar inteiro caia dentro daquele frame.
+	# Agora fazemos um diff: prédios que não mudaram de célula nem de tipo são
+	# reaproveitados como estão; só o delta é liberado ou criado.
+	var target: Dictionary = {}
+	var ordered_keys: Array = []
 	for building in buildings:
 		if not building is Dictionary:
 			continue
-
 		var building_type := _normalize_building_type(str(building.get("type", BUILD_TYPE_WALL)))
 		if not _is_known_building_type(building_type):
 			continue
-
 		var tile_position := Vector2i(
 			int(building.get("x", 0)),
 			int(building.get("y", 0))
 		)
-		_load_building_metadata(tile_position, building_type, building)
+		var cell_key := _cell_key(tile_position)
+		if not target.has(cell_key):
+			ordered_keys.append(cell_key)
+		target[cell_key] = {
+			"cell": tile_position,
+			"type": building_type,
+			"data": building,
+		}
+
+	# Quem sobrevive: mesma célula E mesmo tipo. Tipo diferente na mesma célula
+	# tem que respawnar, porque a cena instanciada é escolhida pelo tipo.
+	var reusable: Dictionary = {}
+	for cell_key in building_scene_by_cell.keys():
+		var existing_scene: Variant = building_scene_by_cell[cell_key]
+		if not existing_scene is Node or not is_instance_valid(existing_scene):
+			continue
+		if not target.has(cell_key):
+			continue
+		var previous_metadata: Variant = building_metadata_by_cell.get(cell_key, {})
+		var previous_type := str(previous_metadata.get("type", "")) if previous_metadata is Dictionary else ""
+		if previous_type == str((target[cell_key] as Dictionary).get("type", "")):
+			reusable[cell_key] = true
+
+	# Libera só o que sai de cena.
+	for cell_key in building_scene_by_cell.keys().duplicate():
+		if reusable.has(cell_key):
+			continue
+		var stale_scene: Variant = building_scene_by_cell[cell_key]
+		if stale_scene is Node and is_instance_valid(stale_scene):
+			(stale_scene as Node).queue_free()
+		building_scene_by_cell.erase(cell_key)
+
+	# Limpa do tilemap apenas as células que não fazem parte do alvo.
+	for cell in build_layer.get_used_cells():
+		if target.has(_cell_key(cell)):
+			continue
+		if not _get_building_type_at_tile(cell).is_empty():
+			build_layer.erase_cell(cell)
+
+	building_metadata_by_cell.clear()
+	next_bed_id = 1
+	next_chest_id = 1
+
+	for cell_key_variant in ordered_keys:
+		var cell_key := str(cell_key_variant)
+		var entry: Dictionary = target[cell_key]
+		var tile_position: Vector2i = entry.get("cell")
+		var building_type := str(entry.get("type", ""))
+		var building_data: Dictionary = entry.get("data")
+		_load_building_metadata(tile_position, building_type, building_data)
 		if _should_use_tile_fallback(building_type):
 			build_layer.set_cell(tile_position, SOURCE_ID, _get_building_tile(building_type))
-		_spawn_building_scene(tile_position, building_type)
+		if reusable.has(cell_key):
+			_apply_metadata_to_existing_scene(tile_position, building_type)
+		else:
+			_spawn_building_scene(tile_position, building_type)
 
 	_update_preview()
+
+
+func _apply_metadata_to_existing_scene(tile_position: Vector2i, building_type: String) -> void:
+	# Reaplica só o estado que vem da metadata num nó que já está na árvore.
+	# Espelha o final de _spawn_building_scene(), sem instanciar nada.
+	var cell_key := _cell_key(tile_position)
+	var building_scene: Variant = building_scene_by_cell.get(cell_key, null)
+	if not building_scene is Node or not is_instance_valid(building_scene):
+		_spawn_building_scene(tile_position, building_type)
+		return
+
+	var node := building_scene as Node
+	# O nó já existia: se o build_layer se moveu (troca de mapa), a posição
+	# gravada no spawn ficaria velha. Reancorar é barato e remove o risco.
+	if node is Node2D:
+		(node as Node2D).global_position = build_layer.to_global(_grid_cell_to_local_center(tile_position))
+	var metadata := _get_building_metadata(tile_position)
+	if node.has_method("set_building_id"):
+		node.set_building_id(str(metadata.get("building_id", building_type)))
+	if node.has_method("set_display_name"):
+		node.set_display_name(str(metadata.get("display_name", _get_storage_display_name(building_type))))
+	if node.has_method("set_slot_count"):
+		node.set_slot_count(int(metadata.get("storage_slot_count", _get_storage_slot_count(building_type))))
+	if node.has_method("set_storage_id"):
+		node.set_storage_id(str(metadata.get("storage_id", "")))
+	var storage_slots: Variant = metadata.get("storage_slots", [])
+	if storage_slots is Array and node.has_method("set_storage_slots"):
+		node.set_storage_slots(storage_slots)
+	if node.has_method("set_open"):
+		node.set_open(bool(metadata.get("is_open", false)))
 
 
 func get_built_wall_cells() -> Array:
@@ -1227,7 +1527,8 @@ func _spawn_building_scene(tile_position: Vector2i, building_type: String) -> vo
 			scene = GenericBuildingScene
 
 	var building_scene: Node = scene.instantiate()
-	buildings_root.add_child(building_scene)
+	var spawn_parent := _active_building_parent if (_active_building_parent != null and is_instance_valid(_active_building_parent) and _active_building_parent.get_parent() != null) else buildings_root
+	spawn_parent.add_child(building_scene)
 	building_scene.global_position = build_layer.to_global(_grid_cell_to_local_center(tile_position))
 
 	var metadata := _get_building_metadata(tile_position)

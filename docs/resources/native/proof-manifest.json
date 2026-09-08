@@ -1,0 +1,13 @@
+{
+  "name": "oak-native-proof-v2",
+  "size": [
+    352,
+    112
+  ],
+  "rgba_sha256": "341883737aa4f12f4505f4d907f8fb6b3163d989889b178c71bfc5b533132c29",
+  "native_pixel_edits": 7426,
+  "colors": 12,
+  "cut_y": 74,
+  "leaf_bottom": 64,
+  "connected": true
+}

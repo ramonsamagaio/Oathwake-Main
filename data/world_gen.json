@@ -1,0 +1,23 @@
+{
+	"default": {
+		"world_width_tiles": 768,
+		"world_height_tiles": 480,
+		"border_water_tiles": 20,
+		"border_sand_tiles": 6,
+		"border_irregularity": 0.5,
+		"ocean_backdrop_margin_tiles": 160,
+		"main_lake_radius_tiles": 52,
+		"main_lake_irregularity": 0.55,
+		"pond_coverage": 0.065,
+		"pond_scale_tiles": 70,
+		"pond_humidity_bias": 0.45,
+		"lake_sand_tiles": 3,
+		"spawn_water_clearance_tiles": 40,
+		"prop_macro_cell_tiles": 16,
+		"prop_attempt_base": 16.0,
+		"prop_attempt_bias": 1.33,
+		"prop_size_small": 0.5,
+		"prop_size_medium": 1.0,
+		"prop_size_large": 1.5
+	}
+}

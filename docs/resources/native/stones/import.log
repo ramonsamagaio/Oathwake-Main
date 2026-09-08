@@ -1,0 +1,57 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Inicialização do Projeto (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Escaneando estrutura de arquivos...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Carregando nomes de classe globais...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verificando GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Criando scripts autoload...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Inicializando plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Iniciando escaneamento de arquivos...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1m_update_scan_actions[22m | Started Escaneando ações... (13 steps)[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | adventurer.fnt[39m[0m
+[   7% ] [90m[1m_update_scan_actions[22m | arial.fnt[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | arialpixel.fnt[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | calibri.fnt[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | courier.fnt[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | oathwake-copper.png[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | oathwake-mossy-boulder.png[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | oathwake-rocks.png[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | oathwake-stones.png[39m[0m
+[  64% ] [90m[1m_update_scan_actions[22m | on-terrain-native.png[39m[0m
+[  71% ] [90m[1m_update_scan_actions[22m | review.png[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | world-0-after.png[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | world-1-after.png[39m[0m
+[92m[ DONE ][39m [1m_update_scan_actions[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started (Re)Importando Recursos (6 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Preparando arquivos para reimportação...[39m[0m
+[  14% ] [90m[1mreimport[22m | Preparando arquivos para reimportação...[39m[0m
+[  28% ] [90m[1mreimport[22m | Preparando arquivos para reimportação...[39m[0m
+[  42% ] [90m[1mreimport[22m | Preparando arquivos para reimportação...[39m[0m
+[  57% ] [90m[1mreimport[22m | Preparando arquivos para reimportação...[39m[0m
+[  71% ] [90m[1mreimport[22m | Preparando arquivos para reimportação...[39m[0m
+[   0% ] [90m[1mreimport[22m | Executando operações pré-reimportação...[39m[0m
+[   0% ] [90m[1mreimport[22m | oathwake-copper.png[39m[0m
+[  14% ] [90m[1mreimport[22m | oathwake-mossy-boulder.png[39m[0m
+[  28% ] [90m[1mreimport[22m | oathwake-rocks.png[39m[0m
+[  42% ] [90m[1mreimport[22m | oathwake-stones.png[39m[0m
+[  57% ] [90m[1mreimport[22m | world-0-after.png[39m[0m
+[  71% ] [90m[1mreimport[22m | world-1-after.png[39m[0m
+[  85% ] [90m[1mreimport[22m | Finalizando Importação de Recursos...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started (Re)Importando Recursos (6 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Executando operações pós-reimportação...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Started Carregando editor (5 steps)[39m[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Carregando layout do editor...[39m[0m
+[  16% ] [90m[1mloading_editor_layout[22m | Carregando abas...[39m[0m
+[  33% ] [90m[1mloading_editor_layout[22m | Reabrindo cenas...[39m[0m
+[  50% ] [90m[1mloading_editor_layout[22m | Carregando layout do editor central...[39m[0m
+[  66% ] [90m[1mloading_editor_layout[22m | Carregando layout da janela de plugins...[39m[0m
+[  83% ] [90m[1mloading_editor_layout[22m | Layout do editor pronto.[39m[0m
+[92m[ DONE ][39m [1mloading_editor_layout[22m
+[0m

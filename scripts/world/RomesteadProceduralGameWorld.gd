@@ -471,7 +471,7 @@ func _is_tree_type(resource_type_id: String) -> bool:
 
 
 func _is_spawn_cell_clear(cell: Vector2i, include_resources: bool) -> bool:
-	if _is_forest_structure(cell) or _plains_cliffs.has(cell):
+	if is_water_cell(cell) or _is_forest_structure(cell) or _plains_cliffs.has(cell):
 		return false
 	var local_position := Vector2(cell * tile_size) + Vector2(tile_size, tile_size) * 0.5
 	return not _is_world_position_blocked(to_global(local_position), 7.0, include_resources)
@@ -480,7 +480,7 @@ func _is_spawn_cell_clear(cell: Vector2i, include_resources: bool) -> bool:
 func _is_world_position_blocked(world_position: Vector2, radius: float, include_resources: bool) -> bool:
 	var local_position := to_local(world_position)
 	var cell := Vector2i(roundi(local_position.x / float(tile_size)), roundi(local_position.y / float(tile_size)))
-	if _is_forest_structure(cell) or _plains_cliffs.has(cell):
+	if is_water_cell(cell) or _is_forest_structure(cell) or _plains_cliffs.has(cell):
 		return true
 	for building_value in get_tree().get_nodes_in_group("building"):
 		var building := building_value as Node2D

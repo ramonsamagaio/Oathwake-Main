@@ -1,7 +1,7 @@
 extends "res://scripts/labs/alabaster/AlabasterBoneStudioJunoBaseLiveTuning.gd"
 
 # Stable dynamic-load target for Bone Studio Live Tuning. The inherited chain
-# owns the complete target set (JUNO, JUNO BASE, DUMMY, DEFAULT). This leaf keeps
+# owns the target set (JUNO, JUNO BASE, DUMMY, DEFAULT, WAYFARER). This leaf keeps
 # one important cross-workspace contract: when Live Tuning changes the body, the
 # shared Import/Retarget + Animator preview selector must reflect that same body
 # without replacing the rig a second time.

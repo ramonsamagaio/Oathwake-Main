@@ -1,0 +1,4 @@
+SCRIPT ERROR: Parse Error: Could not resolve class "res://tools/content_editor/ContentEditorAlabasterPlayerSuite.gd".
+   at: GDScript::reload (res://tools/content_editor/ContentEditorPlayerCharacterExactSuite.gd:1)
+ERROR: Failed to load script "res://tools/content_editor/ContentEditorPlayerCharacterExactSuite.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)

@@ -1,0 +1,333 @@
+{
+  "models": [
+    {
+      "name": "oak",
+      "origin": [
+        8,
+        0
+      ],
+      "bounds": [
+        14,
+        20,
+        132,
+        184
+      ],
+      "cut": 137,
+      "palette": "olive",
+      "anchor": [
+        64,
+        175
+      ],
+      "cut_native": 137,
+      "pixels": 10263,
+      "components": 1,
+      "trunk_components": 1,
+      "crown_components": 1
+    },
+    {
+      "name": "beech",
+      "origin": [
+        121,
+        0
+      ],
+      "bounds": [
+        136,
+        18,
+        245,
+        188
+      ],
+      "cut": 147,
+      "palette": "olive",
+      "anchor": [
+        64,
+        176
+      ],
+      "cut_native": 147,
+      "pixels": 10242,
+      "components": 1,
+      "trunk_components": 1,
+      "crown_components": 1
+    },
+    {
+      "name": "autumn",
+      "origin": [
+        242,
+        0
+      ],
+      "bounds": [
+        255,
+        18,
+        355,
+        188
+      ],
+      "cut": 148,
+      "palette": "gold",
+      "anchor": [
+        64,
+        176
+      ],
+      "cut_native": 148,
+      "pixels": 10594,
+      "components": 1,
+      "trunk_components": 1,
+      "crown_components": 1
+    },
+    {
+      "name": "crooked_pine",
+      "origin": [
+        357,
+        0
+      ],
+      "bounds": [
+        357,
+        22,
+        485,
+        189
+      ],
+      "cut": 151,
+      "palette": "olive",
+      "anchor": [
+        66,
+        177
+      ],
+      "cut_native": 151,
+      "pixels": 9468,
+      "components": 1,
+      "trunk_components": 1,
+      "crown_components": 1
+    },
+    {
+      "name": "spruce",
+      "origin": [
+        475,
+        0
+      ],
+      "bounds": [
+        485,
+        19,
+        593,
+        190
+      ],
+      "cut": 156,
+      "palette": "olive",
+      "anchor": [
+        64,
+        177
+      ],
+      "cut_native": 156,
+      "pixels": 8835,
+      "components": 1,
+      "trunk_components": 1,
+      "crown_components": 1
+    },
+    {
+      "name": "willow",
+      "origin": [
+        590,
+        0
+      ],
+      "bounds": [
+        594,
+        20,
+        718,
+        190
+      ],
+      "cut": 155,
+      "palette": "olive",
+      "anchor": [
+        66,
+        178
+      ],
+      "cut_native": 155,
+      "pixels": 12186,
+      "components": 1,
+      "trunk_components": 1,
+      "crown_components": 1
+    },
+    {
+      "name": "palm",
+      "origin": [
+        6,
+        188
+      ],
+      "bounds": [
+        12,
+        201,
+        129,
+        357
+      ],
+      "cut": 325,
+      "palette": "olive",
+      "anchor": [
+        64,
+        155
+      ],
+      "cut_native": 137,
+      "pixels": 9576,
+      "components": 1,
+      "trunk_components": 1,
+      "crown_components": 1
+    },
+    {
+      "name": "branch_pine",
+      "origin": [
+        122,
+        188
+      ],
+      "bounds": [
+        132,
+        203,
+        250,
+        354
+      ],
+      "cut": 308,
+      "palette": "olive",
+      "anchor": [
+        65,
+        155
+      ],
+      "cut_native": 120,
+      "pixels": 9856,
+      "components": 1,
+      "trunk_components": 1,
+      "crown_components": 1
+    },
+    {
+      "name": "blossom",
+      "origin": [
+        243,
+        188
+      ],
+      "bounds": [
+        250,
+        202,
+        366,
+        357
+      ],
+      "cut": 308,
+      "palette": "pink",
+      "anchor": [
+        64,
+        159
+      ],
+      "cut_native": 120,
+      "pixels": 9940,
+      "components": 1,
+      "trunk_components": 1,
+      "crown_components": 1
+    },
+    {
+      "name": "fruit",
+      "origin": [
+        360,
+        188
+      ],
+      "bounds": [
+        367,
+        202,
+        484,
+        361
+      ],
+      "cut": 317,
+      "palette": "olive",
+      "anchor": [
+        64,
+        160
+      ],
+      "cut_native": 129,
+      "pixels": 9405,
+      "components": 1,
+      "trunk_components": 1,
+      "crown_components": 1
+    },
+    {
+      "name": "flower",
+      "origin": [
+        479,
+        188
+      ],
+      "bounds": [
+        486,
+        202,
+        607,
+        361
+      ],
+      "cut": 316,
+      "palette": "olive",
+      "anchor": [
+        64,
+        161
+      ],
+      "cut_native": 128,
+      "pixels": 9073,
+      "components": 1,
+      "trunk_components": 1,
+      "crown_components": 1
+    },
+    {
+      "name": "blue",
+      "origin": [
+        598,
+        188
+      ],
+      "bounds": [
+        608,
+        202,
+        725,
+        356
+      ],
+      "cut": 314,
+      "palette": "blue",
+      "anchor": [
+        64,
+        155
+      ],
+      "cut_native": 126,
+      "pixels": 9325,
+      "components": 1,
+      "trunk_components": 1,
+      "crown_components": 1
+    }
+  ],
+  "assets": [
+    {
+      "name": "reference3-trees",
+      "size": [
+        768,
+        384
+      ],
+      "rgba_sha256": "d0c9358d53bdd429722ab65c5753499f222dc12ca6c42dc2b30151d7c801d82e",
+      "native_pixel_edits": 118763,
+      "colors": 60
+    },
+    {
+      "name": "reference3-crowns",
+      "size": [
+        768,
+        384
+      ],
+      "rgba_sha256": "8c0e394aa076979768b40feac45acaa32a87f3ab04f6e94d67093fbdf026ff48",
+      "native_pixel_edits": 94438,
+      "colors": 56
+    },
+    {
+      "name": "reference3-trunks",
+      "size": [
+        768,
+        384
+      ],
+      "rgba_sha256": "362bb94a6ef1c61868738b9222250ffed8a0a62d5742f52eed80a9469884ee79",
+      "native_pixel_edits": 24325,
+      "colors": 48
+    }
+  ],
+  "size": [
+    768,
+    384
+  ],
+  "frame_size": [
+    128,
+    192
+  ],
+  "status": "replicated reference shapes; isolated Godot review; production catalog unchanged"
+}

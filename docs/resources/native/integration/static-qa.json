@@ -1,0 +1,10 @@
+{
+  "variants": 41,
+  "rgba_and_pixelorama_roundtrip": true,
+  "exact_assembly": true,
+  "distinct_cut_stumps": true,
+  "gameplay_fields_unchanged": true,
+  "other_resources_unchanged": true,
+  "pixel_scale": 1,
+  "overlap": "3 matching wood rows below the canopy cut for wind"
+}

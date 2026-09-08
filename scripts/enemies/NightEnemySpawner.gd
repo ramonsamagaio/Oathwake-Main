@@ -19,6 +19,15 @@ const MonsterSpawnerScript := preload("res://scripts/systems/MonsterSpawner.gd")
 @export var build_system_path: NodePath = "../BuildSystem"
 @export var world_path: NodePath = "../World"
 
+# --- Spawn por bioma (data/world_biomes.json) ---
+# Antes: o spawner lia monster_spawns de terrain_types.json, chaveado em
+# grass/forest/stone/water, e pegava o tile pelo GroundLayer antigo. O mundo
+# procedural classifica em outra taxonomia (meadow/forest_deep/dry/...) e nunca
+# produz a chave "grass" — então a tabela inteira estava morta. Agora a consulta
+# é pelo bioma real, via get_biome_id_at_world().
+const WORLD_BIOMES_PATH := "res://data/world_biomes.json"
+var _world_biomes: Dictionary = {}
+
 var spawn_timer := 0.0
 var rng := RandomNumberGenerator.new()
 var monster_spawner := MonsterSpawnerScript.new()
@@ -32,6 +41,7 @@ var world: Node
 
 func _ready() -> void:
 	add_to_group("natural_monster_spawn_controller")
+	_load_world_biomes()
 	rng.randomize()
 	add_child(monster_spawner)
 	setup({})
@@ -73,6 +83,55 @@ func _process(delta: float) -> void:
 	_try_spawn_from_terrain()
 
 
+func _load_world_biomes() -> void:
+	_world_biomes = {}
+	if not FileAccess.file_exists(WORLD_BIOMES_PATH):
+		return
+	var file := FileAccess.open(WORLD_BIOMES_PATH, FileAccess.READ)
+	if file == null:
+		return
+	var json := JSON.new()
+	if json.parse(file.get_as_text()) != OK or not json.data is Dictionary:
+		push_warning("world_biomes.json inválido; spawn cai para terrain_types.json.")
+		return
+	_world_biomes = json.data
+
+
+func reload_world_biomes() -> void:
+	## O Content Editor grava o JSON com o jogo rodando; isto reaplica sem reiniciar.
+	_load_world_biomes()
+
+
+func get_biome_id_at_position(spawn_position: Vector2) -> String:
+	## Bioma REAL do gerador procedural. Só cai no tile antigo se o mundo não
+	## expuser biomas (mapas legados / cenas de lab).
+	if world != null and world.has_method("get_biome_id_at_world"):
+		return str(world.call("get_biome_id_at_world", spawn_position))
+	var procedural := get_tree().get_first_node_in_group("procedural_resource_world")
+	if procedural != null and procedural.has_method("get_biome_id_at_world"):
+		return str(procedural.call("get_biome_id_at_world", spawn_position))
+	return get_tile_type_at_position(spawn_position)
+
+
+func get_current_hour() -> float:
+	## DayNightCycle guarda time_of_day normalizado (0..1). 0h = amanhecer,
+	## 12h = anoitecer, porque is_day() é time_of_day < 0.5.
+	if day_night_cycle == null:
+		return 6.0
+	var normalized: Variant = day_night_cycle.get("time_of_day")
+	if typeof(normalized) != TYPE_FLOAT and typeof(normalized) != TYPE_INT:
+		return 6.0
+	return fposmod(float(normalized) * 24.0, 24.0)
+
+
+func _is_hour_in_range(hour: float, hour_start: float, hour_end: float) -> bool:
+	## Faixa que cruza a virada (ex.: 22h -> 4h) é normal para bicho noturno,
+	## então start > end tem que significar "atravessa a meia-noite", não "vazio".
+	if hour_start <= hour_end:
+		return hour >= hour_start and hour <= hour_end
+	return hour >= hour_start or hour <= hour_end
+
+
 func _try_spawn_from_terrain() -> bool:
 	if not natural_spawn_enabled or get_alive_monster_count() >= max_alive_monsters:
 		return false
@@ -82,15 +141,17 @@ func _try_spawn_from_terrain() -> bool:
 			continue
 		if _is_position_near_campfire(spawn_position):
 			continue
-		var tile_type := get_tile_type_at_position(spawn_position)
-		if not _terrain_allows_monster_spawn(tile_type):
+		if _is_water_at_position(spawn_position):
 			continue
-		var eligible_entries := _get_eligible_spawn_entries(tile_type)
+		var biome_id := get_biome_id_at_position(spawn_position)
+		if not _biome_allows_monster_spawn(biome_id):
+			continue
+		var eligible_entries := _get_eligible_spawn_entries(biome_id)
 		if eligible_entries.is_empty():
 			continue
 		var selected_entry := _choose_weighted_spawn(eligible_entries)
 		var monster_id := str(selected_entry.get("monster_id", ""))
-		if monster_id.is_empty() or not _is_spawn_tile_allowed(monster_id, spawn_position):
+		if monster_id.is_empty():
 			continue
 		var monster := monster_spawner.spawn_monster(monster_id, spawn_position)
 		if monster == null:
@@ -98,11 +159,29 @@ func _try_spawn_from_terrain() -> bool:
 		enemies_root.add_child(monster)
 		if monster is Node2D:
 			(monster as Node2D).global_position = spawn_position
-		monster.set_meta("natural_spawn_tile", tile_type)
+		monster.set_meta("natural_spawn_biome", biome_id)
 		monster.set_meta("spawned_outside_player_view", true)
-		print("Spawned %s on %s outside the player view at %s" % [monster_id, tile_type, spawn_position])
 		return true
 	return false
+
+
+func _is_water_at_position(spawn_position: Vector2) -> bool:
+	var procedural := world if (world != null and world.has_method("is_water_cell")) else get_tree().get_first_node_in_group("procedural_resource_world")
+	if procedural == null or not procedural.has_method("is_water_cell") or not procedural.has_method("get_world_bounds"):
+		return false
+	var tile_size_value: Variant = procedural.get("tile_size")
+	var tile_size := int(tile_size_value) if typeof(tile_size_value) == TYPE_INT else 16
+	var local_position: Vector2 = (procedural as Node2D).to_local(spawn_position)
+	var cell := Vector2i(roundi(local_position.x / float(tile_size)), roundi(local_position.y / float(tile_size)))
+	return bool(procedural.call("is_water_cell", cell))
+
+
+func _biome_allows_monster_spawn(biome_id: String) -> bool:
+	var biome_value: Variant = _world_biomes.get(biome_id, null)
+	if biome_value is Dictionary:
+		return bool((biome_value as Dictionary).get("allows_monster_spawn", true))
+	# Sem entrada no JSON, o bioma antigo manda (mapas legados).
+	return _terrain_allows_monster_spawn(biome_id)
 
 
 func _try_spawn_slime() -> bool:
@@ -150,14 +229,20 @@ func is_position_outside_player_view(world_position: Vector2) -> bool:
 	return not visible_screen_rect.has_point(screen_position)
 
 
-func _get_eligible_spawn_entries(tile_type: String) -> Array[Dictionary]:
+func _get_eligible_spawn_entries(biome_id: String) -> Array[Dictionary]:
 	var content_db := get_node_or_null("/root/ContentDB")
-	if content_db == null or not content_db.has_method("has_terrain_type") or not content_db.has_terrain_type(tile_type):
+	if content_db == null:
 		return []
-	var terrain_data: Dictionary = content_db.get_terrain_type(tile_type)
-	var entries_value: Variant = terrain_data.get("monster_spawns", [])
+	var entries_value: Variant = []
+	var biome_value: Variant = _world_biomes.get(biome_id, null)
+	if biome_value is Dictionary:
+		entries_value = (biome_value as Dictionary).get("monster_spawns", [])
+	elif content_db.has_method("has_terrain_type") and content_db.has_terrain_type(biome_id):
+		# Fallback para a tabela antiga em terrain_types.json.
+		entries_value = (content_db.get_terrain_type(biome_id) as Dictionary).get("monster_spawns", [])
 	if not entries_value is Array:
 		return []
+	var current_hour := get_current_hour()
 	var eligible: Array[Dictionary] = []
 	for entry_value in entries_value:
 		if not entry_value is Dictionary:
@@ -166,7 +251,12 @@ func _get_eligible_spawn_entries(tile_type: String) -> Array[Dictionary]:
 		var monster_id := str(entry.get("monster_id", ""))
 		if monster_id.is_empty() or not content_db.has_monster(monster_id):
 			continue
-		if not _is_entry_time_active(str(entry.get("active_time", "any"))):
+		# Faixa de horário nova; active_time é o formato antigo e continua valendo
+		# para registros que ainda não foram migrados.
+		if entry.has("hour_start") or entry.has("hour_end"):
+			if not _is_hour_in_range(current_hour, float(entry.get("hour_start", 0.0)), float(entry.get("hour_end", 24.0))):
+				continue
+		elif not _is_entry_time_active(str(entry.get("active_time", "any"))):
 			continue
 		var max_alive := maxi(int(entry.get("max_alive", max_alive_monsters)), 0)
 		if max_alive > 0 and get_alive_monster_count(monster_id) >= max_alive:

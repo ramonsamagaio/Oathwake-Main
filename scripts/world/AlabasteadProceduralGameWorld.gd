@@ -263,7 +263,11 @@ func _draw_plains_cliff(cell: Vector2i) -> void:
 		return
 
 	# MultiTilePattern.Mode.InOrderXy: alternate the authored pair by x+y.
-	var frame := int(options[posmod(cell.x + cell.y, options.size())])
+	# Escolher a variante por paridade de (x+y) faz toda borda vertical
+	# alternar 101,97,101 e toda horizontal idem: sai um zebrado mecânico, e
+	# uma das variantes tem saliência de rocha. _cell_seed é o mesmo hash que o
+	# resto do tiler usa, então a variação volta a parecer natural.
+	var frame := int(options[_cell_seed(cell) % options.size()])
 	var top_coord := Vector2i(
 		frame % PLAINS_CLIFF_ATLAS_COLUMNS,
 		frame / PLAINS_CLIFF_ATLAS_COLUMNS
@@ -273,8 +277,13 @@ func _draw_plains_cliff(cell: Vector2i) -> void:
 	# coordinate. The wall is an extrusion toward screen-down, never screen-up.
 	_plains_cliff_layers[0].set_cell(cell, 0, top_coord, 0)
 
+	# A versão sobrescrita em ...ChunkStreamed.gd já tinha este guard (o bug da
+	# "rock tower"); aqui na base ele faltava. Sem ele, uma célula com face
+	# extruda a parede POR DENTRO da célula de rocha logo abaixo, e chunks
+	# empilhados desenham paredes uns sobre os outros.
 	var exposes_face := ((1 << mask) & PLAINS_CLIFF_FACE_MASK) != 0
-	if exposes_face:
+	var southern_boundary := not _plains_cliffs.has(cell + Vector2i.DOWN)
+	if exposes_face and southern_boundary:
 		for face_row in range(1, PLAINS_CLIFF_HEIGHT + 1):
 			var face_frame := frame + PLAINS_CLIFF_ATLAS_COLUMNS * face_row
 			var face_coord := Vector2i(

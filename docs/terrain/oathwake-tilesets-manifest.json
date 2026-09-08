@@ -1,0 +1,494 @@
+{
+  "palettes": {
+    "sand": [
+      [
+        138,
+        117,
+        78
+      ],
+      [
+        157,
+        135,
+        90
+      ],
+      [
+        173,
+        151,
+        102
+      ],
+      [
+        185,
+        163,
+        114
+      ],
+      [
+        196,
+        174,
+        125
+      ],
+      [
+        208,
+        187,
+        136
+      ]
+    ],
+    "earth": [
+      [
+        98,
+        86,
+        64
+      ],
+      [
+        112,
+        96,
+        71
+      ],
+      [
+        127,
+        109,
+        78
+      ],
+      [
+        138,
+        118,
+        84
+      ],
+      [
+        151,
+        129,
+        92
+      ],
+      [
+        161,
+        140,
+        101
+      ]
+    ],
+    "olive": [
+      [
+        65,
+        76,
+        56
+      ],
+      [
+        82,
+        96,
+        71
+      ],
+      [
+        100,
+        112,
+        78
+      ],
+      [
+        118,
+        128,
+        90
+      ],
+      [
+        137,
+        144,
+        101
+      ],
+      [
+        155,
+        158,
+        116
+      ]
+    ],
+    "forest": [
+      [
+        52,
+        63,
+        53
+      ],
+      [
+        69,
+        81,
+        62
+      ],
+      [
+        85,
+        94,
+        69
+      ],
+      [
+        102,
+        112,
+        80
+      ],
+      [
+        122,
+        128,
+        90
+      ],
+      [
+        138,
+        142,
+        102
+      ]
+    ],
+    "deep": [
+      [
+        41,
+        55,
+        48
+      ],
+      [
+        56,
+        72,
+        59
+      ],
+      [
+        70,
+        87,
+        66
+      ],
+      [
+        87,
+        100,
+        72
+      ],
+      [
+        109,
+        118,
+        81
+      ],
+      [
+        129,
+        133,
+        91
+      ]
+    ],
+    "stone": [
+      [
+        52,
+        54,
+        58
+      ],
+      [
+        73,
+        75,
+        73
+      ],
+      [
+        96,
+        97,
+        89
+      ],
+      [
+        121,
+        121,
+        106
+      ],
+      [
+        145,
+        144,
+        128
+      ],
+      [
+        165,
+        161,
+        140
+      ]
+    ],
+    "wood": [
+      [
+        48,
+        49,
+        43
+      ],
+      [
+        70,
+        66,
+        54
+      ],
+      [
+        91,
+        80,
+        61
+      ],
+      [
+        116,
+        98,
+        72
+      ],
+      [
+        138,
+        120,
+        83
+      ],
+      [
+        163,
+        144,
+        101
+      ]
+    ]
+  },
+  "assets": [
+    {
+      "file": "plainsgrass2.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\plainsgrass2.png",
+      "role": "sand",
+      "size": [
+        64,
+        304
+      ],
+      "cell_size": 16,
+      "source_sha256": "be2e73c48e0a44dac600e585c57843e6d8fb759cbcfb3939ea6055eeafbfc371",
+      "expected_rgba_sha256": "d05b62aada73ce0876abe13de7e7d623ac7cc7cccfe4fadf6506d0a342a93fed",
+      "changed_pixels": 9171,
+      "alpha_changes": 575,
+      "pixel_count": 8824,
+      "revision": "2026-09-08 reference-led clustered border reconstruction; reference-edge-revision/asset-qa.json"
+    },
+    {
+      "file": "plainsgrass3.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\plainsgrass3.png",
+      "role": "earth",
+      "size": [
+        64,
+        304
+      ],
+      "cell_size": 16,
+      "source_sha256": "255ce76fee3951bc267e65f7e8db7de48b03fa3338c46e7f77b5fad7f293572d",
+      "expected_rgba_sha256": "f7730afdc95dd17955a1a57f842dcffbd348b9f23fc293e3876493a7e726d112",
+      "changed_pixels": 9171,
+      "alpha_changes": 575,
+      "pixel_count": 8824,
+      "revision": "2026-09-08 reference-led clustered border reconstruction; reference-edge-revision/asset-qa.json"
+    },
+    {
+      "file": "short_grass.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\short_grass.png",
+      "role": "olive",
+      "size": [
+        64,
+        304
+      ],
+      "cell_size": 16,
+      "source_sha256": "84cd18b9563a0ddf0488c4858f0133fe46a062fcc13157fe65a5d2d939a27509",
+      "expected_rgba_sha256": "1fff886ce019f17d46cbcfbeaa1262881e404bd00acc3526b3d66a26f7bc7eeb",
+      "changed_pixels": 9142,
+      "alpha_changes": 607,
+      "pixel_count": 9014,
+      "revision": "2026-09-08 reference-led clustered border reconstruction; reference-edge-revision/asset-qa.json"
+    },
+    {
+      "file": "plainsgrass1.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\plainsgrass1.png",
+      "role": "forest",
+      "size": [
+        64,
+        304
+      ],
+      "cell_size": 16,
+      "source_sha256": "6730768d3000e7545f861d63c54ef60c20dc932dc9b2c3d5cf2ad888900bb3a0",
+      "expected_rgba_sha256": "ef7b674d5798bf58ae1a9039a9fc68c13dacad545b06d64997b16f4528c9abc8",
+      "changed_pixels": 9216,
+      "alpha_changes": 605,
+      "pixel_count": 8884,
+      "revision": "2026-09-08 reference-led clustered border reconstruction; reference-edge-revision/asset-qa.json"
+    },
+    {
+      "file": "tall_grass.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\tall_grass.png",
+      "role": "deep",
+      "size": [
+        64,
+        304
+      ],
+      "cell_size": 16,
+      "source_sha256": "3de767ef3d4cd7a0bef6d91b03392687c464d368663116d55c5efae4c29bd1f5",
+      "expected_rgba_sha256": "6ccf7bb3f7be8ce7d8f078a58fe6d5b6e47ffc5330a2518ae557f8c55d68d887",
+      "changed_pixels": 10492,
+      "alpha_changes": 380,
+      "pixel_count": 10395,
+      "revision": "2026-09-08 reference-led clustered border reconstruction; reference-edge-revision/asset-qa.json"
+    },
+    {
+      "file": "forest_path_short_grass_autumn.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\forest_path_short_grass_autumn.png",
+      "role": "earth",
+      "size": [
+        96,
+        96
+      ],
+      "cell_size": 16,
+      "source_sha256": "4ed67a74b48102d564d1d6d4cfd6f6d3964aaa975cff00bfb2698d325c690cb9",
+      "expected_rgba_sha256": "e4320ab0652cb78eb4932e958c9903980408565991674250f0d905e3e2a6cc02",
+      "changed_pixels": 7424,
+      "alpha_changes": 0,
+      "pixel_count": 7424
+    },
+    {
+      "file": "plains_3D_cliffs.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\plains_3D_cliffs.png",
+      "role": "stone",
+      "size": [
+        128,
+        256
+      ],
+      "cell_size": 16,
+      "source_sha256": "1a52a75c8627062671b6407d77c674749871a3e3437ee6fad476cd85d1301561",
+      "expected_rgba_sha256": "f5e50ff4378d395e372d1a324622e19f81e937696d028740e1751b7bb1b9d554",
+      "changed_pixels": 25219,
+      "alpha_changes": 0,
+      "pixel_count": 25219
+    },
+    {
+      "file": "forest_unbreakable_bushes_bottom_.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\forest_unbreakable_bushes_bottom_.png",
+      "role": "deep",
+      "size": [
+        64,
+        64
+      ],
+      "cell_size": 16,
+      "source_sha256": "646ab1697df01c7aed6c633f573e462cd4c29626df7b668891e25e8a10aa6c4d",
+      "expected_rgba_sha256": "0eb00ace1ef0a316ab824656d265c1919dfc72a69eafcd514fa68bf7ef62366e",
+      "changed_pixels": 3472,
+      "alpha_changes": 0,
+      "pixel_count": 3472
+    },
+    {
+      "file": "forest_unbreakable_bushes_top_.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\forest_unbreakable_bushes_top_.png",
+      "role": "forest",
+      "size": [
+        64,
+        64
+      ],
+      "cell_size": 16,
+      "source_sha256": "78d1cbc5e8494213aed2cba8c78157a0cc7d058cf8e3b98f32402fa1f58b7c26",
+      "expected_rgba_sha256": "bda4b5da76152d6864fa24febc2accad6053cb0e1d9e001a637a6c9b000d818f",
+      "changed_pixels": 3338,
+      "alpha_changes": 0,
+      "pixel_count": 2773
+    },
+    {
+      "file": "tree_wall.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\tree_wall.png",
+      "role": "wood",
+      "size": [
+        32,
+        80
+      ],
+      "cell_size": 16,
+      "source_sha256": "1f633942c8b4b33c7b55fcb3f66cee33855fb5916dfef507fc5eef388f1e133a",
+      "expected_rgba_sha256": "7f429b9615a6a9ce36eeda510b99f73d29ca0865142e9a612b32b0823f2e3cac",
+      "changed_pixels": 1930,
+      "alpha_changes": 0,
+      "pixel_count": 1930
+    },
+    {
+      "file": "canopy_.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\canopy_.png",
+      "role": "deep",
+      "size": [
+        64,
+        64
+      ],
+      "cell_size": 16,
+      "source_sha256": "099dc3bf250162b9797eb9c23292f79362fa7d7cb97ad81acbebc9243c524886",
+      "expected_rgba_sha256": "74d7b3263da00e44ce8c12410f0c6a3ba38376e348cc1065e38c2d39cfeb2d44",
+      "changed_pixels": 3473,
+      "alpha_changes": 0,
+      "pixel_count": 3065
+    },
+    {
+      "file": "plainsgrass2_details.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\plainsgrass2_details.png",
+      "role": "sand",
+      "size": [
+        64,
+        16
+      ],
+      "cell_size": 16,
+      "source_sha256": "2049174723e338182ba7c58f62aa9ec9fffe59dbf3b213203ac058a42a1aa2f7",
+      "expected_rgba_sha256": "9ca11ce18d5853b96af08e9e0015704d2542915c9a6c508b24a3245e3105e6ca",
+      "changed_pixels": 153,
+      "alpha_changes": 119,
+      "pixel_count": 64
+    },
+    {
+      "file": "plainsgrass3_details.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\plainsgrass3_details.png",
+      "role": "earth",
+      "size": [
+        64,
+        16
+      ],
+      "cell_size": 16,
+      "source_sha256": "4d974499b4fb90b55ffd9d2bb461dd12a26148cb01e8ea9142c4fa87808f2992",
+      "expected_rgba_sha256": "cdc253e2d06b992e84556ed094ee85c60f211101f55624aada8315ce88fd8213",
+      "changed_pixels": 153,
+      "alpha_changes": 119,
+      "pixel_count": 64
+    },
+    {
+      "file": "shortgrass_details.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\shortgrass_details.png",
+      "role": "olive",
+      "size": [
+        80,
+        16
+      ],
+      "cell_size": 16,
+      "source_sha256": "97b4d2256575f70d103db31fda51bf8299e447487d3808607ea9366ef8e6ebbc",
+      "expected_rgba_sha256": "6a70c427646aab0698e9d9a71b7981092162d9702a446c2da7bce547c52a01f1",
+      "changed_pixels": 202,
+      "alpha_changes": 145,
+      "pixel_count": 106
+    },
+    {
+      "file": "flora_tiny_flowers.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\plants\\flora_tiny_flowers.png",
+      "role": "flowers",
+      "size": [
+        32,
+        32
+      ],
+      "cell_size": 16,
+      "source_sha256": "50a2b6ade5eeb484b6fe8e2a2d9dcfa062791096a9239863af82ccc8914ce20f",
+      "expected_rgba_sha256": "5d4a80b6031ba3b60710e2b796d9d6a67ca31199b14e353565bdae065719553c",
+      "changed_pixels": 184,
+      "alpha_changes": 104,
+      "pixel_count": 164,
+      "revision": "2026-09-08 native16 Pixelorama ground details; docs/resources/native/ground-details/qa.json"
+    },
+    {
+      "file": "flora_tiny_ground_leaves.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\plants\\flora_tiny_ground_leaves.png",
+      "role": "leaves",
+      "size": [
+        144,
+        32
+      ],
+      "cell_size": 16,
+      "source_sha256": "4b38ec9f0996f8f137579608a9dfd668f8c46b331a636b24b08e232ee8cab97f",
+      "expected_rgba_sha256": "b5959b59cc69af39bd96bbb7052cff3ab74c9c6b83defa63238ed3a41b049f1e",
+      "changed_pixels": 1249,
+      "alpha_changes": 762,
+      "pixel_count": 918,
+      "revision": "2026-09-08 native16 Pixelorama ground details; docs/resources/native/ground-details/qa.json"
+    },
+    {
+      "file": "flora_ground_plants.png",
+      "source": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\plants\\flora_ground_plants.png",
+      "role": "plants",
+      "size": [
+        192,
+        64
+      ],
+      "cell_size": 32,
+      "source_sha256": "17544480cf0133105607da2bcea2780b6b3446de6c51cd967da21485160420b1",
+      "expected_rgba_sha256": "722ecf454092fd66d501f808aca71539ba11ee5ebc7bbfca0701161b4cf106fc",
+      "changed_pixels": 5701,
+      "alpha_changes": 3644,
+      "pixel_count": 4154,
+      "revision": "2026-09-08 native 32x32 Pixelorama botanical contours; docs/resources/native/flora/qa.json"
+    }
+  ],
+  "production_root": "C:\\Oathwake\\Oathwake-Main\\assets\\sprites\\world\\procedural\\terrain\\oathwake_tilesets"
+}

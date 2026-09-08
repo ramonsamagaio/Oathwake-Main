@@ -1,0 +1,1022 @@
+{
+  "variants": [
+    {
+      "resource": "tree2",
+      "model": "oak",
+      "model_index": 0,
+      "mirror": false,
+      "season": null,
+      "frame": 0,
+      "region": [
+        0,
+        0,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        168
+      ],
+      "cut_y": 137,
+      "pivot": [
+        1.0,
+        -31
+      ],
+      "full_rgba_sha256": "dac5651e76243131440eb7a56ea07d27e67fb7aa032abc26ddf3f7ec5af160c8"
+    },
+    {
+      "resource": "tree3",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": false,
+      "season": null,
+      "frame": 1,
+      "region": [
+        128,
+        0,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        0.5,
+        -25
+      ],
+      "full_rgba_sha256": "480d682c6b40f6fa74a0c702aaa9f0e9167c1c8d43df9377be4dbc3a376c7674"
+    },
+    {
+      "resource": "tree4",
+      "model": "oak",
+      "model_index": 0,
+      "mirror": true,
+      "season": null,
+      "frame": 2,
+      "region": [
+        256,
+        0,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        168
+      ],
+      "cut_y": 137,
+      "pivot": [
+        -1.0,
+        -31
+      ],
+      "full_rgba_sha256": "15eab132f8da4a7cee80b73238f54b03af09ea9828c6dda27eec812b46a3fa18"
+    },
+    {
+      "resource": "tree5",
+      "model": "blue",
+      "model_index": 11,
+      "mirror": false,
+      "season": null,
+      "frame": 3,
+      "region": [
+        384,
+        0,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        154
+      ],
+      "cut_y": 126,
+      "pivot": [
+        -1.0,
+        -28
+      ],
+      "full_rgba_sha256": "3c14adfd4ee00b4503cf472317eb03ba69f174506fb9e22e59cce09209175e81"
+    },
+    {
+      "resource": "tree6",
+      "model": "willow",
+      "model_index": 5,
+      "mirror": false,
+      "season": null,
+      "frame": 4,
+      "region": [
+        512,
+        0,
+        128,
+        192
+      ],
+      "anchor": [
+        66,
+        179
+      ],
+      "cut_y": 155,
+      "pivot": [
+        2.0,
+        -24
+      ],
+      "full_rgba_sha256": "3015f48a9fa05e6fbbc6bc48b3c36e5bdf6ede35258f6332adb962f84ceabc55"
+    },
+    {
+      "resource": "tree7",
+      "model": "blossom",
+      "model_index": 8,
+      "mirror": false,
+      "season": null,
+      "frame": 5,
+      "region": [
+        640,
+        0,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        156
+      ],
+      "cut_y": 120,
+      "pivot": [
+        -6.0,
+        -36
+      ],
+      "full_rgba_sha256": "386bd6f19d1a41e3c0466138f0f9a05249ee373244709250228b79ce093491f3"
+    },
+    {
+      "resource": "tree8",
+      "model": "flower",
+      "model_index": 10,
+      "mirror": false,
+      "season": null,
+      "frame": 6,
+      "region": [
+        768,
+        0,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        157
+      ],
+      "cut_y": 128,
+      "pivot": [
+        -3.0,
+        -29
+      ],
+      "full_rgba_sha256": "e4afa95353f47476c5f76dcbe4e32e842e1efb148e960585cae6f4ad6ee64452"
+    },
+    {
+      "resource": "tree9",
+      "model": "autumn",
+      "model_index": 2,
+      "mirror": false,
+      "season": null,
+      "frame": 7,
+      "region": [
+        896,
+        0,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        175
+      ],
+      "cut_y": 148,
+      "pivot": [
+        -0.5,
+        -27
+      ],
+      "full_rgba_sha256": "45cb2a195b01fde64ee7fbd826d5ba4eede175db7b989919575405cc3035f964"
+    },
+    {
+      "resource": "tree10",
+      "model": "crooked_pine",
+      "model_index": 3,
+      "mirror": false,
+      "season": null,
+      "frame": 8,
+      "region": [
+        0,
+        192,
+        128,
+        192
+      ],
+      "anchor": [
+        66,
+        180
+      ],
+      "cut_y": 151,
+      "pivot": [
+        -2.5,
+        -29
+      ],
+      "full_rgba_sha256": "4543541bceccfb3c4fee6381bb43d3a6a73bd2dd5dab36df109e723416921fd5"
+    },
+    {
+      "resource": "tree11",
+      "model": "crooked_pine",
+      "model_index": 3,
+      "mirror": true,
+      "season": null,
+      "frame": 9,
+      "region": [
+        128,
+        192,
+        128,
+        192
+      ],
+      "anchor": [
+        61,
+        180
+      ],
+      "cut_y": 151,
+      "pivot": [
+        2.5,
+        -29
+      ],
+      "full_rgba_sha256": "97f77fc4b2cb342990195f883c4bc57e5f5afcc03281ae30a95fecdc0a4860bf"
+    },
+    {
+      "resource": "tree12",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": false,
+      "season": null,
+      "frame": 10,
+      "region": [
+        256,
+        192,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        -1.5,
+        -22
+      ],
+      "full_rgba_sha256": "4957fa1c20d39762bc30ac9b620cd0192bbbac2a9ac82e391f8461a61d621605"
+    },
+    {
+      "resource": "tree13",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": false,
+      "season": 0,
+      "frame": 11,
+      "region": [
+        384,
+        192,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        0.5,
+        -25
+      ],
+      "full_rgba_sha256": "480d682c6b40f6fa74a0c702aaa9f0e9167c1c8d43df9377be4dbc3a376c7674"
+    },
+    {
+      "resource": "tree14",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": false,
+      "season": 0,
+      "frame": 12,
+      "region": [
+        512,
+        192,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        -1.5,
+        -22
+      ],
+      "full_rgba_sha256": "4957fa1c20d39762bc30ac9b620cd0192bbbac2a9ac82e391f8461a61d621605"
+    },
+    {
+      "resource": "tree15",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": true,
+      "season": 0,
+      "frame": 13,
+      "region": [
+        640,
+        192,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        -0.5,
+        -25
+      ],
+      "full_rgba_sha256": "bef388738a5fa473044cc243c00c717e694e388eeea8601efbbfb1167fba7685"
+    },
+    {
+      "resource": "tree16",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": true,
+      "season": 0,
+      "frame": 14,
+      "region": [
+        768,
+        192,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        1.5,
+        -22
+      ],
+      "full_rgba_sha256": "d0d39809d4582dd0906094550cd057f37332d590d877931bf613ba94e02231d4"
+    },
+    {
+      "resource": "tree17",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": false,
+      "season": 1,
+      "frame": 15,
+      "region": [
+        896,
+        192,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        0.5,
+        -25
+      ],
+      "full_rgba_sha256": "46a2da348bcce893bc14b7a3507c8d8085a62bfc0d013baf030ea257af6bbc19"
+    },
+    {
+      "resource": "tree18",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": false,
+      "season": 1,
+      "frame": 16,
+      "region": [
+        0,
+        384,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        -1.5,
+        -22
+      ],
+      "full_rgba_sha256": "4ba9f98f8de5ea278b6d6ca1980a13a65fd8a25659e5f727f8618da6a6c3993b"
+    },
+    {
+      "resource": "tree19",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": true,
+      "season": 1,
+      "frame": 17,
+      "region": [
+        128,
+        384,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        -0.5,
+        -25
+      ],
+      "full_rgba_sha256": "4ff8854acd8ac4da9b4990f74fd981b7e36afaa23ee3ee4c62563d2666744b08"
+    },
+    {
+      "resource": "tree20",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": true,
+      "season": 1,
+      "frame": 18,
+      "region": [
+        256,
+        384,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        1.5,
+        -22
+      ],
+      "full_rgba_sha256": "7d85a6e9b79fd8992dbee7485f763b9c0debae72f21edd8a378915ef512093b1"
+    },
+    {
+      "resource": "tree21",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": false,
+      "season": 2,
+      "frame": 19,
+      "region": [
+        384,
+        384,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        0.5,
+        -25
+      ],
+      "full_rgba_sha256": "401a3439fd2255abd1ffcca10d3ba6ce340110531ce92bb142710c0de4949c68"
+    },
+    {
+      "resource": "tree22",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": false,
+      "season": 2,
+      "frame": 20,
+      "region": [
+        512,
+        384,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        -1.5,
+        -22
+      ],
+      "full_rgba_sha256": "0c04f844c2aca4d8c395811968e6f191036976a0efd83cbf2bc77d8634ad5b36"
+    },
+    {
+      "resource": "tree23",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": true,
+      "season": 2,
+      "frame": 21,
+      "region": [
+        640,
+        384,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        -0.5,
+        -25
+      ],
+      "full_rgba_sha256": "c06cc7b117a58c08526598f51b235c35ccfb9479e2a58096069dfad589be9c85"
+    },
+    {
+      "resource": "tree24",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": true,
+      "season": 2,
+      "frame": 22,
+      "region": [
+        768,
+        384,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        1.5,
+        -22
+      ],
+      "full_rgba_sha256": "9556f4b5736bc73e924543c4f127d52a8c2edc796ffdf5538df7a47211a7b6ea"
+    },
+    {
+      "resource": "tree25",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": false,
+      "season": 3,
+      "frame": 23,
+      "region": [
+        896,
+        384,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        0.5,
+        -25
+      ],
+      "full_rgba_sha256": "b822bf8e0eccd3c33675028accc1c7df817c2ddd37db839bb8a5f2bca6aa4d63"
+    },
+    {
+      "resource": "tree26",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": false,
+      "season": 3,
+      "frame": 24,
+      "region": [
+        0,
+        576,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        -1.5,
+        -22
+      ],
+      "full_rgba_sha256": "7e3869b4d2c52a9ad1cadb419d4b2a575d49878236b5bad837b4849c1987df01"
+    },
+    {
+      "resource": "tree27",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": true,
+      "season": 3,
+      "frame": 25,
+      "region": [
+        128,
+        576,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        -0.5,
+        -25
+      ],
+      "full_rgba_sha256": "fa2e7954d7a7416b4ee25bf6c7be91b0d5f7d4e24395f058a4525306e0829bd4"
+    },
+    {
+      "resource": "tree28",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": true,
+      "season": 3,
+      "frame": 26,
+      "region": [
+        256,
+        576,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        1.5,
+        -22
+      ],
+      "full_rgba_sha256": "61347f342503528cc64e57833d6b2bde1ebfc6c087681cdf0849f94396db2e22"
+    },
+    {
+      "resource": "tree29",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": false,
+      "season": 4,
+      "frame": 27,
+      "region": [
+        384,
+        576,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        0.5,
+        -25
+      ],
+      "full_rgba_sha256": "243b522e025b0f96eef0efb8b912a22fa419df64f9b00388f48d1af23ef75dd7"
+    },
+    {
+      "resource": "tree30",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": false,
+      "season": 4,
+      "frame": 28,
+      "region": [
+        512,
+        576,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        -1.5,
+        -22
+      ],
+      "full_rgba_sha256": "2ff239bb89c23b5d18991d84869b21e3c34d352ac2f75f5147498de1b75e3103"
+    },
+    {
+      "resource": "tree31",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": true,
+      "season": 4,
+      "frame": 29,
+      "region": [
+        640,
+        576,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        -0.5,
+        -25
+      ],
+      "full_rgba_sha256": "0b624110ebd2b0bf868a51576c92f0b3cc1746740956d93fa9d0dc55f758e622"
+    },
+    {
+      "resource": "tree32",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": true,
+      "season": 4,
+      "frame": 30,
+      "region": [
+        768,
+        576,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        1.5,
+        -22
+      ],
+      "full_rgba_sha256": "7b689417a05d21edffa9e66339b8ab95f24f4b14d79bfe0bf5b966a347b2a2cd"
+    },
+    {
+      "resource": "tree33",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": false,
+      "season": 5,
+      "frame": 31,
+      "region": [
+        896,
+        576,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        0.5,
+        -25
+      ],
+      "full_rgba_sha256": "de6f86fbbf8637007b7a4a71756b91b80a94126aa65b222ad20e746fe339948a"
+    },
+    {
+      "resource": "tree34",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": false,
+      "season": 5,
+      "frame": 32,
+      "region": [
+        0,
+        768,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        -1.5,
+        -22
+      ],
+      "full_rgba_sha256": "be1065460a9fda1a41cd2d8aa1e088e82de247d537757ad46c59f98ab73c7164"
+    },
+    {
+      "resource": "tree35",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": true,
+      "season": 5,
+      "frame": 33,
+      "region": [
+        128,
+        768,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        -0.5,
+        -25
+      ],
+      "full_rgba_sha256": "f0c74b8a3afe98e6625e44975be9bea769763e714f9804a9504629603f49d6cb"
+    },
+    {
+      "resource": "tree36",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": true,
+      "season": 5,
+      "frame": 34,
+      "region": [
+        256,
+        768,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        1.5,
+        -22
+      ],
+      "full_rgba_sha256": "13e737bd1b0d73f8b900aa55787248b913dc692a5135951182098eb587d59d4c"
+    },
+    {
+      "resource": "tree37",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": false,
+      "season": 6,
+      "frame": 35,
+      "region": [
+        384,
+        768,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        0.5,
+        -25
+      ],
+      "full_rgba_sha256": "ff41a89d06780134356af30c4493a81250f126bcae112df9e29881edb04ecd6e"
+    },
+    {
+      "resource": "tree38",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": false,
+      "season": 6,
+      "frame": 36,
+      "region": [
+        512,
+        768,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        -1.5,
+        -22
+      ],
+      "full_rgba_sha256": "e3f461eb72588cc744da6ca715ca64541a27e3c6ac232c569681cec34a4fca43"
+    },
+    {
+      "resource": "tree39",
+      "model": "beech",
+      "model_index": 1,
+      "mirror": true,
+      "season": 6,
+      "frame": 37,
+      "region": [
+        640,
+        768,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        172
+      ],
+      "cut_y": 147,
+      "pivot": [
+        -0.5,
+        -25
+      ],
+      "full_rgba_sha256": "927d7e73c300bb0593ac96c8e32376c515978345049ce468761ce4fab7e1bbb4"
+    },
+    {
+      "resource": "tree40",
+      "model": "spruce",
+      "model_index": 4,
+      "mirror": true,
+      "season": 6,
+      "frame": 38,
+      "region": [
+        768,
+        768,
+        128,
+        192
+      ],
+      "anchor": [
+        63,
+        178
+      ],
+      "cut_y": 156,
+      "pivot": [
+        1.5,
+        -22
+      ],
+      "full_rgba_sha256": "fcd59aa7c6939ebb6a707a23422ca16b3391b1bbffb03fc02c3038ae2f399269"
+    },
+    {
+      "resource": "tree41",
+      "model": "fruit",
+      "model_index": 9,
+      "mirror": false,
+      "season": null,
+      "frame": 39,
+      "region": [
+        896,
+        768,
+        128,
+        192
+      ],
+      "anchor": [
+        64,
+        156
+      ],
+      "cut_y": 129,
+      "pivot": [
+        -2.5,
+        -27
+      ],
+      "full_rgba_sha256": "658a3d812b0516ca3880280cfbb53d06f02fdcc6ffe274d02d55f166d443814b"
+    },
+    {
+      "resource": "tree42",
+      "model": "branch_pine",
+      "model_index": 7,
+      "mirror": false,
+      "season": null,
+      "frame": 40,
+      "region": [
+        0,
+        960,
+        128,
+        192
+      ],
+      "anchor": [
+        65,
+        156
+      ],
+      "cut_y": 120,
+      "pivot": [
+        -0.5,
+        -36
+      ],
+      "full_rgba_sha256": "6845ce848891684380c2086a608a7ba9695298a1354cc5593f1d2dfd35d738cd"
+    }
+  ],
+  "assets": [
+    {
+      "name": "integrated-tree-crowns",
+      "size": [
+        1024,
+        1152
+      ],
+      "rgba_sha256": "9bb4936dad6a85bffd2333b85014229fddb213602f48948d68e8579983ea3270",
+      "native_pixel_edits": 322076,
+      "colors": 106
+    },
+    {
+      "name": "integrated-tree-trunks",
+      "size": [
+        1024,
+        1152
+      ],
+      "rgba_sha256": "47052ad362e579a8018f6a4864efe6eb9b9a99448e76c801dbb13bbb47f6e40e",
+      "native_pixel_edits": 23905,
+      "colors": 7
+    },
+    {
+      "name": "integrated-tree-stumps",
+      "size": [
+        1024,
+        1152
+      ],
+      "rgba_sha256": "98a2014492242bc2e3ea1a81f0e2362b2634f868b8142b081bea7903d7c81b82",
+      "native_pixel_edits": 25120,
+      "colors": 11
+    }
+  ],
+  "overlap_wood_rows": 3,
+  "pixel_scale": 1
+}

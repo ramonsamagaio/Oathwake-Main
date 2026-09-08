@@ -1,0 +1,17 @@
+# Oathwake terrain art — checkpoint
+
+2026-09-07 — COMPLETE. Revisão de bordas solicitada pelo usuário concluída, validada e conferida em capturas reais do Godot.
+
+User authorized: create skill oathwake; map procedural world generation; duplicate changed terrain sheets into assets/sprites/world/procedural/terrain/oathwake_tilesets; dark fantasy palette and new textures/edges based on second reference; redraw small noninteractive/collisionless flowers/grass; no resource redesign. Preserve originals and existing work. Use Pixelorama MCP as in Wayfarer.
+
+Continuation automation created: continuar-tilesets-oathwake-s-8h30, heartbeat once at 08:30 local on Sep 7. It should resume here only if incomplete; stay quiet if already done. This does not purchase or reset credits.
+
+Skill created and validated at C:/Users/ramon/.codex/skills/oathwake/SKILL.md, references for characters, Pixelorama and terrain. Expanded with verified production chain, atlas masks, collision rules, safe decorative sources, authoring tools and QA.
+
+All 17 sheets completed via Pixelorama MCP in oathwake_tilesets: 14 terrain sheets + 3 decorative plant sheets, each PNG and PXO. Latest pass softened grain to ±few RGB levels and preserved cliff facets through palette interpolation. All exports match expected RGBA after reopen, originals unchanged, 42,560 edge-alpha checks passed. No unfinished asset. Production scene enables use_oathwake_tilesets; generated augment-layer palette is harmonized without changing geometry. Resource assets not edited.
+
+Edge revision: all five ground sheets now recover light/dark rim relief; added eighteenth PNG/PXO oathwake_road (256×2048, 512 masks ×4 color variants) via Pixelorama. New OathwakeRoadEdges.gd handles rounded concave/convex margins and joins road material to adjacent dirt while preserving logical paths. Removed the floating dashed cliff-foot shadow row for the Oathwake skin. Raw export QA passed 18 sheets, identical alpha across road variants, connected 1/2/3-wide bends + T-junction, and zero pinholes. Godot checks passed with the new atlas, preserved logical routes and correct soil joins. Final main image inspected and saved as docs/terrain/world-0-edge-fixed.png; edge-comparison.png compares against the rejected delivery. No pending action for this revision. Prior rejected screenshots remain in edge-revision-before/.
+
+Godot topology test passed 256 masks / 1,572 selections; collisionless details and retained terrain collisions verified, including the final texture-loader revision. Final 512×320 seed 74291 world capture instantiated 232 resources across the streamed regions. Captures visually inspected: world-0-after.png shows sand, earth, grass, cliff and Wayfarer; world-2-after.png shows the forest. Both are exact 2× enlargements of native Godot renders. Delivery notes: docs/terrain/OATHWAKE_TILESETS.md. Skill validation and git diff --check passed. No remaining work for this terrain pass. A packaged game export was not tested. Preserve unrelated BuildSystem/MultiFloorBuildManager changes and other preexisting work.
+
+References: C:/Users/ramon/OneDrive/Documentos/OATHWAKe/REFS/eu jogano.png (before); desired reference preserved in docs/terrain/dark-fantasy-reference.png. Final user instruction: finish missing assets first, THEN provide an image with everything applied as in real gameplay. Use actual Godot capture, not a generated mockup.

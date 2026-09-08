@@ -24,6 +24,7 @@ var resource_rare_drop_rows := []
 var selected_workstation_id := ""
 var workstation_filter := ""
 var production_rows := []
+var spawn_rows := []
 var selected_sprite_id := ""
 var sprite_filter := ""
 var sprite_category_filter := "all"
@@ -50,6 +51,7 @@ var delete_button: Button
 var form_title_label: Label
 var form_container: VBoxContainer
 var production_rows_container: VBoxContainer
+var spawn_rows_container: VBoxContainer
 var sprite_preview_rect: TextureRect
 var sprite_sheet_preview: Control
 var animation_grid_preview: Control
@@ -600,10 +602,335 @@ func _build_form_for_current_record() -> void:
 			_build_vfx_profile_form()
 		ContentEditorData.SECTION_COMBAT_PREVIEW:
 			_build_combat_preview_form()
+		ContentEditorData.SECTION_WORLD_GEN:
+			_build_world_gen_form()
+		ContentEditorData.SECTION_WEATHER:
+			_build_weather_form()
+		ContentEditorData.SECTION_WORLD_BIOMES:
+			_build_world_biome_form()
 		_:
 			_build_read_only_preview_form()
 
 	is_building_form = false
+
+
+func _add_form_section_heading(text_value: String) -> void:
+	## Equivalente ao _add_subsection_title() de ContentEditorEnhanced.gd, mas
+	## definido AQUI. Aquele vive numa subclasse, e classe base não enxerga método
+	## de filho — chamá-lo daqui é erro de parse que derruba a cadeia inteira de
+	## suites do Content Editor.
+	var title := Label.new()
+	title.text = text_value
+	form_container.add_child(title)
+
+
+func _add_dead_field_hint(text_value: String) -> void:
+	## Campo que o editor grava mas nenhum script do jogo consulta. Marcar é mais
+	## honesto do que remover: o dado existe nos JSONs e alguém pode ligá-lo
+	## depois — mas o designer precisa saber que mexer nele hoje não faz nada.
+	var hint := Label.new()
+	hint.text = "⚠ " + text_value
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.modulate = Color(1.0, 0.72, 0.55, 0.95)
+	form_container.add_child(hint)
+
+
+func _add_field_hint(text_value: String) -> void:
+	## Uma linha por campo, logo abaixo dele. Explica o que o número faz em jogo,
+	## não o que ele é.
+	var hint := Label.new()
+	hint.text = text_value
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.modulate = Color(1.0, 1.0, 1.0, 0.62)
+	form_container.add_child(hint)
+
+
+func _build_world_gen_form() -> void:
+	form_title_label.text = "World Generation"
+	var note := Label.new()
+	note.text = "Tudo aqui só vale em mundo NOVO. Mudar e salvar não altera o mundo já gerado — é preciso gerar de novo."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(note)
+
+	_add_form_section_heading("Tamanho do mundo")
+	_add_spin_box("Largura (tiles)", "world_width_tiles", int(current_record.get("world_width_tiles", 768)), 128, 2048, 16)
+	_add_field_hint("768 tiles = 12288 px. Atravessar correndo (140 px/s) leva ~82 s.")
+	_add_spin_box("Altura (tiles)", "world_height_tiles", int(current_record.get("world_height_tiles", 480)), 128, 2048, 16)
+	_add_field_hint("480 tiles = 7680 px, ~49 s de ponta a ponta. Custo de geração cresce com largura x altura.")
+
+	_add_form_section_heading("Borda do mundo")
+	_add_spin_box("Anel de água", "border_water_tiles", int(current_record.get("border_water_tiles", 20)), 0, 96, 1)
+	_add_field_hint("Largura do oceano dentro do mapa. É intransponível: é o que impede o jogador de ver o vazio.")
+	_add_spin_box("Praia da borda", "border_sand_tiles", int(current_record.get("border_sand_tiles", 6)), 0, 32, 1)
+	_add_field_hint("Faixa de areia entre o anel de água e a terra. 0 encosta a grama direto na água.")
+	_add_float_spin_box("Recorte da costa", "border_irregularity", float(current_record.get("border_irregularity", 0.5)), 0.0, 1.0, 0.01)
+	_add_field_hint("0 = borda retangular perfeita. 1 = costa bem recortada.")
+	_add_spin_box("Oceano além do mapa", "ocean_backdrop_margin_tiles", int(current_record.get("ocean_backdrop_margin_tiles", 160)), 0, 512, 8)
+	_add_field_hint("Só visual, e custa um nó — não são tiles. Serve para a borda nunca aparecer na tela.")
+
+	_add_form_section_heading("Água interior")
+	_add_spin_box("Raio do lago principal", "main_lake_radius_tiles", int(current_record.get("main_lake_radius_tiles", 52)), 0, 240, 1)
+	_add_field_hint("Nasce no centro úmido que o gerador já sorteia. 0 desliga o lago grande.")
+	_add_float_spin_box("Recorte do lago", "main_lake_irregularity", float(current_record.get("main_lake_irregularity", 0.55)), 0.0, 1.0, 0.01)
+	_add_field_hint("0 = círculo perfeito.")
+	_add_float_spin_box("Cobertura de lagoas", "pond_coverage", float(current_record.get("pond_coverage", 0.065)), 0.0, 0.35, 0.005)
+	_add_field_hint("Fração do mapa em lagoas. 0.065 = 6,5%, e o número bate: é calibrado por quantil na geração.")
+	_add_spin_box("Tamanho da lagoa", "pond_scale_tiles", int(current_record.get("pond_scale_tiles", 70)), 8, 200, 1)
+	_add_field_hint("Tamanho característico de cada lagoa. Valor baixo = muitas poças pequenas (fica queijo suíço).")
+	_add_float_spin_box("Viés de umidade", "pond_humidity_bias", float(current_record.get("pond_humidity_bias", 0.45)), 0.0, 1.0, 0.01)
+	_add_field_hint("0 = lagoas espalhadas por igual. Alto = só na região úmida, e o lado do deserto fica seco.")
+	_add_spin_box("Praia dos lagos", "lake_sand_tiles", int(current_record.get("lake_sand_tiles", 3)), 0, 16, 1)
+	_add_field_hint("Faixa de areia em volta de toda água interior.")
+	_add_spin_box("Área seca no spawn", "spawn_water_clearance_tiles", int(current_record.get("spawn_water_clearance_tiles", 40)), 0, 240, 1)
+	_add_field_hint("Raio em volta do spawn onde nenhuma lagoa nasce, para o jogador não acordar dentro d'água.")
+
+	_add_form_section_heading("Aglomerados de props")
+	_add_spin_box("Célula de distribuição", "prop_macro_cell_tiles", int(current_record.get("prop_macro_cell_tiles", 16)), 4, 64, 1)
+	_add_field_hint("O mapa é dividido em células deste tamanho e cada uma recebe props. Menor = distribuição mais uniforme.")
+	_add_float_spin_box("Tentativas por célula", "prop_attempt_base", float(current_record.get("prop_attempt_base", 16.0)), 1.0, 128.0, 1.0)
+	_add_field_hint("Quantas tentativas de posicionar antes de desistir da célula. Maior = mundo mais cheio e geração mais lenta.")
+	_add_float_spin_box("Persistência", "prop_attempt_bias", float(current_record.get("prop_attempt_bias", 1.33)), 0.0, 4.0, 0.01)
+	_add_field_hint("Quanto o orçamento de tentativas cresce a cada prop aceito. Alto = aglomerados densos.")
+	_add_float_spin_box("Raio: mato", "prop_size_small", float(current_record.get("prop_size_small", 0.5)), 0.1, 8.0, 0.05)
+	_add_field_hint("Espaço mínimo, em tiles, que um prop pequeno reserva. Maior = mais espalhado.")
+	_add_float_spin_box("Raio: arbusto/rocha", "prop_size_medium", float(current_record.get("prop_size_medium", 1.0)), 0.1, 8.0, 0.05)
+	_add_field_hint("Mesma coisa para props médios.")
+	_add_float_spin_box("Raio: árvore alta", "prop_size_large", float(current_record.get("prop_size_large", 1.5)), 0.1, 8.0, 0.05)
+	_add_field_hint("Props grandes. É o que separa um bosque fechado de um bosque ralo.")
+
+
+func _build_weather_form() -> void:
+	var weather_id := str(current_record.get("id", ""))
+	form_title_label.text = "Weather: %s" % weather_id
+	var note := Label.new()
+	note.text = "O ciclo sorteia o próximo clima por peso e o mantém por um tempo entre o mínimo e o máximo."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(note)
+
+	_add_line_edit("ID", "id", weather_id)
+	_add_field_hint("Tem que casar com um perfil de AlabasterWeatherController.PROFILES: clear, windy, rain, storm, snow, embers.")
+	_add_line_edit("Nome", "display_name", str(current_record.get("display_name", weather_id)))
+	_add_float_spin_box("Duração mínima (s)", "min_seconds", float(current_record.get("min_seconds", 120.0)), 5.0, 3600.0, 5.0)
+	_add_field_hint("Tempo mínimo que este clima fica no ar antes de sortear o próximo.")
+	_add_float_spin_box("Duração máxima (s)", "max_seconds", float(current_record.get("max_seconds", 300.0)), 5.0, 3600.0, 5.0)
+	_add_field_hint("Tempo máximo. Se ficar menor que o mínimo, o jogo usa o mínimo nos dois.")
+	_add_float_spin_box("Peso no sorteio", "weight", float(current_record.get("weight", 1.0)), 0.0, 100.0, 0.1)
+	_add_field_hint("Chance relativa. Peso 2 sai o dobro de peso 1. Peso 0 tira o clima do ciclo sem apagar o registro.")
+	_add_float_spin_box("Transição (s)", "transition_seconds", float(current_record.get("transition_seconds", 7.0)), 0.5, 60.0, 0.5)
+	_add_field_hint("Tempo de fade ao ENTRAR neste clima. Tempestade curta entra de repente; neve longa entra devagar.")
+
+
+func _build_world_biome_form() -> void:
+	var biome_id := str(current_record.get("id", ""))
+	form_title_label.text = "Biome Spawns: %s" % biome_id
+	var note := Label.new()
+	note.text = "Os ids de bioma vêm do gerador procedural e não devem ser inventados: water, dirt, meadow, forest_light, forest, forest_deep, swamp, dry."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(note)
+
+	_add_line_edit("ID", "id", biome_id)
+	_add_line_edit("Nome", "display_name", str(current_record.get("display_name", biome_id)))
+	_add_check_box("Permite spawn", "allows_monster_spawn", bool(current_record.get("allows_monster_spawn", true)))
+	_add_field_hint("Desmarcado, nenhum monstro nasce neste bioma, independente da tabela abaixo.")
+
+	# A tabela é recarregada do registro aqui porque _build_form_for_current_record()
+	# roda a cada troca de registro — é o gancho certo, sem mexer no caminho de seleção.
+	var loaded: Variant = current_record.get("monster_spawns", [])
+	spawn_rows = (loaded as Array).duplicate(true) if loaded is Array else []
+	_add_spawn_table_editor()
+
+
+func _add_spawn_table_editor() -> void:
+	_add_form_section_heading("Tabela de spawn")
+	var note := Label.new()
+	note.text = "Nada nasce em ponto fixo: a cada tentativa o jogo sorteia uma posição válida e escolhe um monstro por peso."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	form_container.add_child(note)
+
+	spawn_rows_container = VBoxContainer.new()
+	spawn_rows_container.name = "SpawnRows"
+	spawn_rows_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	form_container.add_child(spawn_rows_container)
+
+	var add_button := Button.new()
+	add_button.text = "Adicionar monstro"
+	add_button.pressed.connect(_on_add_spawn_row_pressed)
+	form_container.add_child(add_button)
+
+	_rebuild_spawn_rows()
+
+
+func _spawn_monster_id_options() -> Array:
+	## Monstros da seção Monsters + as borboletas, que moram num JSON separado
+	## mas o ContentDB funde no mesmo dicionário em runtime.
+	var ids: Array = []
+	for record in data_store.get_records(ContentEditorData.SECTION_MONSTERS):
+		var monster_id := str((record as Dictionary).get("id", "")).strip_edges()
+		if not monster_id.is_empty():
+			ids.append(monster_id)
+	var butterfly_path := "res://data/butterfly_monsters.json"
+	if FileAccess.file_exists(butterfly_path):
+		var file := FileAccess.open(butterfly_path, FileAccess.READ)
+		if file != null:
+			var json := JSON.new()
+			if json.parse(file.get_as_text()) == OK and json.data is Dictionary:
+				for key in (json.data as Dictionary).keys():
+					if not ids.has(str(key)):
+						ids.append(str(key))
+	ids.sort()
+	return ids
+
+
+func _rebuild_spawn_rows() -> void:
+	if spawn_rows_container == null:
+		return
+	for child in spawn_rows_container.get_children():
+		child.queue_free()
+	for row_index in range(spawn_rows.size()):
+		_add_spawn_row(row_index)
+
+
+func _add_spawn_row(row_index: int) -> void:
+	var row_data: Dictionary = spawn_rows[row_index]
+	var row := VBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spawn_rows_container.add_child(row)
+
+	var header := HBoxContainer.new()
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(header)
+
+	var monster_option := OptionButton.new()
+	monster_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var options := _spawn_monster_id_options()
+	var current_monster := str(row_data.get("monster_id", ""))
+	var selected_index := 0
+	for index in range(options.size()):
+		monster_option.add_item(str(options[index]))
+		monster_option.set_item_metadata(index, str(options[index]))
+		if str(options[index]) == current_monster:
+			selected_index = index
+	if monster_option.item_count > 0:
+		monster_option.select(clampi(selected_index, 0, monster_option.item_count - 1))
+	monster_option.item_selected.connect(_on_spawn_monster_selected.bind(row_index, monster_option))
+	header.add_child(monster_option)
+
+	var remove_button := Button.new()
+	remove_button.text = "Remover"
+	remove_button.pressed.connect(_on_remove_spawn_row_pressed.bind(row_index))
+	header.add_child(remove_button)
+
+	var fields := HBoxContainer.new()
+	fields.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(fields)
+
+	fields.add_child(_make_spawn_label("Peso"))
+	var weight_spin := SpinBox.new()
+	weight_spin.min_value = 0.0
+	weight_spin.max_value = 100.0
+	weight_spin.step = 0.1
+	weight_spin.value = float(row_data.get("weight", 1.0))
+	weight_spin.value_changed.connect(_on_spawn_weight_changed.bind(row_index))
+	fields.add_child(weight_spin)
+
+	fields.add_child(_make_spawn_label("Máx. vivos"))
+	var max_alive_spin := SpinBox.new()
+	max_alive_spin.min_value = 0
+	max_alive_spin.max_value = 999
+	max_alive_spin.step = 1
+	max_alive_spin.value = int(row_data.get("max_alive", 3))
+	max_alive_spin.value_changed.connect(_on_spawn_max_alive_changed.bind(row_index))
+	fields.add_child(max_alive_spin)
+
+	fields.add_child(_make_spawn_label("Hora de"))
+	var hour_start_spin := SpinBox.new()
+	hour_start_spin.min_value = 0.0
+	hour_start_spin.max_value = 24.0
+	hour_start_spin.step = 0.5
+	hour_start_spin.value = float(row_data.get("hour_start", 0.0))
+	hour_start_spin.value_changed.connect(_on_spawn_hour_start_changed.bind(row_index))
+	fields.add_child(hour_start_spin)
+
+	fields.add_child(_make_spawn_label("até"))
+	var hour_end_spin := SpinBox.new()
+	hour_end_spin.min_value = 0.0
+	hour_end_spin.max_value = 24.0
+	hour_end_spin.step = 0.5
+	hour_end_spin.value = float(row_data.get("hour_end", 24.0))
+	hour_end_spin.value_changed.connect(_on_spawn_hour_end_changed.bind(row_index))
+	fields.add_child(hour_end_spin)
+
+	var hint := Label.new()
+	hint.text = "Peso = chance relativa dentro deste bioma. Máx. vivos limita este monstro no mundo todo. Hora: 0h = amanhecer, 12h = anoitecer; começo maior que fim atravessa a virada (ex.: 20h → 4h)."
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.modulate = Color(1.0, 1.0, 1.0, 0.62)
+	row.add_child(hint)
+
+
+func _make_spawn_label(text_value: String) -> Label:
+	var label := Label.new()
+	label.text = text_value
+	return label
+
+
+func _is_valid_spawn_row_index(row_index: int) -> bool:
+	return row_index >= 0 and row_index < spawn_rows.size()
+
+
+func _on_add_spawn_row_pressed() -> void:
+	var options := _spawn_monster_id_options()
+	spawn_rows.append({
+		"monster_id": str(options[0]) if not options.is_empty() else "",
+		"weight": 1.0,
+		"max_alive": 3,
+		"hour_start": 0.0,
+		"hour_end": 24.0,
+	})
+	_mark_dirty()
+	_rebuild_spawn_rows()
+
+
+func _on_remove_spawn_row_pressed(row_index: int) -> void:
+	if not _is_valid_spawn_row_index(row_index):
+		return
+	spawn_rows.remove_at(row_index)
+	_mark_dirty()
+	_rebuild_spawn_rows()
+
+
+func _on_spawn_monster_selected(selected_index: int, row_index: int, option_button: OptionButton) -> void:
+	if not _is_valid_spawn_row_index(row_index) or selected_index < 0:
+		return
+	spawn_rows[row_index]["monster_id"] = str(option_button.get_item_metadata(selected_index))
+	_mark_dirty()
+
+
+func _on_spawn_weight_changed(new_value: float, row_index: int) -> void:
+	if not _is_valid_spawn_row_index(row_index):
+		return
+	spawn_rows[row_index]["weight"] = new_value
+	_mark_dirty()
+
+
+func _on_spawn_max_alive_changed(new_value: float, row_index: int) -> void:
+	if not _is_valid_spawn_row_index(row_index):
+		return
+	spawn_rows[row_index]["max_alive"] = int(new_value)
+	_mark_dirty()
+
+
+func _on_spawn_hour_start_changed(new_value: float, row_index: int) -> void:
+	if not _is_valid_spawn_row_index(row_index):
+		return
+	spawn_rows[row_index]["hour_start"] = new_value
+	_mark_dirty()
+
+
+func _on_spawn_hour_end_changed(new_value: float, row_index: int) -> void:
+	if not _is_valid_spawn_row_index(row_index):
+		return
+	spawn_rows[row_index]["hour_end"] = new_value
+	_mark_dirty()
 
 
 func _clear_form() -> void:
@@ -658,7 +985,6 @@ func _build_resource_form() -> void:
 	_add_check_box("Allow Hands (harvest without tool)", "allow_hands", bool(current_record.get("allow_hands", true)))
 	_add_skill_type_option_button(str(current_record.get("skill_type", "lumbering")))
 	_add_spin_box("XP Reward", "xp_reward", int(current_record.get("xp_reward", 0)), 0, 999999, 1)
-	_add_line_edit("VFX Hooks", "vfx_hooks", _join_string_array(current_record.get("vfx_hooks", []), ", "))
 	_add_line_edit("Tags", "tags", _join_string_array(current_record.get("tags", []), ", "))
 	_add_drop_table_editor("Base Drops", "base_drops", current_record.get("base_drops", []))
 	_add_drop_table_editor("Rare Drops", "rare_drops", current_record.get("rare_drops", []))
@@ -691,9 +1017,11 @@ func _build_tier_form() -> void:
 	_add_line_edit("Secondary Material", "secondary_material", str(current_record.get("secondary_material", "")))
 	_add_line_edit("Wood Material", "wood_material", str(current_record.get("wood_material", "")))
 	_add_line_edit("Cloth Material", "cloth_material", str(current_record.get("cloth_material", "")))
+	_add_dead_field_hint("Nao lido por nenhum script hoje — editar aqui nao muda nada em jogo.")
 	_add_line_edit("Tool Material", "tool_material", str(current_record.get("tool_material", "")))
 	_add_line_edit("Weapon Material", "weapon_material", str(current_record.get("weapon_material", "")))
 	_add_line_edit("Armor Material", "armor_material", str(current_record.get("armor_material", "")))
+	_add_dead_field_hint("Nao lido por nenhum script hoje — editar aqui nao muda nada em jogo.")
 
 	var budget = current_record.get("power_budget", {})
 	if not budget is Dictionary:
@@ -845,9 +1173,7 @@ func _build_terrain_type_form() -> void:
 	_add_line_edit("ID", "id", str(current_record.get("id", "")))
 	_add_line_edit("Display Name", "display_name", str(current_record.get("display_name", "")))
 	_add_sprite_picker(str(current_record.get("sprite_id", "")))
-	_add_check_box("Walkable", "walkable", bool(current_record.get("walkable", true)))
 	_add_check_box("Allows Monster Spawn", "allows_monster_spawn", bool(current_record.get("allows_monster_spawn", true)))
-	_add_check_box("Allows Resource Spawn", "allows_resource_spawn", bool(current_record.get("allows_resource_spawn", true)))
 
 
 func _build_npc_form() -> void:
@@ -1143,6 +1469,7 @@ func _add_tool_progression_editor() -> void:
 	_add_spin_box("Tool Tier", "tool_tier", int(current_record.get("tool_tier", current_record.get("tier", 1))), 1, 7, 1)
 	_add_spin_box("Tool Damage", "tool_damage", int(current_record.get("tool_damage", 0)), 0, 999999, 1)
 	_add_float_spin_box("Tool Speed", "tool_speed", float(current_record.get("tool_speed", 1.0)), 0.01, 999999.0, 0.01)
+	_add_dead_field_hint("Nao lido por nenhum script hoje — editar aqui nao muda nada em jogo.")
 	_add_spin_box("Durability", "durability", int(current_record.get("durability", 0)), 0, 999999, 1)
 	_add_float_spin_box("Repair Cost Multiplier", "repair_cost_multiplier", float(current_record.get("repair_cost_multiplier", 0.5)), 0.0, 10.0, 0.05)
 	_add_check_box("Can Repair", "can_repair", bool(current_record.get("can_repair", true)))
@@ -3907,9 +4234,7 @@ func _create_new_terrain_type() -> void:
 	current_record = {
 		"id": new_id,
 		"display_name": "New Terrain",
-		"walkable": true,
 		"allows_monster_spawn": true,
-		"allows_resource_spawn": true,
 	}
 	has_unsaved_changes = true
 	_build_form_for_current_record()
@@ -4358,6 +4683,12 @@ func _on_save_pressed() -> void:
 			_save_font_profile()
 		ContentEditorData.SECTION_VFX_PROFILES:
 			_save_vfx_profile()
+		ContentEditorData.SECTION_WORLD_GEN:
+			_save_world_gen()
+		ContentEditorData.SECTION_WEATHER:
+			_save_weather()
+		ContentEditorData.SECTION_WORLD_BIOMES:
+			_save_world_biome()
 		_:
 			_set_status("Visual saving for this section will come in a later step.", true)
 
@@ -4764,7 +5095,6 @@ func _get_resource_form_record() -> Dictionary:
 	record["allow_hands"] = _get_check_box_pressed("allow_hands")
 	record["skill_type"] = _get_option_button_metadata("skill_type")
 	record["xp_reward"] = _get_spin_box_int("xp_reward")
-	record["vfx_hooks"] = _split_string_list(_get_line_edit_text("vfx_hooks"))
 	record["tags"] = _split_string_list(_get_line_edit_text("tags"))
 	record["base_drops"] = _get_drop_rows_record("base_drops")
 	record["rare_drops"] = _get_drop_rows_record("rare_drops")
@@ -4868,14 +5198,103 @@ func _get_recipe_form_record() -> Dictionary:
 	return record
 
 
+func _save_world_gen() -> void:
+	## Registro único "default", igual a Player Tuning: o id não é editável.
+	_save_current_record("default", _get_world_gen_form_record())
+
+
+func _get_world_gen_form_record() -> Dictionary:
+	return {
+		"world_width_tiles": int(_get_spin_box_value("world_width_tiles")),
+		"world_height_tiles": int(_get_spin_box_value("world_height_tiles")),
+		"border_water_tiles": int(_get_spin_box_value("border_water_tiles")),
+		"border_sand_tiles": int(_get_spin_box_value("border_sand_tiles")),
+		"border_irregularity": _get_float_spin_box_value("border_irregularity"),
+		"ocean_backdrop_margin_tiles": int(_get_spin_box_value("ocean_backdrop_margin_tiles")),
+		"main_lake_radius_tiles": int(_get_spin_box_value("main_lake_radius_tiles")),
+		"main_lake_irregularity": _get_float_spin_box_value("main_lake_irregularity"),
+		"pond_coverage": _get_float_spin_box_value("pond_coverage"),
+		"pond_scale_tiles": int(_get_spin_box_value("pond_scale_tiles")),
+		"pond_humidity_bias": _get_float_spin_box_value("pond_humidity_bias"),
+		"lake_sand_tiles": int(_get_spin_box_value("lake_sand_tiles")),
+		"spawn_water_clearance_tiles": int(_get_spin_box_value("spawn_water_clearance_tiles")),
+		"prop_macro_cell_tiles": int(_get_spin_box_value("prop_macro_cell_tiles")),
+		"prop_attempt_base": _get_float_spin_box_value("prop_attempt_base"),
+		"prop_attempt_bias": _get_float_spin_box_value("prop_attempt_bias"),
+		"prop_size_small": _get_float_spin_box_value("prop_size_small"),
+		"prop_size_medium": _get_float_spin_box_value("prop_size_medium"),
+		"prop_size_large": _get_float_spin_box_value("prop_size_large"),
+	}
+
+
+func _save_weather() -> void:
+	var record := _get_weather_form_record()
+	var record_id := data_store.sanitize_id(str(record.get("id", "")))
+	if record_id.is_empty():
+		_set_status("O clima precisa de um id.", true)
+		return
+	record["id"] = record_id
+	_set_line_edit_text("id", record_id)
+	_save_current_record(record_id, record)
+
+
+func _get_weather_form_record() -> Dictionary:
+	var minimum := _get_float_spin_box_value("min_seconds")
+	var maximum := _get_float_spin_box_value("max_seconds")
+	if maximum < minimum:
+		# Deixar max < min gravado daria duração negativa no sorteio.
+		maximum = minimum
+	return {
+		"id": _get_line_edit_text("id"),
+		"display_name": _get_line_edit_text("display_name"),
+		"min_seconds": minimum,
+		"max_seconds": maximum,
+		"weight": _get_float_spin_box_value("weight"),
+		"transition_seconds": _get_float_spin_box_value("transition_seconds"),
+	}
+
+
+func _save_world_biome() -> void:
+	var record := _get_world_biome_form_record()
+	var record_id := data_store.sanitize_id(str(record.get("id", "")))
+	if record_id.is_empty():
+		_set_status("O bioma precisa de um id.", true)
+		return
+	record["id"] = record_id
+	_set_line_edit_text("id", record_id)
+	_save_current_record(record_id, record)
+
+
+func _get_world_biome_form_record() -> Dictionary:
+	var entries: Array = []
+	for row_value in spawn_rows:
+		if not row_value is Dictionary:
+			continue
+		var row: Dictionary = row_value
+		var monster_id := str(row.get("monster_id", "")).strip_edges()
+		if monster_id.is_empty():
+			continue
+		entries.append({
+			"monster_id": monster_id,
+			"weight": float(row.get("weight", 1.0)),
+			"max_alive": int(row.get("max_alive", 3)),
+			"hour_start": float(row.get("hour_start", 0.0)),
+			"hour_end": float(row.get("hour_end", 24.0)),
+		})
+	return {
+		"id": _get_line_edit_text("id"),
+		"display_name": _get_line_edit_text("display_name"),
+		"allows_monster_spawn": _get_check_box_pressed("allows_monster_spawn"),
+		"monster_spawns": entries,
+	}
+
+
 func _get_terrain_type_form_record() -> Dictionary:
 	return {
 		"id": _get_line_edit_text("id"),
 		"display_name": _get_line_edit_text("display_name"),
 		"sprite_id": selected_sprite_id,
-		"walkable": _get_check_box_pressed("walkable"),
 		"allows_monster_spawn": _get_check_box_pressed("allows_monster_spawn"),
-		"allows_resource_spawn": _get_check_box_pressed("allows_resource_spawn"),
 	}
 
 
@@ -5266,8 +5685,8 @@ func _mark_dirty() -> void:
 
 
 func _update_action_buttons() -> void:
-	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES or current_section == ContentEditorData.SECTION_ANIMATION_SETS or current_section == ContentEditorData.SECTION_CHARACTERS or current_section == ContentEditorData.SECTION_TIERS or current_section == ContentEditorData.SECTION_PLAYER_TUNING or current_section == ContentEditorData.SECTION_FONT_PROFILES or current_section == ContentEditorData.SECTION_VFX_PROFILES
-	var is_singleton_section := current_section == ContentEditorData.SECTION_PLAYER_TUNING or current_section == ContentEditorData.SECTION_FONT_PROFILES or current_section == ContentEditorData.SECTION_VFX_PROFILES
+	var supports_visual_editing := current_section == ContentEditorData.SECTION_ITEMS or current_section == ContentEditorData.SECTION_RESOURCES or current_section == ContentEditorData.SECTION_MONSTERS or current_section == ContentEditorData.SECTION_RECIPES or current_section == ContentEditorData.SECTION_TERRAIN_TYPES or current_section == ContentEditorData.SECTION_NPCS or current_section == ContentEditorData.SECTION_SPRITES or current_section == ContentEditorData.SECTION_ANIMATION_SETS or current_section == ContentEditorData.SECTION_CHARACTERS or current_section == ContentEditorData.SECTION_TIERS or current_section == ContentEditorData.SECTION_PLAYER_TUNING or current_section == ContentEditorData.SECTION_FONT_PROFILES or current_section == ContentEditorData.SECTION_VFX_PROFILES or current_section == ContentEditorData.SECTION_WORLD_GEN or current_section == ContentEditorData.SECTION_WEATHER
+	var is_singleton_section := current_section == ContentEditorData.SECTION_PLAYER_TUNING or current_section == ContentEditorData.SECTION_FONT_PROFILES or current_section == ContentEditorData.SECTION_VFX_PROFILES or current_section == ContentEditorData.SECTION_WORLD_GEN
 	var has_record := not current_record.is_empty()
 
 	new_button.disabled = not supports_visual_editing or has_unsaved_changes or is_singleton_section

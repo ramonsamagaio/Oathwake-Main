@@ -15,6 +15,9 @@ const SECTION_PLAYER_TUNING := "player_tuning"
 const SECTION_FONT_PROFILES := "font_profiles"
 const SECTION_VFX_PROFILES := "vfx_profiles"
 const SECTION_COMBAT_PREVIEW := "combat_preview"
+const SECTION_WORLD_GEN := "world_gen"
+const SECTION_WEATHER := "weather"
+const SECTION_WORLD_BIOMES := "world_biomes"
 
 const DEFAULT_PLAYER_TUNING := {
 	"walk_speed": 80.0,
@@ -45,20 +48,31 @@ const DEFAULT_FONT_PROFILES := {
 }
 
 const SECTIONS := [
+	# Agrupado por tarefa de design, não por ordem histórica. Quem senta para
+	# balancear o jogo trabalha nesta ordem: primeiro o mundo onde tudo acontece,
+	# depois o que existe nele, depois quem habita, e por último a aparência.
+	# --- Mundo ---
+	SECTION_WORLD_GEN,
+	SECTION_WEATHER,
+	SECTION_WORLD_BIOMES,
+	SECTION_TERRAIN_TYPES,
+	# --- Conteúdo ---
 	SECTION_ITEMS,
 	SECTION_RESOURCES,
 	SECTION_BUILDINGS,
-	SECTION_MONSTERS,
 	SECTION_RECIPES,
-	SECTION_TERRAIN_TYPES,
+	SECTION_TIERS,
+	# --- Criaturas ---
+	SECTION_MONSTERS,
 	SECTION_NPCS,
+	SECTION_CHARACTERS,
+	SECTION_PLAYER_TUNING,
+	# --- Apresentação ---
 	SECTION_SPRITES,
 	SECTION_ANIMATION_SETS,
-	SECTION_CHARACTERS,
-	SECTION_TIERS,
-	SECTION_PLAYER_TUNING,
-	SECTION_FONT_PROFILES,
 	SECTION_VFX_PROFILES,
+	SECTION_FONT_PROFILES,
+	# --- Ferramentas ---
 	SECTION_COMBAT_PREVIEW,
 ]
 
@@ -68,7 +82,7 @@ const SECTION_LABELS := {
 	SECTION_BUILDINGS: "Buildings",
 	SECTION_MONSTERS: "Monsters",
 	SECTION_RECIPES: "Recipes",
-	SECTION_TERRAIN_TYPES: "Terrain Types",
+	SECTION_TERRAIN_TYPES: "Terrain Types (legado)",
 	SECTION_NPCS: "NPCs",
 	SECTION_SPRITES: "Sprites",
 	SECTION_ANIMATION_SETS: "Animation Sets",
@@ -78,6 +92,9 @@ const SECTION_LABELS := {
 	SECTION_FONT_PROFILES: "Font Profiles",
 	SECTION_VFX_PROFILES: "VFX Profiles",
 	SECTION_COMBAT_PREVIEW: "Combat Preview",
+	SECTION_WORLD_GEN: "World Generation",
+	SECTION_WEATHER: "Weather",
+	SECTION_WORLD_BIOMES: "Biome Spawns",
 }
 
 const SECTION_PATHS := {
@@ -95,6 +112,9 @@ const SECTION_PATHS := {
 	SECTION_PLAYER_TUNING: "res://data/player_tuning.json",
 	SECTION_FONT_PROFILES: "res://data/font_profiles.json",
 	SECTION_VFX_PROFILES: "res://data/vfx_profiles.json",
+	SECTION_WORLD_GEN: "res://data/world_gen.json",
+	SECTION_WEATHER: "res://data/weather.json",
+	SECTION_WORLD_BIOMES: "res://data/world_biomes.json",
 }
 
 var content := {}
@@ -401,10 +421,6 @@ func validate_resource(record_id: String, original_id: String, record: Dictionar
 	var tags = record.get("tags", [])
 	if not tags is Array:
 		return "Tags must be a list."
-	var vfx_hooks = record.get("vfx_hooks", [])
-	if not vfx_hooks is Array:
-		return "VFX Hooks must be a list."
-
 	return ""
 
 

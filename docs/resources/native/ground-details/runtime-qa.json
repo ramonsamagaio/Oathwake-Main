@@ -1,0 +1,15 @@
+{
+	"active_atlases_match": true,
+	"active_frames": 20,
+	"capture": "Arranged terrain; original procedural flower/leaf noise, seeds and density.",
+	"center": [
+		154,
+		110
+	],
+	"comparison_cells": 66,
+	"failures": [],
+	"noise_generated_cells": 117,
+	"noise_peak": 0.980540156364441,
+	"placement_preserved": true,
+	"reserve_frames": 2
+}

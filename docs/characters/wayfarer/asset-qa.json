@@ -1,0 +1,30 @@
+{
+  "size": [
+    144,
+    284
+  ],
+  "roundtrip_rgba_matches": true,
+  "original_unchanged": true,
+  "nonempty_cells": 274,
+  "intentional_empty_cells": [
+    "360,100,8,28",
+    "368,100,8,28",
+    "376,100,8,28",
+    "528,108,16,16",
+    "544,108,16,16",
+    "560,108,16,16",
+    "576,108,16,16",
+    "592,108,16,16",
+    "608,108,16,16",
+    "624,108,16,16",
+    "640,108,16,16",
+    "656,108,16,16"
+  ],
+  "alpha_values": [
+    0,
+    255
+  ],
+  "color_count_including_transparent": 36,
+  "png_sha256": "fb9eb1bf92640e315b324876004bc88d44d977f911030959e33e60aaa6ee0611",
+  "pxo_sha256": "47b34fc153712f97e6e4cd14bfb0a3128c55387da0d23902aeee2832a6f43dc4"
+}

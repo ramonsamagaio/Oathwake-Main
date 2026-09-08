@@ -1,0 +1,27 @@
+{
+	"active_atlas_matches": true,
+	"failures": [],
+	"fixture": "Arranged ResourceNode comparison; no random distribution or saved session.",
+	"hit_mined_respawn_checked": true,
+	"imported_pixels": {
+		"oathwake-copper": {
+			"transparent_rgb_changes": 0,
+			"visible_changes": 0
+		},
+		"oathwake-mossy-boulder": {
+			"transparent_rgb_changes": 0,
+			"visible_changes": 0
+		},
+		"oathwake-rocks": {
+			"transparent_rgb_changes": 0,
+			"visible_changes": 0
+		},
+		"oathwake-stones": {
+			"transparent_rgb_changes": 0,
+			"visible_changes": 0
+		}
+	},
+	"production_instances": 60,
+	"records": 20,
+	"terrain_backgrounds": 3
+}

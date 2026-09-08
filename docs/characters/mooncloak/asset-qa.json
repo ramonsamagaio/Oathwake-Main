@@ -1,0 +1,28 @@
+{
+  "wayfarer_unchanged": true,
+  "roundtrip_rgba_exact": true,
+  "part_cells": 286,
+  "native_atlas": [
+    144,
+    284
+  ],
+  "authorship": "Pixelorama integer coordinates; duplicated Wayfarer layout",
+  "atlases": {
+    "MOONCLOAK": {
+      "size": [
+        144,
+        284
+      ],
+      "pixels": 18387,
+      "sha256": "434f267327a23a679ab11f905af81cb60204b6db56c9a185155457f639937a63"
+    },
+    "MOONCLOAK_GEAR": {
+      "size": [
+        256,
+        64
+      ],
+      "pixels": 5932,
+      "sha256": "bf9fc8de0c740e7ea5c815c409c78e2ac6e73e9c9bc671602b7cbda873c6208f"
+    }
+  }
+}

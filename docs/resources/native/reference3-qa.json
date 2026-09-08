@@ -1,0 +1,132 @@
+{
+  "pixelorama_roundtrip": true,
+  "models": [
+    {
+      "name": "oak",
+      "alpha_binary": true,
+      "exact_pair_assembly": true,
+      "three_connected_masks": true,
+      "ground_mat_absent": true,
+      "living_base_wood_only": true,
+      "anchor_at_root_contact": true,
+      "upper_crown_unchanged": true
+    },
+    {
+      "name": "beech",
+      "alpha_binary": true,
+      "exact_pair_assembly": true,
+      "three_connected_masks": true,
+      "ground_mat_absent": true,
+      "living_base_wood_only": true,
+      "anchor_at_root_contact": true,
+      "upper_crown_unchanged": true
+    },
+    {
+      "name": "autumn",
+      "alpha_binary": true,
+      "exact_pair_assembly": true,
+      "three_connected_masks": true,
+      "ground_mat_absent": true,
+      "living_base_wood_only": true,
+      "anchor_at_root_contact": true,
+      "upper_crown_unchanged": true
+    },
+    {
+      "name": "crooked_pine",
+      "alpha_binary": true,
+      "exact_pair_assembly": true,
+      "three_connected_masks": true,
+      "ground_mat_absent": true,
+      "living_base_wood_only": true,
+      "anchor_at_root_contact": true,
+      "upper_crown_unchanged": true
+    },
+    {
+      "name": "spruce",
+      "alpha_binary": true,
+      "exact_pair_assembly": true,
+      "three_connected_masks": true,
+      "ground_mat_absent": true,
+      "living_base_wood_only": true,
+      "anchor_at_root_contact": true,
+      "upper_crown_unchanged": true
+    },
+    {
+      "name": "willow",
+      "alpha_binary": true,
+      "exact_pair_assembly": true,
+      "three_connected_masks": true,
+      "ground_mat_absent": true,
+      "living_base_wood_only": true,
+      "anchor_at_root_contact": true,
+      "upper_crown_unchanged": true
+    },
+    {
+      "name": "palm",
+      "alpha_binary": true,
+      "exact_pair_assembly": true,
+      "three_connected_masks": true,
+      "ground_mat_absent": true,
+      "living_base_wood_only": true,
+      "anchor_at_root_contact": true,
+      "upper_crown_unchanged": true
+    },
+    {
+      "name": "branch_pine",
+      "alpha_binary": true,
+      "exact_pair_assembly": true,
+      "three_connected_masks": true,
+      "ground_mat_absent": true,
+      "living_base_wood_only": true,
+      "anchor_at_root_contact": true,
+      "upper_crown_unchanged": true
+    },
+    {
+      "name": "blossom",
+      "alpha_binary": true,
+      "exact_pair_assembly": true,
+      "three_connected_masks": true,
+      "ground_mat_absent": true,
+      "living_base_wood_only": true,
+      "anchor_at_root_contact": true,
+      "upper_crown_unchanged": true
+    },
+    {
+      "name": "fruit",
+      "alpha_binary": true,
+      "exact_pair_assembly": true,
+      "three_connected_masks": true,
+      "ground_mat_absent": true,
+      "living_base_wood_only": true,
+      "anchor_at_root_contact": true,
+      "upper_crown_unchanged": true
+    },
+    {
+      "name": "flower",
+      "alpha_binary": true,
+      "exact_pair_assembly": true,
+      "three_connected_masks": true,
+      "ground_mat_absent": true,
+      "living_base_wood_only": true,
+      "anchor_at_root_contact": true,
+      "upper_crown_unchanged": true
+    },
+    {
+      "name": "blue",
+      "alpha_binary": true,
+      "exact_pair_assembly": true,
+      "three_connected_masks": true,
+      "ground_mat_absent": true,
+      "living_base_wood_only": true,
+      "anchor_at_root_contact": true,
+      "upper_crown_unchanged": true
+    }
+  ],
+  "native_frame": [
+    128,
+    192
+  ],
+  "method": "source-guided 1:1 tracing, explicit native palette and cleanup; no resizing",
+  "scope": "tree replicas; isolated Godot preview; catalog not replaced",
+  "visual_approval": "not assumed from technical checks"
+}

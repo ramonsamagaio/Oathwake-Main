@@ -421,12 +421,7 @@ func _apply_layered_resource_visual() -> bool:
 		return false
 	layered_visual_root.visible = true
 	layered_trunk_sprite.position = _vector_from_value(layered.get("trunk_offset", {}), Vector2.ZERO)
-	var canopy_offset := _vector_from_value(layered.get("canopy_offset", {}), Vector2.ZERO)
-	# Romestead's living tree sheets include foliage that reaches the authored
-	# ground line, while the separate stump/root sheet sits underneath it. A small
-	# lift exposes one clean grounded base instead of hiding it inside the crown.
-	canopy_offset.y += float(layered.get("canopy_ground_lift", -8.0))
-	layered_canopy_sprite.position = canopy_offset
+	_restore_canopy_rest_transform(layered)
 	layered_trunk_sprite.z_index = 0
 	layered_canopy_sprite.z_index = int(layered.get("canopy_z_offset", 2))
 	layered_trunk_sprite.material = null
@@ -439,6 +434,21 @@ func _apply_layered_resource_visual() -> bool:
 		old_single.visible = false
 	content_sprite = layered_trunk_sprite
 	return true
+
+
+func _restore_canopy_rest_transform(layered: Dictionary) -> void:
+	if layered_canopy_wind_pivot == null or layered_canopy_sprite == null:
+		return
+	# New art rotates at its exposed wood joint. Existing sprites retain the
+	# ground pivot and their original -8px lift when no authored values exist.
+	var pivot_offset := _vector_from_value(layered.get("canopy_pivot_offset", {}), Vector2.ZERO)
+	var canopy_offset := _vector_from_value(layered.get("canopy_offset", {}), Vector2.ZERO)
+	canopy_offset.y += float(layered.get("canopy_ground_lift", -8.0))
+	layered_canopy_wind_pivot.position = pivot_offset
+	layered_canopy_wind_pivot.rotation = 0.0
+	layered_canopy_sprite.position = canopy_offset - pivot_offset
+	if _romestead_reaction_target == layered_canopy_wind_pivot:
+		_romestead_reaction_base_position = pivot_offset
 
 
 func _ensure_layered_resource_nodes() -> void:
@@ -781,9 +791,7 @@ func _finish_romestead_tree_fall() -> void:
 	_tree_stump_visible = true
 	if layered_canopy_sprite != null:
 		layered_canopy_sprite.visible = false
-	if layered_canopy_wind_pivot != null:
-		layered_canopy_wind_pivot.rotation = 0.0
-		layered_canopy_wind_pivot.position = Vector2.ZERO
+	_restore_canopy_rest_transform(resource_data.get("layered_visual", {}) as Dictionary)
 	_apply_destroyed_stump_sprite()
 	var shadow := get_node_or_null("RomesteadShadow") as CanvasItem
 	if shadow != null:
@@ -808,6 +816,7 @@ func _restore_living_tree_visual() -> void:
 	if not _uses_romestead_tree_fall():
 		return
 	var layered := resource_data.get("layered_visual", {}) as Dictionary
+	_restore_canopy_rest_transform(layered)
 	var living_id := _get_living_trunk_sprite_id(layered)
 	var living_record := _get_sprite_record(living_id)
 	if layered_trunk_sprite != null and not living_record.is_empty():

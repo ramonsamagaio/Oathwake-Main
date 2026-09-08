@@ -1,0 +1,13 @@
+{
+	"failures": [],
+	"mooncloak_builtin_count": 16,
+	"profiles": [
+		"juno",
+		"juno_base",
+		"male_dummy",
+		"default",
+		"wayfarer",
+		"mooncloak"
+	],
+	"selected": "mooncloak"
+}

@@ -1,0 +1,192 @@
+{
+  "size": [
+    192,
+    64
+  ],
+  "rgba_sha256": "722ecf454092fd66d501f808aca71539ba11ee5ebc7bbfca0701161b4cf106fc",
+  "colors": 21,
+  "plants": [
+    {
+      "name": "broad_rosette",
+      "cell": [
+        0,
+        0
+      ],
+      "pixels": 372,
+      "components": 1,
+      "bounds": [
+        2,
+        9,
+        30,
+        32
+      ]
+    },
+    {
+      "name": "fern",
+      "cell": [
+        1,
+        0
+      ],
+      "pixels": 379,
+      "components": 1,
+      "bounds": [
+        2,
+        6,
+        29,
+        31
+      ]
+    },
+    {
+      "name": "meadow_grass",
+      "cell": [
+        2,
+        0
+      ],
+      "pixels": 301,
+      "components": 1,
+      "bounds": [
+        3,
+        5,
+        29,
+        32
+      ]
+    },
+    {
+      "name": "nettle",
+      "cell": [
+        3,
+        0
+      ],
+      "pixels": 358,
+      "components": 1,
+      "bounds": [
+        5,
+        4,
+        27,
+        32
+      ]
+    },
+    {
+      "name": "ivory_herb",
+      "cell": [
+        4,
+        0
+      ],
+      "pixels": 370,
+      "components": 1,
+      "bounds": [
+        5,
+        6,
+        30,
+        31
+      ]
+    },
+    {
+      "name": "dry_sedge",
+      "cell": [
+        5,
+        0
+      ],
+      "pixels": 301,
+      "components": 1,
+      "bounds": [
+        3,
+        5,
+        29,
+        32
+      ]
+    },
+    {
+      "name": "sword_leaves",
+      "cell": [
+        0,
+        1
+      ],
+      "pixels": 398,
+      "components": 1,
+      "bounds": [
+        2,
+        5,
+        30,
+        32
+      ]
+    },
+    {
+      "name": "blue_herb",
+      "cell": [
+        1,
+        1
+      ],
+      "pixels": 366,
+      "components": 1,
+      "bounds": [
+        4,
+        5,
+        29,
+        31
+      ]
+    },
+    {
+      "name": "low_clover",
+      "cell": [
+        2,
+        1
+      ],
+      "pixels": 317,
+      "components": 1,
+      "bounds": [
+        3,
+        15,
+        29,
+        32
+      ]
+    },
+    {
+      "name": "purple_herb",
+      "cell": [
+        3,
+        1
+      ],
+      "pixels": 378,
+      "components": 1,
+      "bounds": [
+        5,
+        4,
+        29,
+        31
+      ]
+    },
+    {
+      "name": "sorrel",
+      "cell": [
+        4,
+        1
+      ],
+      "pixels": 331,
+      "components": 1,
+      "bounds": [
+        4,
+        9,
+        30,
+        32
+      ]
+    },
+    {
+      "name": "bent_grass",
+      "cell": [
+        5,
+        1
+      ],
+      "pixels": 283,
+      "components": 1,
+      "bounds": [
+        2,
+        8,
+        30,
+        32
+      ]
+    }
+  ],
+  "alpha": "binary",
+  "authorship": "Integer leaf contours and pixel edits in Pixelorama; no image resampling."
+}

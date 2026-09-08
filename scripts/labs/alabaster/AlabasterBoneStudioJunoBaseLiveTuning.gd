@@ -1,6 +1,12 @@
 extends "res://scripts/labs/alabaster/AlabasterBoneStudioWorkspaceBankRefresh.gd"
 
 const JunoBaseRigScript := preload("res://scripts/labs/alabaster/AlabasterJunoBaseRig.gd")
+const WayfarerRigScript := preload("res://scripts/labs/alabaster/WayfarerRig.gd")
+const MooncloakRigScript := preload("res://scripts/labs/alabaster/MooncloakRig.gd")
+const PROFILE_MOONCLOAK := "mooncloak"
+const MOONCLOAK_LABEL := "MOONCLOAK"
+const PROFILE_WAYFARER := "wayfarer"
+const WAYFARER_LABEL := "WAYFARER"
 const PROFILE_JUNO_BASE := "juno_base"
 const JUNO_BASE_LABEL := "JUNO BASE"
 const ACTIVE_GREEN := Color(0.08, 1.0, 0.22, 0.24)
@@ -11,6 +17,8 @@ func setup(owner: Control) -> void:
 	super.setup(owner)
 	_remove_male_controls()
 	_install_juno_base_controls()
+	_install_juno_base_controls(PROFILE_WAYFARER, WAYFARER_LABEL)
+	_install_juno_base_controls(PROFILE_MOONCLOAK, MOONCLOAK_LABEL)
 	_rebuild_animation_records()
 	_update_target_buttons()
 	_refresh_live_inspection(true)
@@ -31,8 +39,8 @@ func _remove_male_controls() -> void:
 				filter_option.remove_item(index)
 
 
-func _install_juno_base_controls() -> void:
-	if target_buttons.has(PROFILE_JUNO_BASE):
+func _install_juno_base_controls(profile_id: String = PROFILE_JUNO_BASE, label: String = JUNO_BASE_LABEL) -> void:
+	if target_buttons.has(profile_id):
 		return
 	var juno_value: Variant = target_buttons.get(PROFILE_JUNO, null)
 	if not juno_value is Button:
@@ -42,24 +50,25 @@ func _install_juno_base_controls() -> void:
 	if row == null:
 		return
 	var button := Button.new()
-	button.text = JUNO_BASE_LABEL
+	button.text = label
 	button.toggle_mode = true
 	button.button_group = juno_button.button_group
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(118.0, 34.0)
-	button.tooltip_text = "JunoBase: production Juno skeleton/runtime with the audited core player sprite sheet and an independent tuning namespace."
-	button.pressed.connect(_on_target_pressed.bind(PROFILE_JUNO_BASE))
+	button.tooltip_text = "%s: Juno core rig with its own atlas and custom animation namespace." % label
+	button.pressed.connect(_on_target_pressed.bind(profile_id))
 	row.add_child(button)
-	row.move_child(button, mini(juno_button.get_index() + 1, row.get_child_count() - 1))
-	target_buttons[PROFILE_JUNO_BASE] = button
+	if profile_id == PROFILE_JUNO_BASE:
+		row.move_child(button, mini(juno_button.get_index() + 1, row.get_child_count() - 1))
+	target_buttons[profile_id] = button
 
 	if filter_option != null:
-		filter_option.add_item(JUNO_BASE_LABEL)
-		filter_option.set_item_metadata(filter_option.item_count - 1, JUNO_BASE_LABEL)
+		filter_option.add_item(label)
+		filter_option.set_item_metadata(filter_option.item_count - 1, label)
 
 
 func _replace_host_rig(profile_id: String) -> bool:
-	if profile_id != PROFILE_JUNO_BASE:
+	if profile_id not in [PROFILE_JUNO_BASE, PROFILE_WAYFARER, PROFILE_MOONCLOAK]:
 		return super._replace_host_rig(profile_id)
 	if host == null:
 		return false
@@ -74,10 +83,15 @@ func _replace_host_rig(profile_id: String) -> bool:
 			old_rig.get_parent().remove_child(old_rig)
 		old_rig.queue_free()
 
-	var new_rig := JunoBaseRigScript.new() as Node2D
+	var new_rig:Node2D
+	match profile_id:
+		PROFILE_WAYFARER:new_rig=WayfarerRigScript.new() as Node2D
+		PROFILE_MOONCLOAK:new_rig=MooncloakRigScript.new() as Node2D
+		_:new_rig=JunoBaseRigScript.new() as Node2D
 	if new_rig == null:
 		return false
-	new_rig.name = "JunoBaseBoneStudioSharedRig"
+	new_rig.name = "WayfarerBoneStudioSharedRig" if profile_id == PROFILE_WAYFARER else "JunoBaseBoneStudioSharedRig"
+	if profile_id == PROFILE_MOONCLOAK:new_rig.name="MooncloakBoneStudioSharedRig"
 	preview_world.add_child(new_rig)
 	host.set("rig", new_rig)
 	new_rig.scale = Vector2.ONE * PREVIEW_BASE_SCALE * _preview_zoom
@@ -117,7 +131,14 @@ func _rebuild_animation_records() -> void:
 			kept.append(record.duplicate(true))
 	animation_records = kept
 
-	var base_records: Array = Library.get_animation_records(PROFILE_JUNO_BASE)
+	_append_core_profile_custom_records(PROFILE_JUNO_BASE)
+	_append_core_profile_custom_records(PROFILE_WAYFARER)
+	_append_core_profile_custom_records(PROFILE_MOONCLOAK)
+	_rebuild_animation_option()
+
+
+func _append_core_profile_custom_records(profile_id: String) -> void:
+	var base_records: Array = Library.get_animation_records(profile_id)
 	for record_value in base_records:
 		if not record_value is Dictionary:
 			continue
@@ -125,12 +146,15 @@ func _rebuild_animation_records() -> void:
 		if str(record.get("source", "")) != "custom":
 			continue
 		var copy := record.duplicate(true)
-		copy["source_profile"] = PROFILE_JUNO_BASE
+		copy["source_profile"] = profile_id
 		animation_records.append(copy)
-	_rebuild_animation_option()
 
 
 func _record_passes_filter(source_profile: String, source_kind: String, filter_name: String) -> bool:
+	if filter_name == MOONCLOAK_LABEL:
+		return source_profile == PROFILE_MOONCLOAK
+	if filter_name == WAYFARER_LABEL:
+		return source_profile == PROFILE_WAYFARER
 	if filter_name == JUNO_BASE_LABEL:
 		return source_profile == PROFILE_JUNO_BASE
 	if filter_name == "MALE":

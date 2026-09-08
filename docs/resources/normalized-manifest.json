@@ -1,0 +1,131 @@
+{
+	"palette": [
+		"293730",
+		"30312b",
+		"34363a",
+		"354741",
+		"38483b",
+		"414c38",
+		"464236",
+		"465742",
+		"494b49",
+		"506453",
+		"526047",
+		"555e45",
+		"576448",
+		"5b503d",
+		"606159",
+		"64704e",
+		"667050",
+		"6d7651",
+		"746248",
+		"76805a",
+		"77856a",
+		"79796a",
+		"7a805a",
+		"81855b",
+		"899065",
+		"8a7853",
+		"8a8e66",
+		"919080",
+		"9b9e74",
+		"a39065",
+		"a5a18c",
+		"b9a372",
+		"c4ae7d",
+		"d0c6a0",
+		"534a59",
+		"6d5d74",
+		"8b7b92",
+		"aa929a",
+		"744b3d",
+		"9b6250",
+		"b48255"
+	],
+	"sheets": [
+		{
+			"height": 64,
+			"name": "flora_ground_plants",
+			"path": "res://docs/resources/normalized/flora_ground_plants.png",
+			"width": 192
+		},
+		{
+			"height": 672,
+			"name": "tree_crowns",
+			"path": "res://docs/resources/normalized/tree_crowns.png",
+			"width": 1024
+		},
+		{
+			"height": 192,
+			"name": "tree_trunks",
+			"path": "res://docs/resources/normalized/tree_trunks.png",
+			"width": 1024
+		},
+		{
+			"height": 144,
+			"name": "terrain_round_rocks_big",
+			"path": "res://docs/resources/normalized/terrain_round_rocks_big.png",
+			"width": 240
+		},
+		{
+			"height": 96,
+			"name": "terrain_round_rocks_small",
+			"path": "res://docs/resources/normalized/terrain_round_rocks_small.png",
+			"width": 128
+		},
+		{
+			"height": 96,
+			"name": "flora_big_bushes1",
+			"path": "res://docs/resources/normalized/flora_big_bushes1.png",
+			"width": 352
+		},
+		{
+			"height": 256,
+			"name": "flora_wheat_animated",
+			"path": "res://docs/resources/normalized/flora_wheat_animated.png",
+			"width": 64
+		},
+		{
+			"height": 96,
+			"name": "desert_purplebush",
+			"path": "res://docs/resources/normalized/desert_purplebush.png",
+			"width": 48
+		},
+		{
+			"height": 16,
+			"name": "flora_small_bush1",
+			"path": "res://docs/resources/normalized/flora_small_bush1.png",
+			"width": 176
+		},
+		{
+			"height": 16,
+			"name": "flora_mushrooms",
+			"path": "res://docs/resources/normalized/flora_mushrooms.png",
+			"width": 96
+		},
+		{
+			"height": 160,
+			"name": "flora_bellflowers",
+			"path": "res://docs/resources/normalized/flora_bellflowers.png",
+			"width": 64
+		},
+		{
+			"height": 128,
+			"name": "flora_lilies",
+			"path": "res://docs/resources/normalized/flora_lilies.png",
+			"width": 96
+		},
+		{
+			"height": 64,
+			"name": "resources_copper_ore",
+			"path": "res://docs/resources/normalized/resources_copper_ore.png",
+			"width": 32
+		},
+		{
+			"height": 80,
+			"name": "poi_mossy_boulder_large",
+			"path": "res://docs/resources/normalized/poi_mossy_boulder_large.png",
+			"width": 64
+		}
+	]
+}

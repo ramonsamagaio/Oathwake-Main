@@ -1,0 +1,12 @@
+{
+	"failures": [],
+	"profiles": [
+		"juno",
+		"juno_base",
+		"male_dummy",
+		"default",
+		"wayfarer"
+	],
+	"selected": "wayfarer",
+	"wayfarer_builtin_count": 16
+}

@@ -1,0 +1,10 @@
+{
+  "name": "flora_ground_plants",
+  "size": [
+    192,
+    64
+  ],
+  "rgba_sha256": "722ecf454092fd66d501f808aca71539ba11ee5ebc7bbfca0701161b4cf106fc",
+  "native_pixel_edits": 4154,
+  "colors": 21
+}

@@ -1,0 +1,11 @@
+{
+  "rgba_roundtrip": true,
+  "frames": 2048,
+  "neighbor_masks": 512,
+  "color_variants": 4,
+  "variant_alpha_identical": false,
+  "variant_join_guard_identical": true,
+  "connected_layouts": 20,
+  "convex_and_concave_corners": true,
+  "pinholes": 0
+}

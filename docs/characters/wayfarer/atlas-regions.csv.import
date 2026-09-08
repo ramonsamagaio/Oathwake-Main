@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://udv4rr4co24r"
+
+[deps]
+
+files=["res://docs/characters/wayfarer/atlas-regions.gfx.translation", "res://docs/characters/wayfarer/atlas-regions.entry.translation", "res://docs/characters/wayfarer/atlas-regions.facing.translation", "res://docs/characters/wayfarer/atlas-regions.pitch.translation", "res://docs/characters/wayfarer/atlas-regions.row.translation", "res://docs/characters/wayfarer/atlas-regions.frame.translation", "res://docs/characters/wayfarer/atlas-regions.source.translation", "res://docs/characters/wayfarer/atlas-regions.source.translation", "res://docs/characters/wayfarer/atlas-regions.packed.translation", "res://docs/characters/wayfarer/atlas-regions.packed.translation", "res://docs/characters/wayfarer/atlas-regions.w.translation", "res://docs/characters/wayfarer/atlas-regions.h.translation", "res://docs/characters/wayfarer/atlas-regions.pivot.translation", "res://docs/characters/wayfarer/atlas-regions.pivot.translation", "res://docs/characters/wayfarer/atlas-regions.art.translation"]
+
+source_file="res://docs/characters/wayfarer/atlas-regions.csv"
+dest_files=["res://docs/characters/wayfarer/atlas-regions.gfx.translation", "res://docs/characters/wayfarer/atlas-regions.entry.translation", "res://docs/characters/wayfarer/atlas-regions.facing.translation", "res://docs/characters/wayfarer/atlas-regions.pitch.translation", "res://docs/characters/wayfarer/atlas-regions.row.translation", "res://docs/characters/wayfarer/atlas-regions.frame.translation", "res://docs/characters/wayfarer/atlas-regions.source.translation", "res://docs/characters/wayfarer/atlas-regions.source.translation", "res://docs/characters/wayfarer/atlas-regions.packed.translation", "res://docs/characters/wayfarer/atlas-regions.packed.translation", "res://docs/characters/wayfarer/atlas-regions.w.translation", "res://docs/characters/wayfarer/atlas-regions.h.translation", "res://docs/characters/wayfarer/atlas-regions.pivot.translation", "res://docs/characters/wayfarer/atlas-regions.pivot.translation", "res://docs/characters/wayfarer/atlas-regions.art.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

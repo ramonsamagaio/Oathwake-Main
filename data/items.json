@@ -170,7 +170,6 @@
 		"tier": 3.0
 	},
 	"axe": {
-		"alias_for": "wood_axe",
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 1.0,
@@ -965,7 +964,6 @@
 		"tier": 5.0
 	},
 	"pickaxe": {
-		"alias_for": "wood_pickaxe",
 		"can_repair": true,
 		"combat": {
 			"attack_cooldown_modifier": 1.0,

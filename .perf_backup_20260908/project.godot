@@ -1,0 +1,56 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Oathwake"
+run/main_scene="res://scenes/ui/IntroScreen.tscn"
+config/features=PackedStringArray("4.6", "GL Compatibility")
+config/icon="res://icon.svg"
+config/main_scene="res://scenes/ui/IntroScreen.tscn"
+
+[autoload]
+
+ContentDB="*res://scripts/systems/ContentDB.gd"
+SaveSlotManager="*res://scripts/systems/SaveSlotManager.gd"
+GameSession="*res://scripts/game/GameSession.gd"
+MultiFloorBuildManager="*res://scripts/systems/MultiFloorBuildManager.gd"
+MultiFloorRuntimeBridge="*res://scripts/systems/MultiFloorRuntimeBridge.gd"
+TibiaFloorVisibilityController="*res://scripts/systems/TibiaFloorVisibilityController.gd"
+GroundFloorSurfaceManager="*res://scripts/systems/GroundFloorSurfaceManager.gd"
+MultiFloorInputRouter="*res://scripts/systems/MultiFloorInputRouter.gd"
+BuildingInteractionManager="*res://scripts/systems/BuildingInteractionManager.gd"
+ConstructionCutawayManager="*res://scripts/systems/ConstructionCutawayManager.gd"
+ProceduralWorldAugment="*res://scripts/systems/ProceduralWorldAugment.gd"
+TerrainAuthoringPlaytestBootstrap="*res://scripts/systems/TerrainAuthoringPlaytestBootstrap.gd"
+UIInteractionPolish="*res://scripts/ui/UIInteractionPolish.gd"
+BuildMenuOverlay="*res://scripts/ui/BuildMenuOverlay.gd"
+SettingsManager="*res://scripts/systems/SettingsManager.gd"
+AnimatedCursor="*res://scripts/ui/AnimatedCursor.gd"
+DebugSidePanelRestorer="*res://scripts/ui/DebugSidePanelRestorer.gd"
+PixelVFX="*res://scripts/effects/PixelVFX.gd"
+PixelationPostProcess="*res://scripts/effects/PixelationPostProcess.gd"
+SFXManager="*res://scripts/audio/SFXManager.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/window_width_override=1920
+window/size/window_height_override=1080
+window/stretch/mode="viewport"
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+renderer/rendering_method.mobile="forward_plus"

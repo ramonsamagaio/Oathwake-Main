@@ -70,6 +70,14 @@ func _render_terrain_chunk(chunk: Vector2i) -> void:
 		for tile_x: int in range(start_x, finish_x):
 			var terrain_cell := Vector2i(tile_x, tile_y)
 			var terrain_type: int = int(_terrain_types.get(terrain_cell, TERRAIN_BASE))
+			if terrain_type == TERRAIN_WATER:
+				# Água não pinta chão: o OceanBackdrop aparece por baixo.
+				_draw_water_cell(terrain_cell)
+				# A areia tem que avancar POR CIMA da agua. Sem esta chamada a
+				# costa termina no limite exato do tile de areia e vira um
+				# degrau de 90 graus contra o shader.
+				_draw_shore(terrain_cell)
+				continue
 			_ground.set_cell(terrain_cell, 0, Vector2i(2, 1), 0)
 			_draw_native_autotile(terrain_cell, TERRAIN_DIRT, _dirt_layers)
 			_draw_native_autotile(terrain_cell, TERRAIN_GREEN, _green_layers)
@@ -78,6 +86,7 @@ func _render_terrain_chunk(chunk: Vector2i) -> void:
 			_draw_forest_path(terrain_cell, terrain_type)
 			_draw_plains_cliff(terrain_cell)
 			_draw_forest_barrier(terrain_cell)
+			_draw_shore(terrain_cell)
 			_draw_native_detail(terrain_cell, terrain_type)
 
 	_rendered_terrain_chunks[chunk] = true
@@ -138,7 +147,11 @@ func _draw_plains_cliff(cell: Vector2i) -> void:
 	if options.is_empty():
 		return
 
-	var frame: int = int(options[posmod(cell.x + cell.y, options.size())])
+	# Escolher a variante por paridade de (x+y) faz toda borda vertical
+	# alternar 101,97,101 e toda horizontal idem: sai um zebrado mecânico, e
+	# uma das variantes tem saliência de rocha. _cell_seed é o mesmo hash que o
+	# resto do tiler usa, então a variação volta a parecer natural.
+	var frame: int = int(options[_cell_seed(cell) % options.size()])
 	var top_coord := Vector2i(
 		frame % PLAINS_CLIFF_ATLAS_COLUMNS,
 		frame / PLAINS_CLIFF_ATLAS_COLUMNS
