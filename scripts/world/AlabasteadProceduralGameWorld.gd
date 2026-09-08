@@ -213,15 +213,42 @@ func _build_layer_blocks_resource(world_position: Vector2, radius: float) -> boo
 	return false
 
 
+func _prune_invalid_resource_refs() -> void:
+	# queue_free() invalidates the object at the end of the frame, but typed
+	# arrays can still retain the stale reference. Casting that stale reference
+	# on the next load-reconcile pass raises "Trying to cast a freed object".
+	for index in range(_managed_resources.size() - 1, -1, -1):
+		if not is_instance_valid(_managed_resources[index]):
+			_managed_resources.remove_at(index)
+	for index in range(_wind_resources.size() - 1, -1, -1):
+		if not is_instance_valid(_wind_resources[index]):
+			_wind_resources.remove_at(index)
+	for index in range(_occlusion_resources.size() - 1, -1, -1):
+		if not is_instance_valid(_occlusion_resources[index]):
+			_occlusion_resources.remove_at(index)
+
+
+func _forget_managed_resource(resource: Node) -> void:
+	_managed_resources.erase(resource)
+	_wind_resources.erase(resource)
+	_occlusion_resources.erase(resource)
+
+
 func _reconcile_resources_with_player_buildings() -> void:
 	if not is_inside_tree():
 		return
 
+	# Load/build restore can run this reconciliation across several frames.
+	# Remove stale queue_free() references before any cast or respawn query.
+	_prune_invalid_resource_refs()
+
 	# Existing resources: relocate when possible. If no legal respawn is found,
 	# remove the node rather than leaving a harvestable object inside a building.
 	for resource_value in _managed_resources.duplicate():
+		if not is_instance_valid(resource_value):
+			continue
 		var resource := resource_value as Node2D
-		if resource == null or not is_instance_valid(resource):
+		if resource == null:
 			continue
 		var radius := _resource_radius_from_node(resource)
 		if not _build_layer_blocks_resource(resource.global_position, radius):
@@ -232,6 +259,7 @@ func _reconcile_resources_with_player_buildings() -> void:
 		if replacement != old_position and not _build_layer_blocks_resource(replacement, radius):
 			resource.global_position = replacement
 		else:
+			_forget_managed_resource(resource)
 			resource.queue_free()
 
 	# Streamed reservations: invalidate them before they ever become nodes.
