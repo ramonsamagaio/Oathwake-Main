@@ -3,7 +3,8 @@
 ; since the parameters that go here are not all obvious.
 ;
 ; Format:
-;   [section] ; section param=value
+;   [section]
+;   param=value
 
 config_version=5
 
