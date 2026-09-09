@@ -1,11 +1,9 @@
 extends Node
-## Re-skins and rebuilds the Romestead procedural road network with the native
-## stone-road sprites from the extracted Romestead art set. This intentionally
-## does not touch shoreline/ocean generation: water remains owned by
-## ProceduralWorldAugment/RomesteadBiomeWorld2D.
+## Builds the playable road network using the native Romestead stone-road sheets.
+## Roads are semantic overlays only: coastline/water remain owned by the world generator.
 
 const TILE_SIZE := 16
-const WATER_BIOME := 0
+const BIOME_WATER := 0
 const BIOME_DIRT := 1
 const BIOME_MEADOW := 2
 const BIOME_FOREST := 3
@@ -15,9 +13,10 @@ const BIOME_FOREST_LIGHT := 6
 const BIOME_FOREST_DEEP := 7
 
 const ROAD_Z := -4086
-const ROAD_MAIN_RADIUS_TILES := 3
-const ROAD_TRAIL_RADIUS_TILES := 2
-const TOWN_GREY_RADIUS_TILES := 20.0
+# Romestead roads are broad enough to read, but they are corridors, not terrain blobs.
+const ROAD_MAIN_RADIUS_TILES := 2
+const ROAD_TRAIL_RADIUS_TILES := 1
+const TOWN_GREY_RADIUS_TILES := 14.0
 const WATER_RADIUS_FACTOR := 0.085
 
 const COBBLE_ROAD_PATH := "res://assets/world_lab/romestead_native_png/sources/floors/cobblestone_road_tileset.png"
@@ -64,9 +63,6 @@ func _schedule_rebuild() -> void:
 
 
 func _rebuild_after_augments(serial: int) -> void:
-	# ProceduralWorldAugment is also deferred after world_generated. Waiting two
-	# frames lets it finish the biome/water pass first, so the stone roads never
-	# overwrite the user's surrounding ocean.
 	await get_tree().process_frame
 	await get_tree().process_frame
 	if serial != _rebuild_serial:
@@ -86,7 +82,7 @@ func _rebuild_roads() -> void:
 	var beige_texture := load(COBBLE_ROAD_PATH) as Texture2D
 	var grey_texture := load(GREY_ROAD_PATH) as Texture2D
 	if beige_texture == null or grey_texture == null:
-		push_warning("RomesteadStoneRoadOverlay: native Romestead road textures are missing; keeping the previous road renderer.")
+		push_warning("RomesteadStoneRoadOverlay: native Romestead road textures are missing.")
 		return
 
 	_beige_layer = _make_native_road_layer("RomesteadStoneRoads", beige_texture)
@@ -97,20 +93,19 @@ func _rebuild_roads() -> void:
 	_attached_world.add_child(_grey_layer)
 
 	var town_cell := _town_cell()
-	# Core road cells always use native full-stone variants. The irregular
-	# border is painted into neighbouring cells as a separate fringe, which
-	# avoids square holes on diagonal roads while preserving Romestead's broken
-	# stone silhouette.
 	for value in _road_cells.keys():
 		var cell := Vector2i(value)
 		var layer := _road_layer_for_cell(cell, town_cell)
-		var variant := posmod(_cell_seed(cell, 0xC0BB1E), 4)
-		layer.set_cell(cell, 0, Vector2i(variant, 6 + posmod(variant, 2)), 0)
+		var variant := posmod(_cell_seed(cell, 0xC0BB1E), 8)
+		layer.set_cell(cell, 0, Vector2i(variant % 4, 6 + variant / 4), 0)
 
+	# Only one tile of authored transition around the core. This is what gives
+	# the road its broken-stone silhouette without letting three routes merge
+	# into the giant beige polygon that appeared in the playtest screenshot.
 	var fringe := _build_road_fringe()
 	for value in fringe.keys():
 		var cell := Vector2i(value)
-		if _is_water(cell):
+		if not _road_cell_allowed(cell):
 			continue
 		var coord := _native_fringe_coord(_road_cells, cell)
 		if coord.x < 0:
@@ -131,12 +126,9 @@ func _collect_water_cells() -> void:
 		var augment_water: Variant = augment.get("_water_cells")
 		if augment_water is Dictionary:
 			_water_cells = (augment_water as Dictionary).duplicate()
-
-	# Also honor the world's biome mask. This catches the user's ocean-border
-	# implementation even if it was authored outside ProceduralWorldAugment.
 	var biomes := _dict_property(_attached_world, "_biomes")
 	for value in biomes.keys():
-		if value is Vector2i and int(biomes.get(value, -1)) == WATER_BIOME:
+		if value is Vector2i and int(biomes.get(value, -1)) == BIOME_WATER:
 			_water_cells[value] = true
 
 
@@ -167,25 +159,20 @@ func _make_road_astar(start: Vector2i, size: Vector2i) -> AStarGrid2D:
 	var astar := AStarGrid2D.new()
 	astar.region = Rect2i(start, size)
 	astar.cell_size = Vector2.ONE
-	# Romestead roads visibly travel diagonally across the world. The previous
-	# cardinal-only grid produced right-angle/L-shaped routes.
 	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ALWAYS
 	astar.update()
 	var biomes := _dict_property(_attached_world, "_biomes")
 	var barriers := _dict_property(_attached_world, "_forest_barriers")
+	var tree_left := _dict_property(_attached_world, "_forest_tree_left")
+	var tree_right := _dict_property(_attached_world, "_forest_tree_right")
 	var cliffs := _dict_property(_attached_world, "_plains_cliffs")
 	for y in range(start.y, start.y + size.y):
 		for x in range(start.x, start.x + size.x):
 			var cell := Vector2i(x, y)
-			if _water_cells.has(cell) or int(biomes.get(cell, -1)) == WATER_BIOME:
+			if _water_cells.has(cell) or int(biomes.get(cell, -1)) == BIOME_WATER or cliffs.has(cell) or barriers.has(cell) or tree_left.has(cell) or tree_right.has(cell):
 				astar.set_point_solid(cell, true)
 				continue
-			var weight := _road_weight_for_biome(int(biomes.get(cell, BIOME_DRY)))
-			if barriers.has(cell):
-				weight += 14.0
-			if cliffs.has(cell):
-				weight += 24.0
-			astar.set_point_weight_scale(cell, weight)
+			astar.set_point_weight_scale(cell, _road_weight_for_biome(int(biomes.get(cell, BIOME_DRY))))
 	return astar
 
 
@@ -203,18 +190,32 @@ func _paint_road_brush(center: Vector2i, radius: int) -> void:
 	for oy in range(-radius, radius + 1):
 		for ox in range(-radius, radius + 1):
 			var offset := Vector2i(ox, oy)
-			var distance := Vector2(offset).length()
-			if distance > float(radius) + 0.35:
+			if Vector2(offset).length() > float(radius) + 0.15:
 				continue
 			var cell := center + offset
-			if _is_water(cell):
+			if not _road_cell_allowed(cell):
 				continue
-			# Inner road is guaranteed solid; only the outermost ring is dithered.
-			# This gives the broken, stone-by-stone silhouette visible in Romestead.
-			if distance > float(radius) - 0.45:
-				if _hash01(cell.x, cell.y, int(_attached_world.get("world_seed")) ^ 0x5A17) > 0.72:
-					continue
 			_road_cells[cell] = true
+
+
+func _road_cell_allowed(cell: Vector2i) -> bool:
+	if _is_water(cell) or not _is_in_world_bounds(cell):
+		return false
+	if _dict_property(_attached_world, "_plains_cliffs").has(cell):
+		return false
+	if _dict_property(_attached_world, "_forest_barriers").has(cell):
+		return false
+	if _dict_property(_attached_world, "_forest_tree_left").has(cell):
+		return false
+	if _dict_property(_attached_world, "_forest_tree_right").has(cell):
+		return false
+	return true
+
+
+func _is_in_world_bounds(cell: Vector2i) -> bool:
+	var size := Vector2i(_attached_world.get("world_size_tiles"))
+	var start := Vector2i(-size.x / 2, -size.y / 2)
+	return Rect2i(start, size).has_point(cell)
 
 
 func _build_road_fringe() -> Dictionary:
@@ -236,28 +237,32 @@ func _native_fringe_coord(cells: Dictionary, cell: Vector2i) -> Vector2i:
 	var e := cells.has(cell + Vector2i.RIGHT)
 	var s := cells.has(cell + Vector2i.DOWN)
 	var w := cells.has(cell + Vector2i.LEFT)
-	var variant := posmod(_cell_seed(cell, 0xED6E), 2)
 
-	# Diagonal outside corners first.
-	if e and s and not n and not w:
-		return Vector2i(1, 0)
-	if w and s and not n and not e:
-		return Vector2i(3, 0)
-	if e and n and not s and not w:
-		return Vector2i(1, 2)
-	if w and n and not s and not e:
-		return Vector2i(3, 2)
+	# Exact 16px transition pieces from the native Romestead cobblestone sheet.
+	# The previous mapping used unrelated cells from rows 0-3 and produced the
+	# rectangular cut-outs visible around every diagonal border.
+	if s and w and not n and not e:
+		return Vector2i(0, 0)
+	if s and e and not n and not w:
+		return Vector2i(1, 3)
+	if n and e and not s and not w:
+		return Vector2i(0, 2)
+	if n and w and not s and not e:
+		return Vector2i(3, 3)
+	if s and not n and not e and not w:
+		return Vector2i(0, 8)
+	if n and not s and not e and not w:
+		return Vector2i(2, 8)
+	if e and not n and not s and not w:
+		return Vector2i(0, 9)
+	if w and not n and not s and not e:
+		return Vector2i(2, 9)
 
-	# Native half-edge variants. The fringe cell lives outside the core, so a
-	# road neighbour to the south uses the bottom-half tile, and so on.
-	if s:
-		return Vector2i(variant, 8)
-	if n:
-		return Vector2i(2 + variant, 8)
-	if e:
-		return Vector2i(variant, 9)
-	if w:
-		return Vector2i(2 + variant, 9)
+	# At a junction or a very tight diagonal there is no useful "outside" tile.
+	# Keep it full instead of punching a transparent square into the road.
+	var cardinal_count := int(n) + int(e) + int(s) + int(w)
+	if cardinal_count >= 2:
+		return Vector2i(posmod(_cell_seed(cell, 0xE661), 4), 6)
 	return Vector2i(-1, -1)
 
 
@@ -288,8 +293,6 @@ func _make_native_road_layer(layer_name: String, texture: Texture2D) -> TileMapL
 
 
 func _hide_previous_road_visuals() -> void:
-	# Keep the original procedural layer alive as data for any other systems,
-	# but do not draw the old dirt/brown road below the native stone road.
 	var old_layer := _attached_world.get_node_or_null("ProceduralRoads") as CanvasItem
 	if old_layer != null:
 		old_layer.visible = false
@@ -327,7 +330,7 @@ func _is_water(cell: Vector2i) -> bool:
 	if _water_cells.has(cell):
 		return true
 	var biomes := _dict_property(_attached_world, "_biomes")
-	return int(biomes.get(cell, -1)) == WATER_BIOME
+	return int(biomes.get(cell, -1)) == BIOME_WATER
 
 
 func _road_weight_for_biome(biome: int) -> float:
@@ -344,6 +347,8 @@ func _road_weight_for_biome(biome: int) -> float:
 			return 5.5
 		BIOME_SWAMP:
 			return 7.0
+		BIOME_DIRT:
+			return 1.25
 		_:
 			return 1.5
 
@@ -373,13 +378,6 @@ func _cell_seed(cell: Vector2i, salt: int) -> int:
 	mixed ^= cell.x * 73856093
 	mixed ^= cell.y * 19349663
 	return absi(mixed)
-
-
-func _hash01(x: int, y: int, salt: int) -> float:
-	var mixed := x * 374761393 + y * 668265263 + salt * 69069
-	mixed = (mixed ^ (mixed >> 13)) * 1274126177
-	mixed = mixed ^ (mixed >> 16)
-	return float(posmod(mixed, 10000)) / 9999.0
 
 
 func _clear_layers() -> void:
