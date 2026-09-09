@@ -18,6 +18,13 @@
 		"prop_attempt_bias": 1.33,
 		"prop_size_small": 0.5,
 		"prop_size_medium": 1.0,
-		"prop_size_large": 1.5
+		"prop_size_large": 1.5,
+		"biome_noise_scale": 1.0,
+		"biome_keypoint_radius_ratio": 0.375,
+		"desert_radius_tiles": 100,
+		"desert_transition_tiles": 32,
+		"desert_irregularity": 0.3,
+		"desert_prop_density": 0.22,
+		"runtime_terrain_chunk_tiles": 8
 	}
 }

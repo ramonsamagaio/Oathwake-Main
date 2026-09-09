@@ -59,6 +59,14 @@
 			{"monster_id": "skeleton", "weight": 2.0, "max_alive": 4, "hour_start": 12.0, "hour_end": 24.0}
 		]
 	},
+	"desert": {
+		"display_name": "Deserto",
+		"allows_monster_spawn": true,
+		"monster_spawns": [
+			{"monster_id": "skeleton", "weight": 2.5, "max_alive": 4, "hour_start": 12.0, "hour_end": 24.0},
+			{"monster_id": "slime", "weight": 0.6, "max_alive": 2, "hour_start": 0.0, "hour_end": 24.0}
+		]
+	},
 	"dirt": {
 		"display_name": "Terra seca",
 		"allows_monster_spawn": true,
