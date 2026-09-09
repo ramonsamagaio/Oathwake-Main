@@ -3,7 +3,7 @@
 ; since the parameters that go here are not all obvious.
 ;
 ; Format:
-;   [section] ; section goes between []
+;   [section] ; section ends with []
 ;   param=value ; assign values to parameters
 
 config_version=5
@@ -29,6 +29,7 @@ MultiFloorInputRouter="*res://scripts/systems/MultiFloorInputRouter.gd"
 BuildingInteractionManager="*res://scripts/systems/BuildingInteractionManager.gd"
 ConstructionCutawayManager="*res://scripts/systems/ConstructionCutawayManager.gd"
 ProceduralWorldAugment="*res://scripts/systems/ProceduralWorldAugment.gd"
+RomesteadNativeWaterRestore="*res://scripts/systems/RomesteadNativeWaterRestore.gd"
 RomesteadStoneRoadOverlay="*res://scripts/systems/RomesteadStoneRoadOverlay.gd"
 TerrainAuthoringPlaytestBootstrap="*res://scripts/systems/TerrainAuthoringPlaytestBootstrap.gd"
 UIInteractionPolish="*res://scripts/ui/UIInteractionPolish.gd"
