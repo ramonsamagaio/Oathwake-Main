@@ -30,6 +30,7 @@ BuildingInteractionManager="*res://scripts/systems/BuildingInteractionManager.gd
 ConstructionCutawayManager="*res://scripts/systems/ConstructionCutawayManager.gd"
 ProceduralWorldAugment="*res://scripts/systems/ProceduralWorldAugment.gd"
 RomesteadNativeWaterRestore="*res://scripts/systems/RomesteadNativeWaterRestore.gd"
+RomesteadCliffRepair="*res://scripts/systems/RomesteadCliffRepair.gd"
 RomesteadStoneRoadOverlay="*res://scripts/systems/RomesteadStoneRoadOverlay.gd"
 TerrainAuthoringPlaytestBootstrap="*res://scripts/systems/TerrainAuthoringPlaytestBootstrap.gd"
 UIInteractionPolish="*res://scripts/ui/UIInteractionPolish.gd"
